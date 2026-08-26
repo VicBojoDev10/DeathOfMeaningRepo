@@ -269,8 +269,8 @@ MonoBehaviour:
     y: 0
     width: 467.33334
     height: 912.6667
-  m_MinSize: {x: 200, y: 200}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 201, y: 226}
+  m_MaxSize: {x: 4001, y: 4026}
   m_ActualView: {fileID: 17}
   m_Panes:
   - {fileID: 17}
@@ -378,7 +378,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 42.666668
+    y: 0
     width: 2560
     height: 36
   m_SerializedDataModeController:
@@ -685,10 +685,10 @@ MonoBehaviour:
     m_VRangeLocked: 0
     hZoomLockedByDefault: 0
     vZoomLockedByDefault: 0
-    m_HBaseRangeMin: -640
-    m_HBaseRangeMax: 640
-    m_VBaseRangeMin: -360
-    m_VBaseRangeMax: 360
+    m_HBaseRangeMin: -960
+    m_HBaseRangeMax: 960
+    m_VBaseRangeMin: -540
+    m_VBaseRangeMax: 540
     m_HAllowExceedBaseRangeMin: 1
     m_HAllowExceedBaseRangeMax: 1
     m_VAllowExceedBaseRangeMin: 1
@@ -721,8 +721,8 @@ MonoBehaviour:
       width: 990.6667
       height: 577.11115
     m_MinimalGUI: 1
-  m_defaultScale: 1
-  m_LastWindowPixelSize: {x: 2229, y: 1330}
+  m_defaultScale: 0.7739583
+  m_LastWindowPixelSize: {x: 1486, y: 886.6667}
   m_ClearInEditMode: 1
   m_NoCameraWarning: 1
   m_LowResolutionForAspectRatios: 01000000000000000000
@@ -751,7 +751,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 78.66667
+    y: 24
     width: 466.33334
     height: 886.6667
   m_SerializedDataModeController:
@@ -829,8 +829,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Scene\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 467.33334
-    y: 78.66667
+    x: 468.33334
+    y: 24
     width: 1486
     height: 886.6667
   m_SerializedDataModeController:
@@ -1372,11 +1372,11 @@ MonoBehaviour:
   m_Rotation:
     m_Target: {x: 0.054131765, y: 0.89651275, z: -0.11429979, w: 0.4245835}
     speed: 2
-    m_Value: {x: 0.054556314, y: 0.89639765, z: -0.11519623, w: 0.424529}
+    m_Value: {x: 0.05413176, y: 0.89651275, z: -0.11429978, w: 0.4245835}
   m_Size:
     m_Target: 14.221005
     speed: 2
-    m_Value: 13.608618
+    m_Value: 14.221005
   m_Ortho:
     m_Target: 0
     speed: 2
@@ -1434,7 +1434,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 991.3334
+    y: 24
     width: 1302.3334
     height: 354.6667
   m_SerializedDataModeController:
@@ -1486,12 +1486,8 @@ MonoBehaviour:
     m_LastClickedID:
       m_rawData: 568105584918841908
     m_ExpandedIDs:
-    - m_rawData: 568105589213755492
     - m_rawData: 0
-    - m_rawData: 568105584918839634
-    - m_rawData: 568105584918841840
-    - m_rawData: 568105584918841862
-    - m_rawData: 568105587066273791
+    - m_rawData: 568105584918840178
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1524,10 +1520,8 @@ MonoBehaviour:
     m_LastClickedID:
       m_rawData: 0
     m_ExpandedIDs:
-    - m_rawData: 568105589213755492
     - m_rawData: 0
-    - m_rawData: 568105584918839634
-    - m_rawData: 568105587066273791
+    - m_rawData: 568105584918840178
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1613,8 +1607,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Console\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 1303.3334
-    y: 991.3334
+    x: 1304.3334
+    y: 24
     width: 650
     height: 354.6667
   m_SerializedDataModeController:
@@ -1653,8 +1647,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Inspector\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 1955.3334
-    y: 78.66667
+    x: 1956.3334
+    y: 24
     width: 603.6666
     height: 1267.3334
   m_SerializedDataModeController:
