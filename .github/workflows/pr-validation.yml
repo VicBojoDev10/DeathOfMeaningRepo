@@ -1,0 +1,154 @@
+name: Validación de PR
+
+on:
+  pull_request:
+    branches: [dev, main]
+
+jobs:
+  nombre-de-rama:
+    name: Nombre de rama
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar formato feat/TW-XXX-descripcion
+        run: |
+          RAMA="${{ github.head_ref }}"
+          echo "Rama: $RAMA"
+
+          if [[ ! "$RAMA" =~ ^feat/TW-[0-9]+-[a-z0-9-]+$ ]]; then
+            echo "::error::Nombre de rama invalido: '$RAMA'"
+            echo ""
+            echo "Formato esperado: feat/TW-XXX-descripcion-corta"
+            echo ""
+            echo "Correcto:"
+            echo "  feat/TW-16-jump-resolver"
+            echo "  feat/TW-20-combo-state-machine"
+            echo ""
+            echo "Incorrecto:"
+            echo "  feat/#TW-16-jump-resolver   (sin # )"
+            echo "  feat/TW-16-Jump-Resolver    (sin mayusculas)"
+            echo "  feature/TW-16-jump          (el prefijo es 'feat/')"
+            echo "  TW-16                       (falta el prefijo y la descripcion)"
+            exit 1
+          fi
+
+          echo "Nombre de rama correcto."
+
+  mensajes-de-commit:
+    name: Mensajes de commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "Validar formato: tipo y descripcion"
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+
+          # Solo la primera linea de cada commit de este PR
+          COMMITS=$(git log --format=%s "$BASE..$HEAD")
+
+          if [ -z "$COMMITS" ]; then
+            echo "No hay commits nuevos que validar."
+            exit 0
+          fi
+
+          # tipo: descripcion de al menos 10 caracteres.
+          # Se permite una referencia opcional al ticket: feat(TW-16): ...
+          PATRON='^(feat|fix|bug|doc|art)(\(TW-[0-9]+\))?: .{10,}$'
+          FALLO=0
+
+          while IFS= read -r MSG; do
+            # Los commits de merge generados por GitHub se ignoran
+            if [[ "$MSG" =~ ^Merge\  ]]; then
+              echo "  (merge, ignorado) $MSG"
+              continue
+            fi
+
+            if [[ ! "$MSG" =~ $PATRON ]]; then
+              echo "::error::Commit invalido: '$MSG'"
+              FALLO=1
+            else
+              echo "  OK  $MSG"
+            fi
+          done <<< "$COMMITS"
+
+          if [ $FALLO -ne 0 ]; then
+            echo ""
+            echo "Formato esperado: tipo: descripcion"
+            echo ""
+            echo "Tipos validos:"
+            echo "  feat  funcionalidad nueva"
+            echo "  fix   correccion de un problema"
+            echo "  bug   reporte o parche de un bug conocido"
+            echo "  doc   documentacion, comentarios, README"
+            echo "  art   assets, modelos, texturas, audio, escenas"
+            echo ""
+            echo "Correcto:"
+            echo "  feat: JumpResolver con coyote time y jump buffer"
+            echo "  fix: el dash ya no ignora la gravedad al aterrizar"
+            echo "  feat(TW-16): tests del arbol de combos de Ayla"
+            echo ""
+            echo "Incorrecto:"
+            echo "  ya esta"
+            echo "  yo"
+            echo "  cambios"
+            echo "  feat: arreglos          (descripcion demasiado corta)"
+            echo ""
+            echo "Para corregir el ultimo commit:"
+            echo "  git commit --amend -m 'feat: descripcion clara de lo que hace'"
+            echo "  git push --force-with-lease"
+            exit 1
+          fi
+
+          echo ""
+          echo "Todos los mensajes de commit son validos."
+
+  estructura:
+    name: Estructura del proyecto
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Antipatrones prohibidos
+        run: |
+          FALLO=0
+
+          if grep -rn "FindObjectOfType<Player" Assets/ --include=*.cs 2>/dev/null; then
+            echo "::error::Prohibido FindObjectOfType sobre el jugador. Con dos jugadores no tiene sentido."
+            FALLO=1
+          fi
+
+          if [ -d "Assets/Scripts/Player" ] && grep -rn "\.Instance" Assets/Scripts/Player --include=*.cs 2>/dev/null; then
+            echo "::error::Prohibido usar singletons de jugador."
+            FALLO=1
+          fi
+
+          if grep -rn "PlayerPrefs" Assets/ --include=*.cs 2>/dev/null; then
+            echo "::warning::PlayerPrefs detectado. Confirmar que no se usa para estado compartido."
+          fi
+
+          exit $FALLO
+
+      - name: Meta files presentes
+        run: |
+          FALTANTES=0
+          while IFS= read -r f; do
+            if [ ! -f "$f.meta" ]; then
+              echo "::error::Falta el meta file de $f"
+              FALTANTES=1
+            fi
+          done < <(find Assets -type f ! -name "*.meta" 2>/dev/null)
+          exit $FALTANTES
+
+      - name: Escenas y prefabs en texto plano
+        run: |
+          FALLO=0
+          while IFS= read -r f; do
+            if ! head -c 20 "$f" | grep -q "%YAML"; then
+              echo "::error::$f esta en binario. Falta Asset Serialization en Force Text."
+              FALLO=1
+            fi
+          done < <(find Assets \( -name "*.unity" -o -name "*.prefab" \) 2>/dev/null)
+          exit $FALLO
