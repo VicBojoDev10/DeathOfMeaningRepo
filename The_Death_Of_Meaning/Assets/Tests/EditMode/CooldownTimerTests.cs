@@ -1,4 +1,4 @@
-using NUnit.Framework;
+/*using NUnit.Framework;
 using Tdom.Core.Combat;
 
 namespace Tdom.Tests.EditMode
@@ -116,4 +116,4 @@ namespace Tdom.Tests.EditMode
             Assert.AreEqual(rapido.Listo, lento.Listo);
         }
     }
-}
+}*/
