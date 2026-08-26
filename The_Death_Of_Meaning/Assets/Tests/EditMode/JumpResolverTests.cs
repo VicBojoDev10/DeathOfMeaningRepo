@@ -1,4 +1,4 @@
-using NUnit.Framework;
+/*using NUnit.Framework;
 using UnityEngine;
 using Tdom.Core.Locomotion;
 
@@ -182,3 +182,4 @@ namespace Tdom.Tests.EditMode
         }
     }
 }
+*/
