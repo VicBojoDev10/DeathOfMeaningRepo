@@ -43,10 +43,19 @@ jobs:
 
       - name: "Validar formato: tipo y descripcion"
         run: |
-          BASE="${{ github.event.pull_request.base.sha }}"
+          BASE_REF="${{ github.event.pull_request.base.ref }}"
           HEAD="${{ github.event.pull_request.head.sha }}"
 
-          # Solo la primera linea de cada commit de este PR
+          # OJO: github.event.pull_request.base.sha puede quedar desactualizado.
+          # Si la rama base (dev) avanza despues de abrir el PR, ese base.sha
+          # apunta a un commit viejo y el rango arrastra commits que YA estan
+          # en dev (historia del equipo). Para validar SOLO los commits que
+          # este PR agrega, usamos el punto de bifurcacion real (merge-base)
+          # contra la punta actual de la rama base.
+          git fetch --no-tags origin "$BASE_REF"
+          BASE=$(git merge-base "origin/$BASE_REF" "$HEAD")
+
+          # Solo la primera linea de cada commit nuevo de este PR
           COMMITS=$(git log --format=%s "$BASE..$HEAD")
 
           if [ -z "$COMMITS" ]; then

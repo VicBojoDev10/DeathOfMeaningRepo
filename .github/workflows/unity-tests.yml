@@ -15,10 +15,12 @@ jobs:
 
       # La carpeta Library pesa varios GB y tarda mucho en regenerarse.
       # Sin cache, cada corrida del CI se lleva 10-15 minutos.
+      # El proyecto de Unity vive en la subcarpeta The_Death_Of_Meaning/,
+      # no en la raiz del repo. Las rutas del cache y projectPath lo reflejan.
       - uses: actions/cache@v4
         with:
-          path: Library
-          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          path: The_Death_Of_Meaning/Library
+          key: Library-${{ hashFiles('The_Death_Of_Meaning/Assets/**', 'The_Death_Of_Meaning/Packages/**', 'The_Death_Of_Meaning/ProjectSettings/**') }}
           restore-keys: |
             Library-
 
@@ -29,6 +31,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
+          projectPath: The_Death_Of_Meaning
           testMode: EditMode
           artifactsPath: resultados-tests
           githubToken: ${{ secrets.GITHUB_TOKEN }}
