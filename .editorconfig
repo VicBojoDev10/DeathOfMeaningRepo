@@ -1,0 +1,64 @@
+# EditorConfig para tdom — reglas de estilo y buenas prácticas de C#.
+# Lo respetan Rider, Visual Studio, VS Code y los analizadores de Roslyn.
+# El formateo automático en CI lo hace CSharpier (ver .config/dotnet-tools.json).
+root = true
+
+[*]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+
+[*.{cs,asmdef}]
+indent_size = 4
+
+[*.cs]
+# ---------- Convenciones de nomenclatura ----------
+# Tipos, métodos, propiedades y constantes: PascalCase
+dotnet_naming_rule.tipos_pascal.severity = warning
+dotnet_naming_rule.tipos_pascal.symbols = tipos
+dotnet_naming_rule.tipos_pascal.style = pascal_case
+dotnet_naming_symbols.tipos.applicable_kinds = class,struct,enum,interface,delegate,method,property
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+# Interfaces: prefijo I
+dotnet_naming_rule.interfaces_con_i.severity = warning
+dotnet_naming_rule.interfaces_con_i.symbols = interfaces
+dotnet_naming_rule.interfaces_con_i.style = con_prefijo_i
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_style.con_prefijo_i.capitalization = pascal_case
+dotnet_naming_style.con_prefijo_i.required_prefix = I
+
+# Campos privados: _camelCase
+dotnet_naming_rule.campos_privados.severity = warning
+dotnet_naming_rule.campos_privados.symbols = campos_privados_sym
+dotnet_naming_rule.campos_privados.style = guion_bajo_camel
+dotnet_naming_symbols.campos_privados_sym.applicable_kinds = field
+dotnet_naming_symbols.campos_privados_sym.applicable_accessibilities = private,private_protected
+dotnet_naming_style.guion_bajo_camel.capitalization = camel_case
+dotnet_naming_style.guion_bajo_camel.required_prefix = _
+
+# ---------- Estilo de código ----------
+csharp_prefer_braces = true:warning
+csharp_style_namespace_declarations = file_scoped:suggestion
+dotnet_style_readonly_field = true:warning
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+dotnet_style_prefer_auto_properties = true:suggestion
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+
+# ---------- Buenas prácticas (analizadores) ----------
+# Simplifican y evitan errores comunes; no bloquean el build, avisan.
+dotnet_diagnostic.CA1822.severity = suggestion   # marcar como static si no usa estado (SRP)
+dotnet_diagnostic.CA2201.severity = warning      # no lanzar Exception genérica
+dotnet_diagnostic.IDE0051.severity = warning      # miembro privado sin usar
+dotnet_diagnostic.IDE0052.severity = warning      # campo privado sin leer
+dotnet_diagnostic.IDE0005.severity = warning      # using innecesario
+
+[*.{yml,yaml,json}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false

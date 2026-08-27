@@ -1,0 +1,43 @@
+name: Calidad de codigo
+
+# Revisa buenas practicas de C# sin abrir Unity ni licencia:
+#   - Formato consistente (CSharpier)
+#   - Codigo duplicado (jscpd)
+# Solo revisa el codigo del juego en Assets/_Project (no Packages ni Unity).
+
+on:
+  pull_request:
+    branches: [dev, main]
+
+jobs:
+  formato:
+    name: Formato (CSharpier)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Restaurar herramientas (.config/dotnet-tools.json)
+        run: dotnet tool restore
+
+      - name: Verificar formato del codigo del juego
+        run: dotnet csharpier check The_Death_Of_Meaning/Assets/_Project
+
+      - name: Como arreglarlo
+        if: failure()
+        run: echo "::error::Formato inconsistente. Corre 'dotnet tool restore && dotnet csharpier format .' en la raiz del repo y commitea el resultado."
+
+  duplicacion:
+    name: Duplicacion (jscpd)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar codigo duplicado
+        run: npx --yes jscpd@4 The_Death_Of_Meaning/Assets/_Project
