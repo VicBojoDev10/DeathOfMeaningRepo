@@ -25,7 +25,7 @@ jobs:
       - name: Correr tests de EditMode
         uses: game-ci/unity-test-runner@v4
         env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+          #FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
