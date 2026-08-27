@@ -123,18 +123,21 @@ jobs:
       - name: Antipatrones prohibidos
         run: |
           FALLO=0
+          # El proyecto de Unity vive en The_Death_Of_Meaning/, no en la raiz.
+          ASSETS="The_Death_Of_Meaning/Assets"
 
-          if grep -rn "FindObjectOfType<Player" Assets/ --include=*.cs 2>/dev/null; then
+          if grep -rn "FindObjectOfType<Player" "$ASSETS" --include=*.cs 2>/dev/null; then
             echo "::error::Prohibido FindObjectOfType sobre el jugador. Con dos jugadores no tiene sentido."
             FALLO=1
           fi
 
-          if [ -d "Assets/Scripts/Player" ] && grep -rn "\.Instance" Assets/Scripts/Player --include=*.cs 2>/dev/null; then
+          PLAYER_DIR="$ASSETS/_Project/Scripts/Unity/Player"
+          if [ -d "$PLAYER_DIR" ] && grep -rn "\.Instance" "$PLAYER_DIR" --include=*.cs 2>/dev/null; then
             echo "::error::Prohibido usar singletons de jugador."
             FALLO=1
           fi
 
-          if grep -rn "PlayerPrefs" Assets/ --include=*.cs 2>/dev/null; then
+          if grep -rn "PlayerPrefs" "$ASSETS" --include=*.cs 2>/dev/null; then
             echo "::warning::PlayerPrefs detectado. Confirmar que no se usa para estado compartido."
           fi
 
@@ -142,13 +145,15 @@ jobs:
 
       - name: Meta files presentes
         run: |
+          # Unity ignora los archivos ocultos (los que empiezan con '.'), asi
+          # que .gitkeep y demas dotfiles no llevan .meta: se excluyen del chequeo.
           FALTANTES=0
           while IFS= read -r f; do
             if [ ! -f "$f.meta" ]; then
               echo "::error::Falta el meta file de $f"
               FALTANTES=1
             fi
-          done < <(find Assets -type f ! -name "*.meta" 2>/dev/null)
+          done < <(find The_Death_Of_Meaning/Assets -type f ! -name "*.meta" -not -path '*/.*' 2>/dev/null)
           exit $FALTANTES
 
       - name: Escenas y prefabs en texto plano
@@ -159,5 +164,5 @@ jobs:
               echo "::error::$f esta en binario. Falta Asset Serialization en Force Text."
               FALLO=1
             fi
-          done < <(find Assets \( -name "*.unity" -o -name "*.prefab" \) 2>/dev/null)
+          done < <(find The_Death_Of_Meaning/Assets \( -name "*.unity" -o -name "*.prefab" \) 2>/dev/null)
           exit $FALLO
