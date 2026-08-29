@@ -772,9 +772,9 @@ MonoBehaviour:
       x: 0
       y: 21
       width: 453
-      height: 264
+      height: 261
     m_Scale: {x: 1.5, y: 1.5}
-    m_Translation: {x: 226.5, y: 132.00003}
+    m_Translation: {x: 226.5, y: 130.50003}
     m_MarginLeft: 0
     m_MarginRight: 0
     m_MarginTop: 0
@@ -782,12 +782,12 @@ MonoBehaviour:
     m_LastShownAreaInsideMargins:
       serializedVersion: 2
       x: -151
-      y: -88.00002
+      y: -87.00002
       width: 302
-      height: 176
+      height: 174
     m_MinimalGUI: 1
   m_defaultScale: 0.2359375
-  m_LastWindowPixelSize: {x: 453, y: 285}
+  m_LastWindowPixelSize: {x: 453, y: 282}
   m_ClearInEditMode: 1
   m_NoCameraWarning: 1
   m_LowResolutionForAspectRatios: 01000000000000000000
@@ -1350,6 +1350,20 @@ MonoBehaviour:
       layout: 4
       size: {x: 0, y: 0}
       sizeOverridden: 0
+    - dockPosition: 1
+      containerId: overlay-container--right
+      displayed: 0
+      id: unity-spline-inspector
+      index: 13
+      contents: '{"m_Layout":4,"m_Collapsed":false,"m_Folded":false,"m_Floating":false,"m_FloatingSnapOffset":{"x":0.0,"y":0.0},"m_SnapOffsetDelta":{"x":0.0,"y":0.0},"m_FloatingSnapCorner":0,"m_Size":{"x":0.0,"y":0.0},"m_SizeOverridden":false}'
+      floating: 0
+      collapsed: 0
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      layout: 4
+      size: {x: 0, y: 0}
+      sizeOverridden: 0
     m_ContainerData:
     - containerId: overlay-toolbar__top
       scrollOffset: 0
@@ -1537,7 +1551,7 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/MISAEL/StarterAssets
+    - Assets
     m_Globs: []
     m_ProductIds: 
     m_AnyWithAssetOrigin: 0
@@ -1559,11 +1573,7 @@ MonoBehaviour:
     - m_rawData: 568105584918854160
     m_LastClickedID:
       m_rawData: 568105584918854160
-    m_ExpandedIDs:
-    - m_rawData: 0
-    - m_rawData: 568105584918850992
-    - m_rawData: 568105584918850994
-    - m_rawData: 568105584918850996
+    m_ExpandedIDs: []
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1595,11 +1605,7 @@ MonoBehaviour:
     m_SelectedIDs: []
     m_LastClickedID:
       m_rawData: 0
-    m_ExpandedIDs:
-    - m_rawData: 0
-    - m_rawData: 568105584918850992
-    - m_rawData: 568105584918850994
-    - m_rawData: 568105584918850996
+    m_ExpandedIDs: []
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
