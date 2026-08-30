@@ -45,5 +45,6 @@ namespace TDOM.Gameplay.Locomotion
                 estado.BufferTimer = 0f;
             }
         }
+        //Esto si es un comentario Juas Juas
     }
 }
