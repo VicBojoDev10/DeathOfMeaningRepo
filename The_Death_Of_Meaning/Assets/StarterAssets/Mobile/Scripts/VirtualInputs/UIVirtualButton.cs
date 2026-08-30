@@ -1,11 +1,16 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 
-public class UIVirtualButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerClickHandler
+public class UIVirtualButton
+    : MonoBehaviour,
+        IPointerDownHandler,
+        IPointerUpHandler,
+        IPointerClickHandler
 {
     [System.Serializable]
     public class BoolEvent : UnityEvent<bool> { }
+
     [System.Serializable]
     public class Event : UnityEvent { }
 
@@ -22,7 +27,7 @@ public class UIVirtualButton : MonoBehaviour, IPointerDownHandler, IPointerUpHan
     {
         OutputButtonStateValue(false);
     }
-    
+
     public void OnPointerClick(PointerEventData eventData)
     {
         OutputButtonClickEvent();
@@ -37,5 +42,4 @@ public class UIVirtualButton : MonoBehaviour, IPointerDownHandler, IPointerUpHan
     {
         buttonClickOutputEvent.Invoke();
     }
-
 }

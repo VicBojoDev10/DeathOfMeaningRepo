@@ -6,9 +6,14 @@ using UnityEngine.InputSystem;
 
 public class ClientPlayerMove : NetworkBehaviour
 {
-    [SerializeField] private PlayerInput m_playerInput;
-    [SerializeField] private StarterAssetsInputs m_StarterAssetsInputs;
-    [SerializeField] private ThirdPersonController m_ThirdPersonController;
+    [SerializeField]
+    private PlayerInput m_playerInput;
+
+    [SerializeField]
+    private StarterAssetsInputs m_StarterAssetsInputs;
+
+    [SerializeField]
+    private ThirdPersonController m_ThirdPersonController;
 
     private void Awake()
     {
@@ -19,12 +24,12 @@ public class ClientPlayerMove : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-     base.OnNetworkSpawn();
-     if (IsOwner)
-     {
-         m_StarterAssetsInputs.enabled = true;
-         m_playerInput.enabled = true;
-         m_ThirdPersonController.enabled = true;
-     }
+        base.OnNetworkSpawn();
+        if (IsOwner)
+        {
+            m_StarterAssetsInputs.enabled = true;
+            m_playerInput.enabled = true;
+            m_ThirdPersonController.enabled = true;
+        }
     }
 }
