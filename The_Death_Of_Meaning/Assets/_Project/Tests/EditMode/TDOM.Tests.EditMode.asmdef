@@ -3,7 +3,9 @@
     "rootNamespace": "TDOM.Tests.EditMode",
     "references": [
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "TDOM.Gameplay",
+        "TDOM.Contracts"
     ],
     "includePlatforms": [
         "Editor"

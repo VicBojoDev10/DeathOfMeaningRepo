@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
+using TDOM.Contracts;
 
-namespace _Project.Scripts.POCO.Locomotion
+namespace TDOM.Gameplay.Locomotion
 {
     public sealed class GravityModel
     {
@@ -25,7 +26,7 @@ namespace _Project.Scripts.POCO.Locomotion
 
             float g = _gravedad;
 
-            if (estado.Velocity.y > 0f && !input.JumHeld)
+            if (estado.Velocity.y > 0f && !input.JumpHeld)
             {
                 g *= _multiplicadorSaltoCorto;
             }

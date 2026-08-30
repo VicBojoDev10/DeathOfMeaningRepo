@@ -1,6 +1,4 @@
-﻿using TDOM.Contracts;
-
-namespace TDOM.Gameplay.Locomotion
+﻿namespace _Project.Scripts.POCO.Locomotion
 {
     public sealed class JumpResolver
     {
@@ -9,7 +7,7 @@ namespace TDOM.Gameplay.Locomotion
         private readonly float _coyoteTime;
         private readonly float _bufferTime;
 
-        public JumpResolver(int maxSaltos, float velocidadSalto, float coyoteTime, float bufferTime)
+        public JumpResolver(int maxSaltos, float velocidadSalto, float bufferTime, float coyoteTime)
         {
             _maxSaltos = maxSaltos;
             _velocidadSalto = velocidadSalto;
@@ -17,7 +15,7 @@ namespace TDOM.Gameplay.Locomotion
             _bufferTime = bufferTime;
         }
 
-        public void Tick(LocomotionState estado, InputSnapshot input, float dt)
+        /*public void Tick(LocomotionState estado, InputSnapshot input, float dt)
         {
             if (estado.IsGrounded)
             {
@@ -29,8 +27,14 @@ namespace TDOM.Gameplay.Locomotion
                 estado.CoyoteTimer -= dt;
             }
 
-            if (input.JumpPressed) estado.BufferTimer = _bufferTime;
-            else estado.BufferTimer -= dt;
+            if (input.JumpPressed)
+            {
+                estado.BufferTimer = _bufferTime;
+            }
+            else
+            {
+                estado.BufferTimer -= dt;
+            }
 
             bool tieneSaltos = estado.JumpsUsed < _maxSaltos;
             bool enCoyote = estado.CoyoteTimer > 0f && estado.JumpsUsed == 0;
@@ -42,6 +46,6 @@ namespace TDOM.Gameplay.Locomotion
                 estado.CoyoteTimer = 0f;
                 estado.BufferTimer = 0f;
             }
-        }
+        }*/
     }
 }
