@@ -29,8 +29,10 @@ namespace TDOM.Gameplay.Locomotion
                 estado.CoyoteTimer -= dt;
             }
 
-            if (input.JumpPressed) estado.BufferTimer = _bufferTime;
-            else estado.BufferTimer -= dt;
+            if (input.JumpPressed)
+                estado.BufferTimer = _bufferTime;
+            else
+                estado.BufferTimer -= dt;
 
             bool tieneSaltos = estado.JumpsUsed < _maxSaltos;
             bool enCoyote = estado.CoyoteTimer > 0f && estado.JumpsUsed == 0;
