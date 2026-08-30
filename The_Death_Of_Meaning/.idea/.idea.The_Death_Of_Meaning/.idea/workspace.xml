@@ -11,19 +11,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6f3e35de-9db9-4d59-9582-ca691f8ffa5e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Assets/_Project/Scripts/Contracts/TDOM.Contracts.asmdef" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/_Project/Scripts/Contracts/TDOM.Contracts.asmdef.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/_Project/Scripts/POCO/TDOM.Gameplay.asmdef" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/_Project/Scripts/POCO/TDOM.Gameplay.asmdef.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/_Project/Tests/EditMode/GravityModelTests.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/_Project/Tests/EditMode/GravityModelTests.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/TDOM/Gameplay/Locomotion/JumpResolver.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Assets/_Project/Scripts/Contracts/InputSnapshot.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Assets/_Project/Scripts/Contracts/InputSnapshot.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Assets/_Project/Scripts/Contracts/LocomotionState.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Assets/_Project/Scripts/Contracts/LocomotionState.cs.meta" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.The_Death_Of_Meaning/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.The_Death_Of_Meaning/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/_Project/Scripts/POCO/Locomotion/GravityModel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/_Project/Scripts/POCO/Locomotion/GravityModel.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/_Project/Scripts/POCO/Locomotion/JumpResolver.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/_Project/Scripts/POCO/Locomotion/JumpResolver.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/_Project/Scripts/POCO/Locomotion/JumpResolver.cs.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/_Project/Scripts/POCO/Locomotion/JumpResolver.cs.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/_Project/Tests/EditMode/JumpResolverTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/_Project/Tests/EditMode/JumpResolverTests.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/_Project/Tests/EditMode/TDOM.Tests.EditMode.asmdef" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/_Project/Tests/EditMode/TDOM.Tests.EditMode.asmdef" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,6 +26,8 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/Assets/_Project/Scripts/Contracts/InputSnapshot.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/_Project/Scripts/Contracts/LocomotionState.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/_Project/Scripts/Contracts/TDOM.Contracts.asmdef" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/_Project/Scripts/POCO/Locomotion/GravityModel.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/_Project/Scripts/POCO/Locomotion/JumpResolver.cs" root0="FORCE_HIGHLIGHTING" />
