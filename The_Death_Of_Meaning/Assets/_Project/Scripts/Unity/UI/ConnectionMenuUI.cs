@@ -1,16 +1,17 @@
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
+using TDOM.Gameplay.Core;
 
-namespace _Project.Scripts.Unity.UI
+namespace TDOM.Unity.UI
 {
     public class ConnectionMenuUI : MonoBehaviour
     {
         private readonly SessionStatus _status = new();
 
-        public void OncrearPartida()
+        public void OnCrearPartida()
         {
-            _status.Marcar((EstadoSession.Conectando));
+            _status.Marcar(EstadoSession.Conectando);
             NetworkManager.Singleton.StartHost();
         }
 

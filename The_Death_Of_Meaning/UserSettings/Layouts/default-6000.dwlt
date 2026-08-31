@@ -19,7 +19,7 @@ MonoBehaviour:
     width: 2544
     height: 1333.3334
   m_ShowMode: 4
-  m_Title: Hierarchy
+  m_Title: Project
   m_RootView: {fileID: 3}
   m_MinSize: {x: 875, y: 300}
   m_MaxSize: {x: 10000, y: 10000}
@@ -144,7 +144,7 @@ MonoBehaviour:
   m_MinSize: {x: 400, y: 112}
   m_MaxSize: {x: 32384, y: 16192}
   vertical: 1
-  controlID: 166
+  controlID: 169
   draggingID: 0
 --- !u!114 &7
 MonoBehaviour:
@@ -170,7 +170,7 @@ MonoBehaviour:
   m_MinSize: {x: 400, y: 112}
   m_MaxSize: {x: 32384, y: 16192}
   vertical: 0
-  controlID: 167
+  controlID: 170
   draggingID: 0
 --- !u!114 &8
 MonoBehaviour:
@@ -196,7 +196,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 112}
   m_MaxSize: {x: 24288, y: 16192}
   vertical: 1
-  controlID: 73
+  controlID: 41
   draggingID: 0
 --- !u!114 &9
 MonoBehaviour:
@@ -222,7 +222,7 @@ MonoBehaviour:
   m_MinSize: {x: 200, y: 56}
   m_MaxSize: {x: 16192, y: 8096}
   vertical: 0
-  controlID: 74
+  controlID: 42
   draggingID: 0
 --- !u!114 &10
 MonoBehaviour:
@@ -301,7 +301,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 56}
   m_MaxSize: {x: 24288, y: 8096}
   vertical: 0
-  controlID: 137
+  controlID: 53
   draggingID: 0
 --- !u!114 &13
 MonoBehaviour:
@@ -379,7 +379,7 @@ MonoBehaviour:
   m_MinSize: {x: 100, y: 112}
   m_MaxSize: {x: 8096, y: 16192}
   vertical: 1
-  controlID: 168
+  controlID: 171
   draggingID: 0
 --- !u!114 &16
 MonoBehaviour:
@@ -476,7 +476,7 @@ MonoBehaviour:
     m_DynamicPanelBehavior: 0
     m_DynamicPanelBehaviorModified: 0
   m_Spl:
-    ID: 201
+    ID: 198
     splitterInitialOffset: 0
     currentActiveSplitter: -1
     realSizes:
@@ -503,7 +503,7 @@ MonoBehaviour:
   m_TestListGUIs:
   - m_Window: {fileID: 18}
     runProgress:
-      RunGuid: 
+      RunGuid: 0e807488-af5e-42ea-b588-64fc3264aa54
       ExecutionSettings:
         m_TargetPlatform: 0
         m_HasTargetPlatform: 0
@@ -513,9 +513,15 @@ MonoBehaviour:
           groupNames: []
           categoryNames: []
           assemblyNames: []
-        filters: []
+        filters:
+        - testMode: 1
+          testNames:
+          - TDOM.Tests.EditMode.SessionStatusTests.OnDesconectadoTest
+          groupNames: []
+          categoryNames: []
+          assemblyNames: []
         runSynchronously: 0
-        playerHeartbeatTimeout: 0
+        playerHeartbeatTimeout: 600
         orderedTestNames: []
         ignoreTests: []
         featureFlags:
@@ -524,17 +530,17 @@ MonoBehaviour:
           strictDomainReload: 0
           disableNestedEnumeratorBugfix: 0
         randomOrderSeed: 0
-      HasFinished: 0
-      Progress: 0
-      CurrentStepName: 
+      HasFinished: 1
+      Progress: 0.9999999
+      CurrentStepName: Unlock Reload Assemblies
       CurrentStageName: 
     m_NewResultList:
     - id: 1000
       uniqueId: '[Death_Of_Meaning][suite]'
       name: Death_Of_Meaning
       fullName: Death_Of_Meaning
-      resultStatus: 0
-      duration: 0
+      resultStatus: 1
+      duration: 0.011820801
       messages: 
       output: 
       stacktrace: 
@@ -545,12 +551,12 @@ MonoBehaviour:
       categories: []
       parentId: 
       parentUniqueId: 
-    - id: 1003
+    - id: 1008
       uniqueId: '[TDOM.Tests.EditMode.dll][suite]'
       name: TDOM.Tests.EditMode.dll
       fullName: C:/Users/admin/Documents/Github/TheDeathOfMeaningRepo/The_Death_Of_Meaning/Library/ScriptAssemblies/TDOM.Tests.EditMode.dll
-      resultStatus: 0
-      duration: 0
+      resultStatus: 1
+      duration: 0.011820801
       messages: 
       output: 
       stacktrace: 
@@ -561,12 +567,12 @@ MonoBehaviour:
       categories: []
       parentId: 1000
       parentUniqueId: '[Death_Of_Meaning][suite]'
-    - id: 1004
+    - id: 1009
       uniqueId: 'TDOM.Tests.EditMode.dll/[TDOM][suite]'
       name: TDOM
       fullName: TDOM
-      resultStatus: 0
-      duration: 0
+      resultStatus: 1
+      duration: 0.011820801
       messages: 
       output: 
       stacktrace: 
@@ -575,14 +581,14 @@ MonoBehaviour:
       description: 
       isSuite: 1
       categories: []
-      parentId: 1003
+      parentId: 1008
       parentUniqueId: '[TDOM.Tests.EditMode.dll][suite]'
-    - id: 1005
+    - id: 1010
       uniqueId: 'TDOM.Tests.EditMode.dll/TDOM/[Tests][suite]'
       name: Tests
       fullName: TDOM.Tests
-      resultStatus: 0
-      duration: 0
+      resultStatus: 1
+      duration: 0.011820801
       messages: 
       output: 
       stacktrace: 
@@ -591,14 +597,14 @@ MonoBehaviour:
       description: 
       isSuite: 1
       categories: []
-      parentId: 1004
+      parentId: 1009
       parentUniqueId: 'TDOM.Tests.EditMode.dll/[TDOM][suite]'
-    - id: 1006
+    - id: 1011
       uniqueId: 'TDOM.Tests.EditMode.dll/TDOM/Tests/[TDOM.Tests.EditMode][TDOM.Tests.EditMode][suite]'
       name: EditMode
       fullName: TDOM.Tests.EditMode
-      resultStatus: 0
-      duration: 0
+      resultStatus: 1
+      duration: 0.011820801
       messages: 
       output: 
       stacktrace: 
@@ -607,14 +613,98 @@ MonoBehaviour:
       description: 
       isSuite: 1
       categories: []
-      parentId: 1005
+      parentId: 1010
       parentUniqueId: 'TDOM.Tests.EditMode.dll/TDOM/[Tests][suite]'
     - id: 1001
+      uniqueId: 'TDOM.Tests.EditMode.dll/TDOM/Tests/EditMode/[TDOM.Tests.EditMode][TDOM.Tests.EditMode.SessionStatusTests][suite]'
+      name: SessionStatusTests
+      fullName: TDOM.Tests.EditMode.SessionStatusTests
+      resultStatus: 1
+      duration: 0.0044376003
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1011
+      parentUniqueId: 'TDOM.Tests.EditMode.dll/TDOM/Tests/[TDOM.Tests.EditMode][TDOM.Tests.EditMode][suite]'
+    - id: 1005
+      uniqueId: 'TDOM.Tests.EditMode.dll/TDOM/Tests/EditMode/SessionStatusTests/[TDOM.Tests.EditMode][TDOM.Tests.EditMode.SessionStatusTests.ErrorTest]'
+      name: ErrorTest
+      fullName: TDOM.Tests.EditMode.SessionStatusTests.ErrorTest
+      resultStatus: 1
+      duration: 0.0037903
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1001
+      parentUniqueId: 'TDOM.Tests.EditMode.dll/TDOM/Tests/EditMode/[TDOM.Tests.EditMode][TDOM.Tests.EditMode.SessionStatusTests][suite]'
+    - id: 1004
+      uniqueId: 'TDOM.Tests.EditMode.dll/TDOM/Tests/EditMode/SessionStatusTests/[TDOM.Tests.EditMode][TDOM.Tests.EditMode.SessionStatusTests.EsperandoJugadorTest]'
+      name: EsperandoJugadorTest
+      fullName: TDOM.Tests.EditMode.SessionStatusTests.EsperandoJugadorTest
+      resultStatus: 1
+      duration: 0.0002006
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1001
+      parentUniqueId: 'TDOM.Tests.EditMode.dll/TDOM/Tests/EditMode/[TDOM.Tests.EditMode][TDOM.Tests.EditMode.SessionStatusTests][suite]'
+    - id: 1002
+      uniqueId: 'TDOM.Tests.EditMode.dll/TDOM/Tests/EditMode/SessionStatusTests/[TDOM.Tests.EditMode][TDOM.Tests.EditMode.SessionStatusTests.OncrearPartida]'
+      name: OncrearPartida
+      fullName: TDOM.Tests.EditMode.SessionStatusTests.OncrearPartida
+      resultStatus: 1
+      duration: 0.000207
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1001
+      parentUniqueId: 'TDOM.Tests.EditMode.dll/TDOM/Tests/EditMode/[TDOM.Tests.EditMode][TDOM.Tests.EditMode.SessionStatusTests][suite]'
+    - id: 1003
+      uniqueId: 'TDOM.Tests.EditMode.dll/TDOM/Tests/EditMode/SessionStatusTests/[TDOM.Tests.EditMode][TDOM.Tests.EditMode.SessionStatusTests.OnDesconectadoTest]'
+      name: OnDesconectadoTest
+      fullName: TDOM.Tests.EditMode.SessionStatusTests.OnDesconectadoTest
+      resultStatus: 1
+      duration: 0.0002397
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1001
+      parentUniqueId: 'TDOM.Tests.EditMode.dll/TDOM/Tests/EditMode/[TDOM.Tests.EditMode][TDOM.Tests.EditMode.SessionStatusTests][suite]'
+    - id: 1006
       uniqueId: 'TDOM.Tests.EditMode.dll/TDOM/Tests/EditMode/[TDOM.Tests.EditMode][TDOM.Tests.EditMode.SmokeTest][suite]'
       name: SmokeTest
       fullName: TDOM.Tests.EditMode.SmokeTest
-      resultStatus: 0
-      duration: 0
+      resultStatus: 1
+      duration: 0.0073832
       messages: 
       output: 
       stacktrace: 
@@ -623,14 +713,14 @@ MonoBehaviour:
       description: 
       isSuite: 1
       categories: []
-      parentId: 1006
+      parentId: 1011
       parentUniqueId: 'TDOM.Tests.EditMode.dll/TDOM/Tests/[TDOM.Tests.EditMode][TDOM.Tests.EditMode][suite]'
     - id: 1002
       uniqueId: 'TDOM.Tests.EditMode.dll/TDOM/Tests/EditMode/SmokeTest/[TDOM.Tests.EditMode][TDOM.Tests.EditMode.SmokeTest.ElPipelineDeTestsCorre]'
       name: ElPipelineDeTestsCorre
       fullName: TDOM.Tests.EditMode.SmokeTest.ElPipelineDeTestsCorre
-      resultStatus: 0
-      duration: 0
+      resultStatus: 1
+      duration: 0.0073832
       messages: 
       output: 
       stacktrace: 
@@ -642,13 +732,13 @@ MonoBehaviour:
       - Uncategorized
       parentId: 1001
       parentUniqueId: 'TDOM.Tests.EditMode.dll/TDOM/Tests/EditMode/[TDOM.Tests.EditMode][TDOM.Tests.EditMode.SmokeTest][suite]'
-    m_ResultText: 
+    m_ResultText: OnDesconectadoTest (0.000s)
     m_ResultStacktrace: 
     m_TestListState:
       scrollPos: {x: 0, y: 0}
-      m_SelectedIDs: 7a30bf61
-      m_LastClickedID: 1639919738
-      m_ExpandedIDs: c92e70a835b52eb9ef5197597a30bf61eef1656608c6937bffffff7f
+      m_SelectedIDs: 82caa235
+      m_LastClickedID: 899861122
+      m_ExpandedIDs: 35b52eb9972bf517ef5197597a30bf61eef1656608c6937bffffff7f
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 
@@ -678,7 +768,7 @@ MonoBehaviour:
     m_SelectedOption: 0
   - m_Window: {fileID: 18}
     runProgress:
-      RunGuid: 
+      RunGuid: 0e807488-af5e-42ea-b588-64fc3264aa54
       ExecutionSettings:
         m_TargetPlatform: 0
         m_HasTargetPlatform: 0
@@ -688,9 +778,15 @@ MonoBehaviour:
           groupNames: []
           categoryNames: []
           assemblyNames: []
-        filters: []
+        filters:
+        - testMode: 1
+          testNames:
+          - TDOM.Tests.EditMode.SessionStatusTests.OnDesconectadoTest
+          groupNames: []
+          categoryNames: []
+          assemblyNames: []
         runSynchronously: 0
-        playerHeartbeatTimeout: 0
+        playerHeartbeatTimeout: 600
         orderedTestNames: []
         ignoreTests: []
         featureFlags:
@@ -699,9 +795,9 @@ MonoBehaviour:
           strictDomainReload: 0
           disableNestedEnumeratorBugfix: 0
         randomOrderSeed: 0
-      HasFinished: 0
-      Progress: 0
-      CurrentStepName: 
+      HasFinished: 1
+      Progress: 0.9999999
+      CurrentStepName: Unlock Reload Assemblies
       CurrentStageName: 
     m_NewResultList:
     - id: 1016
@@ -756,7 +852,7 @@ MonoBehaviour:
     m_SelectedOption: 0
   - m_Window: {fileID: 18}
     runProgress:
-      RunGuid: 
+      RunGuid: 0e807488-af5e-42ea-b588-64fc3264aa54
       ExecutionSettings:
         m_TargetPlatform: 0
         m_HasTargetPlatform: 0
@@ -766,9 +862,15 @@ MonoBehaviour:
           groupNames: []
           categoryNames: []
           assemblyNames: []
-        filters: []
+        filters:
+        - testMode: 1
+          testNames:
+          - TDOM.Tests.EditMode.SessionStatusTests.OnDesconectadoTest
+          groupNames: []
+          categoryNames: []
+          assemblyNames: []
         runSynchronously: 0
-        playerHeartbeatTimeout: 0
+        playerHeartbeatTimeout: 600
         orderedTestNames: []
         ignoreTests: []
         featureFlags:
@@ -777,9 +879,9 @@ MonoBehaviour:
           strictDomainReload: 0
           disableNestedEnumeratorBugfix: 0
         randomOrderSeed: 0
-      HasFinished: 0
-      Progress: 0
-      CurrentStepName: 
+      HasFinished: 1
+      Progress: 0.9999999
+      CurrentStepName: Unlock Reload Assemblies
       CurrentStageName: 
     m_NewResultList:
     - id: 1016
@@ -1266,7 +1368,11 @@ MonoBehaviour:
       m_LastClickedID:
         m_rawData: 0
       m_ExpandedIDs:
-      - m_rawData: 568105589213755974
+      - m_rawData: 568105589213746636
+      - m_rawData: 568105589213747068
+      - m_rawData: 568105589213747500
+      - m_rawData: 568105589213747938
+      - m_rawData: 568105589213755518
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 
@@ -1834,9 +1940,9 @@ MonoBehaviour:
   m_AudioPlay: 0
   m_DebugDrawModesUseInteractiveLightBakingData: 0
   m_Position:
-    m_Target: {x: 1044.5116, y: 495.55978, z: 1070.2278}
+    m_Target: {x: 0, y: 0, z: 0}
     speed: 2
-    m_Value: {x: 1044.5116, y: 495.55978, z: 1070.2278}
+    m_Value: {x: 0, y: 0, z: 0}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -1883,13 +1989,13 @@ MonoBehaviour:
     m_gridOpacity: 0.5
     m_NearestPlaneToHandleMode: 0
   m_Rotation:
-    m_Target: {x: -0.0787156, y: -0.017846268, z: 0.0014094779, w: -0.99673843}
+    m_Target: {x: -0.08717229, y: 0.89959055, z: -0.21045254, w: -0.3726226}
     speed: 2
-    m_Value: {x: -0.07871561, y: -0.01784627, z: 0.0014094779, w: -0.99673843}
+    m_Value: {x: -0.08717229, y: 0.89959055, z: -0.21045254, w: -0.3726226}
   m_Size:
-    m_Target: 1550.541
+    m_Target: 10
     speed: 2
-    m_Value: 1550.541
+    m_Value: 10
   m_Ortho:
     m_Target: 0
     speed: 2
@@ -1976,7 +2082,7 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/_Project/Tests/EditMode
+    - Assets/_Project/Scripts/Unity/Player
     m_Globs: []
     m_ProductIds: 
     m_AnyWithAssetOrigin: 0
@@ -1986,27 +2092,32 @@ MonoBehaviour:
   m_ViewMode: 1
   m_StartGridSize: 64
   m_LastFolders:
-  - Assets/_Project/Tests/EditMode
+  - Assets/_Project/Scripts/Unity/Player
   m_LastFoldersGridSize: -1
   m_LastProjectPath: C:\Users\admin\Documents\Github\TheDeathOfMeaningRepo\The_Death_Of_Meaning
   m_LockTracker:
     m_IsLocked: 0
   m_LastLocalAssetsSearchArea: 1
   m_FolderTreeState:
-    scrollPos: {x: 0, y: 333.3333}
+    scrollPos: {x: 0, y: 240}
     m_SelectedIDs:
-    - m_rawData: 568105584918853520
+    - m_rawData: 568105584918853416
     m_LastClickedID:
-      m_rawData: 568105584918853520
+      m_rawData: 568105584918853416
     m_ExpandedIDs:
     - m_rawData: 0
-    - m_rawData: 568105584918853272
-    - m_rawData: 568105584918853274
-    - m_rawData: 568105584918853276
-    - m_rawData: 568105584918853278
-    - m_rawData: 568105584918853280
-    - m_rawData: 568105584918853282
-    - m_rawData: 568105584918853284
+    - m_rawData: 568105584918853412
+    - m_rawData: 568105584918853414
+    - m_rawData: 568105584918853416
+    - m_rawData: 568105584918853418
+    - m_rawData: 568105584918853420
+    - m_rawData: 568105584918853422
+    - m_rawData: 568105584918853424
+    - m_rawData: 568105584918853426
+    - m_rawData: 568105584918853428
+    - m_rawData: 568105584918853430
+    - m_rawData: 568105584918853432
+    - m_rawData: 568105584918853434
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -2040,13 +2151,18 @@ MonoBehaviour:
       m_rawData: 0
     m_ExpandedIDs:
     - m_rawData: 0
-    - m_rawData: 568105584918853272
-    - m_rawData: 568105584918853274
-    - m_rawData: 568105584918853276
-    - m_rawData: 568105584918853278
-    - m_rawData: 568105584918853280
-    - m_rawData: 568105584918853282
-    - m_rawData: 568105584918853284
+    - m_rawData: 568105584918853412
+    - m_rawData: 568105584918853414
+    - m_rawData: 568105584918853416
+    - m_rawData: 568105584918853418
+    - m_rawData: 568105584918853420
+    - m_rawData: 568105584918853422
+    - m_rawData: 568105584918853424
+    - m_rawData: 568105584918853426
+    - m_rawData: 568105584918853428
+    - m_rawData: 568105584918853430
+    - m_rawData: 568105584918853432
+    - m_rawData: 568105584918853434
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -2074,10 +2190,11 @@ MonoBehaviour:
       m_Icon: {fileID: 0}
       m_ResourceFile: 
   m_ListAreaState:
-    m_SelectedInstanceIDs: []
+    m_SelectedInstanceIDs:
+    - m_rawData: 568105584918853974
     m_LastClickedEntityId:
-      m_rawData: 0
-    m_HadKeyboardFocusLastEvent: 0
+      m_rawData: 568105584918853974
+    m_HadKeyboardFocusLastEvent: 1
     m_ExpandedInstanceIDs:
     - m_rawData: 0
     - m_rawData: 0
