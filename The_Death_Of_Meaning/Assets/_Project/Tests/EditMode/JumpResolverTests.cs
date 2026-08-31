@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
 using TDOM.Contracts;
-using TDOM.Gameplay.Locomotion;
+using TDOM.Gameplay;
 using UnityEngine;
 
 namespace TDOM.Tests.EditMode
