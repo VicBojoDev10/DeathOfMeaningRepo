@@ -1,7 +1,7 @@
+using TDOM.Gameplay.Core;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
-using TDOM.Gameplay.Core;
 
 namespace TDOM.Unity.UI
 {

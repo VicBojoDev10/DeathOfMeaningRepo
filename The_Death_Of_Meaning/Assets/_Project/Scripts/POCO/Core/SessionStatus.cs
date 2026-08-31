@@ -20,6 +20,6 @@ namespace TDOM.Gameplay.Core
         Conectando,
         EsperandoJugador,
         Listo,
-        Error
+        Error,
     }
 }
