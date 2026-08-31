@@ -1,0 +1,14 @@
+{
+  "threshold": 5,
+  "minTokens": 60,
+  "format": ["csharp"],
+  "reporters": ["console"],
+  "absolute": true,
+  "gitignore": true,
+  "ignore": [
+    "**/*.meta",
+    "**/*.asmdef",
+    "**/Packages/**",
+    "**/Library/**"
+  ]
+}

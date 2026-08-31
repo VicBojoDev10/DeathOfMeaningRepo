@@ -1,0 +1,18 @@
+/CLAUDE.md
+
+# --- IDE y editores (locales, nunca van al repo) ---
+# Estos patrones aplican a todo el repo, incluida la subcarpeta de Unity.
+.idea/
+.vs/
+.vscode/
+.fleet/
+*.suo
+*.user
+*.userprefs
+
+# --- Basura de sistema operativo ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo

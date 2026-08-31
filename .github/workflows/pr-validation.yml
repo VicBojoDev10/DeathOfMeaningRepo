@@ -11,6 +11,13 @@ jobs:
     steps:
       - name: Validar formato feat/TW-XXX-descripcion
         run: |
+          # Esto solo aplica a PRs de feature -> dev. Un PR de release dev -> main
+          # tiene head 'dev' y no debe validarse aqui.
+          if [ "${{ github.event.pull_request.base.ref }}" != "dev" ]; then
+            echo "PR de release (base != dev): el nombre de rama solo se exige en feature->dev. OK."
+            exit 0
+          fi
+
           RAMA="${{ github.head_ref }}"
           echo "Rama: $RAMA"
 
@@ -43,10 +50,28 @@ jobs:
 
       - name: "Validar formato: tipo y descripcion"
         run: |
-          BASE="${{ github.event.pull_request.base.sha }}"
+          BASE_REF="${{ github.event.pull_request.base.ref }}"
+
+          # Solo se valida en feature -> dev. Un release dev -> main arrastraria
+          # toda la historia de dev (incluida la vieja, permanente) contra un
+          # main atrasado; eso no se revalida aqui.
+          if [ "$BASE_REF" != "dev" ]; then
+            echo "PR de release hacia '$BASE_REF': los mensajes se validan al entrar a dev. OK."
+            exit 0
+          fi
+
           HEAD="${{ github.event.pull_request.head.sha }}"
 
-          # Solo la primera linea de cada commit de este PR
+          # OJO: github.event.pull_request.base.sha puede quedar desactualizado.
+          # Si la rama base (dev) avanza despues de abrir el PR, ese base.sha
+          # apunta a un commit viejo y el rango arrastra commits que YA estan
+          # en dev (historia del equipo). Para validar SOLO los commits que
+          # este PR agrega, usamos el punto de bifurcacion real (merge-base)
+          # contra la punta actual de la rama base.
+          git fetch --no-tags origin "$BASE_REF"
+          BASE=$(git merge-base "origin/$BASE_REF" "$HEAD")
+
+          # Solo la primera linea de cada commit nuevo de este PR
           COMMITS=$(git log --format=%s "$BASE..$HEAD")
 
           if [ -z "$COMMITS" ]; then
@@ -114,18 +139,21 @@ jobs:
       - name: Antipatrones prohibidos
         run: |
           FALLO=0
+          # El proyecto de Unity vive en The_Death_Of_Meaning/, no en la raiz.
+          ASSETS="The_Death_Of_Meaning/Assets"
 
-          if grep -rn "FindObjectOfType<Player" Assets/ --include=*.cs 2>/dev/null; then
+          if grep -rn "FindObjectOfType<Player" "$ASSETS" --include=*.cs 2>/dev/null; then
             echo "::error::Prohibido FindObjectOfType sobre el jugador. Con dos jugadores no tiene sentido."
             FALLO=1
           fi
 
-          if [ -d "Assets/Scripts/Player" ] && grep -rn "\.Instance" Assets/Scripts/Player --include=*.cs 2>/dev/null; then
+          PLAYER_DIR="$ASSETS/_Project/Scripts/Unity/Player"
+          if [ -d "$PLAYER_DIR" ] && grep -rn "\.Instance" "$PLAYER_DIR" --include=*.cs 2>/dev/null; then
             echo "::error::Prohibido usar singletons de jugador."
             FALLO=1
           fi
 
-          if grep -rn "PlayerPrefs" Assets/ --include=*.cs 2>/dev/null; then
+          if grep -rn "PlayerPrefs" "$ASSETS" --include=*.cs 2>/dev/null; then
             echo "::warning::PlayerPrefs detectado. Confirmar que no se usa para estado compartido."
           fi
 
@@ -133,13 +161,15 @@ jobs:
 
       - name: Meta files presentes
         run: |
+          # Unity ignora los archivos ocultos (los que empiezan con '.'), asi
+          # que .gitkeep y demas dotfiles no llevan .meta: se excluyen del chequeo.
           FALTANTES=0
           while IFS= read -r f; do
             if [ ! -f "$f.meta" ]; then
               echo "::error::Falta el meta file de $f"
               FALTANTES=1
             fi
-          done < <(find Assets -type f ! -name "*.meta" 2>/dev/null)
+          done < <(find The_Death_Of_Meaning/Assets -type f ! -name "*.meta" -not -path '*/.*' 2>/dev/null)
           exit $FALTANTES
 
       - name: Escenas y prefabs en texto plano
@@ -150,5 +180,94 @@ jobs:
               echo "::error::$f esta en binario. Falta Asset Serialization en Force Text."
               FALLO=1
             fi
-          done < <(find Assets \( -name "*.unity" -o -name "*.prefab" \) 2>/dev/null)
+          done < <(find The_Death_Of_Meaning/Assets \( -name "*.unity" -o -name "*.prefab" \) 2>/dev/null)
           exit $FALLO
+
+  archivos-locales:
+    name: Sin archivos de IDE ni locales
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detectar archivos que no deben versionarse
+        run: |
+          BASE_REF="${{ github.event.pull_request.base.ref }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+
+          # Solo lo que este PR agrega/modifica/renombra (no la historia ya
+          # integrada en dev). Las eliminaciones (limpieza) no cuentan.
+          git fetch --no-tags origin "$BASE_REF"
+          BASE=$(git merge-base "origin/$BASE_REF" "$HEAD")
+          ARCHIVOS=$(git diff --diff-filter=ACMR --name-only "$BASE..$HEAD")
+
+          # Denylist: carpetas de IDE, estado local del editor de Unity,
+          # archivos de proyecto generados y basura de sistema operativo.
+          # NO marca dotfiles legitimos: .github, .config, .editorconfig, .gitignore.
+          PATRON='(^|/)\.(idea|vs|vscode|fleet|gradle|consulo)/|(^|/)([Uu]serSettings|[Ll]ibrary|[Tt]emp|[Ll]ogs|[Oo]bj|[Bb]uild|MemoryCaptures)/|\.(csproj|sln|suo|user|userprefs|pidb|booproj|svd|unityproj)$|(^|/)(\.DS_Store|Thumbs\.db|Desktop\.ini)$|\.(swp|swo)$'
+
+          MALOS=$(printf '%s\n' "$ARCHIVOS" | grep -E "$PATRON" || true)
+
+          if [ -n "$MALOS" ]; then
+            echo "::error::El PR agrega o modifica archivos que NO deben versionarse (IDE / estado local):"
+            printf '%s\n' "$MALOS" | while IFS= read -r f; do echo "  - $f"; done
+            echo ""
+            echo "Son de tu editor (.idea, .vscode) o los genera Unity (UserSettings, Library...)."
+            echo "Para quitarlos del repo sin borrarlos de tu disco:"
+            echo "  git rm -r --cached <ruta>"
+            echo "  # y confirma que esten en .gitignore"
+            exit 1
+          fi
+
+          echo "Sin archivos de IDE ni locales. OK."
+
+  aporte-y-convenciones:
+    name: Codigo con sustancia y convenciones
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Namespaces TDOM, sin stubs vacios y sin .cs fuera de Assets
+        run: |
+          BASE_REF="${{ github.event.pull_request.base.ref }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+          git fetch --no-tags origin "$BASE_REF"
+          BASE=$(git merge-base "origin/$BASE_REF" "$HEAD")
+
+          FALLO=0
+
+          # (1) Scripts .cs fuera de Assets/ -> Unity ni los compila (duplicados/basura).
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            echo "::error file=$f::Script .cs fuera de Assets/. Unity no lo compila; suele ser un duplicado o basura. Muevelo a Assets/_Project o borralo."
+            FALLO=1
+          done < <(git diff --diff-filter=ACMR --name-only "$BASE..$HEAD" | grep -E '\.cs$' | grep -viE '(^|/)Assets/')
+
+          # (2) y (3): solo el codigo del juego bajo _Project.
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            [ -f "$f" ] || continue
+            SIN_COM=$(sed -E 's://.*$::' "$f")
+
+            # Namespace canonico TDOM.* (evita el auto-namespace de Rider "_Project...").
+            if ! printf '%s' "$SIN_COM" | grep -qE '^[[:space:]]*namespace[[:space:]]+TDOM([.;[:space:]]|$)'; then
+              echo "::error file=$f::Falta 'namespace TDOM.<Capa>.<Sistema>'. Rider lo auto-genera como '_Project...'; configura el rootNamespace del asmdef."
+              FALLO=1
+            fi
+
+            # Tipo con cuerpo vacio {} -> stub sin implementacion.
+            if printf '%s' "$SIN_COM" | grep -qzE '(class|struct|interface)[[:space:]]+[A-Za-z_][A-Za-z0-9_]*[^{;]*\{[[:space:]]*\}'; then
+              echo "::error file=$f::Tipo con cuerpo vacio {} (stub sin implementacion). Un PR no debe traer clases vacias que no aportan nada."
+              FALLO=1
+            fi
+          done < <(git diff --diff-filter=ACMR --name-only "$BASE..$HEAD" | grep -E 'Assets/_Project/.*\.cs$')
+
+          if [ $FALLO -ne 0 ]; then
+            echo ""
+            echo "Regla: todo .cs del juego va bajo Assets/_Project, con namespace TDOM.*, y con implementacion real."
+            exit 1
+          fi
+          echo "Codigo con sustancia y convenciones: OK."
