@@ -205,3 +205,53 @@ jobs:
           fi
 
           echo "Sin archivos de IDE ni locales. OK."
+
+  aporte-y-convenciones:
+    name: Codigo con sustancia y convenciones
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Namespaces TDOM, sin stubs vacios y sin .cs fuera de Assets
+        run: |
+          BASE_REF="${{ github.event.pull_request.base.ref }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+          git fetch --no-tags origin "$BASE_REF"
+          BASE=$(git merge-base "origin/$BASE_REF" "$HEAD")
+
+          FALLO=0
+
+          # (1) Scripts .cs fuera de Assets/ -> Unity ni los compila (duplicados/basura).
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            echo "::error file=$f::Script .cs fuera de Assets/. Unity no lo compila; suele ser un duplicado o basura. Muevelo a Assets/_Project o borralo."
+            FALLO=1
+          done < <(git diff --diff-filter=ACMR --name-only "$BASE..$HEAD" | grep -E '\.cs$' | grep -viE '(^|/)Assets/')
+
+          # (2) y (3): solo el codigo del juego bajo _Project.
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            [ -f "$f" ] || continue
+            SIN_COM=$(sed -E 's://.*$::' "$f")
+
+            # Namespace canonico TDOM.* (evita el auto-namespace de Rider "_Project...").
+            if ! printf '%s' "$SIN_COM" | grep -qE '^[[:space:]]*namespace[[:space:]]+TDOM([.;[:space:]]|$)'; then
+              echo "::error file=$f::Falta 'namespace TDOM.<Capa>.<Sistema>'. Rider lo auto-genera como '_Project...'; configura el rootNamespace del asmdef."
+              FALLO=1
+            fi
+
+            # Tipo con cuerpo vacio {} -> stub sin implementacion.
+            if printf '%s' "$SIN_COM" | grep -qzE '(class|struct|interface)[[:space:]]+[A-Za-z_][A-Za-z0-9_]*[^{;]*\{[[:space:]]*\}'; then
+              echo "::error file=$f::Tipo con cuerpo vacio {} (stub sin implementacion). Un PR no debe traer clases vacias que no aportan nada."
+              FALLO=1
+            fi
+          done < <(git diff --diff-filter=ACMR --name-only "$BASE..$HEAD" | grep -E 'Assets/_Project/.*\.cs$')
+
+          if [ $FALLO -ne 0 ]; then
+            echo ""
+            echo "Regla: todo .cs del juego va bajo Assets/_Project, con namespace TDOM.*, y con implementacion real."
+            exit 1
+          fi
+          echo "Codigo con sustancia y convenciones: OK."
