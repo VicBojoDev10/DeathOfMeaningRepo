@@ -9,6 +9,5 @@ namespace TDOM.Contracts
         public int JumpsUsed;
         public float CoyoteTimer;
         public float BufferTimer;
-
     }
 }
