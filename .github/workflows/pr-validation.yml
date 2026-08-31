@@ -11,6 +11,13 @@ jobs:
     steps:
       - name: Validar formato feat/TW-XXX-descripcion
         run: |
+          # Esto solo aplica a PRs de feature -> dev. Un PR de release dev -> main
+          # tiene head 'dev' y no debe validarse aqui.
+          if [ "${{ github.event.pull_request.base.ref }}" != "dev" ]; then
+            echo "PR de release (base != dev): el nombre de rama solo se exige en feature->dev. OK."
+            exit 0
+          fi
+
           RAMA="${{ github.head_ref }}"
           echo "Rama: $RAMA"
 
@@ -44,6 +51,15 @@ jobs:
       - name: "Validar formato: tipo y descripcion"
         run: |
           BASE_REF="${{ github.event.pull_request.base.ref }}"
+
+          # Solo se valida en feature -> dev. Un release dev -> main arrastraria
+          # toda la historia de dev (incluida la vieja, permanente) contra un
+          # main atrasado; eso no se revalida aqui.
+          if [ "$BASE_REF" != "dev" ]; then
+            echo "PR de release hacia '$BASE_REF': los mensajes se validan al entrar a dev. OK."
+            exit 0
+          fi
+
           HEAD="${{ github.event.pull_request.head.sha }}"
 
           # OJO: github.event.pull_request.base.sha puede quedar desactualizado.
