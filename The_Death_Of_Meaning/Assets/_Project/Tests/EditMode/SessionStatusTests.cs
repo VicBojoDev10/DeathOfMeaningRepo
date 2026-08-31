@@ -4,7 +4,7 @@ namespace TDOM.Tests.EditMode
 {
     public sealed class SessionStatusTests
     {
-        public EstadoSessionTest EstadoTest{ get; private set; }
+        public EstadoSessionTest EstadoTest { get; private set; }
         public string MensajeTest { get; private set; }
         public void SessionStatusTest(EstadoSessionTest estadoTest, string mensajeTest = "")
         {
