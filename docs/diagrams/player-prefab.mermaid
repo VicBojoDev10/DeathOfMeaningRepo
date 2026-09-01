@@ -1,5 +1,5 @@
 ﻿flowchart TD
-    Player["Player (NetworkObject, ClientNetworkTransform, CharacterController)"]
+    Player["Player (NetworkObject, ClientNetworkTransform, CharacterController, ClientNetworkAnimator)"]
     Player --> Root[PlayerRoot - composition root]
     Player --> Pivot[CameraPivot - PlayerCameraRig, CinemachineCamera]
     Pivot --> VM[Viewmodel placeholder]
