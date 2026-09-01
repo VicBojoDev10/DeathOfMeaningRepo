@@ -1,0 +1,5 @@
+﻿flowchart LR
+    IN[InputSnapshot] --> PL[PlayerLocomotion]
+    PL -->|orden fijo| ORD["Dash -> Gancho -> Control"]
+    PL -->|orden fijo| 1["Salto -> Gravedad -> Suelo"]
+    PL --> MI[MotionIntent] --> PM[PlayerMotor] --> CC["CharacterController.Move()"]
