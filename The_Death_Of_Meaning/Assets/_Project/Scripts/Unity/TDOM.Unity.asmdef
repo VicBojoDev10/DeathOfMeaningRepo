@@ -1,8 +1,10 @@
 {
-	"name": "TDOM.Gameplay",
-	"rootNamespace": "TDOM.POCO",
+	"name": "TDOM.Unity",
+	"rootNamespace": "TDOM.Unity",
   	"references": [
-		"TDOM.Contracts"
+		"TDOM.Contracts",
+		"TDOM.Gameplay",
+		"TDOM.Data"
 	],
  	"includePlatforms": [],
  	"excludePlatforms": [],
