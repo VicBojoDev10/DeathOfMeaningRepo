@@ -2,7 +2,9 @@
     "name": "TDOM.Contracts",
     "rootNamespace": "TDOM.Contracts",
     "references": [
-        "GUID:380397b714034e4f8ffa22ebdde28a81"
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "TDOM.Gameplay"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
