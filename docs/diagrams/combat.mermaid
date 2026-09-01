@@ -1,0 +1,6 @@
+﻿flowchart LR
+    IN[InputSnapshot] --> CSM[ComboStateMachine]
+    BUF[InputBuffer] --> CSM
+    CSM -->|AttackEvent| PC[PlayerCombat]
+    PC -->|RPC servidor| SRV[Validacion + dano WIP]
+    PC -->|RPC NotOwner| ANIM[Animator del otro cliente]

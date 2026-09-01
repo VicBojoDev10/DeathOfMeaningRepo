@@ -1,0 +1,6 @@
+﻿flowchart TD
+    MENU[ConnectionMenuUI] -->|StartHost/Client| NM[NetworkManager + UnityTransport]
+    NM --> SEL[Seleccion de personaje]
+    SEL -->|ElegirPersonaje| GSM[GameSessionManager servidor]
+    GSM -->|SpawnWithOwnership| P[PlayerZendre / PlayerAyla]
+    P -->|IsOwner| CAM[camara + input activos solo del dueno]
