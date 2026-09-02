@@ -1,5 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
+
 namespace TDOM.Unity.Network
 {
     public class NetworkBootstrapDebug : MonoBehaviour
@@ -12,8 +13,10 @@ namespace TDOM.Unity.Network
                 GUILayout.Label($"Clientes: {NetworkManager.Singleton.ConnectedClientsIds.Count}");
                 return;
             }
-            if (GUILayout.Button("Host"))   NetworkManager.Singleton.StartHost();
-            if (GUILayout.Button("Client")) NetworkManager.Singleton.StartClient();
+            if (GUILayout.Button("Host"))
+                NetworkManager.Singleton.StartHost();
+            if (GUILayout.Button("Client"))
+                NetworkManager.Singleton.StartClient();
         }
     }
 }
