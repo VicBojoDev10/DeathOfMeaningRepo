@@ -1,5 +1,8 @@
-﻿public class InputSnapshot
+﻿namespace TDOM.Contracts
 {
-    public bool JumpPressed;
-    public bool JumpHeld;
+    public class InputSnapshot
+    {
+        public bool JumpPressed;
+        public bool JumpHeld;
+    }
 }
