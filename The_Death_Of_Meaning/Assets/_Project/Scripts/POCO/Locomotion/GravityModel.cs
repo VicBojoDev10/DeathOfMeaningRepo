@@ -1,7 +1,7 @@
 ﻿using TDOM.Contracts;
 using UnityEngine;
 
-namespace TDOM.Gameplay
+namespace TDOM.Gameplay.Locomotion
 {
     public sealed class GravityModel
     {

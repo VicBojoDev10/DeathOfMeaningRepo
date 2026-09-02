@@ -1,6 +1,6 @@
 ﻿using TDOM.Contracts;
 
-namespace TDOM.Gameplay
+namespace TDOM.Gameplay.Locomotion
 {
     public sealed class JumpResolver
     {
