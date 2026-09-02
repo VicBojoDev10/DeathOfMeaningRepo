@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
-
 namespace TDOM.Contracts
 {
     [CreateAssetMenu(fileName = "NewMovementProfile", menuName = "TDOM/Movement Profile")]
-    public class MovementProfile : ScriptableObject
+    public class MovementProfiles : ScriptableObject
     {
         [Header("Gravity")]
         public float gravity = -28f;

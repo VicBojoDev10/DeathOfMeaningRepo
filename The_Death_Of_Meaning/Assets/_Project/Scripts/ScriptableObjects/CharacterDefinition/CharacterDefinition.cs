@@ -7,7 +7,7 @@ namespace TDOM.Data
     public sealed class CharacterDefinition : ScriptableObject
     {
         public string DisplayName;
-        public MovementProfile Movement;
+        public MovementProfiles Movement;
         public DashProfile Dash;
         public ComboProfile Melee;
         public ComboProfile Ranged;
@@ -16,7 +16,7 @@ namespace TDOM.Data
     }
 
     [CreateAssetMenu(menuName = "tdom/Movement Profile")]
-    public sealed class MovementProfile : ScriptableObject
+    public sealed class MovementProfiles : ScriptableObject
     {
         public float Gravity,
             TerminalVelocity,
