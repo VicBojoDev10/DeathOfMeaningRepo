@@ -1,5 +1,4 @@
 using UnityEngine;
-
 namespace TDOM.Contracts
 {
     public readonly struct InputSnapshot
