@@ -7,8 +7,7 @@ namespace TDOM.Tests
 {
     public sealed class SprintResolverTest
     {
-        public sealed class SprintResolverTests
-        {
+
             [Test]
             public void Correr_se_apaga_al_soltar_el_stick()
             {
@@ -32,6 +31,6 @@ namespace TDOM.Tests
 
                 Assert.IsFalse(resolver.Corriendo);
             }
-        }
+        
     }
 }
