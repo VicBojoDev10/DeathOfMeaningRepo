@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using UnityEditor.Embree;
+using UnityEngine;
 
 namespace TDOM.Contracts
 {
@@ -15,5 +16,13 @@ namespace TDOM.Contracts
         public int maxJumps = 1;
         public float coyoteTime = 0.12f;
         public float bufferTime = 0.15f;
+
+        [Header("Sprint")]
+        public float baseSpeed = 10f;
+        public float sprintSpeed = 20f;
+        public float acceleration = 15f;
+        public float friction = 5f;
+        public float airControl = 2.5f;
+
     }
 }
