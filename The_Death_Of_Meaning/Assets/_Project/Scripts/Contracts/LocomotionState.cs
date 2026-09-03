@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace TDOM.Data.Unity
+namespace TDOM.Contracts
 {
     public class LocomotionState
     {

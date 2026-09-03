@@ -1,5 +1,4 @@
 ﻿using TDOM.Contracts;
-using TDOM.Data.Unity;
 using UnityEngine;
 
 namespace TDOM.Gameplay.Locomotion

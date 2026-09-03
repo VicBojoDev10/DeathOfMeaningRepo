@@ -18,12 +18,12 @@ namespace TDOM.Data
     [CreateAssetMenu(menuName = "tdom/Movement Profile")]
     public sealed class MovementProfiles : ScriptableObject
     {
-        public float Gravity,
-            TerminalVelocity,
-            LowJumpMultiplier,
-            JumpVelocity;
-        public int MaxJumps;
-        public float CoyoteTime,
+        public float Gravity = -28f,
+            TerminalVelocity = -50f,
+            LowJumpMultiplier = 2.0f,
+            JumpVelocity = 15f;
+        public int MaxJumps = 1;
+        public float CoyoteTime = 0.12f,
             BufferTime;
         public float BaseSpeed,
             SprintSpeed,

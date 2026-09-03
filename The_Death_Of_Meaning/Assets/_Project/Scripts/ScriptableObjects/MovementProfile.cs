@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
-namespace TDOM.Contracts
+
+namespace TDOM.Data
 {
     [CreateAssetMenu(fileName = "NewMovementProfile", menuName = "TDOM/Movement Profile")]
     public class MovementProfiles : ScriptableObject
