@@ -2,22 +2,28 @@ using UnityEngine;
 
 namespace TDOM.Contracts
 {
-    public readonly struct InputSnapshot
+    public sealed class InputSnapshot
     {
-        public readonly Vector2 Move;
-        public readonly Vector2 Look;
-        public readonly bool JumpHeld;
-        public readonly bool DashPressed;
-        public readonly bool SprintPressed;
-        public readonly bool AttackPressed;
-        public readonly bool AttackHeld;
-        public readonly bool AttackReleased;
-        public readonly bool AimHeld;
-        public readonly bool FirePressed;
-        public readonly bool FireHeld;
-        public readonly bool FireReleased;
-        public readonly bool GrapplePressed;
-        public readonly bool JumpPressed;
+        public Vector2 Move;
+        public Vector2 Look;
+        public bool JumpHeld;
+        public bool DashPressed;
+        public bool SprintPressed;
+        public bool AttackPressed;
+        public bool AttackHeld;
+        public bool AttackReleased;
+        public bool AimHeld;
+        public bool FirePressed;
+        public bool FireHeld;
+        public bool FireReleased;
+        public bool GrapplePressed;
+        public bool JumpPressed;
+
+        public InputSnapshot(bool jumpPressed, bool jumpHeld)
+        {
+            JumpPressed = jumpPressed;
+            JumpHeld = jumpHeld;
+        }
 
         public InputSnapshot(
             Vector2 move,
@@ -71,7 +77,7 @@ namespace TDOM.Contracts
         }
     }
 
-    public sealed class LocomotionState
+    public class LocomotionState
     {
         public Vector3 Velocity;
         public bool IsGrounded;
