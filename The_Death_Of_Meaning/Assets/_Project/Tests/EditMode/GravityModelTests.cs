@@ -2,11 +2,13 @@
 using TDOM.Contracts;
 using TDOM.Gameplay;
 using UnityEngine;
+
 namespace TDOM.Tests.EditMode
 {
     public sealed class GravityModelTests
     {
         private InputSnapshot SinInput() => new InputSnapshot(true, false);
+
         [Test]
         public void Soltar_el_boton_subiendo_acorta_el_salto()
         {
@@ -15,9 +17,6 @@ namespace TDOM.Tests.EditMode
                 velocidadTerminal: -50f,
                 multiplicadorSaltoCorto: 2.0f
             );
-
-
-
 
             var estado = new LocomotionState
             {

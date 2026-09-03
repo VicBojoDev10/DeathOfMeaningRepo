@@ -24,6 +24,7 @@ namespace TDOM.Contracts
             JumpPressed = jumpPressed;
             JumpHeld = jumpHeld;
         }
+
         public InputSnapshot(
             Vector2 move,
             Vector2 look,

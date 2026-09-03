@@ -1,5 +1,4 @@
-﻿
-using TDOM.Contracts;
+﻿using TDOM.Contracts;
 using UnityEngine;
 
 namespace TDOM.Gameplay

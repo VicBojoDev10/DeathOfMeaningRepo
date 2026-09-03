@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
-using UnityEngine;
 using TDOM.Contracts;
 using TDOM.Gameplay;
+using UnityEngine;
 
 namespace TDOM.Tests
 {
@@ -11,10 +11,7 @@ namespace TDOM.Tests
 
         private InputSnapshot ConSalto() => new InputSnapshot(true, true);
 
-
-
         private InputSnapshot SinInput() => new InputSnapshot(false, true);
-
 
         [Test]
         public void Ayla_puede_saltar_dos_veces_en_el_aire()
