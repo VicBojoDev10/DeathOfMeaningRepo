@@ -11,6 +11,15 @@ namespace TDOM.Gameplay
         private readonly float _friccion;
         private readonly float _controlAereo;
 
+        public GroundControlResolver(float velocidadBase, float velocidadCorrer, float aceleracion, float friccion, float controlAereo)
+        {
+            _velocidadBase = velocidadBase;
+            _velocidadCorrer = velocidadCorrer;
+            _aceleracion = aceleracion;
+            _friccion = friccion;
+            _controlAereo = controlAereo;
+        }
+
 
         public void Tick(LocomotionState estado, Vector2 move, Quaternion yaw, bool corriendo, float dt)
         {
@@ -18,8 +27,8 @@ namespace TDOM.Gameplay
 
             float MaxVel = corriendo ? _velocidadCorrer : _velocidadBase;
             Vector3 objetivo = direction * MaxVel;
-
-            float accel = _aceleracion * (estado.IsGrounded ? 1f: _controlAereo);
+            float fuerzaActual = move.sqrMagnitude > 0.01f ? _aceleracion : _friccion;
+            float accel = fuerzaActual * (estado.IsGrounded ? 1f : _controlAereo);
 
             Vector3 horizontal = new Vector3(estado.Velocity.x, 0f, estado.Velocity.z);
             horizontal = Vector3.MoveTowards(horizontal, objetivo, accel * dt);
