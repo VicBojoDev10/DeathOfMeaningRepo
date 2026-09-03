@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
-using UnityEngine;
-using TDOM.Gameplay;
 using TDOM.Contracts;
+using TDOM.Gameplay;
+using UnityEngine;
 
 namespace TDOM.Tests
 {
@@ -13,7 +13,11 @@ namespace TDOM.Tests
         public void Sin_input_el_personaje_frena_hasta_cero()
         {
             var resolver = new GroundControlResolver(4.5f, 6.5f, 25f, 30f, 0.3f);
-            var estado = new LocomotionState { IsGrounded = true, Velocity = new Vector3(4.5f, 0, 0) };
+            var estado = new LocomotionState
+            {
+                IsGrounded = true,
+                Velocity = new Vector3(4.5f, 0, 0),
+            };
 
             for (int i = 0; i < 60; i++)
             {
@@ -72,7 +76,11 @@ namespace TDOM.Tests
         public void El_movimiento_horizontal_no_modifica_la_velocidad_vertical()
         {
             var resolver = new GroundControlResolver(5f, 10f, 10f, 0f, 1f);
-            var estado = new LocomotionState { IsGrounded = false, Velocity = new Vector3(0, -15f, 0) };
+            var estado = new LocomotionState
+            {
+                IsGrounded = false,
+                Velocity = new Vector3(0, -15f, 0),
+            };
 
             resolver.Tick(estado, new Vector2(1, 0), Quaternion.identity, false, Dt);
 

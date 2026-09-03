@@ -23,6 +23,5 @@ namespace TDOM.Contracts
         public float acceleration = 15f;
         public float friction = 5f;
         public float airControl = 2.5f;
-
     }
 }

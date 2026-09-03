@@ -17,7 +17,7 @@ namespace TDOM.Tests
                 var input = new InputSnapshot(false, false)
                 {
                     SprintPressed = true,
-                    Move = Vector2.up
+                    Move = Vector2.up,
                 };
 
                 resolver.Tick(input);
