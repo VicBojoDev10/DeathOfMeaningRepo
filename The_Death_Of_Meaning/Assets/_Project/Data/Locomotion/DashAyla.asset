@@ -12,28 +12,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a173820f95ef44129bb16e772c973713, type: 3}
   m_Name: DashAyla
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.DashProfile
-  Distance: 0
-  Duration: 0
-  Cooldown: 0
+  Distance: 8
+  Duration: 0.18
+  Cooldown: 4
   MaxTurnRate: 0
   Easing:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
-      outSlope: 1
-      tangentMode: 0
+      outSlope: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1
       value: 1
-      inSlope: 1
+      inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
