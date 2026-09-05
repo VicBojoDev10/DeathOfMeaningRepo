@@ -32,8 +32,6 @@ namespace TDOM.Data
             AirControl;
     }
 
-
-
     [CreateAssetMenu(menuName = "tdom/Combo Profile")]
     public sealed class ComboProfile : ScriptableObject
     {
