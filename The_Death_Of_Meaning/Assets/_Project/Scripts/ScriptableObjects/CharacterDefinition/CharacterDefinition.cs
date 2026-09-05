@@ -32,16 +32,6 @@ namespace TDOM.Data
             AirControl;
     }
 
-    [CreateAssetMenu(menuName = "tdom/Dash Profile")]
-    public sealed class DashProfile : ScriptableObject
-    {
-        public float Distance,
-            Duration,
-            Cooldown,
-            MaxTurnRate;
-        public AnimationCurve Easing = AnimationCurve.Linear(0, 0, 1, 1);
-    }
-
     [CreateAssetMenu(menuName = "tdom/Combo Profile")]
     public sealed class ComboProfile : ScriptableObject
     {
