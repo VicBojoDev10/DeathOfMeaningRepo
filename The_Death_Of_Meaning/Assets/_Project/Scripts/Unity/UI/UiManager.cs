@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-namespace TDOM.Unity
+namespace TDOM.Unity.UI
 {
     public class UiManager : MonoBehaviour
     {
