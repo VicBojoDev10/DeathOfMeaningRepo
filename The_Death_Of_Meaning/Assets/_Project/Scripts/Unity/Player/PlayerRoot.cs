@@ -13,11 +13,13 @@ namespace TDOM.Unity.Player
 
         [SerializeField]
         private PlayerMotor _motor;
+
+        [SerializeField]
         private PlayerLocomotion _locomocion;
 
         public override void OnNetworkSpawn()
         {
-            _locomocion = ConstruirLocomocion(_definicion);
+            _locomocion = new PlayerLocomotion(_definicion);
             _camara.gameObject.SetActive(IsOwner);
             _inputReader.enabled = IsOwner;
         }

@@ -1,4 +1,5 @@
 using TDOM.Contracts;
+using TDOM.Data;
 using UnityEngine;
 
 namespace TDOM.Gameplay.Locomotion
@@ -10,21 +11,28 @@ namespace TDOM.Gameplay.Locomotion
         private readonly GroundControlResolver _suelo;
         private readonly SprintResolver _correr;
         private readonly DashResolver _dash;
+        private readonly CharacterDefinition _definicion;
+
         public LocomotionState State { get; } = new();
 
         public PlayerLocomotion(
-            GravityModel gravedad,
-            JumpResolver salto,
-            GroundControlResolver suelo,
-            SprintResolver correr,
-            DashResolver dash
+            GravityModel _gravedad,
+            JumpResolver _salto,
+            GroundControlResolver _suelo,
+            SprintResolver _correr,
+            DashResolver _dash
         )
         {
-            _gravedad = gravedad;
-            _salto = salto;
-            _suelo = suelo;
-            _correr = correr;
-            _dash = dash;
+            this._gravedad = _gravedad;
+            this._salto = _salto;
+            this._suelo = _suelo;
+            this._correr = _correr;
+            this._dash = _dash;
+        }
+
+        public PlayerLocomotion(CharacterDefinition _definicion)
+        {
+            this._definicion = _definicion;
         }
 
         private Vector3 DireccionDeDash(InputSnapshot input, Quaternion yaw)
