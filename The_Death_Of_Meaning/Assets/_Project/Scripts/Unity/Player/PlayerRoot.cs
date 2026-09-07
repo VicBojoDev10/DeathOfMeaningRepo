@@ -1,23 +1,31 @@
+using TDOM.Data;
+using TDOM.Gameplay.Locomotion;
+using TDOM.Unity.Locomotion;
 using Unity.Netcode;
 using UnityEngine;
-using TDOM.Gameplay.Locomotion;
-using TDOM.Data;
 
 namespace TDOM.Unity.Player
 {
     public class PlayerRoot : NetworkBehaviour
     {
-        [SerializeField] private CharacterDefinition _definicion;
+        [SerializeField]
+        private CharacterDefinition _definicion;
+
+        [SerializeField]
+        private PlayerMotor _motor;
         private PlayerLocomotion _locomocion;
+
         public override void OnNetworkSpawn()
         {
             _locomocion = ConstruirLocomocion(_definicion);
             _camara.gameObject.SetActive(IsOwner);
             _inputReader.enabled = IsOwner;
         }
+
         private void Update()
         {
-            if (!IsOwner) return;
+            if (!IsOwner)
+                return;
             float dt = Time.deltaTime;
             _motor.ProbeGround(_locomocion.State);
             var input = _inputReader.Read();

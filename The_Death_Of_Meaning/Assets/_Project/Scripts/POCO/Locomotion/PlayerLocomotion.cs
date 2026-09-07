@@ -1,5 +1,5 @@
-using UnityEngine;
 using TDOM.Contracts;
+using UnityEngine;
 
 namespace TDOM.Gameplay.Locomotion
 {
@@ -11,6 +11,28 @@ namespace TDOM.Gameplay.Locomotion
         private readonly SprintResolver _correr;
         private readonly DashResolver _dash;
         public LocomotionState State { get; } = new();
+
+        public PlayerLocomotion(
+            GravityModel gravedad,
+            JumpResolver salto,
+            GroundControlResolver suelo,
+            SprintResolver correr,
+            DashResolver dash
+        )
+        {
+            _gravedad = gravedad;
+            _salto = salto;
+            _suelo = suelo;
+            _correr = correr;
+            _dash = dash;
+        }
+
+        private Vector3 DireccionDeDash(InputSnapshot input, Quaternion yaw)
+        {
+            Vector3 direction = yaw * new Vector3(input.Move.x, 0f, input.Move.y);
+            return direction.normalized;
+        }
+
         public MotionIntent Tick(InputSnapshot input, Quaternion yaw, float dt)
         {
             _correr.Tick(input);
