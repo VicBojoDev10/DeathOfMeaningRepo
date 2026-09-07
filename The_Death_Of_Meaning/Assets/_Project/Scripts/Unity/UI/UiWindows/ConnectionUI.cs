@@ -1,5 +1,6 @@
 using System;
 using TDOM.Gameplay.Core;
+using TDOM.Unity.UI;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -51,8 +52,7 @@ namespace TDOM.Unity
         private void IrASeleccionDePersonaje()
         {
             Hide();
-            //Mostrar la ui window de personaje
-
+            UiManager.Instance.ShowWindow(WindowsIds.ChSelectionUI);
         }
 
         private void SuscribirseAGameFlow()

@@ -45,7 +45,6 @@ namespace TDOM.Unity.UI
                 break;
             }
         }
-
         if (windowToShow != null)
         {
             windowToShow.Show();
@@ -55,7 +54,6 @@ namespace TDOM.Unity.UI
             Debug.LogError($"No se encontro la ventana con ID {windowId}");
         }
     }
-
     public void CloseWindow(string windowId)
     {
         UIWindow windowToClose = null;
@@ -87,5 +85,10 @@ namespace TDOM.Unity.UI
         Debug.LogError($"No se encontro la ventana con ID");
         return null;
     }
+    }
+    public static class WindowsIds
+    {
+        public const string ConnectionMenuUI = "connectionui";
+        public const string ChSelectionUI = "chselectionui";
     }
 }
