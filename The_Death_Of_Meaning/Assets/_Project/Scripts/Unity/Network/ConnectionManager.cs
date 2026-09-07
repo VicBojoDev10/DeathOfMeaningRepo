@@ -10,8 +10,11 @@ namespace TDOM.Unity
 {
     public class ConnectionManager : MonoBehaviour
     {
+        [SerializeField] private GameObject gameFlowNetworkPrefab;
         private readonly SessionStatus _status = new();
         public event Action<EstadoSesion> OnEstadoCambiado;
+        public event Action<int> OnJugadoresCambiado;
+
 
     private void OnEnable()
     {
@@ -57,14 +60,24 @@ namespace TDOM.Unity
     private void HandleServerStarted()
     {
         CambiarEstado(EstadoSesion.Listo);
+        if (NetworkManager.Singleton.IsServer)
+        {
+            var flowObj = Instantiate(gameFlowNetworkPrefab);
+            flowObj.GetComponent<NetworkObject>().Spawn();
+        }
     }
 
     private void HandleClientConnected(ulong clientId)
     {
         if (clientId == NetworkManager.Singleton.LocalClientId)
-        {
-            CambiarEstado(EstadoSesion.Listo);
-        }
+            {
+                CambiarEstado(EstadoSesion.Listo);
+            }
+
+            if (NetworkManager.Singleton.IsServer)
+            {
+                OnJugadoresCambiado?.Invoke(NetworkManager.Singleton.ConnectedClientsList.Count);
+            }
     }
 
     private void HandleClientDisconnected(ulong clientId)
@@ -72,6 +85,11 @@ namespace TDOM.Unity
         if (clientId == NetworkManager.Singleton.LocalClientId)
         {
             CambiarEstado(EstadoSesion.Desconectado);
+        }
+
+        if (NetworkManager.Singleton.IsServer)
+        {
+            OnJugadoresCambiado?.Invoke(NetworkManager.Singleton.ConnectedClientsList.Count);
         }
     }
 

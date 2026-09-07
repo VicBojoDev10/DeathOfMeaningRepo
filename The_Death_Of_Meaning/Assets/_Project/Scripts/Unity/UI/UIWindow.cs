@@ -57,6 +57,7 @@ namespace TDOM.Unity
     public static class WindowsIds
     {
         public const string ConnectionMenuUI = "connectionui";
+        public const string ChSelectionUI = "chselectionui";
 
     }
 }

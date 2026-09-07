@@ -632,6 +632,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UiManager
   windows:
   - {fileID: 311593445}
+  - {fileID: 8926104049234083231}
 --- !u!4 &1483942399
 Transform:
   m_ObjectHideFlags: 0
@@ -646,6 +647,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 311593446}
+  - {fileID: 2093703159772046184}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1633586670
@@ -876,6 +878,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c9131bd2b7dcbf4d801001e3beec638, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.ConnectionManager
+  gameFlowNetworkPrefab: {fileID: 8473628879619465374, guid: a18c5b45ca4dd3b4dbfdeb8c07419c3b, type: 3}
 --- !u!4 &2123154848
 Transform:
   m_ObjectHideFlags: 0
@@ -891,6 +894,83 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &2093703159772046184 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4353111586306877682, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
+  m_PrefabInstance: {fileID: 8926104049234083230}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &8926104049234083230
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1483942399}
+    m_Modifications:
+    - target: {fileID: 3649442834146512904, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
+      propertyPath: connectionManager
+      value: 
+      objectReference: {fileID: 2123154847}
+    - target: {fileID: 4353111586306877682, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4353111586306877682, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4353111586306877682, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4353111586306877682, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4353111586306877682, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4353111586306877682, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4353111586306877682, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4353111586306877682, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4353111586306877682, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4353111586306877682, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8293675920046222837, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
+      propertyPath: m_Name
+      value: ChSelectionUI
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
+--- !u!114 &8926104049234083231 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 580043509499462902, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
+  m_PrefabInstance: {fileID: 8926104049234083230}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3247be16a4a36448013be59c5de024, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.CharacterSelUI
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
