@@ -9,8 +9,6 @@ namespace TDOM.Unity
     {
 
     public static GameSessionManager Instance { get; private set; }
-
-    [SerializeField] private Camera _camara;
     [SerializeField] private GameObject _prefabZendre;
     [SerializeField] private GameObject _prefabAyla;
     [SerializeField] private Transform[] _puntosDeSpawn;
@@ -84,7 +82,6 @@ namespace TDOM.Unity
             var go = Instantiate(prefab, _puntosDeSpawn[i].position, Quaternion.identity);
             go.GetComponent<NetworkObject>().SpawnWithOwnership(Jugadores[i].ClientId);
         }
-        _camara.transform.position = _puntosDeSpawn[0].position;
         IniciarPartidaClientRpc();
     }
 
