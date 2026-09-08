@@ -1,5 +1,5 @@
-using Unity.Netcode;
 using Unity.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace TDOM.Unity
@@ -7,16 +7,20 @@ namespace TDOM.Unity
     public enum CharacterIds
     {
         None,
-     Zendre,
-     Ayla
+        Zendre,
+        Ayla,
     }
-    public struct PlayerSelectionState : INetworkSerializable, System.IEquatable<PlayerSelectionState>
+
+    public struct PlayerSelectionState
+        : INetworkSerializable,
+            System.IEquatable<PlayerSelectionState>
     {
         public ulong ClientId;
         public CharacterIds Character;
         public bool Ready;
 
-        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+        public void NetworkSerialize<T>(BufferSerializer<T> serializer)
+            where T : IReaderWriter
         {
             serializer.SerializeValue(ref ClientId);
             serializer.SerializeValue(ref Character);

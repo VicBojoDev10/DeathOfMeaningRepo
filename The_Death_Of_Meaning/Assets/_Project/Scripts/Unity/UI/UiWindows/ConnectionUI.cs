@@ -24,7 +24,6 @@ namespace TDOM.Unity
             startMatchButton.gameObject.SetActive(false);
         }
 
-
         private void OnEnable()
         {
             startHostButton.onClick.AddListener(StartHostButton_OnClick);
@@ -33,8 +32,10 @@ namespace TDOM.Unity
             connectionManager.OnEstadoCambiado += ActualizarTextoEstado;
             connectionManager.OnJugadoresCambiado += ActualizarBotonComenzar;
             GameFlowNetwork.Spawned += SuscribirseAGameFlow;
-            if (GameFlowNetwork.Instance != null) SuscribirseAGameFlow();
+            if (GameFlowNetwork.Instance != null)
+                SuscribirseAGameFlow();
         }
+
         private void OnDisable()
         {
             startHostButton.onClick.RemoveListener(StartHostButton_OnClick);
@@ -70,6 +71,7 @@ namespace TDOM.Unity
         {
             GameFlowNetwork.Instance.StartMatch();
         }
+
         private void StartHostButton_OnClick()
         {
             connectionManager.OnCrearPartida();
@@ -82,6 +84,7 @@ namespace TDOM.Unity
             connectionManager.OnUnirse(ipInputField.text.Trim());
             startClientButton.onClick.RemoveAllListeners();
         }
+
         private void ActualizarTextoEstado(EstadoSesion estado)
         {
             statusText.text = estado switch
@@ -90,9 +93,8 @@ namespace TDOM.Unity
                 EstadoSesion.Listo => "Listo",
                 EstadoSesion.Desconectado => "Desconectado",
                 EstadoSesion.Error => "Error de conexión",
-                _ => estado.ToString()
+                _ => estado.ToString(),
             };
         }
-
     }
 }

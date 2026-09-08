@@ -1,5 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
+
 namespace TDOM.Unity.Network
 {
     public class NetworkBootstrapDebug : MonoBehaviour

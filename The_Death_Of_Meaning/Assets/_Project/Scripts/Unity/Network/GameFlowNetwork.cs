@@ -1,6 +1,6 @@
 using System;
-using UnityEngine;
 using Unity.Netcode;
+using UnityEngine;
 
 namespace TDOM.Unity
 {
@@ -9,20 +9,26 @@ namespace TDOM.Unity
         public static event Action Spawned;
         public static GameFlowNetwork Instance { get; private set; }
         public event Action OnCharacterSelectionStarted;
+
         public override void OnNetworkSpawn()
         {
             Instance = this;
             Spawned?.Invoke();
         }
+
         public override void OnNetworkDespawn()
         {
-            if (Instance == this) Instance = null;
+            if (Instance == this)
+                Instance = null;
         }
+
         public void StartMatch()
         {
-            if (!IsServer) return;
+            if (!IsServer)
+                return;
             StartMatchClientRpc();
         }
+
         [ClientRpc]
         private void StartMatchClientRpc()
         {
