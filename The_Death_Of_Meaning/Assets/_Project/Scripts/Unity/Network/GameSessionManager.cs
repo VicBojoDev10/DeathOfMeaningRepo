@@ -1,4 +1,5 @@
 using System;
+using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -6,9 +7,10 @@ namespace TDOM.Unity
 {
     public class GameSessionManager : NetworkBehaviour
     {
-        
+
     public static GameSessionManager Instance { get; private set; }
 
+    [SerializeField] private Camera _camara;
     [SerializeField] private GameObject _prefabZendre;
     [SerializeField] private GameObject _prefabAyla;
     [SerializeField] private Transform[] _puntosDeSpawn;
@@ -23,14 +25,13 @@ namespace TDOM.Unity
 
     public override void OnNetworkSpawn()
     {
+
         Instance = this;
     }
-
     public override void OnNetworkDespawn()
     {
         if (Instance == this) Instance = null;
     }
-
     [Rpc(SendTo.Server)]
     public void ElegirPersonajeRpc(CharacterIds id, RpcParams rpcParams = default)
     {
@@ -83,7 +84,7 @@ namespace TDOM.Unity
             var go = Instantiate(prefab, _puntosDeSpawn[i].position, Quaternion.identity);
             go.GetComponent<NetworkObject>().SpawnWithOwnership(Jugadores[i].ClientId);
         }
-
+        _camara.transform.position = _puntosDeSpawn[0].position;
         IniciarPartidaClientRpc();
     }
 
@@ -91,6 +92,7 @@ namespace TDOM.Unity
     private void IniciarPartidaClientRpc()
     {
         OnPartidaIniciada?.Invoke();
+        UiManager.Instance.CloseWindow(WindowsIds.ChSelectionUI);
     }
     }
 }
