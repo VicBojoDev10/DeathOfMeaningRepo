@@ -6,9 +6,9 @@ namespace TDOM.Unity
 {
     public enum CharacterIds
     {
+        None,
      Zendre,
-     Ayla,
-     None
+     Ayla
     }
     public struct PlayerSelectionState : INetworkSerializable, System.IEquatable<PlayerSelectionState>
     {
