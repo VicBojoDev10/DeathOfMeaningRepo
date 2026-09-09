@@ -39,8 +39,15 @@ namespace TDOM.Unity
             if (GameSessionManager.Instance != null)
             {
                 GameSessionManager.Instance.Jugadores.OnListChanged += ActualizarUI;
+                GameSessionManager.Instance.OnJugadorDesconectado += MostrarMensajeDesconexion;
                 ActualizarUI(default);
             }
+        }
+
+        private void MostrarMensajeDesconexion()
+        {
+            if (statusText != null)
+                statusText.text = "El otro jugador se desconectó";
         }
 
         private void OnDisable()
@@ -50,7 +57,10 @@ namespace TDOM.Unity
             ready.onClick.RemoveAllListeners();
 
             if (GameSessionManager.Instance != null)
+            {
                 GameSessionManager.Instance.Jugadores.OnListChanged -= ActualizarUI;
+                GameSessionManager.Instance.OnJugadorDesconectado -= MostrarMensajeDesconexion;
+            }
         }
 
         private void ElegirPersonaje(CharacterIds id)
@@ -84,6 +94,9 @@ namespace TDOM.Unity
         private void ActualizarUI(NetworkListEvent<PlayerSelectionState> _)
         {
             ulong miId = NetworkManager.Singleton.LocalClientId;
+            Debug.Log(
+                $"[UI] ActualizarUI corriendo. Jugadores.Count={GameSessionManager.Instance.Jugadores.Count}, miId={miId}"
+            );
 
             CharacterIds miPersonaje = CharacterIds.None;
             bool yaListo = false;

@@ -19,6 +19,7 @@ namespace TDOM.Unity
         private Transform[] _puntosDeSpawn;
         public NetworkList<PlayerSelectionState> Jugadores { get; private set; }
 
+        public event Action OnJugadorDesconectado;
         public event Action OnPartidaIniciada;
 
         private void Awake()
@@ -32,24 +33,50 @@ namespace TDOM.Unity
 
             if (IsServer)
             {
+                Debug.Log("[SERVER] Suscrito a OnClientDisconnectCallback");
                 NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnected;
             }
-        }
-        private void HandleClientDisconnected(ulong clientId)
-        {
-            int idx = BuscarIndice(clientId);
-            if (idx < 0) return;
-            Jugadores.RemoveAt(idx);
         }
 
         public override void OnNetworkDespawn()
         {
-            if (Instance == this) Instance = null;
+            if (Instance == this)
+                Instance = null;
 
             if (IsServer && NetworkManager.Singleton != null)
             {
                 NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnected;
             }
+        }
+
+        private void HandleClientDisconnected(ulong clientId)
+        {
+            Debug.Log($"[SERVER] Cliente desconectado: {clientId}");
+            int idx = BuscarIndice(clientId);
+            if (idx < 0)
+            {
+                Debug.Log("[SERVER] No se encontró ese clientId en Jugadores");
+                return;
+            }
+            Jugadores.RemoveAt(idx);
+            Debug.Log($"[SERVER] Jugador removido, quedan: {Jugadores.Count}");
+            for (int i = 0; i < Jugadores.Count; i++)
+            {
+                if (Jugadores[i].Ready)
+                {
+                    var estado = Jugadores[i];
+                    estado.Ready = false;
+                    Jugadores[i] = estado;
+                }
+            }
+
+            NotificarDesconexionClientRpc();
+        }
+
+        [ClientRpc]
+        private void NotificarDesconexionClientRpc()
+        {
+            OnJugadorDesconectado?.Invoke();
         }
 
         [Rpc(SendTo.Server)]
@@ -64,7 +91,6 @@ namespace TDOM.Unity
                     return;
                 }
             }
-
             int idx = BuscarIndice(clientId);
             var estado = new PlayerSelectionState
             {
@@ -72,7 +98,6 @@ namespace TDOM.Unity
                 Character = id,
                 Ready = false,
             };
-
             if (idx >= 0)
                 Jugadores[idx] = estado;
             else
