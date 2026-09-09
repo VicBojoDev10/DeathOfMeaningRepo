@@ -29,12 +29,27 @@ namespace TDOM.Unity
         public override void OnNetworkSpawn()
         {
             Instance = this;
+
+            if (IsServer)
+            {
+                NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnected;
+            }
+        }
+        private void HandleClientDisconnected(ulong clientId)
+        {
+            int idx = BuscarIndice(clientId);
+            if (idx < 0) return;
+            Jugadores.RemoveAt(idx);
         }
 
         public override void OnNetworkDespawn()
         {
-            if (Instance == this)
-                Instance = null;
+            if (Instance == this) Instance = null;
+
+            if (IsServer && NetworkManager.Singleton != null)
+            {
+                NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnected;
+            }
         }
 
         [Rpc(SendTo.Server)]
