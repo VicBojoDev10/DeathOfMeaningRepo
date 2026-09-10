@@ -1,6 +1,5 @@
 using Unity.Netcode;
 using UnityEngine;
-
 namespace TDOM.Unity
 {
     public class PlayerCameraSetUp : NetworkBehaviour
@@ -12,8 +11,7 @@ namespace TDOM.Unity
         {
             if (!IsOwner)
                 return;
-
-            var cam = Camera.main;
+            var cam = UnityEngine.Camera.main;
             if (cam == null)
                 return;
 
