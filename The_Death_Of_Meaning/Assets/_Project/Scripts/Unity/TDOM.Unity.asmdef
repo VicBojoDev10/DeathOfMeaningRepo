@@ -1,25 +1,23 @@
 {
-	"name": "TDOM.Unity",
-	"rootNamespace": "TDOM.Unity",
-  	"references": [
-		"TDOM.Contracts",
-		"TDOM.Gameplay",
-		"TDOM.Data",
-		"Unity.Netcode.Runtime",
-		"Unity.InputSystem",
-		"Unity.Cinemachine",
+    "name": "TDOM.Unity",
+    "rootNamespace": "TDOM.Unity",
+    "references": [
+        "TDOM.Contracts",
+        "TDOM.Gameplay",
+        "TDOM.Data",
+        "Unity.Netcode.Runtime",
+        "Unity.InputSystem",
+        "Unity.Cinemachine",
         "UnityEditor.UI",
-        "Unity.TextMeshPro",
-		"Unity.UnityEditor"
-
-	],
- 	"includePlatforms": [],
- 	"excludePlatforms": [],
- 	"allowUnsafeCode": false,
- 	"overrideReferences": false,
- 	"precompiledReferences": [],
- 	"autoReferenced": true,
-	"defineConstraints": [],
- 	"versionDefines": [],
-	"noEngineReferences": false
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
