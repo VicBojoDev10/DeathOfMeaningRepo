@@ -1,7 +1,7 @@
 using System.Collections;
+using TDOM.Gameplay.Camera;
 using Unity.Cinemachine;
 using UnityEngine;
-using TDOM.Gameplay.Camera;
 
 namespace TDOM.Unity.Camera
 {
@@ -14,7 +14,9 @@ namespace TDOM.Unity.Camera
         private CinemachineImpulseSource _impulso;
 
         private LookResolver _look;
-        [SerializeField] private float _sensibilidad = 200f;
+
+        [SerializeField]
+        private float _sensibilidad = 200f;
 
         private float _fovBase;
         private float _fovExtra;
@@ -27,7 +29,7 @@ namespace TDOM.Unity.Camera
         {
             if (_camara != null)
                 _fovBase = _camara.Lens.FieldOfView;
-                _look = new LookResolver(_sensibilidad);
+            _look = new LookResolver(_sensibilidad);
         }
 
         public void Tick(Vector2 lookInput, float dt)
