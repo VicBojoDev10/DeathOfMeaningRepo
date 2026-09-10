@@ -24,10 +24,9 @@ namespace TDOM.Unity.Camera
 
         public void OnEmbestidaZendre()
         {
-            // Sostenido, no punch: mismo método pero con duración larga.
-            _cameraRig.PunchFov(_config.embestidaFov, _config.embestidaDuracion);
+            _cameraRig.PunchFovSostenido(_config.embestidaFov, _config.embestidaDuracion);
         }
-
+        
         public void OnDobleSalto()
         {
             _cameraRig.Tilt(_config.dobleSaltoTilt, _config.dobleSaltoTiltDuracion);

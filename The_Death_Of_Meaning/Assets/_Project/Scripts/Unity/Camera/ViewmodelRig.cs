@@ -1,13 +1,11 @@
 using UnityEngine;
 
-namespace TDOM.Unity
+namespace TDOM.Unity.Camera
 {
-    public class ViewmodelRig : MonoBehaviour
+    
+         public sealed class ViewmodelRig : MonoBehaviour
     {
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start() { }
-
-        // Update is called once per frame
-        void Update() { }
+        
     }
+    
 }

@@ -95,5 +95,45 @@ namespace TDOM.Unity.Camera
             _roll = 0f;
             _rutinaTiltActual = null;
         }
+
+        public void PunchFovSostenido(float grados, float duracionSostenido, float duracionSubida = 0.1f, float duracionBajada = 0.15f)
+{
+    if (_rutinaFovActual != null)
+        StopCoroutine(_rutinaFovActual);
+
+    _rutinaFovActual = StartCoroutine(RutinaFovSostenido(grados, duracionSostenido, duracionSubida, duracionBajada));
+}
+
+private IEnumerator RutinaFovSostenido(float grados, float duracionSostenido, float duracionSubida, float duracionBajada)
+{
+    // Sube al valor objetivo
+    float t = 0f;
+    while (t < duracionSubida)
+    {
+        t += Time.deltaTime;
+        _fovExtra = Mathf.Lerp(0f, grados, Mathf.Clamp01(t / duracionSubida));
+        AplicarFov();
+        yield return null;
+    }
+    _fovExtra = grados;
+    AplicarFov();
+
+    // Meseta: se mantiene fijo, esto es lo que la distingue del punch
+    yield return new WaitForSeconds(duracionSostenido);
+
+    // Decae solo al final
+    t = 0f;
+    while (t < duracionBajada)
+    {
+        t += Time.deltaTime;
+        _fovExtra = Mathf.Lerp(grados, 0f, Mathf.Clamp01(t / duracionBajada));
+        AplicarFov();
+        yield return null;
+    }
+
+    _fovExtra = 0f;
+    AplicarFov();
+    _rutinaFovActual = null;
+}
     }
 }
