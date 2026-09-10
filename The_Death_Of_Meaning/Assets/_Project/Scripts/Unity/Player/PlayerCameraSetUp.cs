@@ -1,5 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
+
 namespace TDOM.Unity
 {
     public class PlayerCameraSetUp : NetworkBehaviour
