@@ -12,19 +12,15 @@ namespace TDOM.Unity.Player
     public class PlayerRoot : NetworkBehaviour
     {
         [SerializeField]
-        private CharacterDefinition _definicion;
+        private readonly CharacterDefinition _definicion;
 
         [SerializeField]
-        private PlayerMotor _motor;
-
-        [SerializeField]
+        private readonly PlayerMotor _motor;
         private PlayerLocomotion _locomocion;
 
         [SerializeField]
-        private PlayerCameraRig _camera;
-
-        [SerializeField]
-        private LookResolver _look;
+        private readonly PlayerCameraRig _camera;
+        private readonly LookResolver _look;
 
         [SerializeField]
         private PlayerInputReader _inputReader;
