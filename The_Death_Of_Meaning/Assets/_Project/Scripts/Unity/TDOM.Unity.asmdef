@@ -5,17 +5,21 @@
 		"TDOM.Contracts",
 		"TDOM.Gameplay",
 		"TDOM.Data",
-		"Unity.Netcode.Runtime",
+		"TDOM.Input",
 		"Unity.InputSystem",
-		"Unity.Cinemachine"
-	],
- 	"includePlatforms": [],
- 	"excludePlatforms": [],
- 	"allowUnsafeCode": false,
- 	"overrideReferences": false,
- 	"precompiledReferences": [],
- 	"autoReferenced": true,
-	"defineConstraints": [],
- 	"versionDefines": [],
-	"noEngineReferences": false
+		"Unity.Netcode.Runtime",
+		"Unity.Cinemachine",
+        "UnityEditor.UI",
+        "Unity.TextMeshPro"
+
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "autoReferenced": true,
+    "precompiledReferences": [],
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

@@ -1,5 +1,8 @@
 using TDOM.Data;
+using TDOM.Gameplay.Camera;
 using TDOM.Gameplay.Locomotion;
+using TDOM.Unity.Camera;
+using TDOM.Unity.Input;
 using TDOM.Unity.Locomotion;
 using Unity.Netcode;
 using UnityEngine;
@@ -17,10 +20,19 @@ namespace TDOM.Unity.Player
         [SerializeField]
         private PlayerLocomotion _locomocion;
 
+        [SerializeField]
+        private PlayerCameraRig _camera;
+
+        [SerializeField]
+        private LookResolver _look;
+
+        [SerializeField]
+        private PlayerInputReader _inputReader;
+
         public override void OnNetworkSpawn()
         {
             _locomocion = new PlayerLocomotion(_definicion);
-            _camara.gameObject.SetActive(IsOwner);
+            _camera.gameObject.SetActive(IsOwner);
             _inputReader.enabled = IsOwner;
         }
 
