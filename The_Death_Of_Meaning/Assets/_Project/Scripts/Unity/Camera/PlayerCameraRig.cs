@@ -1,5 +1,6 @@
 using System.Collections;
 using TDOM.Gameplay.Camera;
+using TDOM.Unity.Input;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -18,6 +19,8 @@ namespace TDOM.Unity.Camera
         [SerializeField]
         private float _sensibilidad = 200f;
 
+        private PlayerInputReader _inputReader;
+
         private float _fovBase;
         private float _fovExtra;
         private float _roll;
@@ -30,6 +33,16 @@ namespace TDOM.Unity.Camera
             if (_camara != null)
                 _fovBase = _camara.Lens.FieldOfView;
             _look = new LookResolver(_sensibilidad);
+            _inputReader = GetComponentInParent<PlayerInputReader>();
+        }
+
+        private void Update()
+        {
+            if (_camara == null || !_camara.enabled)
+                return;
+            if (_inputReader == null)
+                return;
+            Tick(_inputReader.Read().Look, Time.deltaTime);
         }
 
         public void Tick(Vector2 lookInput, float dt)

@@ -4,6 +4,6 @@ namespace TDOM.Unity.Camera
 {
     public sealed class ViewmodelRig : MonoBehaviour
     {
-        public int camaraTest;
+        public int _placeholderNoUsar;
     }
 }
