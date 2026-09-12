@@ -15,23 +15,6 @@ namespace TDOM.Data
         public EnergyProfile Energy;
     }
 
-    [CreateAssetMenu(menuName = "tdom/Movement Profile")]
-    public sealed class MovementProfile : ScriptableObject
-    {
-        public float Gravity,
-            TerminalVelocity,
-            LowJumpMultiplier,
-            JumpVelocity;
-        public int MaxJumps;
-        public float CoyoteTime,
-            BufferTime;
-        public float BaseSpeed,
-            SprintSpeed,
-            Acceleration,
-            Friction,
-            AirControl;
-    }
-
     [CreateAssetMenu(menuName = "tdom/Combo Profile")]
     public sealed class ComboProfile : ScriptableObject
     {

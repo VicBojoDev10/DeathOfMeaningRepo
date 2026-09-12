@@ -9,63 +9,46 @@ namespace TDOM.Tests.EditMode
 {
     public sealed class PlayerLocomotionTests
     {
-        [SerializeField]
-        private PlayerLocomotion _locomotion;
-
-        [SerializeField]
-        private readonly GravityModel _gravedad;
-
-        [SerializeField]
-        private readonly JumpResolver _salto;
-
-        [SerializeField]
-        private readonly GroundControlResolver _suelo;
-
-        [SerializeField]
-        private readonly SprintResolver _correr;
-
-        [SerializeField]
-        private readonly DashResolver _dash;
-
-        [SerializeField]
-        private readonly CharacterDefinition _definicion;
-
-        public LocomotionState State { get; } = new();
-
-        private Vector3 DireccionDeDash(InputSnapshot input, Quaternion yaw)
-        {
-            Vector3 direction = yaw * new Vector3(input.Move.x, 0f, input.Move.y);
-            return direction.normalized;
-        }
-
-        private MotionIntent Tick(InputSnapshot input, Quaternion yaw, float dt)
-        {
-            _correr.Tick(input);
-            if (input.DashPressed)
-            {
-                Vector3 dir = DireccionDeDash(input, yaw);
-                _dash.TryIniciar(dir);
-            }
-            _dash.Tick(State, input.Move, dt);
-            if (_dash.Activo)
-                return new MotionIntent(State.Velocity, ignoreGravity: true);
-            _salto.Tick(State, input, dt);
-            _suelo.Tick(State, input.Move, yaw, _correr.Corriendo, dt);
-            _gravedad.Aplicar(State, input, dt);
-            return new MotionIntent(State.Velocity, ignoreGravity: false);
-        }
-
         [Test]
-        public void DireccionDeDash_usa_el_yaw_para_rotar_el_movimiento()
+        public void Testing_Tick()
         {
-            var input = new InputSnapshot(false, false) { Move = new Vector2(1f, 0f) };
-            var yaw = Quaternion.Euler(0f, -90f, 0f);
+            var gravity = new GravityModel(-9.81f, -20f, 1f);
+            var jump = new JumpResolver(1, 8f, 0.1f, 0.1f);
+            var ground = new GroundControlResolver(4.5f, 6.5f, 25f, 30f, 0.3f);
+            var run = new SprintResolver();
 
-            Vector3 result = DireccionDeDash(input, yaw);
+            var dashProfile = ScriptableObject.CreateInstance<DashProfile>();
+            dashProfile.Distance = 6f;
+            dashProfile.Duration = 0.2f;
+            dashProfile.Cooldown = 1f;
+            dashProfile.MaxTurnRate = 0f;
+            dashProfile.Easing = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+            var dash = new DashResolver(dashProfile);
 
-            Assert.That(result.x, Is.EqualTo(0f).Within(0.0001f));
-            Assert.That(result.y, Is.EqualTo(0f).Within(0.0001f));
-            Assert.That(result.z, Is.EqualTo(1f).Within(0.0001f));
+            var input = new InputSnapshot(
+                Vector2.zero,
+                Vector2.zero,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false
+            );
+            var yaw = Quaternion.identity;
+            const float dt = 1f / 60f;
+
+            var playerLocomotion = new PlayerLocomotion(gravity, jump, ground, run, dash);
+            var intent = playerLocomotion.Tick(input, yaw, dt);
+
+            Assert.That(playerLocomotion.State, Is.Not.Null);
+            Assert.That(intent.IgnoreGravity, Is.False);
         }
     }
 }

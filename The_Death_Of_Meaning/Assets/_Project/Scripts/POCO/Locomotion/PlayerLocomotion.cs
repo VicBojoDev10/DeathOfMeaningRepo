@@ -6,33 +6,37 @@ namespace TDOM.Gameplay.Locomotion
 {
     public sealed class PlayerLocomotion
     {
-        private readonly GravityModel _gravedad;
-        private readonly JumpResolver _salto;
-        private readonly GroundControlResolver _suelo;
-        private readonly SprintResolver _correr;
+        private readonly GravityModel _gravity;
+        private readonly JumpResolver _jump;
+        private readonly GroundControlResolver _ground;
+        private readonly SprintResolver _run;
         private readonly DashResolver _dash;
-        private readonly CharacterDefinition _definicion;
 
         public LocomotionState State { get; } = new();
 
         public PlayerLocomotion(
-            GravityModel _gravedad,
-            JumpResolver _salto,
-            GroundControlResolver _suelo,
-            SprintResolver _correr,
-            DashResolver _dash
+            GravityModel gravity,
+            JumpResolver jump,
+            GroundControlResolver ground,
+            SprintResolver run,
+            DashResolver dash
         )
         {
-            this._gravedad = _gravedad;
-            this._salto = _salto;
-            this._suelo = _suelo;
-            this._correr = _correr;
-            this._dash = _dash;
+            this._gravity = gravity;
+            this._jump = jump;
+            this._ground = ground;
+            this._run = run;
+            this._dash = dash;
         }
 
-        public PlayerLocomotion(CharacterDefinition _definicion)
+        public PlayerLocomotion(CharacterDefinition definition)
         {
-            this._definicion = _definicion;
+            var m = definition.Movement;
+            _gravity = new GravityModel(m.Gravity, m.TerminalVelocity, m.LowJumpMultiplier);
+            _jump = new JumpResolver(m.MaxJumps, m.JumpVelocity, m.CoyoteTime, m.BufferTime);
+            _ground = new GroundControlResolver(m.BaseSpeed, m.SprintSpeed, m.Acceleration, m.Friction, m.AirControl);
+            _run = new SprintResolver();
+            _dash = new DashResolver(definition.Dash);
         }
 
         private Vector3 DireccionDeDash(InputSnapshot input, Quaternion yaw)
@@ -43,7 +47,7 @@ namespace TDOM.Gameplay.Locomotion
 
         public MotionIntent Tick(InputSnapshot input, Quaternion yaw, float dt)
         {
-            _correr.Tick(input);
+            _run.Tick(input);
             if (input.DashPressed)
             {
                 Vector3 dir = DireccionDeDash(input, yaw);
@@ -52,9 +56,9 @@ namespace TDOM.Gameplay.Locomotion
             _dash.Tick(State, input.Move, dt);
             if (_dash.Activo)
                 return new MotionIntent(State.Velocity, ignoreGravity: true);
-            _salto.Tick(State, input, dt);
-            _suelo.Tick(State, input.Move, yaw, _correr.Corriendo, dt);
-            _gravedad.Aplicar(State, input, dt);
+            _jump.Tick(State, input, dt);
+            _ground.Tick(State, input.Move, yaw, _run.Corriendo, dt);
+            _gravity.Aplicar(State, input, dt);
             return new MotionIntent(State.Velocity, ignoreGravity: false);
         }
     }

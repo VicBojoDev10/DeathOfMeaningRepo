@@ -12,22 +12,25 @@ namespace TDOM.Unity.Player
     public class PlayerRoot : NetworkBehaviour
     {
         [SerializeField]
-        private readonly CharacterDefinition _definicion;
+        private CharacterDefinition _definition;
 
         [SerializeField]
-        private readonly PlayerMotor _motor;
+        private PlayerMotor _motor;
         private PlayerLocomotion _locomocion;
 
         [SerializeField]
-        private readonly PlayerCameraRig _camera;
-        private readonly LookResolver _look;
+        private PlayerCameraRig _camera;
+        private LookResolver _look;
 
         [SerializeField]
         private PlayerInputReader _inputReader;
+        [SerializeField]
+        private float _sensivity = 200f;
 
         public override void OnNetworkSpawn()
         {
-            _locomocion = new PlayerLocomotion(_definicion);
+            _look = new LookResolver(_sensivity);
+            _locomocion = new PlayerLocomotion(_definition);
             _camera.gameObject.SetActive(IsOwner);
             _inputReader.enabled = IsOwner;
         }
