@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace TDOM.Data
 {
-    [CreateAssetMenu(menuName = "tdom/Character Definition")]
+    [CreateAssetMenu(menuName = "TDOM/Character Definition")]
     public sealed class CharacterDefinition : ScriptableObject
     {
         public string DisplayName;
@@ -15,7 +15,7 @@ namespace TDOM.Data
         public EnergyProfile Energy;
     }
 
-    [CreateAssetMenu(menuName = "tdom/Combo Profile")]
+    [CreateAssetMenu(menuName = "TDOM/Combo Profile")]
     public sealed class ComboProfile : ScriptableObject
     {
         public AttackStep[] Steps;
@@ -25,14 +25,14 @@ namespace TDOM.Data
             BufferWindow;
     }
 
-    [CreateAssetMenu(menuName = "tdom/Grapple Profile")]
+    [CreateAssetMenu(menuName = "TDOM/Grapple Profile")]
     public sealed class GrappleProfile : ScriptableObject
     {
         public float Range;
         public float PullSpeed;
     }
 
-    [CreateAssetMenu(menuName = "tdom/Energy Profile")]
+    [CreateAssetMenu(menuName = "TDOM/Energy Profile")]
     public sealed class EnergyProfile : ScriptableObject
     {
         public float Max;

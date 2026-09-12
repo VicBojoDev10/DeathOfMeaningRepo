@@ -2,7 +2,7 @@
 
 namespace TDOM.Data
 {
-    [CreateAssetMenu(fileName = "NewMovementProfile", menuName = "tdom/Movement Profile")]
+    [CreateAssetMenu(fileName = "NewMovementProfile", menuName = "TDOM/Movement Profile")]
     public sealed class MovementProfile : ScriptableObject
     {
         [Header("Gravity")]
