@@ -24,6 +24,7 @@ namespace TDOM.Unity.Player
 
         [SerializeField]
         private PlayerInputReader _inputReader;
+
         [SerializeField]
         private float _sensivity = 200f;
 

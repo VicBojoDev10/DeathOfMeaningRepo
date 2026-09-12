@@ -34,7 +34,13 @@ namespace TDOM.Gameplay.Locomotion
             var m = definition.Movement;
             _gravity = new GravityModel(m.Gravity, m.TerminalVelocity, m.LowJumpMultiplier);
             _jump = new JumpResolver(m.MaxJumps, m.JumpVelocity, m.CoyoteTime, m.BufferTime);
-            _ground = new GroundControlResolver(m.BaseSpeed, m.SprintSpeed, m.Acceleration, m.Friction, m.AirControl);
+            _ground = new GroundControlResolver(
+                m.BaseSpeed,
+                m.SprintSpeed,
+                m.Acceleration,
+                m.Friction,
+                m.AirControl
+            );
             _run = new SprintResolver();
             _dash = new DashResolver(definition.Dash);
         }
