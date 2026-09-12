@@ -68,6 +68,9 @@ namespace TDOM.Gameplay
             if (_transcurrido >= _duracion)
             {
                 Activo = false;
+                estado.Phase = estado.IsGrounded
+                    ? LocomotionPhase.Grounded
+                    : LocomotionPhase.Airborne;
             }
         }
 
