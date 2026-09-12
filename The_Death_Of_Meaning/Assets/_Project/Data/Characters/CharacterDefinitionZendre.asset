@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c41a3b7506cb224384724fe14f450d4, type: 3}
+  m_Name: CharacterDefinitionZendre
+  m_EditorClassIdentifier: TDOM.Data::TDOM.Data.CharacterDefinition
+  DisplayName: Zendre
+  Movement: {fileID: 11400000, guid: 0e55d611c728e7d4192983bc844b5808, type: 2}
+  Dash: {fileID: 11400000, guid: 0797f8681e5545d4e96fcf058301eb0e, type: 2}
+  Melee: {fileID: 0}
+  Ranged: {fileID: 0}
+  Grapple: {fileID: 0}
+  Energy: {fileID: 0}

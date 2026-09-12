@@ -20,19 +20,11 @@ namespace TDOM.Gameplay
         {
             if (estado.IsGrounded && estado.Velocity.y < 0f)
             {
-                estado.Velocity.y = -2f;
+                estado.Velocity.y += _gravedad * dt;
                 return;
             }
 
             float g = _gravedad;
-            Debug.Log($"_gravedad: {g}");
-            Debug.Log($"_velocidadTerminal{_velocidadTerminal}");
-            Debug.Log($"_multiplicadorSaltoCorto{_multiplicadorSaltoCorto}");
-            Debug.Log($"estado is grouded: {estado.IsGrounded.ToString()}");
-            Debug.Log($"velocity: {estado.Velocity.ToString()}");
-            Debug.Log($"input JumpPressed: {input.JumpPressed}");
-            Debug.Log($"input JumpHeld: {input.JumpHeld}");
-
             if (estado.Velocity.y > 0f && !input.JumpHeld)
             {
                 g *= _multiplicadorSaltoCorto;
