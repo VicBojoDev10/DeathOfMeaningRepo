@@ -26,6 +26,7 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: "/tw-compliance-review ${{ github.event.inputs.pr_number }}"
           claude_args: '--allowedTools "Bash,mcp__github_inline_comment__create_inline_comment" --model claude-sonnet-5'
+          show_full_output: "true"
         env:
           JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
