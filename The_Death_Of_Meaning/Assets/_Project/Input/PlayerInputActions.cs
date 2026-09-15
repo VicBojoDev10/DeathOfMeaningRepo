@@ -569,11 +569,11 @@ namespace TDOM.Unity.Input
     ],
     ""controlSchemes"": [
         {
-            ""name"": ""Dualsense"",
-            ""bindingGroup"": ""Dualsense"",
+            ""name"": ""DualSense"",
+            ""bindingGroup"": ""DualSense"",
             ""devices"": [
                 {
-                    ""devicePath"": ""<DualSenseGampadiOS>"",
+                    ""devicePath"": ""<DualSenseGamepadiOS>"",
                     ""isOptional"": false,
                     ""isOR"": false
                 }
@@ -1172,17 +1172,17 @@ namespace TDOM.Unity.Input
         /// Provides a new <see cref="UIActions" /> instance referencing this action map.
         /// </summary>
         public UIActions @UI => new UIActions(this);
-        private int m_DualsenseSchemeIndex = -1;
+        private int m_DualSenseSchemeIndex = -1;
         /// <summary>
         /// Provides access to the input control scheme.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputControlScheme" />
-        public InputControlScheme DualsenseScheme
+        public InputControlScheme DualSenseScheme
         {
             get
             {
-                if (m_DualsenseSchemeIndex == -1) m_DualsenseSchemeIndex = asset.FindControlSchemeIndex("Dualsense");
-                return asset.controlSchemes[m_DualsenseSchemeIndex];
+                if (m_DualSenseSchemeIndex == -1) m_DualSenseSchemeIndex = asset.FindControlSchemeIndex("DualSense");
+                return asset.controlSchemes[m_DualSenseSchemeIndex];
             }
         }
         /// <summary>
