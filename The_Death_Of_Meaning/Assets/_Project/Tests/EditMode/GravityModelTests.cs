@@ -47,5 +47,24 @@ namespace TDOM.Tests.EditMode
 
             Assert.AreEqual(-50f, estado.Velocity.y);
         }
+
+        [Test]
+        public void La_velocidad_en_suelo_no_pasa_de_la_terminal()
+        {
+            var gravity = new GravityModel(
+                gravedad: -100f,
+                velocidadTerminal: -50f,
+                multiplicadorSaltoCorto: 1f
+            );
+            var estado = new LocomotionState
+            {
+                IsGrounded = true,
+                Velocity = new Vector3(0, -45f, 0),
+            };
+
+            gravity.Aplicar(estado, SinInput(), 1f);
+
+            Assert.AreEqual(-50f, estado.Velocity.y);
+        }
     }
 }
