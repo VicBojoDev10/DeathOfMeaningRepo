@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: refs/pull/${{ github.event.inputs.pr_number }}/head
+          ref: dev
           fetch-depth: 0
 
       - uses: anthropics/claude-code-action@v1
