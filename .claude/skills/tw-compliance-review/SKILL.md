@@ -37,9 +37,11 @@ curl -s -u "$JIRA_EMAIL:$JIRA_API_TOKEN" \
   -H "Accept: application/json"
 ```
 
+Esta búsqueda es siempre obligatoria, pero su resultado en el comentario final NO lo es: si no encuentras alcance duplicado real (otro ticket/PR que ya cubra lo mismo), no lo menciones en absoluto en el veredicto — ni como nota, ni como "no se encontró alcance duplicado", ni de ninguna otra forma. La sección de alcance duplicado en el comentario solo debe existir cuando efectivamente encontraste algo que reportar.
+
 ## 4. Obtén el diff real del PR
 
-Ya tienes el checkout del repo (el workflow hace `actions/checkout` con `fetch-depth: 0` y el ref del PR). Usa el merge-base contra `dev`, no todo el historial:
+El checkout de este workflow trae `dev`, no el PR — tráelo tú mismo y trabaja contra esa referencia, nunca contra `HEAD`:
 
 ```bash
 git fetch origin refs/pull/$1/head:pr-$1
@@ -48,7 +50,7 @@ git diff --stat $BASE pr-$1
 git diff $BASE pr-$1 -- '*.cs' '*.asset' '*.prefab' '*.unity' '*.asmdef'
 ```
 
-Esto aísla exactamente la contribución del PR, sin ruido de merges intermedios de `dev`.
+Esto aísla exactamente la contribución del PR, sin ruido de merges intermedios de `dev`. Usa `pr-$1` (no `HEAD`) en el resto de tus comandos de git durante toda la revisión — por ejemplo, al buscar marcadores de conflicto sin resolver o llamadas a `CharacterController.Move()`, haz `git grep <patrón> pr-$1 -- ...` en vez de `git grep <patrón> -- ...`.
 
 ## 5. Qué revisar, además de "cumple el criterio X"
 
@@ -70,6 +72,12 @@ Publica el resultado como comentario en el PR (usa la herramienta de comentario 
 1. Un veredicto general de una línea (cumple / no cumple / cumple parcialmente).
 2. Una tabla o lista con cada criterio de aceptación del ticket y si se cumple, no se cumple, o no se puede verificar desde el código.
 3. Bugs encontrados que no están en la lista de criterios pero sí importan (usa la lista de la sección 5), con el archivo, línea y por qué es un bug — no solo "esto se ve raro".
-4. Si aplica, nota de alcance duplicado con otro ticket.
+4. Si aplica (ver sección 3), nota de alcance duplicado con otro ticket. Si no encontraste nada, omite esta sección por completo.
+5. Un estado al final del comentario, calculado según la severidad de lo encontrado:
+   - **"Solicitar cambios"** — si hay al menos un bug que rompe la compilación o hace que el código no funcione (ver sección 5: marcadores de conflicto sin resolver, referencias de `.asmdef` faltantes, namespaces mal escritos que rompen la compilación, llamadas a métodos/tipos inexistentes, etc.). Junto con el estado, indica explícitamente que hay que resolver esos bugs antes de poder aprobar.
+   - **Comentario simple (sin etiqueta de bloqueo)** — si lo único encontrado son sugerencias de mejora de código, estilo, valores sin tunear u otras observaciones que no impiden que el código compile o funcione. En este caso no uses la etiqueta "Solicitar cambios"; presenta los hallazgos como comentario.
+   - **"Aprobado"** — si todos los criterios de aceptación se cumplen y no encontraste ningún bug ni observación relevante.
+
+   Importante: este estado es únicamente texto dentro del cuerpo del comentario que publicas. NO uses ninguna herramienta ni llamada a la API de GitHub para cambiar el estado real del review del PR (approve / request changes / comment como acción de review de GitHub) — solo se trata de dejar claro en el texto, para quien lea el comentario, qué tan listo está el PR.
 
 No apliques bonita/decorada formato: sé directo, técnico y específico con archivo y línea. No suavices los hallazgos ni las des por buenas si no las verificaste contra el código real.
