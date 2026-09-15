@@ -42,10 +42,10 @@ curl -s -u "$JIRA_EMAIL:$JIRA_API_TOKEN" \
 Ya tienes el checkout del repo (el workflow hace `actions/checkout` con `fetch-depth: 0` y el ref del PR). Usa el merge-base contra `dev`, no todo el historial:
 
 ```bash
-git fetch origin dev
-BASE=$(git merge-base origin/dev HEAD)
-git diff --stat $BASE HEAD
-git diff $BASE HEAD -- '*.cs' '*.asset' '*.prefab' '*.unity' '*.asmdef'
+git fetch origin refs/pull/$1/head:pr-$1
+BASE=$(git merge-base origin/dev pr-$1)
+git diff --stat $BASE pr-$1
+git diff $BASE pr-$1 -- '*.cs' '*.asset' '*.prefab' '*.unity' '*.asmdef'
 ```
 
 Esto aísla exactamente la contribución del PR, sin ruido de merges intermedios de `dev`.
