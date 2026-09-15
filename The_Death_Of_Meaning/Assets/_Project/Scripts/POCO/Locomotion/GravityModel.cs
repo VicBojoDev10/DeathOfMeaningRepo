@@ -21,6 +21,7 @@ namespace TDOM.Gameplay
             if (estado.IsGrounded && estado.Velocity.y < 0f)
             {
                 estado.Velocity.y += _gravedad * dt;
+                estado.Velocity.y = Mathf.Max(estado.Velocity.y, _velocidadTerminal);
                 return;
             }
 
@@ -28,7 +29,6 @@ namespace TDOM.Gameplay
             if (estado.Velocity.y > 0f && !input.JumpHeld)
             {
                 g *= _multiplicadorSaltoCorto;
-                Debug.Log($"Entro al multiplicador{_multiplicadorSaltoCorto}");
             }
 
             estado.Velocity.y += g * dt;

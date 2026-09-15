@@ -252,6 +252,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlayerZendre
       objectReference: {fileID: 0}
+    - target: {fileID: 5125041952874771469, guid: 3b9fc55ebdbbc8b41a0369fe6fd45add, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8082532671853994287, guid: 3b9fc55ebdbbc8b41a0369fe6fd45add, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.5520359
@@ -793,8 +797,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1850033669}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.03027851, y: 0.6870378, z: -0.022354309, w: -0.72564626}
-  m_LocalPosition: {x: 0.22403592, y: 6.132, z: 2.1605425}
+  m_LocalRotation: {x: -0.017002324, y: 0.7222823, z: 0.0012117868, w: 0.6913883}
+  m_LocalPosition: {x: 0.13525271, y: 6.363, z: 6.534286}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

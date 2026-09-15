@@ -479,5 +479,17 @@
             ]
         }
     ],
-    "controlSchemes": []
+    "controlSchemes": [
+        {
+            "name": "Dualsense",
+            "bindingGroup": "Dualsense",
+            "devices": [
+                {
+                    "devicePath": "<DualSenseGampadiOS>",
+                    "isOptional": false,
+                    "isOR": false
+                }
+            ]
+        }
+    ]
 }

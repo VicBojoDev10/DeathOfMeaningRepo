@@ -567,7 +567,19 @@ namespace TDOM.Unity.Input
             ]
         }
     ],
-    ""controlSchemes"": []
+    ""controlSchemes"": [
+        {
+            ""name"": ""Dualsense"",
+            ""bindingGroup"": ""Dualsense"",
+            ""devices"": [
+                {
+                    ""devicePath"": ""<DualSenseGampadiOS>"",
+                    ""isOptional"": false,
+                    ""isOR"": false
+                }
+            ]
+        }
+    ]
 }");
             // Zendre
             m_Zendre = asset.FindActionMap("Zendre", throwIfNotFound: true);
@@ -1160,6 +1172,19 @@ namespace TDOM.Unity.Input
         /// Provides a new <see cref="UIActions" /> instance referencing this action map.
         /// </summary>
         public UIActions @UI => new UIActions(this);
+        private int m_DualsenseSchemeIndex = -1;
+        /// <summary>
+        /// Provides access to the input control scheme.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputControlScheme" />
+        public InputControlScheme DualsenseScheme
+        {
+            get
+            {
+                if (m_DualsenseSchemeIndex == -1) m_DualsenseSchemeIndex = asset.FindControlSchemeIndex("Dualsense");
+                return asset.controlSchemes[m_DualsenseSchemeIndex];
+            }
+        }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Zendre" which allows adding and removing callbacks.
         /// </summary>

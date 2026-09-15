@@ -26,11 +26,11 @@ namespace TDOM.Unity.Player
         private PlayerInputReader _inputReader;
 
         [SerializeField]
-        private float _sensivity = 200f;
+        private float _sensitivity = 200f;
 
         public override void OnNetworkSpawn()
         {
-            _look = new LookResolver(_sensivity);
+            _look = new LookResolver(_sensitivity);
             _locomocion = new PlayerLocomotion(_definition);
             _camera.gameObject.SetActive(IsOwner);
             _inputReader.enabled = IsOwner;
