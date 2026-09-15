@@ -573,7 +573,7 @@ namespace TDOM.Unity.Input
             ""bindingGroup"": ""DualSense"",
             ""devices"": [
                 {
-                    ""devicePath"": ""<DualSenseGamepadiOS>"",
+                    ""devicePath"": ""<DualSenseGampadiOS>"",
                     ""isOptional"": false,
                     ""isOR"": false
                 }

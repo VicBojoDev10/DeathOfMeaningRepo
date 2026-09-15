@@ -18,7 +18,7 @@ GameObject:
   - component: {fileID: 3332839951840459740}
   - component: {fileID: 1526636840091380311}
   - component: {fileID: 4485191308997266209}
-  - component: {fileID: 726289233914426994}
+  - component: {fileID: 6272158663871412553}
   m_Layer: 0
   m_Name: PlayerZendre
   m_TagString: Untagged
@@ -226,7 +226,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba0614e5cefc17d4d91b00746d93e331, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Input.PlayerInputReader
---- !u!114 &726289233914426994
+--- !u!114 &6272158663871412553
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -239,11 +239,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Player.PlayerRoot
   ShowTopMostFoldoutHeaderGroup: 1
-  _definition: {fileID: 11400000, guid: 0598f86218adb85408b5327adfb9ea68, type: 2}
+  _definition: {fileID: 11400000, guid: ca27be79a00e0f94ba283a4b56d12db0, type: 2}
   _motor: {fileID: 1526636840091380311}
   _camera: {fileID: 9139514355318020352}
   _inputReader: {fileID: 4485191308997266209}
-  _sensivity: 200
+  _sensitivity: 200
 --- !u!1001 &7955888821186340880
 PrefabInstance:
   m_ObjectHideFlags: 0
