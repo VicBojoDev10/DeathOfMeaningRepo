@@ -15,5 +15,14 @@ namespace TDOM.Gameplay.Core
             _restante = 0f;      // se consume una sola vez
             return true;
         }
+        public void Clear()
+        {
+            _restante = 0f;
+        }
+        public InputBuffer(float ventana)
+        {
+            _ventana = ventana;
+            _restante = 0f;
+        }
     }
 }
