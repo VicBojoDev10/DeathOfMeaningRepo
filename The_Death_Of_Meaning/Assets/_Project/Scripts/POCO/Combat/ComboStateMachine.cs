@@ -17,6 +17,19 @@ namespace TDOM.Gameplay.Combat
         private float _timer;
         private float _tiempoDeCarga;
 
+        public ComboStateMachine(AttackStep[] pasos, AttackStep cargado, float umbralHold, float cargaMaxima)
+        {
+            _pasos = pasos;
+            _cargado = cargado;
+            _umbralHold = umbralHold;
+            _cargaMaxima = cargaMaxima;
+            _fase = ComboPhase.Idle;
+            _indice = 0;
+            _timer = 0f;
+            _tiempoDeCarga = 0f;
+        }
+
+
         public ComboPhase Fase => _fase;
         public bool BloqueaMovimiento => _fase != ComboPhase.Idle;
 
@@ -33,7 +46,7 @@ namespace TDOM.Gameplay.Combat
 
                 case ComboPhase.Windup:
                     if (_timer > 0f) return null;
-
+                    // AQUÍ SE RAMIFICA
                     if (input.AttackHeld && _timer >= _umbralHold)
                     {
                         _fase = ComboPhase.Charging;
@@ -58,6 +71,7 @@ namespace TDOM.Gameplay.Combat
                     return null;
 
                 case ComboPhase.Swing:
+                    // Presionar durante los frames activos se GUARDA
                     if (input.AttackPressed) _buffer.Push();
                     if (_timer <= 0f) AbrirVentanaDeCombo();
                     return null;
@@ -73,12 +87,13 @@ namespace TDOM.Gameplay.Combat
 
                 case ComboPhase.ChargedSwing:
                 case ComboPhase.Recovery:
-                    if (_timer <= 0f) Reiniciar();
+                    if (_timer <= 0f) Reiniciar();   // el cargado SIEMPRE cierra el combo
                     return null;
             }
 
             return null;
         }
+
 
         //  Métodos implementados
         private void IniciarWindup(int indice)

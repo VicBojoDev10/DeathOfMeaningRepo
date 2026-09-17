@@ -19,6 +19,9 @@ namespace TDOM.Contracts
         public bool GrapplePressed;
         public bool JumpPressed;
 
+        public InputSnapshot() { }
+
+
         public InputSnapshot(bool jumpPressed, bool jumpHeld)
         {
             JumpPressed = jumpPressed;
