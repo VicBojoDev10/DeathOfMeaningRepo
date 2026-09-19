@@ -4,7 +4,6 @@ using TDOM.Gameplay.Core;
 
 namespace TDOM.Gameplay.Combat
 {
-
     public sealed class ComboStateMachine
     {
         private readonly AttackStep[] _pasos;      // 2 en Zendre, 3 en Ayla
@@ -29,78 +28,146 @@ namespace TDOM.Gameplay.Combat
             _tiempoDeCarga = 0f;
         }
 
-
         public ComboPhase Fase => _fase;
         public bool BloqueaMovimiento => _fase != ComboPhase.Idle;
+
+        // El evento generado durante el ultimo Tick (si hubo golpe), para que
+        // el caller pueda reaccionar (VFX, daño, sonido, etc).
+        private AttackEvent? _ultimoEvento;
 
         public AttackEvent? Tick(InputSnapshot input, float dt)
         {
             _buffer.Tick(dt);
-            _timer -= dt;
+            _ultimoEvento = null;
+            Avanzar(input, dt, esBordeDeFrame: true);
+            return _ultimoEvento;
+        }
+
+        private void Avanzar(InputSnapshot input, float dt, bool esBordeDeFrame)
+        {
+            bool pressed = input.AttackPressed && esBordeDeFrame;
+            bool released = input.AttackReleased && esBordeDeFrame;
+            bool held = input.AttackHeld;
+
+            bool heldFresco = input.AttackHeld && esBordeDeFrame;
 
             switch (_fase)
             {
                 case ComboPhase.Idle:
-                    if (input.AttackPressed) IniciarWindup(0);
-                    return null;
+                    if (pressed || heldFresco)
+                    {
+                        IniciarWindup(0);
+                        Avanzar(input, dt, esBordeDeFrame: false);
+                    }
+                    return;
 
                 case ComboPhase.Windup:
-                    if (_timer > 0f) return null;
-                    // AQUÍ SE RAMIFICA
-                    if (input.AttackHeld && _timer >= _umbralHold)
+                    if (held) _tiempoDeCarga += dt;
+                    _timer -= dt;
+                    if (_timer > 0f) return;
+
+                    float sobranteWindup = -_timer;
+                    if (held)
                     {
                         _fase = ComboPhase.Charging;
-                        _tiempoDeCarga = 0f;
+                        if (released || _tiempoDeCarga >= _cargaMaxima)
+                        {
+                            float sobranteCarga = EntrarCargado();
+                            Avanzar(input, sobranteCarga, esBordeDeFrame: false);
+                        }
                     }
                     else
                     {
                         _fase = ComboPhase.Swing;
                         _timer = _pasos[_indice].ActiveTime;
-                        return EventoLigero();
+                        _ultimoEvento = EventoLigero();
+                        Avanzar(input, sobranteWindup, esBordeDeFrame: false);
                     }
-                    return null;
+                    return;
 
                 case ComboPhase.Charging:
                     _tiempoDeCarga += dt;
-                    if (input.AttackReleased || _tiempoDeCarga >= _cargaMaxima)
+                    if (released || _tiempoDeCarga >= _cargaMaxima)
                     {
-                        _fase = ComboPhase.ChargedSwing;
-                        _timer = _cargado.ActiveTime;
-                        return EventoCargado(_tiempoDeCarga / _cargaMaxima);
+                        float sobranteCarga = EntrarCargado();
+                        Avanzar(input, sobranteCarga, esBordeDeFrame: false);
                     }
-                    return null;
+                    return;
 
                 case ComboPhase.Swing:
-                    // Presionar durante los frames activos se GUARDA
-                    if (input.AttackPressed) _buffer.Push();
-                    if (_timer <= 0f) AbrirVentanaDeCombo();
-                    return null;
+                    if (pressed && held)
+                    {
+                        // Ya venia sostenido: en vez de encadenar otro golpe
+                        // ligero, arranca a cargar el finisher.
+                        _fase = ComboPhase.Charging;
+                        _tiempoDeCarga = 0f;
+                        Avanzar(input, dt, esBordeDeFrame: false);
+                        return;
+                    }
+                    if (pressed)
+                    {
+                        // Un press durante los frames activos encadena YA el
+                        // siguiente golpe (cancela el resto de la animacion).
+                        if (_indice + 1 < _pasos.Length)
+                        {
+                            _indice++;
+                            _timer = _pasos[_indice].ActiveTime;
+                            _ultimoEvento = EventoLigero();
+                        }
+                        else
+                        {
+                            Reiniciar();
+                        }
+                        return;
+                    }
+                    _timer -= dt;
+                    if (_timer <= 0f)
+                    {
+                        float sobranteSwing = -_timer;
+                        AbrirVentanaDeCombo();
+                        Avanzar(input, sobranteSwing, esBordeDeFrame: false);
+                    }
+                    return;
 
                 case ComboPhase.ComboWindow:
-                    if (input.AttackPressed || _buffer.TryConsume())
+                    _timer -= dt;
+                    if (pressed || (esBordeDeFrame && _buffer.TryConsume()))
                     {
-                        if (_indice + 1 < _pasos.Length) IniciarWindup(_indice + 1);
-                        else Reiniciar();
+                        if (_indice + 1 < _pasos.Length)
+                        {
+                            IniciarWindup(_indice + 1);
+                            Avanzar(input, dt, esBordeDeFrame: false);
+                        }
+                        else
+                        {
+                            Reiniciar();
+                        }
                     }
-                    else if (_timer <= 0f) Reiniciar();
-                    return null;
+                    else if (_timer <= 0f)
+                    {
+                        Reiniciar();
+                    }
+                    return;
 
                 case ComboPhase.ChargedSwing:
                 case ComboPhase.Recovery:
-                    if (_timer <= 0f) Reiniciar();   // el cargado SIEMPRE cierra el combo
-                    return null;
+                    _timer -= dt;
+                    if (_timer <= 0f)   // el cargado SIEMPRE cierra el combo
+                    {
+                        float sobranteRecovery = -_timer;
+                        Reiniciar();
+                        Avanzar(input, sobranteRecovery, esBordeDeFrame: false);
+                    }
+                    return;
             }
-
-            return null;
         }
-
-
-        //  Métodos implementados
+        //  Métodos auxiliares
         private void IniciarWindup(int indice)
         {
             _indice = indice;
             _fase = ComboPhase.Windup;
             _timer = _pasos[_indice].WindupTime;
+            _tiempoDeCarga = 0f;
             Debug.Log($"Iniciando Windup del ataque {_indice}");
         }
 
@@ -119,6 +186,17 @@ namespace TDOM.Gameplay.Combat
             _tiempoDeCarga = 0f;
             _buffer.Clear();
             Debug.Log("Combo reiniciado");
+        }
+
+        // Entra a ChargedSwing y devuelve el tiempo sobrante (si _tiempoDeCarga
+        // supero _cargaMaxima) para que la cascada lo siga propagando.
+        private float EntrarCargado()
+        {
+            float ratio = Mathf.Clamp01(_tiempoDeCarga / _cargaMaxima);
+            _ultimoEvento = EventoCargado(ratio);
+            _fase = ComboPhase.ChargedSwing;
+            _timer = _cargado.ActiveTime;
+            return Mathf.Max(0f, _tiempoDeCarga - _cargaMaxima);
         }
 
         private AttackEvent EventoLigero()
