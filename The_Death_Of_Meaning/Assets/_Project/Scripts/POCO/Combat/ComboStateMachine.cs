@@ -43,12 +43,14 @@ namespace TDOM.Gameplay.Combat
             return _ultimoEvento;
         }
 
+     
         private void Avanzar(InputSnapshot input, float dt, bool esBordeDeFrame)
         {
             bool pressed = input.AttackPressed && esBordeDeFrame;
             bool released = input.AttackReleased && esBordeDeFrame;
             bool held = input.AttackHeld;
 
+         
             bool heldFresco = input.AttackHeld && esBordeDeFrame;
 
             switch (_fase)
@@ -161,6 +163,7 @@ namespace TDOM.Gameplay.Combat
                     return;
             }
         }
+
         //  Métodos auxiliares
         private void IniciarWindup(int indice)
         {

@@ -9,17 +9,29 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2e9c95f8008d50346b647ec4997ab5dc, type: 3}
+  m_Script: {fileID: 0}
   m_Name: MeleeZendre
-  m_EditorClassIdentifier: TDOM.Data::TDOM.POCO.ScriptableObjects.ComboProfile
-  attackSteps:
-  - WindupTime: 0
+  m_EditorClassIdentifier: TDOM.Data:TDOM.Data:ComboProfile
+  Steps:
+  - WindupTime: 2
+    ActiveTime: 2
+    RecoveryTime: 2
+    ComboWindowTime: 2
+    Damage: 2
+    AnimTrigger: 
+  - WindupTime: 2
+    ActiveTime: 2
+    RecoveryTime: 2
+    ComboWindowTime: 2
+    Damage: 2
+    AnimTrigger: 
+  Charged:
+    WindupTime: 0
     ActiveTime: 0
     RecoveryTime: 0
     ComboWindowTime: 0
     Damage: 0
     AnimTrigger: 
-  pasoCargado: 0
   HoldThreshold: 0
   MaxChargeTime: 0
   BufferWindow: 0

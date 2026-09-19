@@ -46,7 +46,7 @@ public class ComboStateMachineTests
     [Test]
     public void Hold_desde_neutral_produce_cargado_puro_sin_ligero_previo()
     {
-        var input = new InputSnapshot { AttackHeld = true };
+        var input = new InputSnapshot { AttackHeld = true, AttackPressed = true};
         combo.Tick(input, 0.3f);
         combo.Tick(input, 1.2f);
         Assert.AreEqual(ComboPhase.ChargedSwing, combo.Fase);
@@ -55,7 +55,7 @@ public class ComboStateMachineTests
     [Test]
     public void Tap_tap_hold_produce_dos_ligeros_y_un_cargado()
     {
-        var input = new InputSnapshot { AttackPressed = true };
+        var input = new InputSnapshot { AttackHeld = true, AttackPressed = true };
         combo.Tick(input, 0.2f);
         combo.Tick(input, 0.2f);
         input.AttackHeld = true;
@@ -66,7 +66,7 @@ public class ComboStateMachineTests
     [Test]
     public void El_cargado_siempre_termina_el_combo()
     {
-        var input = new InputSnapshot { AttackHeld = true };
+        var input = new InputSnapshot { AttackHeld = true, AttackPressed = true };
         combo.Tick(input, 1.2f);
         combo.Tick(input, 0.6f);
         Assert.AreEqual(ComboPhase.Idle, combo.Fase);
@@ -102,7 +102,7 @@ public class ComboStateMachineTests
     [Test]
     public void La_carga_se_libera_sola_al_llegar_al_maximo()
     {
-        var input = new InputSnapshot { AttackHeld = true };
+        var input = new InputSnapshot { AttackHeld = true, AttackPressed = true };
         combo.Tick(input, 1.3f);
         Assert.AreEqual(ComboPhase.ChargedSwing, combo.Fase);
     }
