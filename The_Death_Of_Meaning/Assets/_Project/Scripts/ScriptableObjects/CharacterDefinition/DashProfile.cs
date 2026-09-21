@@ -2,7 +2,7 @@
 
 namespace TDOM.Data
 {
-    [CreateAssetMenu(menuName = "tdom/Dash Profile")]
+    [CreateAssetMenu(menuName = "TDOM/Dash Profile")]
     public sealed class DashProfile : ScriptableObject
     {
         public float Distance,

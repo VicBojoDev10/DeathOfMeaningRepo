@@ -1,26 +1,26 @@
 ﻿using UnityEngine;
 
-namespace TDOM.Contracts
+namespace TDOM.Data
 {
     [CreateAssetMenu(fileName = "NewMovementProfile", menuName = "TDOM/Movement Profile")]
-    public class MovementProfile : ScriptableObject
+    public sealed class MovementProfile : ScriptableObject
     {
         [Header("Gravity")]
-        public float gravity = -28f;
-        public float terminalVelocity = -50f;
-        public float lowJumperMultiplier = 2.0f;
+        public float Gravity = -28f;
+        public float TerminalVelocity = -50f;
+        public float LowJumpMultiplier = 2.0f;
 
         [Header("Movement")]
-        public float jumpVelocity = 15f;
-        public int maxJumps = 1;
-        public float coyoteTime = 0.12f;
-        public float bufferTime = 0.15f;
+        public float JumpVelocity = 15f;
+        public int MaxJumps = 1;
+        public float CoyoteTime = 0.12f;
+        public float BufferTime = 0.15f;
 
         [Header("Sprint")]
-        public float baseSpeed = 10f;
-        public float sprintSpeed = 20f;
-        public float acceleration = 15f;
-        public float friction = 5f;
-        public float airControl = 2.5f;
+        public float BaseSpeed = 10f;
+        public float SprintSpeed = 20f;
+        public float Acceleration = 15f;
+        public float Friction = 5f;
+        public float AirControl = 2.5f;
     }
 }
