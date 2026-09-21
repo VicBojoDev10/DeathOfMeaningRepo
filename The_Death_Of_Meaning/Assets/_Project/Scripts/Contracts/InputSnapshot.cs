@@ -19,6 +19,8 @@ namespace TDOM.Contracts
         public bool GrapplePressed;
         public bool JumpPressed;
 
+        public InputSnapshot() { }
+
         public InputSnapshot(bool jumpPressed, bool jumpHeld)
         {
             JumpPressed = jumpPressed;
@@ -94,16 +96,5 @@ namespace TDOM.Contracts
         Dashing,
         Grappling,
         Attacking,
-    }
-
-    [System.Serializable]
-    public struct AttackStep
-    {
-        public float WindupTime;
-        public float ActiveTime;
-        public float RecoveryTime;
-        public float ComboWindowTime;
-        public float Damage;
-        public string AnimTrigger;
     }
 }

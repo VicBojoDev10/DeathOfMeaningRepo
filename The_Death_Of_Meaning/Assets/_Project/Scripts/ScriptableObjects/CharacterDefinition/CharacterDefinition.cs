@@ -15,16 +15,6 @@ namespace TDOM.Data
         public EnergyProfile Energy;
     }
 
-    [CreateAssetMenu(menuName = "TDOM/Combo Profile")]
-    public sealed class ComboProfile : ScriptableObject
-    {
-        public AttackStep[] Steps;
-        public AttackStep Charged;
-        public float HoldThreshold,
-            MaxChargeTime,
-            BufferWindow;
-    }
-
     [CreateAssetMenu(menuName = "TDOM/Grapple Profile")]
     public sealed class GrappleProfile : ScriptableObject
     {

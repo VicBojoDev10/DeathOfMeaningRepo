@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b28237e5779e5834f9665634ca5442c0, type: 3}
+  m_Name: DisparoZendre
+  m_EditorClassIdentifier: TDOM.Data::TDOM.Data.ComboProfile
+  Steps:
+  - WindupTime: 5
+    ActiveTime: 5
+    RecoveryTime: 6
+    ComboWindowTime: 2
+    Damage: 10
+    AnimTrigger: 
+  - WindupTime: 5
+    ActiveTime: 5
+    RecoveryTime: 6
+    ComboWindowTime: 2
+    Damage: 10
+    AnimTrigger: 
+  Charged:
+    WindupTime: 8
+    ActiveTime: 6
+    RecoveryTime: 5
+    ComboWindowTime: 4
+    Damage: 15
+    AnimTrigger: 
+  HoldThreshold: 8
+  MaxChargeTime: 10
+  BufferWindow: 6
