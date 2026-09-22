@@ -14,9 +14,9 @@ namespace TDOM.Unity.Combat
         [SerializeField] private PlayerCombatAnimator _combatAnimator;
         [SerializeField] private HitboxCaster _hitbox;
         [SerializeField] private FeedbackDirector _feedback;
+        [SerializeField] private CombatDebugFeedback _debugFeedback;
 
-        public bool AtaqueActivo =>
-            (_melee?.BloqueaMovimiento ?? false) || (_disparo?.BloqueaMovimiento ?? false);
+        public bool AtaqueActivo => (_melee?.BloqueaMovimiento ?? false) || (_disparo?.BloqueaMovimiento ?? false);
         public override void OnNetworkSpawn()
         {
             if (_definition.Melee != null)
@@ -45,18 +45,20 @@ namespace TDOM.Unity.Combat
         {
             if (!IsOwner) return;
             if (_melee == null && _disparo == null) return;
-            bool meleeActivo = _melee.BloqueaMovimiento;
+            bool meleeActivo = _melee?.BloqueaMovimiento ?? false;
             bool disparoActivo = _disparo?.BloqueaMovimiento ?? false;
-            if (!disparoActivo)
+            if (_melee != null && !disparoActivo)
             {
                 var evento = _melee.Tick(input, dt);
-                if (evento.HasValue) EjecutarGolpe(evento.Value);
+                if (evento.HasValue)
+                    EjecutarGolpe(evento.Value);
             }
 
             if (_disparo != null && !meleeActivo)
             {
                 var evento = _disparo.Tick(ComoDisparo(input), dt);
-                if (evento.HasValue) EjecutarDisparo(evento.Value);
+                if (evento.HasValue)
+                    EjecutarDisparo(evento.Value);
             }
         }
 
@@ -92,6 +94,7 @@ namespace TDOM.Unity.Combat
         {
             bool cargado = evento.Kind == AttackKind.Charged;
             _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
+            _debugFeedback?.FlashActive(0.1f);
             if (_feedback != null)
                 _feedback.OnGolpeConectado();
             if (_hitbox == null)

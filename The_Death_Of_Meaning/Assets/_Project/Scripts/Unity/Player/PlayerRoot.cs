@@ -2,10 +2,12 @@ using TDOM.Data;
 using TDOM.Gameplay.Camera;
 using TDOM.Gameplay.Locomotion;
 using TDOM.Unity.Camera;
+using TDOM.Unity.Combat;
 using TDOM.Unity.Input;
 using TDOM.Unity.Locomotion;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace TDOM.Unity.Player
 {
@@ -26,8 +28,12 @@ namespace TDOM.Unity.Player
         private PlayerInputReader _inputReader;
 
         [SerializeField]
+        private PlayerCombat _combat;
+
+        [SerializeField]
         private float _sensitivity = 200f;
 
+        public bool AtaqueActivo => _combat != null && _combat.AtaqueActivo;
         public override void OnNetworkSpawn()
         {
             _look = new LookResolver(_sensitivity);
@@ -43,7 +49,9 @@ namespace TDOM.Unity.Player
             float dt = Time.deltaTime;
             _motor.ProbeGround(_locomocion.State);
             var input = _inputReader.Read();
-            var intent = _locomocion.Tick(input, _look.YawRotation, dt);
+            if (_combat != null)
+                _combat.Tick(input, dt);
+            var intent = _locomocion.Tick(input, _look.YawRotation, dt, AtaqueActivo);
             _motor.Apply(intent, dt);
         }
     }
