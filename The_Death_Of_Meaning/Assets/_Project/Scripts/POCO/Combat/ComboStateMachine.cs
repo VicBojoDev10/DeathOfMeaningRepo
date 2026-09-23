@@ -197,22 +197,12 @@ namespace TDOM.Gameplay.Combat
 
         private AttackEvent EventoLigero()
         {
-            return new AttackEvent(
-                AttackKind.Light,
-                _indice,
-                0f,
-                _pasos[_indice].Damage
-            );
+            return new AttackEvent(AttackKind.Light, _indice, 0f, _pasos[_indice].Damage);
         }
 
         private AttackEvent EventoCargado(float ratio)
         {
-            return new AttackEvent(
-                AttackKind.Charged,
-                _indice,
-                ratio,
-                _cargado.Damage
-            );
+            return new AttackEvent(AttackKind.Charged, _indice, ratio, _cargado.Damage);
         }
     }
 }

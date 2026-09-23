@@ -51,7 +51,12 @@ namespace TDOM.Gameplay.Locomotion
             return direction.normalized;
         }
 
-        public MotionIntent Tick(InputSnapshot input, Quaternion yaw, float dt, bool blockMove = false)
+        public MotionIntent Tick(
+            InputSnapshot input,
+            Quaternion yaw,
+            float dt,
+            bool blockMove = false
+        )
         {
             _run.Tick(input);
 

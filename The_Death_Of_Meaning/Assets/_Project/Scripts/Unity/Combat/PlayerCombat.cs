@@ -1,24 +1,40 @@
 using TDOM.Contracts;
+using TDOM.Data;
 using TDOM.Gameplay.Combat;
+using TDOM.Unity.Camera;
 using Unity.Netcode;
 using UnityEngine;
-using TDOM.Data;
-using TDOM.Unity.Camera;
+
 namespace TDOM.Unity.Combat
 {
     public sealed class PlayerCombat : NetworkBehaviour
     {
         private ComboStateMachine _melee;
         private ComboStateMachine _disparo;
-        [SerializeField] private CharacterDefinition _definition;
-        [SerializeField] private PlayerCombatAnimator _combatAnimator;
-        [SerializeField] private HitboxCaster _hitbox;
-        [SerializeField] private FeedbackDirector _feedback;
-        [SerializeField] private CombatDebugFeedback _debugFeedback;
 
-        public bool AtaqueActivo => (_melee?.BloqueaMovimiento ?? false) || (_disparo?.BloqueaMovimiento ?? false);
+        [SerializeField]
+        private CharacterDefinition _definition;
+
+        [SerializeField]
+        private PlayerCombatAnimator _combatAnimator;
+
+        [SerializeField]
+        private HitboxCaster _hitbox;
+
+        [SerializeField]
+        private FeedbackDirector _feedback;
+
+        [SerializeField]
+        private CombatDebugFeedback _debugFeedback;
+
+        public bool AtaqueActivo =>
+            (_melee?.BloqueaMovimiento ?? false) || (_disparo?.BloqueaMovimiento ?? false);
+
         public override void OnNetworkSpawn()
         {
+            if (!IsOwner)
+                return;
+
             if (_definition.Melee != null)
             {
                 _melee = new ComboStateMachine(
@@ -41,10 +57,13 @@ namespace TDOM.Unity.Combat
                 );
             }
         }
+
         public void Tick(InputSnapshot input, float dt)
         {
-            if (!IsOwner) return;
-            if (_melee == null && _disparo == null) return;
+            if (!IsOwner)
+                return;
+            if (_melee == null && _disparo == null)
+                return;
             bool meleeActivo = _melee?.BloqueaMovimiento ?? false;
             bool disparoActivo = _disparo?.BloqueaMovimiento ?? false;
             if (_melee != null && !disparoActivo)
@@ -68,7 +87,8 @@ namespace TDOM.Unity.Combat
             _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
             if (_feedback != null)
                 _feedback.OnGolpeConectado();
-            ReproducirGolpeRpc(evento.ComboIndex, cargado);        }
+            ReproducirGolpeRpc(evento.ComboIndex, cargado);
+        }
 
         private InputSnapshot ComoDisparo(InputSnapshot input)
         {
@@ -104,24 +124,32 @@ namespace TDOM.Unity.Combat
                 ReportarGolpeRpc(evento, obj.NetworkObjectId);
             ReproducirGolpeRpc(evento.ComboIndex, cargado);
         }
+
         private bool EstaEnRango(ulong objetivoId, float tolerancia)
         {
             if (NetworkManager.Singleton == null)
                 return false;
 
-            if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(objetivoId, out var objetivo))
+            if (
+                !NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
+                    objetivoId,
+                    out var objetivo
+                )
+            )
                 return false;
 
             const float radioBase = 1.5f;
             float rangoPermitido = radioBase * tolerancia;
 
-            return Vector3.Distance(transform.position, objetivo.transform.position) <= rangoPermitido;
+            return Vector3.Distance(transform.position, objetivo.transform.position)
+                <= rangoPermitido;
         }
 
         [Rpc(SendTo.Server)]
         private void ReportarGolpeRpc(AttackEvent evento, ulong objetivoId)
         {
-            if (!EstaEnRango(objetivoId, tolerancia: 1.3f)) return;
+            if (!EstaEnRango(objetivoId, tolerancia: 1.3f))
+                return;
             // TODO: aplicar daño cuando exista el sistema de vida (WIP)
             Debug.Log($"Golpe validado contra {objetivoId}: {evento.Damage}");
         }
@@ -132,5 +160,4 @@ namespace TDOM.Unity.Combat
             _combatAnimator.PlayCombo(indice, cargado);
         }
     }
-
 }

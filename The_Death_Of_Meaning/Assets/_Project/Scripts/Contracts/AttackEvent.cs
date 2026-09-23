@@ -1,10 +1,11 @@
 using Unity.Netcode;
+
 namespace TDOM.Contracts
 {
     public enum AttackKind
     {
         Light,
-        Charged
+        Charged,
     }
 
     public struct AttackEvent : INetworkSerializable
@@ -31,5 +32,4 @@ namespace TDOM.Contracts
             serializer.SerializeValue(ref Damage);
         }
     }
-
 }

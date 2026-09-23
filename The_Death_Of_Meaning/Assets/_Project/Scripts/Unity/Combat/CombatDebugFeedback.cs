@@ -5,9 +5,14 @@ namespace TDOM.Unity.Combat
 {
     public class CombatDebugFeedback : MonoBehaviour
     {
-        [SerializeField] private Renderer _renderer;
-        [SerializeField] private Color _idleColor = Color.white;
-        [SerializeField] private Color _activeColor = Color.red;
+        [SerializeField]
+        private Renderer _renderer;
+
+        [SerializeField]
+        private Color _idleColor = Color.white;
+
+        [SerializeField]
+        private Color _activeColor = Color.red;
 
         private Coroutine _routine;
 

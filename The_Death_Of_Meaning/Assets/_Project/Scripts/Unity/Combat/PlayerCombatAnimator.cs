@@ -4,7 +4,8 @@ namespace TDOM.Unity.Combat
 {
     public class PlayerCombatAnimator : MonoBehaviour
     {
-        [SerializeField] private Animator _animator;
+        [SerializeField]
+        private Animator _animator;
 
         public void PlayCombo(int comboIndex, bool charged)
         {

@@ -7,7 +7,6 @@ using TDOM.Unity.Input;
 using TDOM.Unity.Locomotion;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace TDOM.Unity.Player
 {
@@ -34,6 +33,7 @@ namespace TDOM.Unity.Player
         private float _sensitivity = 200f;
 
         public bool AtaqueActivo => _combat != null && _combat.AtaqueActivo;
+
         public override void OnNetworkSpawn()
         {
             _look = new LookResolver(_sensitivity);
