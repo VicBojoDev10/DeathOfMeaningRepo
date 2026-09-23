@@ -28,6 +28,7 @@ namespace TDOM.Unity.Camera
             if (_camara != null)
                 _fovBase = _camara.Lens.FieldOfView;
         }
+
         public void Tick(Vector2 lookInput, float dt)
         {
             _look.Tick(lookInput, dt);
