@@ -63,14 +63,17 @@ namespace TDOM.Tests.EditMode
             Assert.IsTrue(golpe2.HasValue, "falta el golpe 2");
             Assert.IsTrue(golpe3.HasValue, "falta el golpe 3");
 
-            Assert.IsFalse(golpe1.Value.IsCharged);
-            Assert.IsFalse(golpe2.Value.IsCharged);
-            Assert.IsFalse(golpe3.Value.IsCharged);
+            Assert.AreEqual(AttackKind.Light, golpe1.Value.Kind);
+            Assert.AreEqual(AttackKind.Light, golpe2.Value.Kind);
+            Assert.AreEqual(AttackKind.Light, golpe3.Value.Kind);
 
-            // El daño distingue un golpe de otro: 10 -> 12 -> 15
-            Assert.AreEqual(10f, golpe1.Value.Step.Damage);
-            Assert.AreEqual(12f, golpe2.Value.Step.Damage);
-            Assert.AreEqual(15f, golpe3.Value.Step.Damage);
+            Assert.AreEqual(0, golpe1.Value.ComboIndex);
+            Assert.AreEqual(1, golpe2.Value.ComboIndex);
+            Assert.AreEqual(2, golpe3.Value.ComboIndex);
+
+            Assert.AreEqual(10f, golpe1.Value.Damage);
+            Assert.AreEqual(12f, golpe2.Value.Damage);
+            Assert.AreEqual(15f, golpe3.Value.Damage);
 
             Assert.AreEqual(ComboPhase.Swing, combo.Fase);
         }
@@ -132,13 +135,17 @@ namespace TDOM.Tests.EditMode
             Assert.IsTrue(ligero2.HasValue, "falta el ligero 2");
             Assert.IsTrue(cargado.HasValue, "falta el cargado");
 
-            Assert.IsFalse(ligero1.Value.IsCharged);
-            Assert.AreEqual(10f, ligero1.Value.Step.Damage);
+            Assert.AreEqual(AttackKind.Light, ligero1.Value.Kind);
+            Assert.AreEqual(0, ligero1.Value.ComboIndex);
+            Assert.AreEqual(10f, ligero1.Value.Damage);
 
-            Assert.IsFalse(ligero2.Value.IsCharged);
-            Assert.AreEqual(12f, ligero2.Value.Step.Damage);
+            Assert.AreEqual(AttackKind.Light, ligero2.Value.Kind);
+            Assert.AreEqual(1, ligero2.Value.ComboIndex);
+            Assert.AreEqual(12f, ligero2.Value.Damage);
 
-            Assert.IsTrue(cargado.Value.IsCharged);
+            Assert.AreEqual(AttackKind.Charged, cargado.Value.Kind);
+            Assert.AreEqual(2, cargado.Value.ComboIndex);
+            Assert.AreEqual(25f, cargado.Value.Damage);
             Assert.That(cargado.Value.ChargeRatio, Is.InRange(0.01f, 0.99f));
 
             Assert.AreEqual(ComboPhase.ChargedSwing, combo.Fase);
@@ -190,8 +197,12 @@ namespace TDOM.Tests.EditMode
 
             Assert.IsTrue(golpe1.HasValue);
             Assert.IsTrue(golpe2.HasValue);
-            Assert.AreEqual(10f, golpe1.Value.Step.Damage);
-            Assert.AreEqual(12f, golpe2.Value.Step.Damage);
+            Assert.AreEqual(AttackKind.Light, golpe1.Value.Kind);
+            Assert.AreEqual(AttackKind.Light, golpe2.Value.Kind);
+            Assert.AreEqual(0, golpe1.Value.ComboIndex);
+            Assert.AreEqual(1, golpe2.Value.ComboIndex);
+            Assert.AreEqual(10f, golpe1.Value.Damage);
+            Assert.AreEqual(12f, golpe2.Value.Damage);
         }
 
         [Test]
@@ -211,7 +222,7 @@ namespace TDOM.Tests.EditMode
             var evento = combo.Tick(new InputSnapshot { AttackReleased = true }, 0.01f);
 
             Assert.IsTrue(evento.HasValue);
-            Assert.IsTrue(evento.Value.IsCharged);
+            Assert.AreEqual(AttackKind.Charged, evento.Value.Kind);
             Assert.That(evento.Value.ChargeRatio, Is.InRange(0.01f, 0.99f));
             Assert.AreEqual(ComboPhase.ChargedSwing, combo.Fase);
         }
