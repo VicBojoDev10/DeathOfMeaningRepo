@@ -14,10 +14,7 @@ namespace TDOM.Unity.Camera
         [SerializeField]
         private CinemachineImpulseSource _impulso;
 
-        [SerializeField]
-        private float _sensibilidad = 200f;
-
-        private PlayerInputReader _inputReader;
+        private LookResolver _look;
 
         private float _fovBase;
         private float _fovExtra;
@@ -30,7 +27,11 @@ namespace TDOM.Unity.Camera
         {
             if (_camara != null)
                 _fovBase = _camara.Lens.FieldOfView;
-            _inputReader = GetComponentInParent<PlayerInputReader>();
+        }
+        public void Tick(Vector2 lookInput, float dt)
+        {
+            _look.Tick(lookInput, dt);
+            ApplyLook(_look.Yaw, _look.Pitch);
         }
 
         public void ApplyLook(float yaw, float pitch)
