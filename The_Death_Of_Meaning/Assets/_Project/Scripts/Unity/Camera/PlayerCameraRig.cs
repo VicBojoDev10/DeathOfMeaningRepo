@@ -1,7 +1,6 @@
 using System.Collections;
 using TDOM.Gameplay.Camera;
 using TDOM.Unity.Input;
-using TDOM.Unity.Player;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -14,10 +13,6 @@ namespace TDOM.Unity.Camera
 
         [SerializeField]
         private CinemachineImpulseSource _impulso;
-
-        private LookResolver _look;
-
-        private LookResolver _lookResolver;
 
         [SerializeField]
         private float _sensibilidad = 200f;
@@ -35,19 +30,8 @@ namespace TDOM.Unity.Camera
         {
             if (_camara != null)
                 _fovBase = _camara.Lens.FieldOfView;
-            _look = new LookResolver(_sensibilidad);
             _inputReader = GetComponentInParent<PlayerInputReader>();
         }
-
-        private void Update()
-        {
-            if (_camara == null || !_camara.enabled)
-                return;
-            if (_inputReader == null)
-                return;
-            _lookResolver.Tick(_inputReader.Read().Look, Time.deltaTime);
-        }
-
         public void ApplyLook(float yaw, float pitch)
         {
             transform.rotation = Quaternion.Euler(pitch, yaw, _roll);
