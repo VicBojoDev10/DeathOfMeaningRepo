@@ -2,7 +2,7 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace TDOM.Unity
+namespace TDOM.Unity.Combat
 {
     public class HitboxCaster : MonoBehaviour
     {

@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-namespace TDOM.Unity
+namespace TDOM.Unity.Combat
 {
     public class CombatDebugFeedback : MonoBehaviour
     {
