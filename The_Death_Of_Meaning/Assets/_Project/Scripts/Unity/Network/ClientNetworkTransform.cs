@@ -1,9 +1,11 @@
 using Unity.Netcode;
+using Unity.Netcode.Components;
 using UnityEngine;
 
 namespace TDOM.Unity
 {
-    public class ClientNetworkTransform : NetworkBehaviour
+    [DisallowMultipleComponent]
+    public class ClientNetworkTransform : NetworkTransform
     {
         [ServerRpc]
         public void RandomTeleportServerRpc()
@@ -19,6 +21,11 @@ namespace TDOM.Unity
         private static Vector3 GetRandomPositionOnXYPlane()
         {
             return new Vector3(Random.Range(-3f, 3f), Random.Range(-3f, 3f), 0f);
+        }
+
+        protected override bool OnIsServerAuthoritative()
+        {
+            return false;
         }
     }
 }
