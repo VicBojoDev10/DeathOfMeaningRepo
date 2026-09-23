@@ -1,6 +1,7 @@
 using System.Collections;
 using TDOM.Gameplay.Camera;
 using TDOM.Unity.Input;
+using TDOM.Unity.Player;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -15,6 +16,8 @@ namespace TDOM.Unity.Camera
         private CinemachineImpulseSource _impulso;
 
         private LookResolver _look;
+
+        private LookResolver _lookResolver;
 
         [SerializeField]
         private float _sensibilidad = 200f;
@@ -42,13 +45,7 @@ namespace TDOM.Unity.Camera
                 return;
             if (_inputReader == null)
                 return;
-            Tick(_inputReader.Read().Look, Time.deltaTime);
-        }
-
-        public void Tick(Vector2 lookInput, float dt)
-        {
-            _look.Tick(lookInput, dt);
-            ApplyLook(_look.Yaw, _look.Pitch);
+            _lookResolver.Tick(_inputReader.Read().Look, Time.deltaTime);
         }
 
         public void ApplyLook(float yaw, float pitch)
