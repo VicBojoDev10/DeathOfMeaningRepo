@@ -1,6 +1,4 @@
 using System.Collections;
-using TDOM.Gameplay.Camera;
-using TDOM.Unity.Input;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -13,9 +11,6 @@ namespace TDOM.Unity.Camera
 
         [SerializeField]
         private CinemachineImpulseSource _impulso;
-
-        private LookResolver _look;
-
         private float _fovBase;
         private float _fovExtra;
         private float _roll;
@@ -27,12 +22,6 @@ namespace TDOM.Unity.Camera
         {
             if (_camara != null)
                 _fovBase = _camara.Lens.FieldOfView;
-        }
-
-        public void Tick(Vector2 lookInput, float dt)
-        {
-            _look.Tick(lookInput, dt);
-            ApplyLook(_look.Yaw, _look.Pitch);
         }
 
         public void ApplyLook(float yaw, float pitch)
