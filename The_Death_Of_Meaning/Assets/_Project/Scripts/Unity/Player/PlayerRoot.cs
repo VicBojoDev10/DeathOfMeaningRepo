@@ -43,7 +43,9 @@ namespace TDOM.Unity.Player
             float dt = Time.deltaTime;
             _motor.ProbeGround(_locomocion.State);
             var input = _inputReader.Read();
+            _look.Tick(input.Look, dt);
             var intent = _locomocion.Tick(input, _look.YawRotation, dt);
+            _camera.ApplyLook(_look.Yaw, _look.Pitch);
             _motor.Apply(intent, dt);
         }
     }
