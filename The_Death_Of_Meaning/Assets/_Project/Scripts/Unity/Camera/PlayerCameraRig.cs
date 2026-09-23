@@ -32,6 +32,7 @@ namespace TDOM.Unity.Camera
                 _fovBase = _camara.Lens.FieldOfView;
             _inputReader = GetComponentInParent<PlayerInputReader>();
         }
+
         public void ApplyLook(float yaw, float pitch)
         {
             transform.rotation = Quaternion.Euler(pitch, yaw, _roll);
