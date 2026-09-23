@@ -10,4 +10,5 @@ namespace TDOM.Gameplay.Core
         ChargedSwing,
         Recovery,
     }
+
 }
