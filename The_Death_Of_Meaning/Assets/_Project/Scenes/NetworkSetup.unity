@@ -286,39 +286,39 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6331714672644761852, guid: 7bf5564b202fc6d4c88e4d80d9028d9e, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6331714672644761852, guid: 7bf5564b202fc6d4c88e4d80d9028d9e, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6331714672644761852, guid: 7bf5564b202fc6d4c88e4d80d9028d9e, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -386.85184
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6522707383930833858, guid: 7bf5564b202fc6d4c88e4d80d9028d9e, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6522707383930833858, guid: 7bf5564b202fc6d4c88e4d80d9028d9e, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6522707383930833858, guid: 7bf5564b202fc6d4c88e4d80d9028d9e, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -216.11111
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7858756461580043099, guid: 7bf5564b202fc6d4c88e4d80d9028d9e, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7858756461580043099, guid: 7bf5564b202fc6d4c88e4d80d9028d9e, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7858756461580043099, guid: 7bf5564b202fc6d4c88e4d80d9028d9e, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -45.37037
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8719229877450662501, guid: 7bf5564b202fc6d4c88e4d80d9028d9e, type: 3}
       propertyPath: hideOnStart
@@ -835,7 +835,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1483942398
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1300,6 +1300,39 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.ClientNetworkTransform
   ShowTopMostFoldoutHeaderGroup: 1
+  NetworkTransformExpanded: 0
+  AutoOwnerAuthorityTickOffset: 1
+  PositionInterpolationType: 0
+  RotationInterpolationType: 0
+  ScaleInterpolationType: 0
+  PositionLerpSmoothing: 1
+  PositionMaxInterpolationTime: 0.1
+  RotationLerpSmoothing: 1
+  RotationMaxInterpolationTime: 0.1
+  ScaleLerpSmoothing: 1
+  ScaleMaxInterpolationTime: 0.1
+  AuthorityMode: 0
+  TickSyncChildren: 0
+  UseUnreliableDeltas: 0
+  SyncPositionX: 1
+  SyncPositionY: 1
+  SyncPositionZ: 1
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
+  SyncScaleX: 1
+  SyncScaleY: 1
+  SyncScaleZ: 1
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  UseQuaternionSynchronization: 0
+  UseQuaternionCompression: 0
+  UseHalfFloatPrecision: 0
+  InLocalSpace: 0
+  SwitchTransformSpaceWhenParented: 0
+  Interpolate: 1
+  SlerpPosition: 0
 --- !u!114 &3790023956692095804
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1313,6 +1346,39 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.ClientNetworkTransform
   ShowTopMostFoldoutHeaderGroup: 1
+  NetworkTransformExpanded: 0
+  AutoOwnerAuthorityTickOffset: 1
+  PositionInterpolationType: 0
+  RotationInterpolationType: 0
+  ScaleInterpolationType: 0
+  PositionLerpSmoothing: 1
+  PositionMaxInterpolationTime: 0.1
+  RotationLerpSmoothing: 1
+  RotationMaxInterpolationTime: 0.1
+  ScaleLerpSmoothing: 1
+  ScaleMaxInterpolationTime: 0.1
+  AuthorityMode: 0
+  TickSyncChildren: 0
+  UseUnreliableDeltas: 0
+  SyncPositionX: 1
+  SyncPositionY: 1
+  SyncPositionZ: 1
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
+  SyncScaleX: 1
+  SyncScaleY: 1
+  SyncScaleZ: 1
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  UseQuaternionSynchronization: 0
+  UseQuaternionCompression: 0
+  UseHalfFloatPrecision: 0
+  InLocalSpace: 0
+  SwitchTransformSpaceWhenParented: 0
+  Interpolate: 1
+  SlerpPosition: 0
 --- !u!143 &4081289657927669233
 CharacterController:
   m_ObjectHideFlags: 0
@@ -1585,35 +1651,35 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 335782434099617423, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 335782434099617423, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 335782434099617423, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 216.6588
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 335782434099617423, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -350.69006
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3165514399174046368, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3165514399174046368, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3165514399174046368, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 799.11554
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3165514399174046368, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -350.69006
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3649442834146512904, guid: 7cbf9a0a1ac14944f8926c01d9f56ec7, type: 3}
       propertyPath: connectionManager
