@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TDOM.Unity.Player;
+using UnityEngine;
 
 namespace TDOM.Unity.Level
 {
@@ -21,10 +22,5 @@ namespace TDOM.Unity.Level
                 cc.enabled = true;
             }
         }
-    }
-
-    internal class PlayerRoot
-    {
-        public bool IsOwner { get; set; }
     }
 }
