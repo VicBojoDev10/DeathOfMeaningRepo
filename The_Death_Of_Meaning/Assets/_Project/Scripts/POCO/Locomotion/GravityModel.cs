@@ -20,23 +20,15 @@ namespace TDOM.Gameplay
         {
             if (estado.IsGrounded && estado.Velocity.y < 0f)
             {
-                estado.Velocity.y = -2f;
+                estado.Velocity.y += _gravedad * dt;
+                estado.Velocity.y = Mathf.Max(estado.Velocity.y, _velocidadTerminal);
                 return;
             }
 
             float g = _gravedad;
-            Debug.Log($"_gravedad: {g}");
-            Debug.Log($"_velocidadTerminal{_velocidadTerminal}");
-            Debug.Log($"_multiplicadorSaltoCorto{_multiplicadorSaltoCorto}");
-            Debug.Log($"estado is grouded: {estado.IsGrounded.ToString()}");
-            Debug.Log($"velocity: {estado.Velocity.ToString()}");
-            Debug.Log($"input JumpPressed: {input.JumpPressed}");
-            Debug.Log($"input JumpHeld: {input.JumpHeld}");
-
             if (estado.Velocity.y > 0f && !input.JumpHeld)
             {
                 g *= _multiplicadorSaltoCorto;
-                Debug.Log($"Entro al multiplicador{_multiplicadorSaltoCorto}");
             }
 
             estado.Velocity.y += g * dt;
