@@ -1,5 +1,5 @@
-using TDOM.Gameplay.Core;
 using TDOM.Contracts;
+using TDOM.Gameplay.Core;
 using TDOM.POCO.ScriptableObjects;
 
 namespace TDOM.Gameplay.Combat
@@ -40,13 +40,14 @@ namespace TDOM.Gameplay.Combat
         public void AplicarDaño(float daño)
         {
             _vidaActual -= daño;
-            if (_faseActual + 1 < _fases.Length &&
-                _vidaActual <= _fases[_faseActual].VidaTransicion)
+            if (
+                _faseActual + 1 < _fases.Length
+                && _vidaActual <= _fases[_faseActual].VidaTransicion
+            )
             {
                 _faseActual++;
                 _indiceAtaque = 0;
             }
         }
     }
-
 }

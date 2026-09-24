@@ -8,6 +8,8 @@ namespace TDOM.POCO.ScriptableObjects
     {
         public int Fase;
         public BossAttackKind[] OrdenDeAtaque;
-        [Range(0f, 1f)] public float VidaTransicion; // Ejemplo: 0.8f para 80%
+
+        [Range(0f, 1f)]
+        public float VidaTransicion; // Ejemplo: 0.8f para 80%
     }
 }
