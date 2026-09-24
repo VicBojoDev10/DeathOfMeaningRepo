@@ -37,6 +37,8 @@ namespace TDOM.Tests.EditMode
 
             Assert.AreEqual(BossAttackKind.Basico, boss.AtaqueActual);
             Assert.AreEqual(BossAttackKind.Pesado, boss.SiguienteAtaque());
+            Assert.AreEqual(BossAttackKind.Especial, boss.AtaqueActual);
+            Assert.AreEqual(BossAttackKind.InstaKill, boss.SiguienteAtaque());
         }
 
         [Test]
@@ -104,6 +106,7 @@ namespace TDOM.Tests.EditMode
                         BossAttackKind.Especial,
                         BossAttackKind.Basico,
                         BossAttackKind.Especial,
+                        BossAttackKind.Especial,
                         BossAttackKind.Pesado,
                         BossAttackKind.Pesado,
                         BossAttackKind.InstaKill,
@@ -116,9 +119,11 @@ namespace TDOM.Tests.EditMode
                     OrdenDeAtaque = new[]
                     {
                         BossAttackKind.Basico,
+                        BossAttackKind.Basico,
                         BossAttackKind.InstaKill,
                         BossAttackKind.InstaKill,
                         BossAttackKind.Especial,
+                        BossAttackKind.Pesado,
                         BossAttackKind.Pesado,
                         BossAttackKind.Especial,
                         BossAttackKind.InstaKill,
