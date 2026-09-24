@@ -1244,7 +1244,6 @@ GameObject:
   - component: {fileID: 6915294688424217995}
   - component: {fileID: 853824454438759107}
   - component: {fileID: 546050205079836276}
-  - component: {fileID: 5386740619248964835}
   - component: {fileID: 4081289657927669233}
   - component: {fileID: 3790023956692095804}
   m_Layer: 0
@@ -1444,7 +1443,6 @@ GameObject:
   - component: {fileID: 8425220064834975483}
   - component: {fileID: 6372557707801233857}
   - component: {fileID: 4263986062026974606}
-  - component: {fileID: 7556594816824636116}
   - component: {fileID: 2935497224924342630}
   - component: {fileID: 3332839952508169806}
   m_Layer: 0
@@ -1454,20 +1452,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &5386740619248964835
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2791782588495766618}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 261fbba1e0af09847825e2857820ced6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.PlayerCameraSetUp
-  ShowTopMostFoldoutHeaderGroup: 1
-  offset: {x: 0, y: 5, z: -7}
 --- !u!4 &6169988540089377989
 Transform:
   m_ObjectHideFlags: 0
@@ -1555,20 +1539,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &7556594816824636116
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5125041953826120095}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 261fbba1e0af09847825e2857820ced6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.PlayerCameraSetUp
-  ShowTopMostFoldoutHeaderGroup: 1
-  offset: {x: 0, y: 5, z: -7}
 --- !u!33 &7929166080534149512
 MeshFilter:
   m_ObjectHideFlags: 0
