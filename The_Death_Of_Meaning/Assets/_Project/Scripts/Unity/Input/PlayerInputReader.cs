@@ -1,5 +1,4 @@
 using TDOM.Contracts;
-using TDOM.Unity.Character;
 using UnityEngine;
 
 namespace TDOM.Unity.Input
@@ -7,19 +6,19 @@ namespace TDOM.Unity.Input
     public class PlayerInputReader : MonoBehaviour
     {
         private PlayerInputActions _actions;
-        private CharacterId _personajeActivo;
+        private CharacterIds _personajeActivo;
 
         private void Awake() => _actions = new PlayerInputActions();
 
         private void OnDestroy() => _actions.Dispose();
 
-        public void ActivarPersonaje(CharacterId id)
+        public void ActivarPersonaje(CharacterIds id)
         {
             _personajeActivo = id;
             _actions.Zendre.Disable();
             _actions.Ayla.Disable();
 
-            if (id == CharacterId.Zendre)
+            if (id == CharacterIds.Zendre)
                 _actions.Zendre.Enable();
             else
                 _actions.Ayla.Enable();
@@ -27,7 +26,7 @@ namespace TDOM.Unity.Input
 
         public InputSnapshot Read()
         {
-            if (_personajeActivo == CharacterId.Zendre)
+            if (_personajeActivo == CharacterIds.Zendre)
             {
                 var m = _actions.Zendre;
                 return new InputSnapshot(
@@ -47,7 +46,7 @@ namespace TDOM.Unity.Input
                     fireReleased: m.Fire.WasReleasedThisFrame()
                 );
             }
-            else if (_personajeActivo == CharacterId.Ayla)
+            else if (_personajeActivo == CharacterIds.Ayla)
             {
                 var m = _actions.Ayla;
                 return new InputSnapshot(
