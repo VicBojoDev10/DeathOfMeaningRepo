@@ -1,5 +1,6 @@
 using System;
 using TDOM.Contracts;
+using TDOM.Gameplay.Core;
 using TDOM.POCO.ScriptableObjects;
 
 namespace TDOM.Gameplay.Combat
@@ -9,26 +10,33 @@ namespace TDOM.Gameplay.Combat
         BossAttackStep AtaqueActual { get; }
         BossAttackStep SiguienteAtaque();
         void AplicarDaño(float daño);
+        void Tick(float dt);
         int FaseActual { get; }
     }
 
     public sealed class BossPhaseStateMachine : IBossPhaseState
     {
         private readonly BossPhaseProfile[] _fases;
-        private readonly TimeSpan _cooldown;
+        private readonly CooldownTimer _cooldown;
 
         private int _faseActual;
         private int _indiceAtaque;
         private float _vidaActual = 1f;
 
-        private DateTime _ultimoCambioAtaque = DateTime.MinValue;
-
         public BossPhaseStateMachine(
             BossPhaseProfile[] fases,
             float cooldownSegundos = 0f)
         {
+            if (fases == null)
+                throw new ArgumentNullException(nameof(fases));
+
+            if (fases.Length == 0)
+                throw new ArgumentException(
+                    "Debe existir al menos una fase.",
+                    nameof(fases));
+
             _fases = fases;
-            _cooldown = TimeSpan.FromSeconds(cooldownSegundos);
+            _cooldown = new CooldownTimer(cooldownSegundos);
 
             _faseActual = 0;
             _indiceAtaque = 0;
@@ -39,17 +47,25 @@ namespace TDOM.Gameplay.Combat
 
         public int FaseActual => _faseActual + 1;
 
+        public void Tick(float dt)
+        {
+            _cooldown.Tick(dt);
+        }
+
         public BossAttackStep SiguienteAtaque()
         {
-            var ahora = DateTime.UtcNow;
-
-            if (_cooldown > TimeSpan.Zero &&
-                ahora - _ultimoCambioAtaque < _cooldown)
+            // Si hay cooldown y aún no termina,
+            // no se avanza el patrón.
+            if (!_cooldown.Listo)
             {
                 return AtaqueActual;
             }
 
-            _ultimoCambioAtaque = ahora;
+            // Reinicia cooldown sólo si existe.
+            if (_cooldown.Normalizado >= 0f)
+            {
+                _cooldown.Disparar();
+            }
 
             _indiceAtaque++;
 
@@ -70,9 +86,6 @@ namespace TDOM.Gameplay.Combat
             {
                 _faseActual++;
                 _indiceAtaque = 0;
-
-                // Reiniciar cooldown al cambiar de fase
-                _ultimoCambioAtaque = DateTime.MinValue;
             }
         }
     }
