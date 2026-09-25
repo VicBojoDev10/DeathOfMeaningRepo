@@ -2,6 +2,7 @@ using NUnit.Framework;
 using TDOM.Contracts;
 using TDOM.Gameplay.Combat;
 using TDOM.POCO.ScriptableObjects;
+using UnityEngine;
 
 namespace TDOM.Tests.EditMode
 {
@@ -37,8 +38,8 @@ namespace TDOM.Tests.EditMode
 
             Assert.AreEqual(BossAttackKind.Basico, boss.AtaqueActual);
             Assert.AreEqual(BossAttackKind.Pesado, boss.SiguienteAtaque());
-            Assert.AreEqual(BossAttackKind.Especial, boss.AtaqueActual);
-            Assert.AreEqual(BossAttackKind.InstaKill, boss.SiguienteAtaque());
+            Assert.AreEqual(BossAttackKind.Basico, boss.SiguienteAtaque());
+            Assert.AreEqual(BossAttackKind.Basico, boss.SiguienteAtaque());
         }
 
         [Test]
@@ -57,82 +58,82 @@ namespace TDOM.Tests.EditMode
 
         private BossPhaseProfile[] CrearFasesDePrueba()
         {
-            return new BossPhaseProfile[]
+            var fase1 = ScriptableObject.CreateInstance<BossPhaseProfile>();
+            fase1.Fase = 1;
+            fase1.OrdenDeAtaque = new[]
             {
-                new BossPhaseProfile
-                {
-                    Fase = 1,
-                    OrdenDeAtaque = new[]
-                    {
-                        BossAttackKind.Basico,
-                        BossAttackKind.Pesado,
-                        BossAttackKind.Basico,
-                        BossAttackKind.Basico,
-                    },
-                    VidaTransicion = 0.8f,
-                },
-                new BossPhaseProfile
-                {
-                    Fase = 2,
-                    OrdenDeAtaque = new[]
-                    {
-                        BossAttackKind.Pesado,
-                        BossAttackKind.Basico,
-                        BossAttackKind.Especial,
-                        BossAttackKind.Pesado,
-                        BossAttackKind.Basico,
-                    },
-                    VidaTransicion = 0.6f,
-                },
-                new BossPhaseProfile
-                {
-                    Fase = 3,
-                    OrdenDeAtaque = new[]
-                    {
-                        BossAttackKind.Basico,
-                        BossAttackKind.Pesado,
-                        BossAttackKind.Pesado,
-                        BossAttackKind.Basico,
-                        BossAttackKind.Especial,
-                    },
-                    VidaTransicion = 0.4f,
-                },
-                new BossPhaseProfile
-                {
-                    Fase = 4,
-                    OrdenDeAtaque = new[]
-                    {
-                        BossAttackKind.Basico,
-                        BossAttackKind.Especial,
-                        BossAttackKind.Basico,
-                        BossAttackKind.Especial,
-                        BossAttackKind.Especial,
-                        BossAttackKind.Pesado,
-                        BossAttackKind.Pesado,
-                        BossAttackKind.InstaKill,
-                    },
-                    VidaTransicion = 0.2f,
-                },
-                new BossPhaseProfile
-                {
-                    Fase = 5,
-                    OrdenDeAtaque = new[]
-                    {
-                        BossAttackKind.Basico,
-                        BossAttackKind.Basico,
-                        BossAttackKind.InstaKill,
-                        BossAttackKind.InstaKill,
-                        BossAttackKind.Especial,
-                        BossAttackKind.Pesado,
-                        BossAttackKind.Pesado,
-                        BossAttackKind.Especial,
-                        BossAttackKind.InstaKill,
-                        BossAttackKind.Especial,
-                        BossAttackKind.InstaKill,
-                        BossAttackKind.Especial,
-                    },
-                    VidaTransicion = 0.0f,
-                },
+                BossAttackKind.Basico,
+                BossAttackKind.Pesado,
+                BossAttackKind.Basico,
+                BossAttackKind.Basico,
+            };
+            fase1.VidaTransicion = 0.8f;
+
+            var fase2 = ScriptableObject.CreateInstance<BossPhaseProfile>();
+            fase2.Fase = 2;
+            fase2.OrdenDeAtaque = new[]
+            {
+                BossAttackKind.Pesado,
+                BossAttackKind.Basico,
+                BossAttackKind.Especial,
+                BossAttackKind.Pesado,
+                BossAttackKind.Basico,
+            };
+            fase2.VidaTransicion = 0.6f;
+
+            var fase3 = ScriptableObject.CreateInstance<BossPhaseProfile>();
+            fase3.Fase = 3;
+            fase3.OrdenDeAtaque = new[]
+            {
+                BossAttackKind.Basico,
+                BossAttackKind.Pesado,
+                BossAttackKind.Pesado,
+                BossAttackKind.Basico,
+                BossAttackKind.Especial,
+            };
+            fase3.VidaTransicion = 0.4f;
+
+            var fase4 = ScriptableObject.CreateInstance<BossPhaseProfile>();
+            fase4.Fase = 4;
+            fase4.OrdenDeAtaque = new[]
+            {
+                BossAttackKind.Basico,
+                BossAttackKind.Especial,
+                BossAttackKind.Basico,
+                BossAttackKind.Especial,
+                BossAttackKind.Especial,
+                BossAttackKind.Pesado,
+                BossAttackKind.Pesado,
+                BossAttackKind.InstaKill,
+            };
+            fase4.VidaTransicion = 0.2f;
+
+            var fase5 = ScriptableObject.CreateInstance<BossPhaseProfile>();
+            fase5.Fase = 5;
+            fase5.OrdenDeAtaque = new[]
+            {
+                BossAttackKind.Basico,
+                BossAttackKind.Basico,
+                BossAttackKind.InstaKill,
+                BossAttackKind.InstaKill,
+                BossAttackKind.Especial,
+                BossAttackKind.Pesado,
+                BossAttackKind.Pesado,
+                BossAttackKind.Especial,
+                BossAttackKind.InstaKill,
+                BossAttackKind.Especial,
+                BossAttackKind.InstaKill,
+                BossAttackKind.Especial,
+            };
+            fase5.VidaTransicion = 0.0f;
+
+            return new[]
+            {
+                fase1,
+                fase2,
+                fase3,
+                fase4,
+                fase5
             };
         }
     }
