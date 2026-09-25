@@ -1,3 +1,5 @@
+using System;
+
 namespace TDOM.Contracts
 {
     public enum BossAttackKind
@@ -8,6 +10,7 @@ namespace TDOM.Contracts
         InstaKill,
     }
 
+    [Serializable]
     public struct BossAttackStep
     {
         public BossAttackKind Tipo;

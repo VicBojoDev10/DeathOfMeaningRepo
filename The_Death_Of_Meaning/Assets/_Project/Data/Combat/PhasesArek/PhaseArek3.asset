@@ -13,5 +13,23 @@ MonoBehaviour:
   m_Name: PhaseArek3
   m_EditorClassIdentifier: TDOM.Data::TDOM.POCO.ScriptableObjects.BossPhaseProfile
   Fase: 3
-  OrdenDeAtaque: 000000000100000001000000020000000000000002000000
+  OrdenDeAtaque:
+  - Tipo: 0
+    "Da\xF1o": 10
+    EsInstaKill: 0
+  - Tipo: 1
+    "Da\xF1o": 20
+    EsInstaKill: 0
+  - Tipo: 1
+    "Da\xF1o": 20
+    EsInstaKill: 0
+  - Tipo: 2
+    "Da\xF1o": 35
+    EsInstaKill: 0
+  - Tipo: 0
+    "Da\xF1o": 10
+    EsInstaKill: 0
+  - Tipo: 2
+    "Da\xF1o": 35
+    EsInstaKill: 0
   VidaTransicion: 0.6
