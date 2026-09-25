@@ -13,16 +13,16 @@ MonoBehaviour:
   m_Name: MeleeZendre
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.ComboProfile
   Steps:
-  - WindupTime: 7
-    ActiveTime: 2
-    RecoveryTime: 5
-    ComboWindowTime: 2
+  - WindupTime: 0.2
+    ActiveTime: 0.1
+    RecoveryTime: 0.4
+    ComboWindowTime: 0.25
     Damage: 15
     AnimTrigger: 
-  - WindupTime: 7
-    ActiveTime: 2
-    RecoveryTime: 5
-    ComboWindowTime: 2
+  - WindupTime: 0.2
+    ActiveTime: 0.1
+    RecoveryTime: 0.4
+    ComboWindowTime: 0.25
     Damage: 15
     AnimTrigger: 
   Charged:

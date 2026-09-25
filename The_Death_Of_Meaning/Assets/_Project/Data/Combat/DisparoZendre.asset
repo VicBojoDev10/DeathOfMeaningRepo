@@ -13,17 +13,17 @@ MonoBehaviour:
   m_Name: DisparoZendre
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.ComboProfile
   Steps:
-  - WindupTime: 5
-    ActiveTime: 5
-    RecoveryTime: 6
-    ComboWindowTime: 2
-    Damage: 10
+  - WindupTime: 0.15
+    ActiveTime: 0.1
+    RecoveryTime: 0.2
+    ComboWindowTime: 0.2
+    Damage: 15
     AnimTrigger: 
-  - WindupTime: 5
-    ActiveTime: 5
-    RecoveryTime: 6
-    ComboWindowTime: 2
-    Damage: 10
+  - WindupTime: 0.15
+    ActiveTime: 0.1
+    RecoveryTime: 0.2
+    ComboWindowTime: 0.2
+    Damage: 15
     AnimTrigger: 
   Charged:
     WindupTime: 0.15

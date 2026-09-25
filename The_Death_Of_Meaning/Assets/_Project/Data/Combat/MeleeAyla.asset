@@ -13,23 +13,23 @@ MonoBehaviour:
   m_Name: MeleeAyla
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.ComboProfile
   Steps:
-  - WindupTime: 6
-    ActiveTime: 3
-    RecoveryTime: 6
-    ComboWindowTime: 3
-    Damage: 20
+  - WindupTime: 0.2
+    ActiveTime: 0.1
+    RecoveryTime: 0.3
+    ComboWindowTime: 0.2
+    Damage: 35
     AnimTrigger: 
-  - WindupTime: 6
-    ActiveTime: 3
-    RecoveryTime: 6
-    ComboWindowTime: 3
-    Damage: 20
+  - WindupTime: 0.2
+    ActiveTime: 0.1
+    RecoveryTime: 0.3
+    ComboWindowTime: 0.2
+    Damage: 35
     AnimTrigger: 
-  - WindupTime: 6
-    ActiveTime: 3
-    RecoveryTime: 6
-    ComboWindowTime: 3
-    Damage: 20
+  - WindupTime: 0.2
+    ActiveTime: 0.1
+    RecoveryTime: 0.3
+    ComboWindowTime: 0.2
+    Damage: 35
     AnimTrigger: 
   Charged:
     WindupTime: 0.2
