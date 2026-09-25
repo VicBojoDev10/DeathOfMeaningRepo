@@ -37,35 +37,22 @@ namespace TDOM.Unity
 
         public void OnCrearPartida()
         {
-            var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            if (transport != null)
-            {
-                transport.ConnectionData.ServerListenAddress = "0.0.0.0";
-                transport.ConnectionData.Port = 7777;
-            }
-
             CambiarEstado(EstadoSesion.Conectando);
             NetworkManager.Singleton.StartHost();
         }
 
         public void OnUnirse(string ip)
         {
-            if (string.IsNullOrWhiteSpace(ip))
-                ip = "127.0.0.1";
-
             if (!IPAddress.TryParse(ip, out _))
             {
-                Debug.LogWarning($"IP inválida: '{ip}'");
+                Debug.LogError($"IP inválida: '{ip}'");
                 CambiarEstado(EstadoSesion.Error);
                 return;
             }
 
             var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            if (transport != null)
-            {
-                transport.ConnectionData.Address = ip;
-                transport.ConnectionData.Port = 7777;
-            }
+            transport.ConnectionData.Address = ip;
+            transport.ConnectionData.Port = 7777;
 
             CambiarEstado(EstadoSesion.Conectando);
             NetworkManager.Singleton.StartClient();
