@@ -36,10 +36,10 @@ namespace TDOM.Tests.EditMode
             var fases = CrearFasesDePrueba();
             var boss = new BossPhaseStateMachine(fases);
 
-            Assert.AreEqual(BossAttackKind.Basico, boss.AtaqueActual);
-            Assert.AreEqual(BossAttackKind.Pesado, boss.SiguienteAtaque());
-            Assert.AreEqual(BossAttackKind.Basico, boss.SiguienteAtaque());
-            Assert.AreEqual(BossAttackKind.Basico, boss.SiguienteAtaque());
+            Assert.AreEqual(BossAttackKind.Basico, boss.AtaqueActual.Tipo);
+            Assert.AreEqual(BossAttackKind.Pesado, boss.SiguienteAtaque().Tipo);
+            Assert.AreEqual(BossAttackKind.Basico, boss.SiguienteAtaque().Tipo);
+            Assert.AreEqual(BossAttackKind.Basico, boss.SiguienteAtaque().Tipo);
         }
 
         [Test]
@@ -62,10 +62,10 @@ namespace TDOM.Tests.EditMode
             fase1.Fase = 1;
             fase1.OrdenDeAtaque = new[]
             {
-                BossAttackKind.Basico,
-                BossAttackKind.Pesado,
-                BossAttackKind.Basico,
-                BossAttackKind.Basico,
+             new BossAttackStep(BossAttackKind.Basico, 10),
+             new BossAttackStep(BossAttackKind.Pesado, 20),
+             new BossAttackStep(BossAttackKind.Basico, 10),
+             new BossAttackStep(BossAttackKind.Basico, 10),
             };
             fase1.VidaTransicion = 0.8f;
 
@@ -73,11 +73,11 @@ namespace TDOM.Tests.EditMode
             fase2.Fase = 2;
             fase2.OrdenDeAtaque = new[]
             {
-                BossAttackKind.Pesado,
-                BossAttackKind.Basico,
-                BossAttackKind.Especial,
-                BossAttackKind.Pesado,
-                BossAttackKind.Basico,
+             new BossAttackStep(BossAttackKind.Pesado, 20),
+             new BossAttackStep(BossAttackKind.Basico, 10),
+             new BossAttackStep(BossAttackKind.Especial, 35),
+             new BossAttackStep(BossAttackKind.Pesado, 20),
+             new BossAttackStep(BossAttackKind.Basico, 10),
             };
             fase2.VidaTransicion = 0.6f;
 
@@ -85,11 +85,13 @@ namespace TDOM.Tests.EditMode
             fase3.Fase = 3;
             fase3.OrdenDeAtaque = new[]
             {
-                BossAttackKind.Basico,
-                BossAttackKind.Pesado,
-                BossAttackKind.Pesado,
-                BossAttackKind.Basico,
-                BossAttackKind.Especial,
+             new BossAttackStep(BossAttackKind.Basico, 10),
+             new BossAttackStep(BossAttackKind.Pesado, 20),
+             new BossAttackStep(BossAttackKind.Pesado, 20),
+             new BossAttackStep(BossAttackKind.Especial, 35),
+             new BossAttackStep(BossAttackKind.Basico, 10),
+             new BossAttackStep(BossAttackKind.Especial, 35),
+
             };
             fase3.VidaTransicion = 0.4f;
 
@@ -97,14 +99,14 @@ namespace TDOM.Tests.EditMode
             fase4.Fase = 4;
             fase4.OrdenDeAtaque = new[]
             {
-                BossAttackKind.Basico,
-                BossAttackKind.Especial,
-                BossAttackKind.Basico,
-                BossAttackKind.Especial,
-                BossAttackKind.Especial,
-                BossAttackKind.Pesado,
-                BossAttackKind.Pesado,
-                BossAttackKind.InstaKill,
+             new BossAttackStep(BossAttackKind.Basico, 10),
+             new BossAttackStep(BossAttackKind.Especial, 35),
+             new BossAttackStep(BossAttackKind.Basico, 10),
+             new BossAttackStep(BossAttackKind.Especial, 35),
+             new BossAttackStep(BossAttackKind.Especial, 35),
+             new BossAttackStep(BossAttackKind.Pesado, 20),
+             new BossAttackStep(BossAttackKind.Pesado, 20),
+             new BossAttackStep(BossAttackKind.InstaKill, 9999, true),
             };
             fase4.VidaTransicion = 0.2f;
 
@@ -112,18 +114,18 @@ namespace TDOM.Tests.EditMode
             fase5.Fase = 5;
             fase5.OrdenDeAtaque = new[]
             {
-                BossAttackKind.Basico,
-                BossAttackKind.Basico,
-                BossAttackKind.InstaKill,
-                BossAttackKind.InstaKill,
-                BossAttackKind.Especial,
-                BossAttackKind.Pesado,
-                BossAttackKind.Pesado,
-                BossAttackKind.Especial,
-                BossAttackKind.InstaKill,
-                BossAttackKind.Especial,
-                BossAttackKind.InstaKill,
-                BossAttackKind.Especial,
+             new BossAttackStep(BossAttackKind.Basico, 10),
+             new BossAttackStep(BossAttackKind.Basico, 10),
+             new BossAttackStep(BossAttackKind.InstaKill, 9999, true),
+             new BossAttackStep(BossAttackKind.InstaKill, 9999, true),
+             new BossAttackStep(BossAttackKind.Especial, 35),
+             new BossAttackStep(BossAttackKind.Pesado, 20),
+             new BossAttackStep(BossAttackKind.Pesado, 20),
+             new BossAttackStep(BossAttackKind.Especial, 35),
+             new BossAttackStep(BossAttackKind.InstaKill, 9999, true),
+             new BossAttackStep(BossAttackKind.Especial, 35),
+             new BossAttackStep(BossAttackKind.InstaKill, 9999, true),
+             new BossAttackStep(BossAttackKind.Especial, 35),
             };
             fase5.VidaTransicion = 0.0f;
 

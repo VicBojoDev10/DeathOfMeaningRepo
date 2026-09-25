@@ -14,7 +14,10 @@ namespace TDOM.Contracts
         public int Daño;
         public bool EsInstaKill;
 
-        public BossAttackStep(BossAttackKind tipo, int daño, bool esInstaKill = false)
+        public BossAttackStep(
+            BossAttackKind tipo,
+            int daño,
+            bool esInstaKill = false)
         {
             Tipo = tipo;
             Daño = daño;

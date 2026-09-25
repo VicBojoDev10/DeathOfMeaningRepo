@@ -6,8 +6,8 @@ namespace TDOM.Gameplay.Combat
 {
     public interface IBossPhaseState
     {
-        BossAttackKind AtaqueActual { get; }
-        BossAttackKind SiguienteAtaque();
+        BossAttackStep AtaqueActual { get; }
+        BossAttackStep SiguienteAtaque();
         void AplicarDaño(float daño);
         int FaseActual { get; }
     }
@@ -34,12 +34,12 @@ namespace TDOM.Gameplay.Combat
             _indiceAtaque = 0;
         }
 
-        public BossAttackKind AtaqueActual =>
+        public BossAttackStep AtaqueActual =>
             _fases[_faseActual].OrdenDeAtaque[_indiceAtaque];
 
         public int FaseActual => _faseActual + 1;
 
-        public BossAttackKind SiguienteAtaque()
+        public BossAttackStep SiguienteAtaque()
         {
             var ahora = DateTime.UtcNow;
 
