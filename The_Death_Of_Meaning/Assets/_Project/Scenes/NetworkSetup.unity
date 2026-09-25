@@ -439,7 +439,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.GameSessionManager
   ShowTopMostFoldoutHeaderGroup: 1
   _prefabZendre: {fileID: 5125041952874771469, guid: 3b9fc55ebdbbc8b41a0369fe6fd45add, type: 3}
-  _prefabAyla: {fileID: 2791782589851990202, guid: 077a56197965ada46bbb0c6f276b36be, type: 3}
+  _prefabAyla: {fileID: 2229917530308356307, guid: 077a56197965ada46bbb0c6f276b36be, type: 3}
+  _prefabArek: {fileID: 1000000000000000, guid: c7e54f9a1b2d49e1a8b30129fca10001, type: 3}
+  _puntoSpawnArek: {fileID: 0}
   _puntosDeSpawn:
   - {fileID: 890906200}
   - {fileID: 1380176349}
@@ -1461,7 +1463,7 @@ Transform:
   m_GameObject: {fileID: 2791782588495766618}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.3135, y: 0.901, z: 4.06087}
+  m_LocalPosition: {x: -3.4, y: 0.901, z: 4.06087}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1515,7 +1517,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 7fc65d97413829541969da88ec5e9179, type: 2}
+  - {fileID: 2100000, guid: 6df9874ac954c884f8dcff361671b272, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1587,7 +1589,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c47a720a0c535a147b38134cb24d2f3b, type: 2}
+  - {fileID: 2100000, guid: 6df9874ac954c884f8dcff361671b272, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

@@ -22,6 +22,10 @@ namespace TDOM.Unity
         {
             Show();
             startMatchButton.gameObject.SetActive(false);
+            if (ipInputField != null && string.IsNullOrWhiteSpace(ipInputField.text))
+            {
+                ipInputField.text = "127.0.0.1";
+            }
         }
 
         private void OnEnable()
@@ -81,7 +85,11 @@ namespace TDOM.Unity
 
         private void StartClientButton_OnClick()
         {
-            connectionManager.OnUnirse(ipInputField.text.Trim());
+            string ip = ipInputField != null ? ipInputField.text.Trim() : "";
+            if (string.IsNullOrWhiteSpace(ip))
+                ip = "127.0.0.1";
+
+            connectionManager.OnUnirse(ip);
             startClientButton.onClick.RemoveAllListeners();
         }
 

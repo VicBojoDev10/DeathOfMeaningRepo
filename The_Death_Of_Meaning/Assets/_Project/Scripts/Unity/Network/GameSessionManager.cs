@@ -16,6 +16,12 @@ namespace TDOM.Unity
         private GameObject _prefabAyla;
 
         [SerializeField]
+        private GameObject _prefabArek;
+
+        [SerializeField]
+        private Transform _puntoSpawnArek;
+
+        [SerializeField]
         private Transform[] _puntosDeSpawn;
         public NetworkList<PlayerSelectionState> Jugadores { get; private set; }
 
@@ -143,6 +149,19 @@ namespace TDOM.Unity
                 var go = Instantiate(prefab, _puntosDeSpawn[i].position, Quaternion.identity);
                 go.GetComponent<NetworkObject>().SpawnWithOwnership(Jugadores[i].ClientId);
             }
+
+            if (_prefabArek != null)
+            {
+                Vector3 posArek = _puntoSpawnArek != null
+                    ? _puntoSpawnArek.position
+                    : new Vector3(0f, 0f, 10f);
+                Quaternion rotArek = _puntoSpawnArek != null
+                    ? _puntoSpawnArek.rotation
+                    : Quaternion.identity;
+                var goArek = Instantiate(_prefabArek, posArek, rotArek);
+                goArek.GetComponent<NetworkObject>().Spawn();
+            }
+
             IniciarPartidaClientRpc();
         }
 
