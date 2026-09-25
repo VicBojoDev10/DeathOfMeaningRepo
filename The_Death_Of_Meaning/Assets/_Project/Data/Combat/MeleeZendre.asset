@@ -14,13 +14,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.ComboProfile
   Steps:
   - WindupTime: 0.3
-    ActiveTime: 0.5
+    ActiveTime: 0.2
     RecoveryTime: 0.4
     ComboWindowTime: 0.35
     Damage: 15
     AnimTrigger: 
   - WindupTime: 0.3
-    ActiveTime: 0.5
+    ActiveTime: 0.2
+    RecoveryTime: 0.4
+    ComboWindowTime: 0.35
+    Damage: 15
+    AnimTrigger: 
+  - WindupTime: 0.3
+    ActiveTime: 0.2
+    RecoveryTime: 0.4
+    ComboWindowTime: 0.35
+    Damage: 15
+    AnimTrigger: 
+  - WindupTime: 0.3
+    ActiveTime: 0.2
     RecoveryTime: 0.4
     ComboWindowTime: 0.35
     Damage: 15
@@ -30,7 +42,7 @@ MonoBehaviour:
     ActiveTime: 0.1
     RecoveryTime: 0.4
     ComboWindowTime: 0.25
-    Damage: 25
+    Damage: 15
     AnimTrigger: 
   HoldThreshold: 0.15
   MaxChargeTime: 1.5
