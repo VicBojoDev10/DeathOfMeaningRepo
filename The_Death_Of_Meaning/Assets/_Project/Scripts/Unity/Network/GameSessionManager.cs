@@ -152,12 +152,10 @@ namespace TDOM.Unity
 
             if (_prefabArek != null)
             {
-                Vector3 posArek = _puntoSpawnArek != null
-                    ? _puntoSpawnArek.position
-                    : new Vector3(0f, 0f, 10f);
-                Quaternion rotArek = _puntoSpawnArek != null
-                    ? _puntoSpawnArek.rotation
-                    : Quaternion.identity;
+                Vector3 posArek =
+                    _puntoSpawnArek != null ? _puntoSpawnArek.position : new Vector3(0f, 0f, 10f);
+                Quaternion rotArek =
+                    _puntoSpawnArek != null ? _puntoSpawnArek.rotation : Quaternion.identity;
                 var goArek = Instantiate(_prefabArek, posArek, rotArek);
                 goArek.GetComponent<NetworkObject>().Spawn();
             }

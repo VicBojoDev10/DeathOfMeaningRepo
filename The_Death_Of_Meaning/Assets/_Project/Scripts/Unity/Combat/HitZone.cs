@@ -38,7 +38,9 @@ namespace TDOM.Unity.Combat
 
         private void HandleDanioChanged(float anterior, float actual)
         {
-            Debug.Log($"[HitZone {_zoneIndex:D2} - {_zoneName}] Daño acumulado cambió: {anterior:F1} -> {actual:F1}");
+            Debug.Log(
+                $"[HitZone {_zoneIndex:D2} - {_zoneName}] Daño acumulado cambió: {anterior:F1} -> {actual:F1}"
+            );
         }
 
         public void RegistrarDanio(float cantidad)
@@ -47,7 +49,9 @@ namespace TDOM.Unity.Combat
                 return;
 
             DanioAcumulado.Value += cantidad;
-            Debug.Log($"[SERVER][HitZone {_zoneIndex:D2}] Recibió {cantidad:F1} de daño. Total acumulado: {DanioAcumulado.Value:F1}");
+            Debug.Log(
+                $"[SERVER][HitZone {_zoneIndex:D2}] Recibió {cantidad:F1} de daño. Total acumulado: {DanioAcumulado.Value:F1}"
+            );
         }
     }
 }

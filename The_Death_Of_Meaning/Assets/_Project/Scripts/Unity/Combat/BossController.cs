@@ -46,7 +46,9 @@ namespace TDOM.Unity.Combat
         public override void OnNetworkSpawn()
         {
             Fase.OnValueChanged += HandleFaseChanged;
-            Debug.Log($"[BossController] Spawneado en red. Fase inicial: {Fase.Value}, IsServer: {IsServer}");
+            Debug.Log(
+                $"[BossController] Spawneado en red. Fase inicial: {Fase.Value}, IsServer: {IsServer}"
+            );
         }
 
         public override void OnNetworkDespawn()
@@ -89,7 +91,9 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.ClientsAndHost)]
         public void TelegraphAtaqueRpc(int ataqueId, string ataqueNombre = "")
         {
-            Debug.Log($"[BossController][RPC Telegraph] Aviso de ataque recibido: ID={ataqueId} ({ataqueNombre})");
+            Debug.Log(
+                $"[BossController][RPC Telegraph] Aviso de ataque recibido: ID={ataqueId} ({ataqueNombre})"
+            );
             // Placeholder: en PR de integración F1 se disparará aquí la animación/VFX del telegraph para clientes
         }
 
@@ -129,7 +133,9 @@ namespace TDOM.Unity.Combat
 
             GUILayout.BeginArea(new Rect(10, 200, 320, 420), "Boss AREK Debug", GUI.skin.window);
 
-            string rol = IsServer ? (IsHost ? "Host (Server + Client)" : "Dedicated Server") : "Client";
+            string rol = IsServer
+                ? (IsHost ? "Host (Server + Client)" : "Dedicated Server")
+                : "Client";
             GUILayout.Label($"Rol: {rol}");
             GUILayout.Label($"Fase Actual (NetworkVariable): {Fase.Value}");
 
@@ -164,7 +170,10 @@ namespace TDOM.Unity.Combat
                         continue;
 
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label($"[{hz.ZoneIndex:D2}] {hz.ZoneName}: {hz.DanioAcumulado.Value:F0} dmg", GUILayout.Width(180));
+                    GUILayout.Label(
+                        $"[{hz.ZoneIndex:D2}] {hz.ZoneName}: {hz.DanioAcumulado.Value:F0} dmg",
+                        GUILayout.Width(180)
+                    );
 
                     if (IsServer)
                     {
