@@ -40,17 +40,43 @@ namespace TDOM.Unity.Player
             _locomocion = new PlayerLocomotion(_definition);
             _camera.gameObject.SetActive(IsOwner);
             _inputReader.enabled = IsOwner;
+
+            if (IsOwner)
+            {
+                _inputReader.ActivarPersonaje(GetCharacterId());
+            }
+        }
+
+        private CharacterIds GetCharacterId()
+        {
+            if (_definition != null)
+            {
+                if (string.Equals(_definition.DisplayName, "Zendre", System.StringComparison.OrdinalIgnoreCase))
+                    return CharacterIds.Zendre;
+                if (string.Equals(_definition.DisplayName, "Ayla", System.StringComparison.OrdinalIgnoreCase))
+                    return CharacterIds.Ayla;
+            }
+            return CharacterIds.None;
         }
 
         private void Update()
         {
             if (!IsOwner)
                 return;
+
             float dt = Time.deltaTime;
-            _motor.ProbeGround(_locomocion.State);
             var input = _inputReader.Read();
+
+            // Actualizar rotación POCO y aplicar a la cámara
+            _look.Tick(input.Look, dt);
+            if (_camera != null)
+                _camera.ApplyLook(_look.Yaw, _look.Pitch);
+
+            _motor.ProbeGround(_locomocion.State);
+
             if (_combat != null)
                 _combat.Tick(input, dt);
+
             var intent = _locomocion.Tick(input, _look.YawRotation, dt, AtaqueActivo);
             _motor.Apply(intent, dt);
         }

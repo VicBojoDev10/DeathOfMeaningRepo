@@ -60,7 +60,7 @@ namespace TDOM.Unity.Input
                     attackHeld: m.Attack.IsPressed(),
                     attackReleased: m.Attack.WasReleasedThisFrame(),
                     aimHeld: m.Aim.IsPressed(),
-                    grapplePressed: false,
+                    grapplePressed: m.Grapple.WasPressedThisFrame(),
                     firePressed: false,
                     fireHeld: false,
                     fireReleased: false
