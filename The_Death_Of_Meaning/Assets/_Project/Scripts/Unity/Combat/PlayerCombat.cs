@@ -27,6 +27,16 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private CombatDebugFeedback _debugFeedback;
 
+        [Header("Hitbox melee")]
+        [SerializeField]
+        private float _radioHitbox = 1.5f;
+
+        [SerializeField]
+        private float _alcanceHitbox = 1.0f;
+
+        public float RadioHitbox => _radioHitbox;
+        public float AlcanceHitbox => _alcanceHitbox;
+
         public bool AtaqueActivo =>
             (_melee?.BloqueaMovimiento ?? false) || (_disparo?.BloqueaMovimiento ?? false);
 
@@ -119,7 +129,7 @@ namespace TDOM.Unity.Combat
                 _feedback.OnGolpeConectado();
             if (_hitbox == null)
                 return;
-            var objetivos = _hitbox.Detectar(1.5f, 1.0f);
+            var objetivos = _hitbox.Detectar(_radioHitbox, _alcanceHitbox);
             foreach (var obj in objetivos)
                 ReportarGolpeRpc(evento, obj.NetworkObjectId);
             ReproducirGolpeRpc(evento.ComboIndex, cargado);
@@ -138,7 +148,7 @@ namespace TDOM.Unity.Combat
             )
                 return false;
 
-            const float radioBase = 1.5f;
+            float radioBase = _radioHitbox; // TW-61
             float rangoPermitido = radioBase * tolerancia;
 
             return Vector3.Distance(transform.position, objetivo.transform.position)
