@@ -76,13 +76,15 @@ namespace TDOM.Unity
         {
             connectionManager.OnCrearPartida();
             hostIpDisplayText.text = $"IP: {connectionManager.GetLocalIPAddress()}";
-            startHostButton.onClick.RemoveAllListeners();
+            startHostButton.interactable = false;
+            startClientButton.interactable = false;
         }
 
         private void StartClientButton_OnClick()
         {
             connectionManager.OnUnirse(ipInputField.text.Trim());
-            startClientButton.onClick.RemoveAllListeners();
+            startHostButton.interactable = false;
+            startClientButton.interactable = false;
         }
 
         private void ActualizarTextoEstado(EstadoSesion estado)
@@ -95,6 +97,12 @@ namespace TDOM.Unity
                 EstadoSesion.Error => "Error de conexión",
                 _ => estado.ToString(),
             };
+
+            if (estado == EstadoSesion.Desconectado || estado == EstadoSesion.Error)
+            {
+                startHostButton.interactable = true;
+                startClientButton.interactable = true;
+            }
         }
     }
 }
