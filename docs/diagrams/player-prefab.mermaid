@@ -1,7 +1,10 @@
-﻿flowchart TD
-    Player["Player (NetworkObject, ClientNetworkTransform, CharacterController, ClientNetworkAnimator)"]
+flowchart TD
+    Player["Player: PlayerAyla / PlayerZendre (NetworkObject, ClientNetworkTransform, CharacterController, CapsuleCollider)"]
     Player --> Root[PlayerRoot - composition root]
     Player --> Pivot[CameraPivot - PlayerCameraRig, CinemachineCamera]
     Pivot --> VM[Viewmodel placeholder]
     Root --> Motor[PlayerMotor]
     Root --> Reader[PlayerInputReader]
+    Root --> Combat[PlayerCombat]
+    Combat -->|animación local| AnimLocal[PlayerCombatAnimator]
+    Combat -.->|"ReproducirGolpeRpc (RPC NotOwner)"| AnimRemoto["PlayerCombatAnimator del otro cliente"]
