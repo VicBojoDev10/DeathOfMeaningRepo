@@ -35,8 +35,18 @@ namespace TDOM.Unity.Combat
             if (_origen == null)
                 return;
 
+            // TW-61: radio y alcance se leen de PlayerCombat (fuente única).
+            var combat = GetComponentInParent<PlayerCombat>();
+            if (combat == null && _owner != null)
+                combat = _owner.GetComponent<PlayerCombat>();
+            if (combat == null)
+                return;
+
             Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(_origen.position + _origen.forward * 1.0f, 1.5f);
+            Gizmos.DrawWireSphere(
+                _origen.position + _origen.forward * combat.AlcanceHitbox,
+                combat.RadioHitbox
+            );
         }
     }
 }
