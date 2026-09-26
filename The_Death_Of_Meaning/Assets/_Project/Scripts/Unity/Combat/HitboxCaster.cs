@@ -35,7 +35,6 @@ namespace TDOM.Unity.Combat
             if (_origen == null)
                 return;
 
-            // TW-61: radio y alcance se leen de PlayerCombat (fuente única).
             var combat = GetComponentInParent<PlayerCombat>();
             if (combat == null && _owner != null)
                 combat = _owner.GetComponent<PlayerCombat>();

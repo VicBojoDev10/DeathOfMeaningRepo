@@ -27,8 +27,6 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private CombatDebugFeedback _debugFeedback;
 
-        // TW-61: fuente única de radio y alcance de la hitbox melee.
-        // La usan EjecutarGolpe, EstaEnRango (servidor) y el gizmo de HitboxCaster.
         [Header("Hitbox melee")]
         [SerializeField]
         private float _radioHitbox = 1.5f;
@@ -131,7 +129,7 @@ namespace TDOM.Unity.Combat
                 _feedback.OnGolpeConectado();
             if (_hitbox == null)
                 return;
-            var objetivos = _hitbox.Detectar(_radioHitbox, _alcanceHitbox); // TW-61
+            var objetivos = _hitbox.Detectar(_radioHitbox, _alcanceHitbox);
             foreach (var obj in objetivos)
                 ReportarGolpeRpc(evento, obj.NetworkObjectId);
             ReproducirGolpeRpc(evento.ComboIndex, cargado);
