@@ -45,7 +45,10 @@ namespace TDOM.Unity
                 ipInputField.onSubmit.AddListener(OnInputFieldSubmit);
             }
 
-            var kbWindow = UiManager.Instance != null ? UiManager.Instance.GetWindow(WindowsIds.KeyboardUI) as KeyboardUI : null;
+            var kbWindow =
+                UiManager.Instance != null
+                    ? UiManager.Instance.GetWindow(WindowsIds.KeyboardUI) as KeyboardUI
+                    : null;
             if (kbWindow != null)
             {
                 kbWindow.OnKeyboardClosed += HandleKeyboardClosed;
@@ -70,7 +73,10 @@ namespace TDOM.Unity
                 ipInputField.onSubmit.RemoveListener(OnInputFieldSubmit);
             }
 
-            var kbWindow = UiManager.Instance != null ? UiManager.Instance.GetWindow(WindowsIds.KeyboardUI) as KeyboardUI : null;
+            var kbWindow =
+                UiManager.Instance != null
+                    ? UiManager.Instance.GetWindow(WindowsIds.KeyboardUI) as KeyboardUI
+                    : null;
             if (kbWindow != null)
             {
                 kbWindow.OnKeyboardClosed -= HandleKeyboardClosed;
@@ -121,7 +127,9 @@ namespace TDOM.Unity
             }
             else
             {
-                Debug.LogWarning("[ConnectionUI] No se encontró la ventana KeyboardUI en UiManager.");
+                Debug.LogWarning(
+                    "[ConnectionUI] No se encontró la ventana KeyboardUI en UiManager."
+                );
             }
         }
 

@@ -66,16 +66,20 @@ namespace TDOM.Unity
 
         private void HandleKeyPress(string keyName)
         {
-            if (keyName.Equals("KeyBakc", StringComparison.OrdinalIgnoreCase) ||
-                keyName.Equals("KeyBack", StringComparison.OrdinalIgnoreCase) ||
-                keyName.Equals("KeyBackspace", StringComparison.OrdinalIgnoreCase))
+            if (
+                keyName.Equals("KeyBakc", StringComparison.OrdinalIgnoreCase)
+                || keyName.Equals("KeyBack", StringComparison.OrdinalIgnoreCase)
+                || keyName.Equals("KeyBackspace", StringComparison.OrdinalIgnoreCase)
+            )
             {
                 OnBackspacePressed();
                 return;
             }
 
-            if (keyName.Equals("Key Enter", StringComparison.OrdinalIgnoreCase) ||
-                keyName.Equals("KeyEnter", StringComparison.OrdinalIgnoreCase))
+            if (
+                keyName.Equals("Key Enter", StringComparison.OrdinalIgnoreCase)
+                || keyName.Equals("KeyEnter", StringComparison.OrdinalIgnoreCase)
+            )
             {
                 OnSubmitPressed();
                 return;
@@ -106,7 +110,7 @@ namespace TDOM.Unity
                     "asterisk" => "*",
                     "slash" => "/",
                     "colon" => ":",
-                    _ => suffix
+                    _ => suffix,
                 };
             }
 
@@ -127,7 +131,10 @@ namespace TDOM.Unity
             if (_targetInputField == null || string.IsNullOrEmpty(_targetInputField.text))
                 return;
 
-            _targetInputField.text = _targetInputField.text.Substring(0, _targetInputField.text.Length - 1);
+            _targetInputField.text = _targetInputField.text.Substring(
+                0,
+                _targetInputField.text.Length - 1
+            );
             _targetInputField.onValueChanged?.Invoke(_targetInputField.text);
         }
 
@@ -149,10 +156,17 @@ namespace TDOM.Unity
                 _callerWindow.SetInteractable(false);
             }
 
-            if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject != null)
+            if (
+                EventSystem.current != null
+                && EventSystem.current.currentSelectedGameObject != null
+            )
             {
                 // Guardar solo si no es un botón del propio teclado
-                if (!kbButtonList.Exists(b => b != null && b.gameObject == EventSystem.current.currentSelectedGameObject))
+                if (
+                    !kbButtonList.Exists(b =>
+                        b != null && b.gameObject == EventSystem.current.currentSelectedGameObject
+                    )
+                )
                 {
                     _previousSelectedObject = EventSystem.current.currentSelectedGameObject;
                 }
@@ -184,9 +198,10 @@ namespace TDOM.Unity
 
             OnKeyboardClosed?.Invoke();
 
-            GameObject targetToFocus = _previousSelectedObject != null 
-                ? _previousSelectedObject 
-                : (_targetInputField != null ? _targetInputField.gameObject : null);
+            GameObject targetToFocus =
+                _previousSelectedObject != null
+                    ? _previousSelectedObject
+                    : (_targetInputField != null ? _targetInputField.gameObject : null);
 
             if (targetToFocus != null)
             {

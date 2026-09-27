@@ -51,9 +51,21 @@ namespace TDOM.Unity.Player
         {
             if (_definition != null)
             {
-                if (string.Equals(_definition.DisplayName, "Zendre", System.StringComparison.OrdinalIgnoreCase))
+                if (
+                    string.Equals(
+                        _definition.DisplayName,
+                        "Zendre",
+                        System.StringComparison.OrdinalIgnoreCase
+                    )
+                )
                     return CharacterIds.Zendre;
-                if (string.Equals(_definition.DisplayName, "Ayla", System.StringComparison.OrdinalIgnoreCase))
+                if (
+                    string.Equals(
+                        _definition.DisplayName,
+                        "Ayla",
+                        System.StringComparison.OrdinalIgnoreCase
+                    )
+                )
                     return CharacterIds.Ayla;
             }
             return CharacterIds.None;

@@ -124,10 +124,7 @@ namespace TDOM.Unity
             rectTransformCanvasGroup.DOKill();
             canvas.gameObject.SetActive(true);
             SetInteractable(true);
-            rectTransformCanvasGroup
-                .DOScale(Vector3.one, duration)
-                .SetUpdate(true)
-                .SetEase(easeIn);
+            rectTransformCanvasGroup.DOScale(Vector3.one, duration).SetUpdate(true).SetEase(easeIn);
 
             FocusFirstElement();
         }
