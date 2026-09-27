@@ -26,8 +26,12 @@ namespace TDOM.Unity
 
         private void Awake()
         {
-            _zendreImg = zendreButton.GetComponent<Image>();
-            _aylaImg = aylaButton.GetComponent<Image>();
+            if (zendreButton != null)
+                _zendreImg = zendreButton.GetComponent<Image>();
+            if (aylaButton != null)
+                _aylaImg = aylaButton.GetComponent<Image>();
+            if (firstSelectedObject == null && zendreButton != null)
+                firstSelectedObject = zendreButton.gameObject;
         }
 
         private void OnEnable()
