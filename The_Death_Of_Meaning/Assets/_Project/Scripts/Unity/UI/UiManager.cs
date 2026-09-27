@@ -23,6 +23,7 @@ namespace TDOM.Unity.UI
                 return;
             }
             Instance = this;
+            FoundUIScene();
         }
 
         private void Initialize() { }
@@ -99,5 +100,6 @@ namespace TDOM.Unity.UI
     {
         public const string ConnectionMenuUI = "connectionui";
         public const string ChSelectionUI = "chselectionui";
+        public const string KeyboardUI = "keyboardui";
     }
 }
