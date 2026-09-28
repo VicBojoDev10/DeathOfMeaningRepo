@@ -37,12 +37,12 @@ namespace TDOM.Gameplay.Core
                 return;
             if (isDowned)
             {
-                Max = Mathf.Max(0f, Max - _downedDrainPerSecond * dt);
-                Current = Mathf.Min(Current, Max);
+                Current = Mathf.Max(Current - _downedDrainPerSecond * dt, 0f);
+                Max = Mathf.Min(Max, Current);
             }
             else
             {
-                Current = Mathf.Min(Max, Current + _regenPerSecond * dt);
+                Current = Mathf.Min(Current + _regenPerSecond * dt, Max);
             }
         }
 

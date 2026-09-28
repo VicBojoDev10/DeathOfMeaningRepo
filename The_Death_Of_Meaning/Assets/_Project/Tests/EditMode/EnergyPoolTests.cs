@@ -1,6 +1,5 @@
 using NUnit.Framework;
 using TDOM.Gameplay.Core;
-using UnityEngine;
 
 namespace TDOM.Tests.EditMode
 {
@@ -104,6 +103,29 @@ namespace TDOM.Tests.EditMode
             Assert.GreaterOrEqual(pool.Current, 0f);
             Assert.AreEqual(0f, pool.Current, Tolerance);
             Assert.AreEqual(0f, pool.Max, Tolerance);
+        }
+
+        [Test]
+        public void Tick_Downed_WhenCurrentBelowMax_DrainsCurrentFirstAndMaxFollowsCurrent()
+        {
+            var pool = CreatePool();
+            pool.TryConsume(60f);
+
+            pool.Tick(1f, true);
+
+            Assert.AreEqual(35f, pool.Current, Tolerance);
+            Assert.AreEqual(35f, pool.Max, Tolerance);
+        }
+
+        [Test]
+        public void Tick_Downed_WhenCurrentBelowMax_MaxNeverStaysAboveCurrent()
+        {
+            var pool = CreatePool();
+            pool.TryConsume(60f);
+
+            pool.Tick(0.5f, true);
+
+            Assert.LessOrEqual(pool.Max, pool.Current + Tolerance);
         }
 
         [Test]
