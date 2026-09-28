@@ -20,6 +20,16 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
+        public void Constructor_WithNegativeBaseMax_KeepsCurrentEqualMaxEqualBaseMax()
+        {
+            var pool = new EnergyPool(-50f, 10f, 5f);
+
+            Assert.AreEqual(0f, pool.BaseMax, Tolerance);
+            Assert.AreEqual(pool.BaseMax, pool.Max, Tolerance);
+            Assert.AreEqual(pool.Max, pool.Current, Tolerance);
+        }
+
+        [Test]
         public void TryConsume_WithEnoughEnergy_SubtractsAndReturnsTrue()
         {
             var pool = CreatePool();

@@ -16,7 +16,7 @@ namespace TDOM.Gameplay.Core
             _regenPerSecond = Math.Max(0f, regenPorSegundo);
             _downedDrainPerSecond = Math.Max(0f, drenajeabatidoPorSegundo);
 
-            Max = baseMax;
+            Max = BaseMax;
             Current = Max;
         }
 
