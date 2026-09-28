@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay;
