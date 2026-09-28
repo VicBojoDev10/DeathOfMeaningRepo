@@ -22,15 +22,19 @@ namespace TDOM.Gameplay.Core
 
         public bool TryConsume(float amount)
         {
-            if (amount <= 0f) return false;
-            if (amount > Current) return false;
+            if (amount <= 0f)
+                return false;
+            if (amount > Current)
+                return false;
 
             Current -= amount;
             return true;
         }
+
         public void Tick(float dt, bool isDowned)
         {
-            if (dt <= 0f) return;
+            if (dt <= 0f)
+                return;
             if (isDowned)
             {
                 Max = Mathf.Max(0f, Max - _downedDrainPerSecond * dt);
@@ -41,6 +45,7 @@ namespace TDOM.Gameplay.Core
                 Current = Mathf.Min(Max, Current + _regenPerSecond * dt);
             }
         }
+
         public void RestoreMaxOnPhaseChange()
         {
             Max = BaseMax;

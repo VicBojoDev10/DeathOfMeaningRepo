@@ -1,6 +1,6 @@
-using UnityEngine;
 using NUnit.Framework;
 using TDOM.Gameplay.Core;
+using UnityEngine;
 
 namespace TDOM.Tests.EditMode
 {
@@ -45,7 +45,9 @@ namespace TDOM.Tests.EditMode
 
         [TestCase(0f)]
         [TestCase(-5f)]
-        public void TryConsume_WithZeroOrNegativeAmount_ReturnsFalseAndDoesNotChangeCurrent(float amount)
+        public void TryConsume_WithZeroOrNegativeAmount_ReturnsFalseAndDoesNotChangeCurrent(
+            float amount
+        )
         {
             var pool = CreatePool();
 
@@ -103,6 +105,7 @@ namespace TDOM.Tests.EditMode
             Assert.AreEqual(0f, pool.Current, Tolerance);
             Assert.AreEqual(0f, pool.Max, Tolerance);
         }
+
         [Test]
         public void RestoreMaxOnPhaseChange_RestoresMaxButKeepsCurrent()
         {
@@ -135,8 +138,10 @@ namespace TDOM.Tests.EditMode
             at60.TryConsume(50f);
             at30.TryConsume(50f);
 
-            for (int i = 0; i < 60; i++) at60.Tick(1f / 60f, false);
-            for (int i = 0; i < 30; i++) at30.Tick(1f / 30f, false);
+            for (int i = 0; i < 60; i++)
+                at60.Tick(1f / 60f, false);
+            for (int i = 0; i < 30; i++)
+                at30.Tick(1f / 30f, false);
 
             Assert.AreEqual(at60.Current, at30.Current, Tolerance);
             Assert.AreEqual(60f, at60.Current, Tolerance);
@@ -148,8 +153,10 @@ namespace TDOM.Tests.EditMode
             var at60 = CreatePool();
             var at30 = CreatePool();
 
-            for (int i = 0; i < 60; i++) at60.Tick(1f / 60f, true);
-            for (int i = 0; i < 30; i++) at30.Tick(1f / 30f, true);
+            for (int i = 0; i < 60; i++)
+                at60.Tick(1f / 60f, true);
+            for (int i = 0; i < 30; i++)
+                at30.Tick(1f / 30f, true);
 
             Assert.AreEqual(at60.Current, at30.Current, Tolerance);
             Assert.AreEqual(at60.Max, at30.Max, Tolerance);
