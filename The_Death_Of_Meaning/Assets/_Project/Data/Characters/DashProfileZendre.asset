@@ -12,16 +12,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a173820f95ef44129bb16e772c973713, type: 3}
   m_Name: DashProfileZendre
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.DashProfile
-  Distance: 2
-  Duration: 0.1
-  Cooldown: 2
-  MaxTurnRate: 5
+  Distance: 10
+  Duration: 0.8
+  Cooldown: 7
+  MaxTurnRate: 30
   Easing:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 0.3
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.3
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -31,8 +40,8 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 1
       value: 1
-      inSlope: 2
-      outSlope: 2
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0

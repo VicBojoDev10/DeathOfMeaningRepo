@@ -42,7 +42,7 @@ namespace TDOM.Tests.EditMode
 
             while (dash.Activo && frame < maxFrames)
             {
-                dash.Tick(estado, Vector2.zero, dt);
+                dash.Tick(estado, Vector3.zero, dt);
 
                 distanciaTotal += estado.Velocity.magnitude * dt;
 
@@ -57,6 +57,21 @@ namespace TDOM.Tests.EditMode
             var dash = CrearAylaDash();
             float distanciaRecorrida = SimularDashCompleto(dash, 0.016f);
             Assert.AreEqual(8f, distanciaRecorrida, 0.01f);
+        }
+
+        [Test]
+        public void Con_curva_lineal_el_recorrido_total_es_igual_a_la_distancia_configurada()
+        {
+            var perfil = ScriptableObject.CreateInstance<DashProfile>();
+            perfil.Distance = 8f;
+            perfil.Duration = 0.18f;
+            perfil.Cooldown = 4f;
+            perfil.MaxTurnRate = 0f;
+            perfil.Easing = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+            var dash = new DashResolver(perfil);
+
+            float distanciaRecorrida = SimularDashCompleto(dash, 0.001f);
+            Assert.AreEqual(8f, distanciaRecorrida, 0.15f);
         }
 
         [Test]
@@ -83,11 +98,11 @@ namespace TDOM.Tests.EditMode
             var estado = new LocomotionState();
 
             dash.TryIniciar(Vector3.forward);
-            dash.Tick(estado, Vector2.zero, 0.17f);
+            dash.Tick(estado, Vector3.zero, 0.17f);
             Assert.IsTrue(dash.Activo);
 
-            dash.Tick(estado, Vector2.zero, 0.01f);
-            dash.Tick(estado, Vector2.zero, 0.001f);
+            dash.Tick(estado, Vector3.zero, 0.01f);
+            dash.Tick(estado, Vector3.zero, 0.001f);
             Assert.IsFalse(dash.Activo);
         }
 
@@ -98,7 +113,7 @@ namespace TDOM.Tests.EditMode
             var estado = new LocomotionState { Velocity = new Vector3(0, -9.81f, 0) };
 
             dash.TryIniciar(Vector3.forward);
-            dash.Tick(estado, Vector2.zero, 0.016f);
+            dash.Tick(estado, Vector3.zero, 0.016f);
 
             Assert.AreEqual(0f, estado.Velocity.y);
             Assert.AreEqual(LocomotionPhase.Dashing, estado.Phase);
@@ -111,7 +126,7 @@ namespace TDOM.Tests.EditMode
             var estado = new LocomotionState();
 
             dash.TryIniciar(Vector3.forward);
-            dash.Tick(estado, new Vector2(1, 0), 0.1f);
+            dash.Tick(estado, new Vector3(1, 0, 0), 0.1f);
 
             Assert.AreEqual(Vector3.forward, estado.Velocity.normalized);
         }
@@ -125,7 +140,7 @@ namespace TDOM.Tests.EditMode
             dash.TryIniciar(Vector3.forward);
 
             float dt = 0.1f;
-            dash.Tick(estado, new Vector2(1, 0), dt);
+            dash.Tick(estado, new Vector3(1, 0, 0), dt);
 
             Vector3 direccionEsperada = Vector3.RotateTowards(
                 Vector3.forward,
@@ -136,6 +151,21 @@ namespace TDOM.Tests.EditMode
             float diferenciaAngular = Vector3.Angle(direccionEsperada, estado.Velocity.normalized);
 
             Assert.IsTrue(diferenciaAngular < 0.01f);
+        }
+
+        [Test]
+        public void Con_direccion_deseada_cero_no_se_gira()
+        {
+            var dash = CrearZendreDash();
+            var estado = new LocomotionState();
+
+            dash.TryIniciar(Vector3.forward);
+            dash.Tick(estado, Vector3.zero, 0.1f);
+
+            Assert.AreEqual(Vector3.forward, estado.Velocity.normalized);
+
+            dash.Tick(estado, new Vector3(0.05f, 0f, 0f), 0.1f);
+            Assert.AreEqual(Vector3.forward, estado.Velocity.normalized);
         }
 
         [Test]

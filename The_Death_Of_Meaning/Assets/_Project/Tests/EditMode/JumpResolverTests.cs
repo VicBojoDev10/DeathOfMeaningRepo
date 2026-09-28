@@ -26,6 +26,7 @@ namespace TDOM.Tests
             {
                 IsGrounded = false,
                 JumpsUsed = 0,
+                CoyoteTimer = 0.12f,
                 Velocity = Vector3.zero,
             };
 
@@ -138,6 +139,62 @@ namespace TDOM.Tests
 
             Assert.AreEqual(15f, estado.Velocity.y);
             Assert.AreEqual(0f, estado.BufferTimer);
+        }
+
+        [Test]
+        public void Zendre_no_puede_saltar_tras_caer_y_vencer_el_coyote()
+        {
+            var resolver = new JumpResolver(
+                maxSaltos: 1,
+                velocidadSalto: 15f,
+                coyoteTime: 0.12f,
+                bufferTime: 0.15f
+            );
+            var estado = new LocomotionState
+            {
+                IsGrounded = false,
+                JumpsUsed = 0,
+                CoyoteTimer = 0.12f,
+                Velocity = Vector3.zero,
+            };
+
+            for (float t = 0f; t < 0.3f; t += Dt)
+                resolver.Tick(estado, SinInput(), Dt);
+
+            resolver.Tick(estado, ConSalto(), Dt);
+
+            Assert.AreEqual(1, estado.JumpsUsed);
+            Assert.AreEqual(0f, estado.Velocity.y);
+        }
+
+        [Test]
+        public void Ayla_solo_tiene_un_salto_aereo_tras_caer()
+        {
+            var resolver = new JumpResolver(
+                maxSaltos: 2,
+                velocidadSalto: 15f,
+                coyoteTime: 0.12f,
+                bufferTime: 0.15f
+            );
+            var estado = new LocomotionState
+            {
+                IsGrounded = false,
+                JumpsUsed = 0,
+                CoyoteTimer = 0.12f,
+                Velocity = Vector3.zero,
+            };
+
+            for (float t = 0f; t < 0.3f; t += Dt)
+                resolver.Tick(estado, SinInput(), Dt);
+
+            resolver.Tick(estado, ConSalto(), Dt);
+            Assert.AreEqual(15f, estado.Velocity.y);
+
+            estado.Velocity.y = 5f;
+            resolver.Tick(estado, ConSalto(), Dt);
+
+            Assert.AreEqual(5f, estado.Velocity.y);
+            Assert.AreEqual(2, estado.JumpsUsed);
         }
     }
 }
