@@ -163,6 +163,9 @@ namespace TDOM.Tests.EditMode
             dash.Tick(estado, Vector3.zero, 0.1f);
 
             Assert.AreEqual(Vector3.forward, estado.Velocity.normalized);
+
+            dash.Tick(estado, new Vector3(0.05f, 0f, 0f), 0.1f);
+            Assert.AreEqual(Vector3.forward, estado.Velocity.normalized);
         }
 
         [Test]

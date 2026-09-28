@@ -196,8 +196,47 @@ namespace TDOM.Tests.EditMode
             locomotion.Tick(steerInput, yaw90, dt);
 
             Assert.That(locomotion.State.Velocity.x, Is.GreaterThan(0f));
-            float anguloHaciaX = Vector3.Angle(locomotion.State.Velocity.normalized, Vector3.right);
-            Assert.That(anguloHaciaX, Is.LessThan(90f));
+            Vector3 direccionEsperada = Vector3.RotateTowards(
+                Vector3.forward,
+                Vector3.right,
+                30f * Mathf.Deg2Rad * dt,
+                0f
+            );
+            float diferenciaAngular = Vector3.Angle(direccionEsperada, locomotion.State.Velocity.normalized);
+            Assert.That(diferenciaAngular, Is.LessThan(0.01f));
+        }
+
+        [Test]
+        public void Con_la_embestida_activa_input_menor_al_deadzone_no_gira()
+        {
+            var dashProfile = ScriptableObject.CreateInstance<DashProfile>();
+            dashProfile.Distance = 10f;
+            dashProfile.Duration = 0.8f;
+            dashProfile.Cooldown = 7f;
+            dashProfile.MaxTurnRate = 30f;
+            dashProfile.Easing = AnimationCurve.Constant(0f, 1f, 1f);
+
+            var gravity = new GravityModel(-9.81f, -20f, 1f);
+            var jump = new JumpResolver(1, 8f, 0.1f, 0.1f);
+            var ground = new GroundControlResolver(4.5f, 6.5f, 25f, 30f, 0.3f);
+            var run = new SprintResolver();
+            var locomotion = new PlayerLocomotion(
+                gravity,
+                jump,
+                ground,
+                run,
+                new DashResolver(dashProfile)
+            );
+
+            const float dt = 0.1f;
+            var startInput = CreateInput(move: Vector2.up, dashPressed: true);
+            locomotion.Tick(startInput, Quaternion.identity, dt);
+
+            var yaw90 = Quaternion.Euler(0f, 90f, 0f);
+            var noiseInput = CreateInput(move: new Vector2(0.05f, 0f));
+            locomotion.Tick(noiseInput, yaw90, dt);
+
+            Assert.That(locomotion.State.Velocity.normalized, Is.EqualTo(Vector3.forward));
         }
 
         private static DashProfile CrearDashProfile(float distance, float duration)

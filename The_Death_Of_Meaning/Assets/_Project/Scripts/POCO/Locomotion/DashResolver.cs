@@ -63,7 +63,7 @@ namespace TDOM.Gameplay
             float tiempoRestante = _duracion - _transcurrido;
             float dtEfectivo = Mathf.Min(dt, tiempoRestante);
 
-            if (_giroMaximo > 0f && direccionDeseada != Vector3.zero)
+            if (_giroMaximo > 0f && direccionDeseada.sqrMagnitude > 0.01f)
             {
                 float grados = _giroMaximo * dtEfectivo;
                 _direccion = Vector3.RotateTowards(
