@@ -1,4 +1,3 @@
-using TDOM.Contracts;
 using UnityEngine;
 
 namespace TDOM.Data
@@ -13,20 +12,5 @@ namespace TDOM.Data
         public ComboProfile Ranged;
         public GrappleProfile Grapple;
         public EnergyProfile Energy;
-    }
-
-    [CreateAssetMenu(menuName = "TDOM/Grapple Profile")]
-    public sealed class GrappleProfile : ScriptableObject
-    {
-        public float Range;
-        public float PullSpeed;
-    }
-
-    [CreateAssetMenu(menuName = "TDOM/Energy Profile")]
-    public sealed class EnergyProfile : ScriptableObject
-    {
-        public float Max;
-        public float RegenPerSecond;
-        public float ChargedCost;
     }
 }
