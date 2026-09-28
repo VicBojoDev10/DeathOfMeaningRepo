@@ -1,4 +1,4 @@
-using UnityEngine;
+using System;
 
 namespace TDOM.Gameplay.Core
 {
@@ -12,9 +12,9 @@ namespace TDOM.Gameplay.Core
 
         public EnergyPool(float baseMax, float regenPorSegundo, float drenajeabatidoPorSegundo)
         {
-            BaseMax = Mathf.Max(0f, baseMax);
-            _regenPerSecond = Mathf.Max(0f, regenPorSegundo);
-            _downedDrainPerSecond = Mathf.Max(0f, drenajeabatidoPorSegundo);
+            BaseMax = Math.Max(0f, baseMax);
+            _regenPerSecond = Math.Max(0f, regenPorSegundo);
+            _downedDrainPerSecond = Math.Max(0f, drenajeabatidoPorSegundo);
 
             Max = baseMax;
             Current = Max;
@@ -37,12 +37,12 @@ namespace TDOM.Gameplay.Core
                 return;
             if (isDowned)
             {
-                Current = Mathf.Max(Current - _downedDrainPerSecond * dt, 0f);
-                Max = Mathf.Min(Max, Current);
+                Current = Math.Max(Current - _downedDrainPerSecond * dt, 0f);
+                Max = Math.Min(Max, Current);
             }
             else
             {
-                Current = Mathf.Min(Current + _regenPerSecond * dt, Max);
+                Current = Math.Min(Current + _regenPerSecond * dt, Max);
             }
         }
 
