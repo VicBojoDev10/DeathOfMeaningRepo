@@ -202,7 +202,10 @@ namespace TDOM.Tests.EditMode
                 30f * Mathf.Deg2Rad * dt,
                 0f
             );
-            float diferenciaAngular = Vector3.Angle(direccionEsperada, locomotion.State.Velocity.normalized);
+            float diferenciaAngular = Vector3.Angle(
+                direccionEsperada,
+                locomotion.State.Velocity.normalized
+            );
             Assert.That(diferenciaAngular, Is.LessThan(0.01f));
         }
 
