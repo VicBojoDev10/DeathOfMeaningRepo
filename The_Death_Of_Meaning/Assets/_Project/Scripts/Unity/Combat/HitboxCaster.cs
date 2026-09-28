@@ -15,11 +15,14 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private NetworkObject _owner;
 
+        private Transform Origen => _origen != null ? _origen : transform;
+
         public NetworkObject[] Detectar(float radio, float alcance)
         {
-            Vector3 centro = _origen.position + _origen.forward * alcance;
+            Transform orig = Origen;
+            Vector3 centro = orig.position + orig.forward * alcance;
 
-            Debug.DrawRay(_origen.position, _origen.forward * alcance, Color.red, 0.15f);
+            Debug.DrawRay(orig.position, orig.forward * alcance, Color.red, 0.25f);
 
             var hits = Physics.OverlapSphere(centro, radio, _objetivos);
 
@@ -30,9 +33,24 @@ namespace TDOM.Unity.Combat
                 .ToArray();
         }
 
+        public NetworkObject[] DetectarDisparo(float radio, float alcanceMaximo)
+        {
+            Transform orig = Origen;
+            Debug.DrawRay(orig.position, orig.forward * alcanceMaximo, Color.yellow, 0.25f);
+
+            var hits = Physics.SphereCastAll(orig.position, radio, orig.forward, alcanceMaximo, _objetivos);
+
+            return hits.Select(h => h.collider.GetComponentInParent<NetworkObject>())
+                .Where(n => n != null)
+                .Where(n => _owner == null || n != _owner)
+                .Distinct()
+                .ToArray();
+        }
+
         private void OnDrawGizmosSelected()
         {
-            if (_origen == null)
+            Transform orig = Origen;
+            if (orig == null)
                 return;
 
             var combat = GetComponentInParent<PlayerCombat>();
@@ -43,7 +61,7 @@ namespace TDOM.Unity.Combat
 
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(
-                _origen.position + _origen.forward * combat.AlcanceHitbox,
+                orig.position + orig.forward * combat.AlcanceHitbox,
                 combat.RadioHitbox
             );
         }
