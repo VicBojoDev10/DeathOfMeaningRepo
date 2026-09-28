@@ -12,16 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a173820f95ef44129bb16e772c973713, type: 3}
   m_Name: DashProfileAyla
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.DashProfile
-  Distance: 9.5
-  Duration: 0.2
-  Cooldown: 1
-  MaxTurnRate: 1
+  Distance: 8
+  Duration: 0.18
+  Cooldown: 4
+  MaxTurnRate: 0
   Easing:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1.6
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -30,9 +30,9 @@ MonoBehaviour:
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 1
-      inSlope: 2
-      outSlope: 2
+      value: 0.3
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0

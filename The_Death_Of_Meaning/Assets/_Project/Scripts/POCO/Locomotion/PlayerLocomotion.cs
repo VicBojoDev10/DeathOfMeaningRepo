@@ -47,6 +47,9 @@ namespace TDOM.Gameplay.Locomotion
 
         private Vector3 DireccionDeDash(InputSnapshot input, Quaternion yaw)
         {
+            if (input.Move.sqrMagnitude < 0.01f)
+                return yaw * Vector3.forward;
+
             Vector3 direction = yaw * new Vector3(input.Move.x, 0f, input.Move.y);
             return direction.normalized;
         }
@@ -66,7 +69,8 @@ namespace TDOM.Gameplay.Locomotion
                 _dash.TryIniciar(dir);
             }
 
-            _dash.Tick(State, input.Move, dt);
+            Vector3 direccionDeseada = yaw * new Vector3(input.Move.x, 0f, input.Move.y);
+            _dash.Tick(State, direccionDeseada, dt);
 
             if (_dash.Activo)
                 return new MotionIntent(State.Velocity, ignoreGravity: true);
