@@ -11,6 +11,7 @@ namespace TDOM.Gameplay
         private readonly float _duracion;
         private readonly AnimationCurve _curva;
         private readonly float _giroMaximo;
+        private readonly float _promedioCurva;
         private readonly CooldownTimer _cooldown;
         private float _transcurrido;
         private Vector3 _direccion;
@@ -23,6 +24,23 @@ namespace TDOM.Gameplay
             _curva = profile.Easing;
             _giroMaximo = profile.MaxTurnRate;
             _cooldown = new CooldownTimer(profile.Cooldown);
+
+            if (_curva != null)
+            {
+                float suma = 0f;
+                const int muestras = 100;
+                for (int i = 0; i < muestras; i++)
+                {
+                    float t = (i + 0.5f) / muestras;
+                    suma += _curva.Evaluate(t);
+                }
+                float promedio = suma / muestras;
+                _promedioCurva = promedio <= 0.0001f ? 1f : promedio;
+            }
+            else
+            {
+                _promedioCurva = 1f;
+            }
         }
 
         public bool TryIniciar(Vector3 direccion)
@@ -36,7 +54,7 @@ namespace TDOM.Gameplay
             return true;
         }
 
-        public void Tick(LocomotionState estado, Vector2 move, float dt)
+        public void Tick(LocomotionState estado, Vector3 direccionDeseada, float dt)
         {
             _cooldown.Tick(dt);
             if (!Activo)
@@ -45,19 +63,20 @@ namespace TDOM.Gameplay
             float tiempoRestante = _duracion - _transcurrido;
             float dtEfectivo = Mathf.Min(dt, tiempoRestante);
 
-            if (_giroMaximo > 0f && move.sqrMagnitude > 0.01f)
+            if (_giroMaximo > 0f && direccionDeseada.sqrMagnitude > 0.01f)
             {
                 float grados = _giroMaximo * dtEfectivo;
                 _direccion = Vector3.RotateTowards(
                     _direccion,
-                    new Vector3(move.x, 0f, move.y),
+                    direccionDeseada,
                     grados * Mathf.Deg2Rad,
                     0f
                 );
             }
 
             float t = _transcurrido / _duracion;
-            float velocidad = (_distancia / _duracion) * _curva.Evaluate(t);
+            float evaluacion = _curva != null ? _curva.Evaluate(t) : 1f;
+            float velocidad = (_distancia / _duracion) * evaluacion / _promedioCurva;
 
             float factorCompensacion = dtEfectivo / dt;
             estado.Velocity = _direccion * (velocidad * factorCompensacion);

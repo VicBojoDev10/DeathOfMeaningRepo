@@ -37,6 +37,13 @@ namespace TDOM.Unity
 
         public void OnCrearPartida()
         {
+            var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+            if (transport != null)
+            {
+                transport.ConnectionData.Address = "127.0.0.1";
+                transport.ConnectionData.Port = 7777;
+                transport.ConnectionData.ServerListenAddress = "0.0.0.0";
+            }
             CambiarEstado(EstadoSesion.Conectando);
             NetworkManager.Singleton.StartHost();
         }
@@ -51,8 +58,11 @@ namespace TDOM.Unity
             }
 
             var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            transport.ConnectionData.Address = ip;
-            transport.ConnectionData.Port = 7777;
+            if (transport != null)
+            {
+                transport.ConnectionData.Address = ip;
+                transport.ConnectionData.Port = 7777;
+            }
 
             CambiarEstado(EstadoSesion.Conectando);
             NetworkManager.Singleton.StartClient();
@@ -111,13 +121,32 @@ namespace TDOM.Unity
             {
                 using Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0);
                 socket.Connect("8.8.8.8", 65530);
-                return (socket.LocalEndPoint as IPEndPoint)?.Address.ToString() ?? "No encontrada";
+                string ip = (socket.LocalEndPoint as IPEndPoint)?.Address.ToString();
+                if (!string.IsNullOrEmpty(ip))
+                    return ip;
+            }
+            catch
+            {
+                // Fallback si la red LAN no tiene conexión externa
+            }
+
+            try
+            {
+                var host = Dns.GetHostEntry(Dns.GetHostName());
+                foreach (var ip in host.AddressList)
+                {
+                    if (ip.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(ip))
+                    {
+                        return ip.ToString();
+                    }
+                }
             }
             catch (Exception e)
             {
                 Debug.LogWarning($"No se pudo obtener la IP local: {e.Message}");
-                return "No encontrada";
             }
+
+            return "No encontrada";
         }
     }
 }
