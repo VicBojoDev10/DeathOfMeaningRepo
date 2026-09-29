@@ -79,11 +79,8 @@ namespace TDOM.Unity.Player
             float dt = Time.deltaTime;
             var input = _inputReader.Read();
 
-            // Actualizar rotación y aplicar:
-            //   • Yaw  → transform raíz  (para que _origen.forward apunte donde mira el jugador)
-            //   • Pitch → solo la cámara (el CharacterController no debe inclinarse)
+            // Actualizar rotación POCO y aplicar a la cámara
             _look.Tick(input.Look, dt);
-            transform.rotation = _look.YawRotation;
             if (_camera != null)
                 _camera.ApplyLook(_look.Yaw, _look.Pitch);
 
