@@ -414,8 +414,12 @@ MonoBehaviour:
   _hitbox: {fileID: 2768756111779032546}
   _feedback: {fileID: 7054898957245270891}
   _debugFeedback: {fileID: 3869141073335305693}
+  _radioHitbox: 1.5
+  _alcanceHitbox: 1
   _proyectilPrefab: {fileID: 8192847192837461520, guid: e4a781b25cd946f0823c91fb7a65d34e, type: 3}
   _origenDisparo: {fileID: 1217565209590083343}
+  _rangoDisparo: 25
+  _radioDisparo: 0.5
 --- !u!114 &4753092728623070081
 MonoBehaviour:
   m_ObjectHideFlags: 0

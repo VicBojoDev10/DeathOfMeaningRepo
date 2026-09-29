@@ -1,6 +1,7 @@
 using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Combat;
+using TDOM.Gameplay.Core;
 using TDOM.Unity.Camera;
 using Unity.Netcode;
 using UnityEngine;
@@ -41,8 +42,18 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private Transform _origenDisparo;
 
+        [SerializeField]
+        private float _rangoDisparo = 25.0f;
+
+        [SerializeField]
+        private float _radioDisparo = 0.5f;
+
         public float RadioHitbox => _radioHitbox;
         public float AlcanceHitbox => _alcanceHitbox;
+        public float RangoDisparo => _rangoDisparo;
+        public float RadioDisparo => _radioDisparo;
+        public GameObject ProyectilPrefab => _proyectilPrefab;
+        public Transform OrigenDisparo => _origenDisparo;
 
         public bool AtaqueActivo =>
             (_melee?.BloqueaMovimiento ?? false) || (_disparo?.BloqueaMovimiento ?? false);
@@ -52,7 +63,7 @@ namespace TDOM.Unity.Combat
             if (!IsOwner)
                 return;
 
-            if (_definition.Melee != null)
+            if (_definition != null && _definition.Melee != null)
             {
                 _melee = new ComboStateMachine(
                     _definition.Melee.Steps,
@@ -63,7 +74,7 @@ namespace TDOM.Unity.Combat
                 );
             }
 
-            if (_definition.Ranged != null)
+            if (_definition != null && _definition.Ranged != null)
             {
                 _disparo = new ComboStateMachine(
                     _definition.Ranged.Steps,
@@ -81,8 +92,10 @@ namespace TDOM.Unity.Combat
                 return;
             if (_melee == null && _disparo == null)
                 return;
-            bool meleeActivo = _melee?.BloqueaMovimiento ?? false;
-            bool disparoActivo = _disparo?.BloqueaMovimiento ?? false;
+
+            bool meleeActivo = _melee != null && _melee.Fase != ComboPhase.Idle;
+            bool disparoActivo = _disparo != null && _disparo.Fase != ComboPhase.Idle;
+
             if (_melee != null && !disparoActivo)
             {
                 var evento = _melee.Tick(input, dt);
@@ -101,52 +114,76 @@ namespace TDOM.Unity.Combat
         private void EjecutarDisparo(AttackEvent evento)
         {
             bool cargado = evento.Kind == AttackKind.Charged;
-            _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
+            // Feedback visual instantáneo para el dueño
+            if (_combatAnimator != null)
+                _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
+            _debugFeedback?.FlashActive(0.1f);
+            if (_feedback != null)
+                _feedback.OnGolpeConectado();
+
             if (_proyectilPrefab != null && _origenDisparo != null)
             {
                 DispararRpc(_origenDisparo.position, _origenDisparo.forward, evento);
             }
-            if (_feedback != null)
-                _feedback.OnGolpeConectado();
-            ReproducirGolpeRpc(evento.ComboIndex, cargado);
+            else if (_hitbox != null)
+            {
+                var objetivos = _hitbox.DetectarDisparo(_radioDisparo, _rangoDisparo);
+                foreach (var obj in objetivos)
+                {
+                    if (obj != null)
+                        ReportarDisparoRpc(evento, obj.NetworkObjectId);
+                }
+            }
+
+            ReproducirDisparoRpc(evento.ComboIndex, cargado);
         }
 
         private InputSnapshot ComoDisparo(InputSnapshot input)
         {
             return new InputSnapshot(
-                move: Vector2.zero,
-                look: Vector2.zero,
-                jumpPressed: false,
-                jumpHeld: false,
-                dashPressed: false,
-                sprintPressed: false,
+                move: input.Move,
+                look: input.Look,
+                jumpPressed: input.JumpPressed,
+                jumpHeld: input.JumpHeld,
+                dashPressed: input.DashPressed,
+                sprintPressed: input.SprintPressed,
                 attackPressed: input.FirePressed,
                 attackHeld: input.FireHeld,
                 attackReleased: input.FireReleased,
                 aimHeld: input.AimHeld,
+                grapplePressed: input.GrapplePressed,
                 firePressed: false,
                 fireHeld: false,
-                fireReleased: false,
-                grapplePressed: false
+                fireReleased: false
             );
         }
 
         private void EjecutarGolpe(AttackEvent evento)
         {
             bool cargado = evento.Kind == AttackKind.Charged;
-            _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
+
+            // Feedback visual instantáneo para el dueño
+            if (_combatAnimator != null)
+                _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
             _debugFeedback?.FlashActive(0.1f);
             if (_feedback != null)
                 _feedback.OnGolpeConectado();
-            if (_hitbox == null)
-                return;
-            var objetivos = _hitbox.Detectar(_radioHitbox, _alcanceHitbox);
-            foreach (var obj in objetivos)
-                ReportarGolpeRpc(evento, obj.NetworkObjectId);
+
+            // Detección de impacto
+            if (_hitbox != null)
+            {
+                var objetivos = _hitbox.Detectar(_radioHitbox, _alcanceHitbox);
+                foreach (var obj in objetivos)
+                {
+                    if (obj != null)
+                        ReportarGolpeRpc(evento, obj.NetworkObjectId);
+                }
+            }
+
             ReproducirGolpeRpc(evento.ComboIndex, cargado);
         }
 
-        private bool EstaEnRango(ulong objetivoId, float tolerancia)
+        private bool EstaEnRango(ulong objetivoId, float alcanceMaximo, float tolerancia = 1.3f)
         {
             if (NetworkManager.Singleton == null)
                 return false;
@@ -156,23 +193,81 @@ namespace TDOM.Unity.Combat
                     objetivoId,
                     out var objetivo
                 )
+                || objetivo == null
             )
                 return false;
 
-            float radioBase = _radioHitbox; // TW-61
-            float rangoPermitido = radioBase * tolerancia;
+            float rangoPermitido = alcanceMaximo * tolerancia;
+            float distancia = Vector3.Distance(transform.position, objetivo.transform.position);
 
-            return Vector3.Distance(transform.position, objetivo.transform.position)
-                <= rangoPermitido;
+            return distancia <= rangoPermitido;
         }
 
         [Rpc(SendTo.Server)]
         private void ReportarGolpeRpc(AttackEvent evento, ulong objetivoId)
         {
-            if (!EstaEnRango(objetivoId, tolerancia: 1.3f))
+            float alcanceTotal = _radioHitbox + _alcanceHitbox;
+            if (!EstaEnRango(objetivoId, alcanceTotal, tolerancia: 1.3f))
+            {
+                Debug.LogWarning(
+                    $"[SERVER] Golpe Melee rechazado fuera de rango contra objetivo {objetivoId}"
+                );
                 return;
-            // TODO: aplicar daño cuando exista el sistema de vida (WIP)
-            Debug.Log($"Golpe validado contra {objetivoId}: {evento.Damage}");
+            }
+
+            if (
+                NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
+                    objetivoId,
+                    out var obj
+                )
+                && obj != null
+            )
+            {
+                var hitZone = obj.GetComponentInChildren<HitZone>();
+                if (hitZone != null)
+                {
+                    hitZone.RegistrarDanio(evento.Damage);
+                }
+                else
+                {
+                    Debug.Log(
+                        $"[SERVER] Golpe melee validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño"
+                    );
+                }
+            }
+        }
+
+        [Rpc(SendTo.Server)]
+        private void ReportarDisparoRpc(AttackEvent evento, ulong objetivoId)
+        {
+            if (!EstaEnRango(objetivoId, _rangoDisparo, tolerancia: 1.3f))
+            {
+                Debug.LogWarning(
+                    $"[SERVER] Disparo rechazado fuera de rango contra objetivo {objetivoId}"
+                );
+                return;
+            }
+
+            if (
+                NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
+                    objetivoId,
+                    out var obj
+                )
+                && obj != null
+            )
+            {
+                var hitZone = obj.GetComponentInChildren<HitZone>();
+                if (hitZone != null)
+                {
+                    hitZone.RegistrarDanio(evento.Damage);
+                }
+                else
+                {
+                    Debug.Log(
+                        $"[SERVER] Disparo validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño"
+                    );
+                }
+            }
         }
 
         [Rpc(SendTo.Server)]
@@ -199,7 +294,15 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.NotOwner)]
         private void ReproducirGolpeRpc(int indice, bool cargado)
         {
-            _combatAnimator.PlayCombo(indice, cargado);
+            if (_combatAnimator != null)
+                _combatAnimator.PlayCombo(indice, cargado);
+        }
+
+        [Rpc(SendTo.NotOwner)]
+        private void ReproducirDisparoRpc(int indice, bool cargado)
+        {
+            if (_combatAnimator != null)
+                _combatAnimator.PlayCombo(indice, cargado);
         }
     }
 }
