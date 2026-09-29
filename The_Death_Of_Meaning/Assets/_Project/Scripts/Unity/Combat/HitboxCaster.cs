@@ -38,7 +38,13 @@ namespace TDOM.Unity.Combat
             Transform orig = Origen;
             Debug.DrawRay(orig.position, orig.forward * alcanceMaximo, Color.yellow, 0.25f);
 
-            var hits = Physics.SphereCastAll(orig.position, radio, orig.forward, alcanceMaximo, _objetivos);
+            var hits = Physics.SphereCastAll(
+                orig.position,
+                radio,
+                orig.forward,
+                alcanceMaximo,
+                _objetivos
+            );
 
             return hits.Select(h => h.collider.GetComponentInParent<NetworkObject>())
                 .Where(n => n != null)

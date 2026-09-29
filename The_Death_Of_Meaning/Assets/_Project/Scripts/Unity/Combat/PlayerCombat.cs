@@ -182,7 +182,8 @@ namespace TDOM.Unity.Combat
                 !NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
                     objetivoId,
                     out var objetivo
-                ) || objetivo == null
+                )
+                || objetivo == null
             )
                 return false;
 
@@ -198,11 +199,19 @@ namespace TDOM.Unity.Combat
             float alcanceTotal = _radioHitbox + _alcanceHitbox;
             if (!EstaEnRango(objetivoId, alcanceTotal, tolerancia: 1.3f))
             {
-                Debug.LogWarning($"[SERVER] Golpe Melee rechazado fuera de rango contra objetivo {objetivoId}");
+                Debug.LogWarning(
+                    $"[SERVER] Golpe Melee rechazado fuera de rango contra objetivo {objetivoId}"
+                );
                 return;
             }
 
-            if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(objetivoId, out var obj) && obj != null)
+            if (
+                NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
+                    objetivoId,
+                    out var obj
+                )
+                && obj != null
+            )
             {
                 var hitZone = obj.GetComponentInChildren<HitZone>();
                 if (hitZone != null)
@@ -211,7 +220,9 @@ namespace TDOM.Unity.Combat
                 }
                 else
                 {
-                    Debug.Log($"[SERVER] Golpe melee validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño");
+                    Debug.Log(
+                        $"[SERVER] Golpe melee validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño"
+                    );
                 }
             }
         }
@@ -221,11 +232,19 @@ namespace TDOM.Unity.Combat
         {
             if (!EstaEnRango(objetivoId, _rangoDisparo, tolerancia: 1.3f))
             {
-                Debug.LogWarning($"[SERVER] Disparo rechazado fuera de rango contra objetivo {objetivoId}");
+                Debug.LogWarning(
+                    $"[SERVER] Disparo rechazado fuera de rango contra objetivo {objetivoId}"
+                );
                 return;
             }
 
-            if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(objetivoId, out var obj) && obj != null)
+            if (
+                NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
+                    objetivoId,
+                    out var obj
+                )
+                && obj != null
+            )
             {
                 var hitZone = obj.GetComponentInChildren<HitZone>();
                 if (hitZone != null)
@@ -234,7 +253,9 @@ namespace TDOM.Unity.Combat
                 }
                 else
                 {
-                    Debug.Log($"[SERVER] Disparo validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño");
+                    Debug.Log(
+                        $"[SERVER] Disparo validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño"
+                    );
                 }
             }
         }
