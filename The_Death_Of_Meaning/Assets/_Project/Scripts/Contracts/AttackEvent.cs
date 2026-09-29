@@ -1,16 +1,35 @@
+using Unity.Netcode;
+
 namespace TDOM.Contracts
 {
-    public readonly struct AttackEvent
+    public enum AttackKind
     {
-        public readonly AttackStep Step;
-        public readonly bool IsCharged;
-        public readonly float ChargeRatio;
+        Light,
+        Charged,
+    }
 
-        public AttackEvent(AttackStep step, bool isCharged, float chargeRatio = 0f)
+    public struct AttackEvent : INetworkSerializable
+    {
+        public AttackKind Kind;
+        public int ComboIndex;
+        public float ChargeRatio;
+        public float Damage;
+
+        public AttackEvent(AttackKind kind, int comboIndex, float chargeRatio, float damage)
         {
-            Step = step;
-            IsCharged = isCharged;
+            Kind = kind;
+            ComboIndex = comboIndex;
             ChargeRatio = chargeRatio;
+            Damage = damage;
+        }
+
+        public void NetworkSerialize<T>(BufferSerializer<T> serializer)
+            where T : IReaderWriter
+        {
+            serializer.SerializeValue(ref Kind);
+            serializer.SerializeValue(ref ComboIndex);
+            serializer.SerializeValue(ref ChargeRatio);
+            serializer.SerializeValue(ref Damage);
         }
     }
 }

@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5223f0bf3c69834c9685ebad025a7bc, type: 3}
+  m_Name: EnergyZendre
+  m_EditorClassIdentifier: TDOM.Data::TDOM.Data.EnergyProfile
+  Max: 150
+  RegenPerSecond: 20
+  ChargedCost: 35
+  DrainPerSecondDowned: 10
