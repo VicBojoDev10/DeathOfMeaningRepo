@@ -234,7 +234,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3112223628
+  GlobalObjectIdHash: 4274321711
   InScenePlacedSourceGlobalObjectIdHash: 3093320301
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -382,6 +382,10 @@ MonoBehaviour:
   _hitbox: {fileID: 9016292163162055318}
   _feedback: {fileID: 9035497664065842176}
   _debugFeedback: {fileID: 3984864946309631804}
+  _radioHitbox: 1.5
+  _alcanceHitbox: 1
+  _rangoDisparo: 25
+  _radioDisparo: 0.5
 --- !u!114 &80633533661117880
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -694,7 +698,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1661394016
+  GlobalObjectIdHash: 1455116164
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
