@@ -33,6 +33,11 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private float _alcanceHitbox = 1.0f;
+        [SerializeField]
+        private GameObject _projectilePrefab;
+
+        [SerializeField]
+        private Transform _origenDisparo;
 
         public float RadioHitbox => _radioHitbox;
         public float AlcanceHitbox => _alcanceHitbox;
@@ -95,7 +100,10 @@ namespace TDOM.Unity.Combat
         {
             bool cargado = evento.Kind == AttackKind.Charged;
             _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
-            if (_feedback != null)
+            if (_projectilePrefab != null && _origenDisparo != null)
+            {
+
+            }
                 _feedback.OnGolpeConectado();
             ReproducirGolpeRpc(evento.ComboIndex, cargado);
         }
