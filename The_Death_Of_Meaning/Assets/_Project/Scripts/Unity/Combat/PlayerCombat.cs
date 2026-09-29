@@ -33,8 +33,10 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private float _alcanceHitbox = 1.0f;
+
+        [Header("Disparo a distancia")]
         [SerializeField]
-        private GameObject _projectilePrefab;
+        private GameObject _proyectilPrefab;
 
         [SerializeField]
         private Transform _origenDisparo;
@@ -100,10 +102,11 @@ namespace TDOM.Unity.Combat
         {
             bool cargado = evento.Kind == AttackKind.Charged;
             _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
-            if (_projectilePrefab != null && _origenDisparo != null)
+            if (_proyectilPrefab != null && _origenDisparo != null)
             {
-
+                DispararRpc(_origenDisparo.position, _origenDisparo.forward, evento);
             }
+            if (_feedback != null)
                 _feedback.OnGolpeConectado();
             ReproducirGolpeRpc(evento.ComboIndex, cargado);
         }
@@ -170,6 +173,27 @@ namespace TDOM.Unity.Combat
                 return;
             // TODO: aplicar daño cuando exista el sistema de vida (WIP)
             Debug.Log($"Golpe validado contra {objetivoId}: {evento.Damage}");
+        }
+
+        [Rpc(SendTo.Server)]
+        private void DispararRpc(Vector3 origen, Vector3 dir, AttackEvent evento)
+        {
+            if (Vector3.Distance(origen, transform.position) > 3f)
+                return;
+
+            Quaternion rotacion =
+                dir != Vector3.zero ? Quaternion.LookRotation(dir) : transform.rotation;
+            GameObject go = Instantiate(_proyectilPrefab, origen, rotacion);
+            Proyectil proyectil = go.GetComponent<Proyectil>();
+            if (proyectil != null)
+            {
+                proyectil.Inicializar(dir, evento.Damage);
+            }
+            NetworkObject networkObject = go.GetComponent<NetworkObject>();
+            if (networkObject != null)
+            {
+                networkObject.Spawn();
+            }
         }
 
         [Rpc(SendTo.NotOwner)]
