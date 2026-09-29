@@ -27,6 +27,8 @@ namespace TDOM.Gameplay
             else
             {
                 estado.CoyoteTimer -= dt;
+                if (estado.CoyoteTimer <= 0f && estado.JumpsUsed == 0)
+                    estado.JumpsUsed = 1;
             }
 
             if (input.JumpPressed)
