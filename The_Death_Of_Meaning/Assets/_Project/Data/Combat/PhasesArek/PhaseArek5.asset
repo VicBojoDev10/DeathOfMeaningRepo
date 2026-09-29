@@ -12,6 +12,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 247e9a5fb88afaf4389be4cd23fffecd, type: 3}
   m_Name: PhaseArek5
   m_EditorClassIdentifier: TDOM.Data::TDOM.POCO.ScriptableObjects.BossPhaseProfile
-  Fase: 1
-  OrdenDeAtaque: 000000000000000003000000030000000200000001000000010000000200000003000000020000000300000002000000
+  Fase: 5
+  OrdenDeAtaque:
+  - Tipo: 0
+    "Da\xF1o": 15
+    EsInstaKill: 0
+  - Tipo: 0
+    "Da\xF1o": 15
+    EsInstaKill: 0
+  - Tipo: 3
+    "Da\xF1o": 999
+    EsInstaKill: 1
+  - Tipo: 3
+    "Da\xF1o": 999
+    EsInstaKill: 1
+  - Tipo: 2
+    "Da\xF1o": 35
+    EsInstaKill: 0
+  - Tipo: 1
+    "Da\xF1o": 25
+    EsInstaKill: 0
+  - Tipo: 1
+    "Da\xF1o": 25
+    EsInstaKill: 0
+  - Tipo: 2
+    "Da\xF1o": 35
+    EsInstaKill: 0
+  - Tipo: 3
+    "Da\xF1o": 999
+    EsInstaKill: 1
+  - Tipo: 2
+    "Da\xF1o": 35
+    EsInstaKill: 0
+  - Tipo: 3
+    "Da\xF1o": 999
+    EsInstaKill: 1
+  - Tipo: 2
+    "Da\xF1o": 35
+    EsInstaKill: 0
   VidaTransicion: 0.2
