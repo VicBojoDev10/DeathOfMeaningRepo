@@ -15,7 +15,7 @@ namespace TDOM.Unity.Combat
         private float _radio = 0.15f;
 
         [SerializeField]
-        private LayerMask _capas = ~0;
+        private LayerMask _capas = (1 << 0) | (1 << 6);
 
         private Vector3 _direccion;
         private float _daño;
