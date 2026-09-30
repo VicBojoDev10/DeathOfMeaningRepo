@@ -98,11 +98,9 @@ namespace TDOM.Unity.Player
             if (_combat != null)
                 _combat.Tick(input, dt);
 
-            if (AtaqueActivo)
-                _locomocion.State.Phase = LocomotionPhase.Attacking;
-
             if (
                 input.GrapplePressed
+                && !AtaqueActivo
                 && _definition != null
                 && _definition.Grapple != null
                 && _camera != null
@@ -121,7 +119,7 @@ namespace TDOM.Unity.Player
                 {
                     if (hit.collider.GetComponentInParent<PlayerRoot>() == null)
                     {
-                        if (_locomocion.IntentarGancho(transform.position, hit.point, AtaqueActivo))
+                        if (_locomocion.IntentarGancho(transform.position, hit.point))
                         {
                             _camera.PunchFov(8f, 0.2f);
                         }

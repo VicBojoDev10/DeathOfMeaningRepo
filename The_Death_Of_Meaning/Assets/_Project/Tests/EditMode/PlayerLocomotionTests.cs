@@ -306,14 +306,6 @@ namespace TDOM.Tests.EditMode
             Assert.IsFalse(inicio);
             Assert.IsFalse(locomotion.GanchoActivo);
 
-            // 2. Con parámetro ataqueActivo = true
-            locomotion.State.Phase = LocomotionPhase.Grounded;
-            bool inicioConParam = locomotion.IntentarGancho(
-                Vector3.zero,
-                new Vector3(0f, 0f, 10f),
-                ataqueActivo: true
-            );
-            Assert.IsFalse(inicioConParam);
             Assert.IsFalse(locomotion.GanchoActivo);
         }
 

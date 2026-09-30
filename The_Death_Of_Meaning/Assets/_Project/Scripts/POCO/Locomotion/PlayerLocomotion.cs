@@ -61,9 +61,9 @@ namespace TDOM.Gameplay.Locomotion
             return direction.normalized;
         }
 
-        public bool IntentarGancho(Vector3 origen, Vector3 punto, bool ataqueActivo = false)
+        public bool IntentarGancho(Vector3 origen, Vector3 punto)
         {
-            if (_grapple == null || ataqueActivo || State.Phase == LocomotionPhase.Attacking)
+            if (_grapple == null || State.Phase == LocomotionPhase.Attacking)
                 return false;
 
             if (_grapple.TryIniciar(origen, punto))
@@ -91,6 +91,7 @@ namespace TDOM.Gameplay.Locomotion
                 if (input.JumpPressed)
                 {
                     _grapple.Cancelar();
+                    // Se llama a Tick justo después de cancelar para que el cooldown avance en este frame
                     _grapple.Tick(State, posicion, dt);
                 }
                 else

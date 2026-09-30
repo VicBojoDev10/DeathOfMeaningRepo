@@ -32,6 +32,10 @@ namespace TDOM.Unity.Locomotion
         private void OnDisable()
         {
             AplicarOcultar();
+            if (IsOwner && IsSpawned)
+            {
+                OcultarRpc();
+            }
         }
 
         public override void OnNetworkDespawn()
