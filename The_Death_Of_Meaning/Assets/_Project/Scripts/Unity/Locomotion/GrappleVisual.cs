@@ -17,13 +17,35 @@ namespace TDOM.Unity.Locomotion
         private bool _activo;
         private Vector3 _puntoAnclaje;
 
+        public bool Activo => _activo;
+
         private void Awake()
         {
-            if (_lineRenderer == null)
-                _lineRenderer = GetComponent<LineRenderer>();
+            EnsureLineRenderer();
 
             if (_lineRenderer != null)
+            {
                 _lineRenderer.enabled = false;
+            }
+        }
+
+        private void OnDisable()
+        {
+            AplicarOcultar();
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            AplicarOcultar();
+            base.OnNetworkDespawn();
+        }
+
+        private void EnsureLineRenderer()
+        {
+            if (_lineRenderer == null)
+            {
+                _lineRenderer = GetComponentInChildren<LineRenderer>();
+            }
         }
 
         private Vector3 ObtenerOrigen()
@@ -61,6 +83,7 @@ namespace TDOM.Unity.Locomotion
             _activo = true;
             _puntoAnclaje = punto;
 
+            EnsureLineRenderer();
             if (_lineRenderer != null)
             {
                 _lineRenderer.positionCount = 2;

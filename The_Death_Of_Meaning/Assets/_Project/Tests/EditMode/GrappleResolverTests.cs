@@ -42,10 +42,8 @@ namespace TDOM.Tests.EditMode
             Assert.IsTrue(grapple.TryIniciar(origen, punto));
             grapple.Cancelar();
 
-            // Intento inmediato dentro del cooldown
             Assert.IsFalse(grapple.TryIniciar(origen, punto));
 
-            // Avanzar el cooldown hasta completarlo
             var estado = new LocomotionState();
             grapple.Tick(estado, origen, 3.1f);
 
@@ -81,7 +79,6 @@ namespace TDOM.Tests.EditMode
             grapple.TryIniciar(Vector3.zero, punto);
             var estado = new LocomotionState();
 
-            // Posición a distancia 1.0f (menor a 1.5f)
             Vector3 posicionLlegada = new Vector3(0f, 0f, 9f);
             grapple.Tick(estado, posicionLlegada, 0.016f);
 

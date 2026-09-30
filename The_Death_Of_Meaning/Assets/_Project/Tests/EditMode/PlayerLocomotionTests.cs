@@ -254,16 +254,13 @@ namespace TDOM.Tests.EditMode
             var locomotion = new PlayerLocomotion(gravity, jump, ground, run, dash, grapple);
             locomotion.State.IsGrounded = true;
 
-            // Iniciar gancho
             Assert.IsTrue(locomotion.IntentarGancho(Vector3.zero, new Vector3(0f, 10f, 10f)));
             Assert.IsTrue(locomotion.GanchoActivo);
 
-            // Tick sin salto mantiene el gancho activo
             const float dt = 0.016f;
             locomotion.Tick(CreateInput(), Quaternion.identity, dt);
             Assert.IsTrue(locomotion.GanchoActivo);
 
-            // Tick con salto lo cancela y aplica la velocidad de salto
             var jumpInput = CreateInput(jumpPressed: true, jumpHeld: true);
             var intent = locomotion.Tick(jumpInput, Quaternion.identity, dt);
 
@@ -281,7 +278,6 @@ namespace TDOM.Tests.EditMode
             var run = new SprintResolver();
             var dash = new DashResolver(CrearDashProfile(6f, 0.2f));
 
-            // Sin grapple (Zendre)
             var locomotion = new PlayerLocomotion(gravity, jump, ground, run, dash, grapple: null);
 
             bool inicio = locomotion.IntentarGancho(Vector3.zero, new Vector3(0f, 0f, 10f));
