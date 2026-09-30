@@ -28,7 +28,7 @@ namespace TDOM.Tests.EditMode
         [Test]
         public void TryIniciar_falla_si_la_distancia_supera_el_alcance()
         {
-            var grapple = CrearGrapple(alcance: 30f);
+            var grapple = CrearGrapple(alcance: 30f, cooldown: 3f);
             Vector3 origen = Vector3.zero;
             Vector3 punto = new Vector3(0f, 0f, 31f);
 
@@ -36,6 +36,10 @@ namespace TDOM.Tests.EditMode
 
             Assert.IsFalse(iniciado);
             Assert.IsFalse(grapple.Activo);
+
+            // Fuera de alcance no gasta cooldown
+            Vector3 puntoValido = new Vector3(0f, 0f, 10f);
+            Assert.IsTrue(grapple.TryIniciar(origen, puntoValido));
         }
 
         [Test]
@@ -90,6 +94,100 @@ namespace TDOM.Tests.EditMode
 
             Assert.IsFalse(grapple.Activo);
             Assert.AreEqual(LocomotionPhase.Airborne, estado.Phase);
+        }
+
+        [Test]
+        public void Traccionar_y_llegar_en_tiempo_aproximado_a_distancia_entre_velocidad_mas_menos_un_frame()
+        {
+            float alcance = 30f;
+            float velocidadTraccion = 25f;
+            float distanciaLlegada = 1.5f;
+            var grapple = CrearGrapple(
+                alcance: alcance,
+                velocidadTraccion: velocidadTraccion,
+                distanciaLlegada: distanciaLlegada
+            );
+
+            Vector3 origen = Vector3.zero;
+            Vector3 punto = new Vector3(0f, 0f, 21.5f);
+            float distanciaARecorrer = Vector3.Distance(origen, punto) - distanciaLlegada;
+            float tiempoTeorico = distanciaARecorrer / velocidadTraccion; // 20 / 25 = 0.8s
+
+            grapple.TryIniciar(origen, punto);
+            var estado = new LocomotionState();
+            Vector3 posicion = origen;
+            float dt = 1f / 60f;
+            float tiempoTranscurrido = 0f;
+
+            while (grapple.Activo)
+            {
+                grapple.Tick(estado, posicion, dt);
+                if (grapple.Activo)
+                {
+                    posicion += estado.Velocity * dt;
+                    tiempoTranscurrido += dt;
+                }
+            }
+
+            Assert.IsFalse(grapple.Activo);
+            Assert.AreEqual(LocomotionPhase.Airborne, estado.Phase);
+            Assert.LessOrEqual(Vector3.Distance(posicion, punto), distanciaLlegada);
+            Assert.AreEqual(tiempoTeorico, tiempoTranscurrido, dt);
+        }
+
+        [Test]
+        public void Llegada_es_independiente_del_framerate_entre_60fps_y_30fps()
+        {
+            float alcance = 30f;
+            float velocidadTraccion = 25f;
+            float distanciaLlegada = 1.5f;
+            Vector3 origen = Vector3.zero;
+            Vector3 punto = new Vector3(0f, 0f, 20.5f);
+
+            // Simulación a 60 fps (dt = 1/60)
+            var grapple60 = CrearGrapple(
+                alcance: alcance,
+                velocidadTraccion: velocidadTraccion,
+                distanciaLlegada: distanciaLlegada
+            );
+            grapple60.TryIniciar(origen, punto);
+            var estado60 = new LocomotionState();
+            Vector3 pos60 = origen;
+            float dt60 = 1f / 60f;
+
+            while (grapple60.Activo)
+            {
+                grapple60.Tick(estado60, pos60, dt60);
+                if (grapple60.Activo)
+                    pos60 += estado60.Velocity * dt60;
+            }
+
+            // Simulación a 30 fps (dt = 1/30)
+            var grapple30 = CrearGrapple(
+                alcance: alcance,
+                velocidadTraccion: velocidadTraccion,
+                distanciaLlegada: distanciaLlegada
+            );
+            grapple30.TryIniciar(origen, punto);
+            var estado30 = new LocomotionState();
+            Vector3 pos30 = origen;
+            float dt30 = 1f / 30f;
+
+            while (grapple30.Activo)
+            {
+                grapple30.Tick(estado30, pos30, dt30);
+                if (grapple30.Activo)
+                    pos30 += estado30.Velocity * dt30;
+            }
+
+            Assert.IsFalse(grapple60.Activo);
+            Assert.IsFalse(grapple30.Activo);
+            Assert.LessOrEqual(Vector3.Distance(pos60, punto), distanciaLlegada);
+            Assert.LessOrEqual(Vector3.Distance(pos30, punto), distanciaLlegada);
+
+            // Independiente del framerate: con dt=1/60 y dt=1/30 llegar al mismo punto (±0.05 m)
+            float diferenciaPosiciones = Vector3.Distance(pos60, pos30);
+            Assert.AreEqual(0f, diferenciaPosiciones, 0.05f);
         }
 
         [Test]

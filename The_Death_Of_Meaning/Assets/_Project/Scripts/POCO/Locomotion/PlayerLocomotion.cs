@@ -61,9 +61,9 @@ namespace TDOM.Gameplay.Locomotion
             return direction.normalized;
         }
 
-        public bool IntentarGancho(Vector3 origen, Vector3 punto)
+        public bool IntentarGancho(Vector3 origen, Vector3 punto, bool ataqueActivo = false)
         {
-            if (_grapple == null || State.Phase == LocomotionPhase.Attacking)
+            if (_grapple == null || ataqueActivo || State.Phase == LocomotionPhase.Attacking)
                 return false;
 
             if (_grapple.TryIniciar(origen, punto))
@@ -119,11 +119,18 @@ namespace TDOM.Gameplay.Locomotion
 
             if (!blockMove)
             {
+                if (State.Phase == LocomotionPhase.Attacking)
+                {
+                    State.Phase = State.IsGrounded
+                        ? LocomotionPhase.Grounded
+                        : LocomotionPhase.Airborne;
+                }
                 _jump.Tick(State, input, dt);
                 _ground.Tick(State, input.Move, yaw, _run.Corriendo, dt);
             }
             else
             {
+                State.Phase = LocomotionPhase.Attacking;
                 _ground.Tick(State, Vector2.zero, yaw, false, dt);
             }
 

@@ -287,6 +287,62 @@ namespace TDOM.Tests.EditMode
             Assert.IsFalse(locomotion.GanchoActivo);
         }
 
+        [Test]
+        public void IntentarGancho_si_hay_un_ataque_activo_devuelve_false()
+        {
+            var gravity = new GravityModel(-9.81f, -20f, 1f);
+            var jump = new JumpResolver(1, 8f, 0.1f, 0.1f);
+            var ground = new GroundControlResolver(4.5f, 6.5f, 25f, 30f, 0.3f);
+            var run = new SprintResolver();
+            var dash = new DashResolver(CrearDashProfile(6f, 0.2f));
+            var grapple = new GrappleResolver(30f, 25f, 3f, 1.5f, 2f);
+
+            var locomotion = new PlayerLocomotion(gravity, jump, ground, run, dash, grapple);
+
+            // 1. Con State.Phase en Attacking directamente
+            locomotion.State.Phase = LocomotionPhase.Attacking;
+            bool inicio = locomotion.IntentarGancho(Vector3.zero, new Vector3(0f, 0f, 10f));
+            Assert.IsFalse(inicio);
+            Assert.IsFalse(locomotion.GanchoActivo);
+
+            // 2. Con parámetro ataqueActivo = true
+            locomotion.State.Phase = LocomotionPhase.Grounded;
+            bool inicioConParam = locomotion.IntentarGancho(
+                Vector3.zero,
+                new Vector3(0f, 0f, 10f),
+                ataqueActivo: true
+            );
+            Assert.IsFalse(inicioConParam);
+            Assert.IsFalse(locomotion.GanchoActivo);
+        }
+
+        [Test]
+        public void Tick_con_blockMove_actualiza_fase_a_Attacking_y_bloquea_IntentarGancho()
+        {
+            var gravity = new GravityModel(-9.81f, -20f, 1f);
+            var jump = new JumpResolver(1, 8f, 0.1f, 0.1f);
+            var ground = new GroundControlResolver(4.5f, 6.5f, 25f, 30f, 0.3f);
+            var run = new SprintResolver();
+            var dash = new DashResolver(CrearDashProfile(6f, 0.2f));
+            var grapple = new GrappleResolver(30f, 25f, 3f, 1.5f, 2f);
+
+            var locomotion = new PlayerLocomotion(gravity, jump, ground, run, dash, grapple);
+            locomotion.State.IsGrounded = true;
+
+            const float dt = 0.016f;
+            locomotion.Tick(CreateInput(), Quaternion.identity, dt, blockMove: true);
+
+            Assert.That(locomotion.State.Phase, Is.EqualTo(LocomotionPhase.Attacking));
+            Assert.IsFalse(locomotion.IntentarGancho(Vector3.zero, new Vector3(0f, 0f, 10f)));
+            Assert.IsFalse(locomotion.GanchoActivo);
+
+            // Al cesar el ataque (blockMove: false), la fase se restaura y el gancho se puede iniciar
+            locomotion.Tick(CreateInput(), Quaternion.identity, dt, blockMove: false);
+            Assert.That(locomotion.State.Phase, Is.EqualTo(LocomotionPhase.Grounded));
+            Assert.IsTrue(locomotion.IntentarGancho(Vector3.zero, new Vector3(0f, 0f, 10f)));
+            Assert.IsTrue(locomotion.GanchoActivo);
+        }
+
         private static DashProfile CrearDashProfile(float distance, float duration)
         {
             var profile = ScriptableObject.CreateInstance<DashProfile>();

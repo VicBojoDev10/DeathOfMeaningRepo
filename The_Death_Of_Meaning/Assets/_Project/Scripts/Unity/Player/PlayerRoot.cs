@@ -1,3 +1,4 @@
+using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Camera;
 using TDOM.Gameplay.Locomotion;
@@ -92,9 +93,16 @@ namespace TDOM.Unity.Player
             if (_camera != null)
                 _camera.ApplyLook(_look.Yaw, _look.Pitch);
 
+            _motor.ProbeGround(_locomocion.State);
+
+            if (_combat != null)
+                _combat.Tick(input, dt);
+
+            if (AtaqueActivo)
+                _locomocion.State.Phase = LocomotionPhase.Attacking;
+
             if (
                 input.GrapplePressed
-                && !AtaqueActivo
                 && _definition != null
                 && _definition.Grapple != null
                 && _camera != null
@@ -113,18 +121,13 @@ namespace TDOM.Unity.Player
                 {
                     if (hit.collider.GetComponentInParent<PlayerRoot>() == null)
                     {
-                        if (_locomocion.IntentarGancho(transform.position, hit.point))
+                        if (_locomocion.IntentarGancho(transform.position, hit.point, AtaqueActivo))
                         {
                             _camera.PunchFov(8f, 0.2f);
                         }
                     }
                 }
             }
-
-            _motor.ProbeGround(_locomocion.State);
-
-            if (_combat != null)
-                _combat.Tick(input, dt);
 
             var intent = _locomocion.Tick(
                 input,
