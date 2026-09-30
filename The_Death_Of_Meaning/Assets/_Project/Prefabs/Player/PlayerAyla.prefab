@@ -4971,7 +4971,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 5043099369150335702}
   m_Father: {fileID: 4026500297177568966}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &9016292163162055318
@@ -5034,7 +5035,6 @@ Transform:
   - {fileID: 5767449372121892897}
   - {fileID: 7797974122816193139}
   - {fileID: 562586211900250982}
-  - {fileID: 5043099369150335702}
   - {fileID: 2331315817441002733}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -5073,7 +5073,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 4274321711
+  GlobalObjectIdHash: 3112223628
   InScenePlacedSourceGlobalObjectIdHash: 3093320301
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -20243,7 +20243,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6920903186049077620}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -20252,7 +20252,7 @@ Transform:
   - {fileID: 4025036771412685354}
   - {fileID: 629464440129806581}
   - {fileID: 3393356253307125660}
-  m_Father: {fileID: 4026500297177568966}
+  m_Father: {fileID: 562586211900250982}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2189285926878354938
 MonoBehaviour:
