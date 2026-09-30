@@ -138,7 +138,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2539856075
+  GlobalObjectIdHash: 3659053022
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -184,6 +184,13 @@ MonoBehaviour:
   - {fileID: 2000000000000095}
   - {fileID: 2000000000000105}
   - {fileID: 2000000000000115}
+  _fases:
+  - {fileID: 11400000, guid: 03130509a2a664f40bb14771f28b4e79, type: 2}
+  - {fileID: 11400000, guid: 7c80c9c3fe995054db4fc3b0f12f96ed, type: 2}
+  - {fileID: 11400000, guid: 4328511a26ae5a541b78766f37b616cb, type: 2}
+  - {fileID: 11400000, guid: 191e12d76e24d454495892ff794ccad9, type: 2}
+  - {fileID: 11400000, guid: 150083dfa1721bf4e89e2708c401cc17, type: 2}
+  _vidaMaxima: 1000
   _dummyAiActivo: 1
   _intervaloAtaqueDummy: 4
   _mostrarDebugUI: 1
