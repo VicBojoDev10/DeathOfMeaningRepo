@@ -18,7 +18,13 @@ namespace TDOM.Gameplay
         public bool Activo { get; private set; }
         public Vector3 Punto => _punto;
 
-        public GrappleResolver(float alcance, float velocidadTraccion, float cooldown, float distanciaLlegada, float duracionMax)
+        public GrappleResolver(
+            float alcance,
+            float velocidadTraccion,
+            float cooldown,
+            float distanciaLlegada,
+            float duracionMax
+        )
         {
             _alcance = alcance;
             _velocidadTraccion = velocidadTraccion;
@@ -28,9 +34,7 @@ namespace TDOM.Gameplay
         }
 
         public GrappleResolver(GrappleProfile p)
-            : this(p.Range, p.PullSpeed, p.Cooldown, p.ArrivalDistance, p.MaxDuration)
-        {
-        }
+            : this(p.Range, p.PullSpeed, p.Cooldown, p.ArrivalDistance, p.MaxDuration) { }
 
         public bool TryIniciar(Vector3 origen, Vector3 punto)
         {

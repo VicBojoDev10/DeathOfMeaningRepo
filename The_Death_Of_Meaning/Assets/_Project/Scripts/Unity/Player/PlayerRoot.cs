@@ -92,10 +92,24 @@ namespace TDOM.Unity.Player
             if (_camera != null)
                 _camera.ApplyLook(_look.Yaw, _look.Pitch);
 
-            if (input.GrapplePressed && !AtaqueActivo && _definition != null && _definition.Grapple != null && _camera != null)
+            if (
+                input.GrapplePressed
+                && !AtaqueActivo
+                && _definition != null
+                && _definition.Grapple != null
+                && _camera != null
+            )
             {
                 Ray ray = new Ray(_camera.transform.position, _camera.transform.forward);
-                if (Physics.Raycast(ray, out RaycastHit hit, _definition.Grapple.Range, Physics.AllLayers, QueryTriggerInteraction.Ignore))
+                if (
+                    Physics.Raycast(
+                        ray,
+                        out RaycastHit hit,
+                        _definition.Grapple.Range,
+                        Physics.AllLayers,
+                        QueryTriggerInteraction.Ignore
+                    )
+                )
                 {
                     if (hit.collider.GetComponentInParent<PlayerRoot>() == null)
                     {
@@ -112,7 +126,13 @@ namespace TDOM.Unity.Player
             if (_combat != null)
                 _combat.Tick(input, dt);
 
-            var intent = _locomocion.Tick(input, _look.YawRotation, dt, AtaqueActivo, transform.position);
+            var intent = _locomocion.Tick(
+                input,
+                _look.YawRotation,
+                dt,
+                AtaqueActivo,
+                transform.position
+            );
             _motor.Apply(intent, dt);
 
             bool ganchoActivoActual = _locomocion != null && _locomocion.GanchoActivo;

@@ -16,7 +16,13 @@ namespace TDOM.Tests.EditMode
             float duracionMax = 2f
         )
         {
-            return new GrappleResolver(alcance, velocidadTraccion, cooldown, distanciaLlegada, duracionMax);
+            return new GrappleResolver(
+                alcance,
+                velocidadTraccion,
+                cooldown,
+                distanciaLlegada,
+                duracionMax
+            );
         }
 
         [Test]

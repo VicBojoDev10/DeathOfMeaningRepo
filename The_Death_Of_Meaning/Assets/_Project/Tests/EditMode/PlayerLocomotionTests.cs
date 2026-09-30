@@ -50,7 +50,8 @@ namespace TDOM.Tests.EditMode
             const float dt = 1f / 60f;
             const int frames = 10;
 
-            for (int i = 0; i < frames; i++)           {
+            for (int i = 0; i < frames; i++)
+            {
                 locomotion.Tick(CreateInput(), Quaternion.identity, dt);
             }
 
