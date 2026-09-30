@@ -50,8 +50,7 @@ namespace TDOM.Tests.EditMode
             const float dt = 1f / 60f;
             const int frames = 10;
 
-            for (int i = 0; i < frames; i++)
-            {
+            for (int i = 0; i < frames; i++)           {
                 locomotion.Tick(CreateInput(), Quaternion.identity, dt);
             }
 
@@ -240,6 +239,55 @@ namespace TDOM.Tests.EditMode
             locomotion.Tick(noiseInput, yaw90, dt);
 
             Assert.That(locomotion.State.Velocity.normalized, Is.EqualTo(Vector3.forward));
+        }
+
+        [Test]
+        public void Saltar_durante_el_gancho_lo_cancela_y_aplica_JumpVelocity()
+        {
+            var gravity = new GravityModel(-9.81f, -20f, 1f);
+            var jump = new JumpResolver(1, 8f, 0.1f, 0.1f);
+            var ground = new GroundControlResolver(4.5f, 6.5f, 25f, 30f, 0.3f);
+            var run = new SprintResolver();
+            var dash = new DashResolver(CrearDashProfile(6f, 0.2f));
+            var grapple = new GrappleResolver(30f, 25f, 3f, 1.5f, 2f);
+
+            var locomotion = new PlayerLocomotion(gravity, jump, ground, run, dash, grapple);
+            locomotion.State.IsGrounded = true;
+
+            // Iniciar gancho
+            Assert.IsTrue(locomotion.IntentarGancho(Vector3.zero, new Vector3(0f, 10f, 10f)));
+            Assert.IsTrue(locomotion.GanchoActivo);
+
+            // Tick sin salto mantiene el gancho activo
+            const float dt = 0.016f;
+            locomotion.Tick(CreateInput(), Quaternion.identity, dt);
+            Assert.IsTrue(locomotion.GanchoActivo);
+
+            // Tick con salto lo cancela y aplica la velocidad de salto
+            var jumpInput = CreateInput(jumpPressed: true, jumpHeld: true);
+            var intent = locomotion.Tick(jumpInput, Quaternion.identity, dt);
+
+            Assert.IsFalse(locomotion.GanchoActivo);
+            Assert.That(locomotion.State.Velocity.y, Is.GreaterThan(7f));
+            Assert.IsFalse(intent.IgnoreGravity);
+        }
+
+        [Test]
+        public void Un_personaje_sin_GrappleProfile_Zendre_ignora_IntentarGancho()
+        {
+            var gravity = new GravityModel(-9.81f, -20f, 1f);
+            var jump = new JumpResolver(1, 8f, 0.1f, 0.1f);
+            var ground = new GroundControlResolver(4.5f, 6.5f, 25f, 30f, 0.3f);
+            var run = new SprintResolver();
+            var dash = new DashResolver(CrearDashProfile(6f, 0.2f));
+
+            // Sin grapple (Zendre)
+            var locomotion = new PlayerLocomotion(gravity, jump, ground, run, dash, grapple: null);
+
+            bool inicio = locomotion.IntentarGancho(Vector3.zero, new Vector3(0f, 0f, 10f));
+
+            Assert.IsFalse(inicio);
+            Assert.IsFalse(locomotion.GanchoActivo);
         }
 
         private static DashProfile CrearDashProfile(float distance, float duration)
