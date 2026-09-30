@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using TDOM.Gameplay.Combat;
+using TDOM.POCO.ScriptableObjects;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -20,6 +23,20 @@ namespace TDOM.Unity.Combat
         private HitZone[] _hitZones;
 
         public HitZone[] HitZones => _hitZones;
+
+        [Header("Phase System")]
+        [SerializeField]
+        private BossPhaseProfile[] _fases;
+
+        [SerializeField]
+        private float _vidaMaxima = 1000f;
+
+        private BossPhaseStateMachine _maquina;
+
+        private readonly Dictionary<
+            HitZone,
+            NetworkVariable<float>.OnValueChangedDelegate
+        > _hitZoneListeners = new();
 
         [Header("Dummy AI (Placeholder F1)")]
         [SerializeField]
@@ -46,20 +63,84 @@ namespace TDOM.Unity.Combat
         public override void OnNetworkSpawn()
         {
             Fase.OnValueChanged += HandleFaseChanged;
+
             Debug.Log(
                 $"[BossController] Spawneado en red. Fase inicial: {Fase.Value}, IsServer: {IsServer}"
             );
+
+            if (!IsServer)
+                return;
+
+            if (_fases == null || _fases.Length == 0)
+            {
+                Debug.LogError("[BossController] No hay BossPhaseProfile configurados.");
+                return;
+            }
+
+            _maquina = new BossPhaseStateMachine(_fases);
+
+            if (_hitZones == null)
+                return;
+
+            foreach (var hz in _hitZones)
+            {
+                if (hz == null)
+                    continue;
+
+                NetworkVariable<float>.OnValueChangedDelegate listener = (anterior, actual) =>
+                {
+                    OnDanioZona(actual - anterior);
+                };
+
+                hz.DanioAcumulado.OnValueChanged += listener;
+                _hitZoneListeners[hz] = listener;
+            }
         }
 
         public override void OnNetworkDespawn()
         {
             Fase.OnValueChanged -= HandleFaseChanged;
+
+            foreach (var pair in _hitZoneListeners)
+            {
+                if (pair.Key != null)
+                {
+                    pair.Key.DanioAcumulado.OnValueChanged -= pair.Value;
+                }
+            }
+
+            _hitZoneListeners.Clear();
         }
 
         private void HandleFaseChanged(int anterior, int actual)
         {
             Debug.Log($"[BossController] Fase cambió de {anterior} a {actual}");
             OnFaseChanged?.Invoke(anterior, actual);
+        }
+
+        private void OnDanioZona(float delta)
+        {
+            if (!IsServer)
+                return;
+
+            if (delta <= 0f)
+                return;
+
+            if (_maquina == null)
+                return;
+
+            float porcentajeDanio = delta / _vidaMaxima;
+
+            Debug.Log($"[BossController] Daño recibido: {delta:F1} ({porcentajeDanio:P2})");
+
+            _maquina.AplicarDaño(porcentajeDanio);
+
+            if (_maquina.FaseActual != Fase.Value)
+            {
+                Debug.Log($"[BossController] Cambio de fase detectado: {_maquina.FaseActual}");
+
+                CambiarFase(_maquina.FaseActual);
+            }
         }
 
         private void Update()
@@ -106,15 +187,6 @@ namespace TDOM.Unity.Combat
             Fase.Value = nuevaFase;
         }
 
-        [ContextMenu("Siguiente Fase")]
-        public void SiguienteFase()
-        {
-            if (!IsServer)
-                return;
-
-            CambiarFase(Fase.Value + 1);
-        }
-
         public void RegistrarDanioEnZona(int index, float cantidad)
         {
             if (!IsServer)
@@ -142,14 +214,7 @@ namespace TDOM.Unity.Combat
             if (IsServer)
             {
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("Fase +1"))
-                {
-                    CambiarFase(Fase.Value + 1);
-                }
-                if (GUILayout.Button("Fase 1"))
-                {
-                    CambiarFase(1);
-                }
+
                 if (GUILayout.Button("Telegraph"))
                 {
                     _dummyAttackIndex = (_dummyAttackIndex % 3) + 1;
