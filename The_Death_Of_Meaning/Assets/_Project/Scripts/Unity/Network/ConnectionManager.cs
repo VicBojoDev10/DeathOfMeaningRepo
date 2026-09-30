@@ -1,7 +1,6 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using Dino.UtilityTools.Singleton;
 using TDOM.Gameplay.Core;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
@@ -16,8 +15,6 @@ namespace TDOM.Unity
         private readonly SessionStatus _status = new();
         public event Action<EstadoSesion> OnEstadoCambiado;
         public event Action<int> OnJugadoresCambiado;
-
-
 
         private void OnEnable()
         {

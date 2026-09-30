@@ -5,23 +5,23 @@ namespace TDOM.Unity.Combat
     public class CombatVfx : MonoBehaviour
     {
         [SerializeField]
-        private ParticleSystem _golpe; // burst corto frente a HitboxOrigin
+        private ParticleSystem _golpe;
 
         [SerializeField]
-        private ParticleSystem _carga; // loop mientras se sostiene el cargado
+        private ParticleSystem _carga;
 
         [SerializeField]
-        private ParticleSystem _cargadoSale; // burst grande al soltar
+        private ParticleSystem _cargadoSale;
 
         [SerializeField]
-        private ParticleSystem _disparo; // fogonazo en el origen del disparo (solo Zendre)
+        private ParticleSystem _disparo;
 
         [SerializeField]
         private Color[] _colorPorIndice = new Color[]
         {
             Color.white,
             Color.yellow,
-            new Color(1f, 0.5f, 0f), // naranja
+            new Color(1f, 0.5f, 0f),
         };
 
         public void Golpe(int comboIndex, bool cargado, float carga)
@@ -41,7 +41,11 @@ namespace TDOM.Unity.Combat
                 if (_golpe != null)
                 {
                     Color color = Color.white;
-                    if (_colorPorIndice != null && comboIndex >= 0 && comboIndex < _colorPorIndice.Length)
+                    if (
+                        _colorPorIndice != null
+                        && comboIndex >= 0
+                        && comboIndex < _colorPorIndice.Length
+                    )
                     {
                         color = _colorPorIndice[comboIndex];
                     }

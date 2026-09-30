@@ -1,13 +1,10 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Dino.UtilityTools.Singleton
+namespace TDOM.Unity
 {
-    /// <summary>
-    /// Last update 29/08/2025 Dino
-    /// A class that allows you to create a singleton.
-    /// 
-    public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
+    public abstract class Singleton<T> : MonoBehaviour
+        where T : MonoBehaviour
     {
         private static T _instance;
         private static readonly object _lock = new object();
@@ -16,7 +13,8 @@ namespace Dino.UtilityTools.Singleton
 
         public UnityEvent OnFinishedInitializing { get; private set; }
 
-        [SerializeField] private bool dontDestroyOnLoad = true;
+        [SerializeField]
+        private bool dontDestroyOnLoad = true;
 
         public static T Instance
         {
@@ -42,7 +40,8 @@ namespace Dino.UtilityTools.Singleton
         {
             if (_instance == null)
             {
-                if (dontDestroyOnLoad) DontDestroyOnLoad(gameObject);
+                if (dontDestroyOnLoad)
+                    DontDestroyOnLoad(gameObject);
                 _instance = this as T;
             }
             else if (_instance != this)
@@ -55,7 +54,3 @@ namespace Dino.UtilityTools.Singleton
         }
     }
 }
-
- 
-    
-
