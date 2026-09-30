@@ -44,8 +44,20 @@ namespace TDOM.Tests.EditMode
             for (int i = 0; i < esperados.Length; i++)
             {
                 float tiempoTelegraph = Cooldown + i * (Cooldown + Telegraph);
-                AssertEvento(registros[i * 2], EventoAtaque.Telegraph, esperados[i], tiempoTelegraph, Dt60);
-                AssertEvento(registros[i * 2 + 1], EventoAtaque.Impacto, esperados[i], tiempoTelegraph + Telegraph, Dt60);
+                AssertEvento(
+                    registros[i * 2],
+                    EventoAtaque.Telegraph,
+                    esperados[i],
+                    tiempoTelegraph,
+                    Dt60
+                );
+                AssertEvento(
+                    registros[i * 2 + 1],
+                    EventoAtaque.Impacto,
+                    esperados[i],
+                    tiempoTelegraph + Telegraph,
+                    Dt60
+                );
             }
         }
 
@@ -61,7 +73,13 @@ namespace TDOM.Tests.EditMode
             var registros = Correr(scheduler, Cooldown + 0.5f, Dt60);
 
             Assert.AreEqual(2, maquina.FaseActual);
-            AssertEvento(registros[0], EventoAtaque.Telegraph, BossAttackKind.Pesado, Cooldown, Dt60);
+            AssertEvento(
+                registros[0],
+                EventoAtaque.Telegraph,
+                BossAttackKind.Pesado,
+                Cooldown,
+                Dt60
+            );
         }
 
         [Test]
@@ -77,7 +95,13 @@ namespace TDOM.Tests.EditMode
             var registros = Correr(scheduler, Cooldown + 0.5f, Dt60);
 
             Assert.AreEqual(1, registros.Count);
-            AssertEvento(registros[0], EventoAtaque.Telegraph, BossAttackKind.Pesado, Cooldown, Dt60);
+            AssertEvento(
+                registros[0],
+                EventoAtaque.Telegraph,
+                BossAttackKind.Pesado,
+                Cooldown,
+                Dt60
+            );
         }
 
         [Test]
@@ -117,7 +141,11 @@ namespace TDOM.Tests.EditMode
             public float Tiempo;
         }
 
-        private static List<Registro> Correr(BossAttackScheduler scheduler, float segundos, float dt)
+        private static List<Registro> Correr(
+            BossAttackScheduler scheduler,
+            float segundos,
+            float dt
+        )
         {
             var registros = new List<Registro>();
             int ticks = (int)Math.Round(segundos / dt);
@@ -126,7 +154,14 @@ namespace TDOM.Tests.EditMode
             {
                 var evento = scheduler.Tick(dt, out var ataque);
                 if (evento != EventoAtaque.Ninguno)
-                    registros.Add(new Registro { Evento = evento, Ataque = ataque, Tiempo = i * dt });
+                    registros.Add(
+                        new Registro
+                        {
+                            Evento = evento,
+                            Ataque = ataque,
+                            Tiempo = i * dt,
+                        }
+                    );
             }
 
             return registros;
@@ -175,7 +210,11 @@ namespace TDOM.Tests.EditMode
             return new BossPhaseStateMachine(new[] { fase1, fase2 });
         }
 
-        private BossPhaseProfile CrearPerfil(int fase, float vidaTransicion, params BossAttackKind[] orden)
+        private BossPhaseProfile CrearPerfil(
+            int fase,
+            float vidaTransicion,
+            params BossAttackKind[] orden
+        )
         {
             var perfil = ScriptableObject.CreateInstance<BossPhaseProfile>();
             perfil.Fase = fase;

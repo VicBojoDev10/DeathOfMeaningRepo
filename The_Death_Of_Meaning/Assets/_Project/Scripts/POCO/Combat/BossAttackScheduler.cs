@@ -39,9 +39,15 @@ namespace TDOM.Gameplay.Combat
             _maquina = maquina ?? throw new ArgumentNullException(nameof(maquina));
 
             if (cooldownEntreAtaques < 0f)
-                throw new ArgumentOutOfRangeException(nameof(cooldownEntreAtaques), "No puede ser negativo.");
+                throw new ArgumentOutOfRangeException(
+                    nameof(cooldownEntreAtaques),
+                    "No puede ser negativo."
+                );
             if (duracionTelegraph <= 0f)
-                throw new ArgumentOutOfRangeException(nameof(duracionTelegraph), "Debe ser mayor que 0.");
+                throw new ArgumentOutOfRangeException(
+                    nameof(duracionTelegraph),
+                    "Debe ser mayor que 0."
+                );
 
             _cooldownEntreAtaques = cooldownEntreAtaques;
             _duracionTelegraph = duracionTelegraph;
@@ -51,12 +57,14 @@ namespace TDOM.Gameplay.Combat
         public bool EnTelegraph => _enTelegraph;
 
         /// <summary>El ataque avisado (si hay telegraph en curso) o el que viene.</summary>
-        public BossAttackKind AtaqueActual => _enTelegraph ? _ataqueEnCurso : _maquina.AtaqueActual.Tipo;
+        public BossAttackKind AtaqueActual =>
+            _enTelegraph ? _ataqueEnCurso : _maquina.AtaqueActual.Tipo;
 
         /// <summary>Segundos que faltan para el próximo evento (Telegraph o Impacto).</summary>
         public float TiempoRestante => Math.Max(0f, DuracionEtapaActual - _tiempo);
 
-        private float DuracionEtapaActual => _enTelegraph ? _duracionTelegraph : _cooldownEntreAtaques;
+        private float DuracionEtapaActual =>
+            _enTelegraph ? _duracionTelegraph : _cooldownEntreAtaques;
 
         /// <summary>
         /// Avanza el tiempo y devuelve a lo mucho un evento por llamada. El tiempo sobrante
