@@ -119,7 +119,10 @@ namespace TDOM.Gameplay.Locomotion
 
             if (!blockMove)
             {
-                if (State.Phase == LocomotionPhase.Attacking)
+                if (
+                    State.Phase == LocomotionPhase.Attacking
+                    || State.Phase == LocomotionPhase.Grappling
+                )
                 {
                     State.Phase = State.IsGrounded
                         ? LocomotionPhase.Grounded

@@ -268,6 +268,7 @@ namespace TDOM.Tests.EditMode
             Assert.IsFalse(locomotion.GanchoActivo);
             Assert.That(locomotion.State.Velocity.y, Is.GreaterThan(7f));
             Assert.IsFalse(intent.IgnoreGravity);
+            Assert.That(locomotion.State.Phase, Is.Not.EqualTo(LocomotionPhase.Grappling));
         }
 
         [Test]
