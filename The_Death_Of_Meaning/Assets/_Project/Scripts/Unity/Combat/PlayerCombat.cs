@@ -35,7 +35,13 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private float _alcanceHitbox = 1.0f;
 
-        [Header("Disparo Zendre")]
+        [Header("Disparo a distancia")]
+        [SerializeField]
+        private GameObject _proyectilPrefab;
+
+        [SerializeField]
+        private Transform _origenDisparo;
+
         [SerializeField]
         private float _rangoDisparo = 25.0f;
 
@@ -46,6 +52,8 @@ namespace TDOM.Unity.Combat
         public float AlcanceHitbox => _alcanceHitbox;
         public float RangoDisparo => _rangoDisparo;
         public float RadioDisparo => _radioDisparo;
+        public GameObject ProyectilPrefab => _proyectilPrefab;
+        public Transform OrigenDisparo => _origenDisparo;
 
         public bool AtaqueActivo =>
             (_melee?.BloqueaMovimiento ?? false) || (_disparo?.BloqueaMovimiento ?? false);
@@ -106,7 +114,6 @@ namespace TDOM.Unity.Combat
         private void EjecutarDisparo(AttackEvent evento)
         {
             bool cargado = evento.Kind == AttackKind.Charged;
-
             // Feedback visual instantáneo para el dueño
             if (_combatAnimator != null)
                 _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
@@ -114,8 +121,11 @@ namespace TDOM.Unity.Combat
             if (_feedback != null)
                 _feedback.OnGolpeConectado();
 
-            // Detección de impacto
-            if (_hitbox != null)
+            if (_proyectilPrefab != null && _origenDisparo != null)
+            {
+                DispararRpc(_origenDisparo.position, _origenDisparo.forward, evento);
+            }
+            else if (_hitbox != null)
             {
                 var objetivos = _hitbox.DetectarDisparo(_radioDisparo, _rangoDisparo);
                 foreach (var obj in objetivos)
@@ -257,6 +267,27 @@ namespace TDOM.Unity.Combat
                         $"[SERVER] Disparo validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño"
                     );
                 }
+            }
+        }
+
+        [Rpc(SendTo.Server)]
+        private void DispararRpc(Vector3 origen, Vector3 dir, AttackEvent evento)
+        {
+            if (Vector3.Distance(origen, transform.position) > 3f)
+                return;
+
+            Quaternion rotacion =
+                dir != Vector3.zero ? Quaternion.LookRotation(dir) : transform.rotation;
+            GameObject go = Instantiate(_proyectilPrefab, origen, rotacion);
+            Proyectil proyectil = go.GetComponent<Proyectil>();
+            if (proyectil != null)
+            {
+                proyectil.Inicializar(dir, evento.Damage);
+            }
+            NetworkObject networkObject = go.GetComponent<NetworkObject>();
+            if (networkObject != null)
+            {
+                networkObject.Spawn();
             }
         }
 
