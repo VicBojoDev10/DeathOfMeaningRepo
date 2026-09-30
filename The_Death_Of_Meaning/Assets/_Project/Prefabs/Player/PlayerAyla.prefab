@@ -234,7 +234,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 4274321711
+  GlobalObjectIdHash: 3112223628
   InScenePlacedSourceGlobalObjectIdHash: 3093320301
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -552,7 +552,6 @@ GameObject:
   - component: {fileID: 2392308613036309648}
   - component: {fileID: 7810872528337834703}
   - component: {fileID: 9035497664065842176}
-  - component: {fileID: 1835974296317337711}
   m_Layer: 0
   m_Name: CameraPivot
   m_TagString: Untagged
@@ -727,7 +726,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.PlayerCameraActivator
   ShowTopMostFoldoutHeaderGroup: 1
   _camara: {fileID: 9223194379691784331}
-  _audioListener: {fileID: 1835974296317337711}
+  _audioListener: {fileID: 0}
 --- !u!114 &9035497664065842176
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -742,14 +741,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.FeedbackDirector
   _cameraRig: {fileID: 4936828311769397002}
   _config: {fileID: 11400000, guid: 25a57fc5bb1d144499fee1fa38be4539, type: 2}
---- !u!81 &1835974296317337711
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5367181811903037097}
-  m_Enabled: 1
 --- !u!1 &7545009732972984067
 GameObject:
   m_ObjectHideFlags: 0
@@ -962,4 +953,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6680a93d235657441adf952c17c42af0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.ViewmodelRig
-  _placeholderNoUsar: 0
+  _estadoPendiente: "PENDIENTE DE IMPLEMENTACI\xD3N:\nAnimator de brazos en primera
+    persona y sway.\nNo forma parte del entregable de 3 semanas."

@@ -676,6 +676,10 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: 18.758
       objectReference: {fileID: 0}
+    - target: {fileID: 8955215676434759610, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
+      propertyPath: _audioListener
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 8956295364822640015, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
       propertyPath: GlobalObjectIdHash
       value: 2499704889
@@ -732,7 +736,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: -0.526
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 6360229347560683649, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

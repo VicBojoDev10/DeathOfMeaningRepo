@@ -122,6 +122,7 @@ namespace TDOM.Unity
                 using Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0);
                 socket.Connect("8.8.8.8", 65530);
                 string ip = (socket.LocalEndPoint as IPEndPoint)?.Address.ToString();
+                Debug.Log(ip);
                 if (!string.IsNullOrEmpty(ip))
                     return ip;
             }
@@ -140,6 +141,7 @@ namespace TDOM.Unity
                         return ip.ToString();
                     }
                 }
+                Debug.Log(host.ToString());
             }
             catch (Exception e)
             {
