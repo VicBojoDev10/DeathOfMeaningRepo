@@ -10,14 +10,14 @@ namespace TDOM.Unity
 {
     public class ConnectionUI : UIWindow
     {
-        public ConnectionManager connectionManager;
-
+        public ConnectionManager ConnectionManager => ConnectionManager.Instance;
         public TMP_InputField ipInputField;
         public TextMeshProUGUI hostIpDisplayText;
         public TextMeshProUGUI statusText;
         public Button startHostButton;
         public Button startClientButton;
         public Button startMatchButton;
+        public Button joinTest;
 
         private float _lastKeyboardCloseTime = -1f;
 
@@ -35,6 +35,7 @@ namespace TDOM.Unity
 
         private void OnEnable()
         {
+            joinTest.onClick.AddListener(JoinTestUi);
             startHostButton.onClick.AddListener(StartHostButton_OnClick);
             startClientButton.onClick.AddListener(StartClientButton_OnClick);
             startMatchButton.onClick.AddListener(StartMatchButton_OnClick);
@@ -54,11 +55,16 @@ namespace TDOM.Unity
                 kbWindow.OnKeyboardClosed += HandleKeyboardClosed;
             }
 
-            connectionManager.OnEstadoCambiado += ActualizarTextoEstado;
-            connectionManager.OnJugadoresCambiado += ActualizarBotonComenzar;
+            ConnectionManager.OnEstadoCambiado += ActualizarTextoEstado;
+            ConnectionManager.OnJugadoresCambiado += ActualizarBotonComenzar;
             GameFlowNetwork.Spawned += SuscribirseAGameFlow;
             if (GameFlowNetwork.Instance != null)
                 SuscribirseAGameFlow();
+        }
+
+        private void JoinTestUi()
+        {
+            ConnectionManager.OnUnirse("127.0.0.1");
         }
 
         private void OnDisable()
@@ -82,8 +88,8 @@ namespace TDOM.Unity
                 kbWindow.OnKeyboardClosed -= HandleKeyboardClosed;
             }
 
-            connectionManager.OnEstadoCambiado -= ActualizarTextoEstado;
-            connectionManager.OnJugadoresCambiado -= ActualizarBotonComenzar;
+            ConnectionManager.OnEstadoCambiado -= ActualizarTextoEstado;
+            ConnectionManager.OnJugadoresCambiado -= ActualizarBotonComenzar;
 
             GameFlowNetwork.Spawned -= SuscribirseAGameFlow;
             if (GameFlowNetwork.Instance != null)
@@ -157,15 +163,15 @@ namespace TDOM.Unity
 
         private void StartHostButton_OnClick()
         {
-            connectionManager.OnCrearPartida();
-            hostIpDisplayText.text = $"IP: {connectionManager.GetLocalIPAddress()}";
+            ConnectionManager.OnCrearPartida();
+            hostIpDisplayText.text = $"IP: {ConnectionManager.GetLocalIPAddress()}";
             startHostButton.interactable = false;
             startClientButton.interactable = false;
         }
 
         private void StartClientButton_OnClick()
         {
-            connectionManager.OnUnirse(ipInputField.text.Trim());
+            ConnectionManager.OnUnirse(ipInputField.text.Trim());
             startHostButton.interactable = false;
             startClientButton.interactable = false;
         }

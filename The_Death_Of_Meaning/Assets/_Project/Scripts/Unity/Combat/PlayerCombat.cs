@@ -28,6 +28,12 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private CombatDebugFeedback _debugFeedback;
 
+        [SerializeField]
+        private CombatVfx _vfx;
+
+        [SerializeField]
+        private bool _logCombo = true;
+
         [Header("Hitbox melee")]
         [SerializeField]
         private float _radioHitbox = 1.5f;
@@ -86,6 +92,11 @@ namespace TDOM.Unity.Combat
             }
         }
 
+        private string NombrePersonaje =>
+            _definition != null && !string.IsNullOrEmpty(_definition.DisplayName)
+                ? _definition.DisplayName
+                : gameObject.name;
+
         public void Tick(InputSnapshot input, float dt)
         {
             if (!IsOwner)
@@ -95,6 +106,9 @@ namespace TDOM.Unity.Combat
 
             bool meleeActivo = _melee != null && _melee.Fase != ComboPhase.Idle;
             bool disparoActivo = _disparo != null && _disparo.Fase != ComboPhase.Idle;
+
+            var prevMeleePhase = _melee?.Fase ?? ComboPhase.Idle;
+            var prevDisparoPhase = _disparo?.Fase ?? ComboPhase.Idle;
 
             if (_melee != null && !disparoActivo)
             {
@@ -109,14 +123,61 @@ namespace TDOM.Unity.Combat
                 if (evento.HasValue)
                     EjecutarDisparo(evento.Value);
             }
+
+            ProcesarCambiosDeFase(prevMeleePhase, prevDisparoPhase);
+        }
+
+        private void ProcesarCambiosDeFase(ComboPhase prevMeleePhase, ComboPhase prevDisparoPhase)
+        {
+            if (_melee != null && _melee.Fase != prevMeleePhase)
+            {
+                if (_logCombo)
+                    Debug.Log($"[Combo][{NombrePersonaje}] {prevMeleePhase} → {_melee.Fase}");
+
+                bool estabaCargando = prevMeleePhase == ComboPhase.Charging;
+                bool estaCargando = _melee.Fase == ComboPhase.Charging;
+                if (estabaCargando != estaCargando)
+                {
+                    if (_vfx != null)
+                        _vfx.Carga(estaCargando);
+                    CargaRpc(estaCargando);
+                }
+            }
+
+            if (_disparo != null && _disparo.Fase != prevDisparoPhase)
+            {
+                if (_logCombo)
+                    Debug.Log($"[Combo][{NombrePersonaje}] {prevDisparoPhase} → {_disparo.Fase}");
+
+                bool estabaCargando = prevDisparoPhase == ComboPhase.Charging;
+                bool estaCargando = _disparo.Fase == ComboPhase.Charging;
+                if (estabaCargando != estaCargando)
+                {
+                    if (_vfx != null)
+                        _vfx.Carga(estaCargando);
+                    CargaRpc(estaCargando);
+                }
+            }
         }
 
         private void EjecutarDisparo(AttackEvent evento)
         {
             bool cargado = evento.Kind == AttackKind.Charged;
+
+            if (_logCombo)
+            {
+                int totalPasos =
+                    _definition?.Ranged?.Steps != null ? _definition.Ranged.Steps.Length : 1;
+                Debug.Log(
+                    $"[Combo][{NombrePersonaje}] disparo {evento.ComboIndex + 1}/{totalPasos} {evento.Kind} carga {evento.ChargeRatio:F2} daño {evento.Damage}"
+                );
+            }
+
             // Feedback visual instantáneo para el dueño
             if (_combatAnimator != null)
                 _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
+            if (_vfx != null)
+                _vfx.Disparo(cargado);
             _debugFeedback?.FlashActive(0.1f);
             if (_feedback != null)
                 _feedback.OnGolpeConectado();
@@ -162,9 +223,20 @@ namespace TDOM.Unity.Combat
         {
             bool cargado = evento.Kind == AttackKind.Charged;
 
+            if (_logCombo)
+            {
+                int totalPasos =
+                    _definition?.Melee?.Steps != null ? _definition.Melee.Steps.Length : 3;
+                Debug.Log(
+                    $"[Combo][{NombrePersonaje}] golpe {evento.ComboIndex + 1}/{totalPasos} {evento.Kind} carga {evento.ChargeRatio:F2} daño {evento.Damage}"
+                );
+            }
+
             // Feedback visual instantáneo para el dueño
             if (_combatAnimator != null)
                 _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
+            if (_vfx != null)
+                _vfx.Golpe(evento.ComboIndex, cargado, evento.ChargeRatio);
             _debugFeedback?.FlashActive(0.1f);
             if (_feedback != null)
                 _feedback.OnGolpeConectado();
@@ -180,7 +252,7 @@ namespace TDOM.Unity.Combat
                 }
             }
 
-            ReproducirGolpeRpc(evento.ComboIndex, cargado);
+            ReproducirGolpeRpc(evento.ComboIndex, cargado, evento.ChargeRatio);
         }
 
         private bool EstaEnRango(ulong objetivoId, float alcanceMaximo, float tolerancia = 1.3f)
@@ -292,10 +364,19 @@ namespace TDOM.Unity.Combat
         }
 
         [Rpc(SendTo.NotOwner)]
-        private void ReproducirGolpeRpc(int indice, bool cargado)
+        private void CargaRpc(bool activa)
+        {
+            if (_vfx != null)
+                _vfx.Carga(activa);
+        }
+
+        [Rpc(SendTo.NotOwner)]
+        private void ReproducirGolpeRpc(int indice, bool cargado, float carga)
         {
             if (_combatAnimator != null)
                 _combatAnimator.PlayCombo(indice, cargado);
+            if (_vfx != null)
+                _vfx.Golpe(indice, cargado, carga);
         }
 
         [Rpc(SendTo.NotOwner)]
@@ -303,6 +384,8 @@ namespace TDOM.Unity.Combat
         {
             if (_combatAnimator != null)
                 _combatAnimator.PlayCombo(indice, cargado);
+            if (_vfx != null)
+                _vfx.Disparo(cargado);
         }
     }
 }
