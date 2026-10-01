@@ -90,6 +90,8 @@ namespace TDOM.Unity.Player
 
             // Actualizar rotación POCO y aplicar a la cámara
             _look.Tick(input.Look, dt);
+            transform.rotation = _look.YawRotation;
+
             if (_camera != null)
                 _camera.ApplyLook(_look.Yaw, _look.Pitch);
 
