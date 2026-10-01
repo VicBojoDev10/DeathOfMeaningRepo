@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TDOM.Contracts;
 using TDOM.Gameplay.Combat;
 using TDOM.POCO.ScriptableObjects;
 using Unity.Netcode;
@@ -38,15 +39,18 @@ namespace TDOM.Unity.Combat
             NetworkVariable<float>.OnValueChangedDelegate
         > _hitZoneListeners = new();
 
-        [Header("Dummy AI (Placeholder F1)")]
+        [Header("Patrón de ataques")]
         [SerializeField]
-        private bool _dummyAiActivo = true;
+        private float _cooldownEntreAtaques = 3f;
 
         [SerializeField]
-        private float _intervaloAtaqueDummy = 4f;
+        private float _duracionTelegraph = 1.25f;
 
-        private float _timerAtaqueDummy;
-        private int _dummyAttackIndex = 0;
+        // Solo existe en el servidor. Decide cuándo avisar (Telegraph) y cuándo golpear (Impacto).
+        private BossAttackScheduler _scheduler;
+
+        // Posición dentro de la secuencia de la fase actual; solo para mostrar el siguiente ataque.
+        private int _indiceEnFase;
 
         [Header("Debug UI")]
         [SerializeField]
@@ -78,6 +82,12 @@ namespace TDOM.Unity.Combat
             }
 
             _maquina = new BossPhaseStateMachine(_fases);
+            _scheduler = new BossAttackScheduler(
+                _maquina,
+                _cooldownEntreAtaques,
+                _duracionTelegraph
+            );
+            _indiceEnFase = 0;
 
             if (_hitZones == null)
                 return;
@@ -140,42 +150,45 @@ namespace TDOM.Unity.Combat
                 Debug.Log($"[BossController] Cambio de fase detectado: {_maquina.FaseActual}");
 
                 CambiarFase(_maquina.FaseActual);
+
+                // La máquina ya reinició el índice; el scheduler reinicia el tiempo.
+                _scheduler?.ReiniciarPorCambioDeFase();
+                _indiceEnFase = 0;
             }
         }
 
         private void Update()
         {
-            // Toda lógica de IA y comportamiento del jefe corre únicamente en el servidor
-            if (!IsServer)
+            // Toda la lógica del jefe corre únicamente en el servidor.
+            if (!IsServer || _scheduler == null)
                 return;
 
-            if (_dummyAiActivo)
-            {
-                TickDummyAI(Time.deltaTime);
-            }
-        }
+            var evento = _scheduler.Tick(Time.deltaTime, out var ataque);
 
-        private void TickDummyAI(float dt)
-        {
-            if (!IsServer)
-                return;
-
-            _timerAtaqueDummy += dt;
-            if (_timerAtaqueDummy >= _intervaloAtaqueDummy)
+            switch (evento)
             {
-                _timerAtaqueDummy = 0f;
-                _dummyAttackIndex = (_dummyAttackIndex % 3) + 1;
-                TelegraphAtaqueRpc(_dummyAttackIndex, $"AtaqueDummy_{_dummyAttackIndex}");
+                case EventoAtaque.Telegraph:
+                    TelegraphAtaqueRpc(ataque);
+                    break;
+                case EventoAtaque.Impacto:
+                    ImpactoAtaqueRpc(ataque);
+                    _indiceEnFase++;
+                    break;
             }
         }
 
         [Rpc(SendTo.ClientsAndHost)]
-        public void TelegraphAtaqueRpc(int ataqueId, string ataqueNombre = "")
+        public void TelegraphAtaqueRpc(BossAttackKind ataque)
         {
-            Debug.Log(
-                $"[BossController][RPC Telegraph] Aviso de ataque recibido: ID={ataqueId} ({ataqueNombre})"
-            );
-            // Placeholder: en PR de integración F1 se disparará aquí la animación/VFX del telegraph para clientes
+            Debug.Log($"[BossController][RPC Telegraph] Aviso de ataque: {ataque}");
+            // Aquí irá la animación/VFX del aviso (fuera de alcance de TW-79).
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        public void ImpactoAtaqueRpc(BossAttackKind ataque)
+        {
+            Debug.Log($"[BossController][RPC Impacto] Golpe: {ataque}");
+            // Aquí irán la geometría/colliders del ataque y el daño (tickets separados).
         }
 
         public void CambiarFase(int nuevaFase)
@@ -198,12 +211,26 @@ namespace TDOM.Unity.Combat
             }
         }
 
+        // Ataque que viene después del actual en la secuencia de la fase (solo para el debug UI).
+        private string SiguienteAtaqueParaDebug()
+        {
+            if (_maquina == null)
+                return "-";
+
+            var orden = _fases[_maquina.FaseActual - 1].OrdenDeAtaque;
+            if (orden == null || orden.Length == 0)
+                return "-";
+
+            int indiceSiguiente = (_indiceEnFase + 1) % orden.Length;
+            return orden[indiceSiguiente].Tipo.ToString();
+        }
+
         private void OnGUI()
         {
             if (!_mostrarDebugUI || !IsSpawned)
                 return;
 
-            GUILayout.BeginArea(new Rect(10, 200, 320, 420), "Boss AREK Debug", GUI.skin.window);
+            GUILayout.BeginArea(new Rect(10, 200, 320, 480), "Boss AREK Debug", GUI.skin.window);
 
             string rol = IsServer
                 ? (IsHost ? "Host (Server + Client)" : "Dedicated Server")
@@ -211,16 +238,16 @@ namespace TDOM.Unity.Combat
             GUILayout.Label($"Rol: {rol}");
             GUILayout.Label($"Fase Actual (NetworkVariable): {Fase.Value}");
 
-            if (IsServer)
+            if (IsServer && _scheduler != null)
             {
-                GUILayout.BeginHorizontal();
-
-                if (GUILayout.Button("Telegraph"))
-                {
-                    _dummyAttackIndex = (_dummyAttackIndex % 3) + 1;
-                    TelegraphAtaqueRpc(_dummyAttackIndex, $"ManualTelegraph_{_dummyAttackIndex}");
-                }
-                GUILayout.EndHorizontal();
+                string etapa = _scheduler.EnTelegraph ? "Telegraph" : "Cooldown";
+                GUILayout.Label($"Ataque actual: {_scheduler.AtaqueActual} ({etapa})");
+                GUILayout.Label($"Siguiente: {SiguienteAtaqueParaDebug()}");
+                GUILayout.Label($"Tiempo restante: {_scheduler.TiempoRestante:F2} s");
+            }
+            else
+            {
+                GUILayout.Label("Patrón de ataques: solo visible en el servidor");
             }
 
             GUILayout.Space(6);
