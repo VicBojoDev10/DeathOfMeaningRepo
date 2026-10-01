@@ -244,15 +244,69 @@ namespace TDOM.Unity.Combat
             // Detección de impacto
             if (_hitbox != null)
             {
-                var objetivos = _hitbox.Detectar(_radioHitbox, _alcanceHitbox);
-                foreach (var obj in objetivos)
+                var impactos = _hitbox.DetectarImpactos(_radioHitbox, _alcanceHitbox);
+                foreach (var imp in impactos)
                 {
-                    if (obj != null)
-                        ReportarGolpeRpc(evento, obj.NetworkObjectId);
+                    if (imp.Objeto != null)
+                    {
+                        NetworkBehaviourReference zoneRef = imp.Zona != null
+                            ? new NetworkBehaviourReference(imp.Zona)
+                            : default;
+
+                        ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, zoneRef);
+                    }
                 }
             }
 
             ReproducirGolpeRpc(evento.ComboIndex, cargado, evento.ChargeRatio);
+        }
+
+        private bool EstaEnRango(ulong objetivoId, NetworkBehaviourReference hitZoneRef, float alcanceCentro, float radio, float tolerancia = 1.3f)
+        {
+            if (NetworkManager.Singleton == null)
+                return false;
+
+            if (
+                !NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
+                    objetivoId,
+                    out var objetivo
+                )
+                || objetivo == null
+            )
+                return false;
+
+            Vector3 centro = _hitbox != null ? _hitbox.Centro(alcanceCentro) : transform.position + transform.forward * alcanceCentro;
+            float rangoPermitido = radio * tolerancia;
+
+            Collider[] colliders = null;
+            if (hitZoneRef.TryGet(out HitZone hitZone) && hitZone != null)
+            {
+                colliders = hitZone.GetComponentsInChildren<Collider>();
+            }
+
+            if (colliders == null || colliders.Length == 0)
+            {
+                colliders = objetivo.GetComponentsInChildren<Collider>();
+            }
+
+            if (colliders != null && colliders.Length > 0)
+            {
+                float minDistance = float.MaxValue;
+                foreach (var col in colliders)
+                {
+                    Vector3 closestPoint = col.ClosestPoint(centro);
+                    float dist = Vector3.Distance(centro, closestPoint);
+                    if (dist < minDistance)
+                    {
+                        minDistance = dist;
+                    }
+                }
+                return minDistance <= rangoPermitido;
+            }
+
+            // Fallback si no hay colliders
+            float distancia = Vector3.Distance(centro, objetivo.transform.position);
+            return distancia <= rangoPermitido;
         }
 
         private bool EstaEnRango(ulong objetivoId, float alcanceMaximo, float tolerancia = 1.3f)
@@ -276,10 +330,9 @@ namespace TDOM.Unity.Combat
         }
 
         [Rpc(SendTo.Server)]
-        private void ReportarGolpeRpc(AttackEvent evento, ulong objetivoId)
+        private void ReportarGolpeRpc(AttackEvent evento, ulong objetivoId, NetworkBehaviourReference hitZoneRef = default)
         {
-            float alcanceTotal = _radioHitbox + _alcanceHitbox;
-            if (!EstaEnRango(objetivoId, alcanceTotal, tolerancia: 1.3f))
+            if (!EstaEnRango(objetivoId, hitZoneRef, _alcanceHitbox, _radioHitbox, tolerancia: 1.3f))
             {
                 Debug.LogWarning(
                     $"[SERVER] Golpe Melee rechazado fuera de rango contra objetivo {objetivoId}"
@@ -295,8 +348,7 @@ namespace TDOM.Unity.Combat
                 && obj != null
             )
             {
-                var hitZone = obj.GetComponentInChildren<HitZone>();
-                if (hitZone != null)
+                if (hitZoneRef.TryGet(out HitZone hitZone) && hitZone != null)
                 {
                     hitZone.RegistrarDanio(evento.Damage);
                 }
