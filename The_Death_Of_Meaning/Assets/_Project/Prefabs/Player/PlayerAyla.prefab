@@ -135,7 +135,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 5043099369150335702}
   m_Father: {fileID: 4026500297177568966}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &9016292163162055318
@@ -236,7 +237,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 4274321711
+  GlobalObjectIdHash: 3112223628
   InScenePlacedSourceGlobalObjectIdHash: 3093320301
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -385,8 +386,12 @@ MonoBehaviour:
   _hitbox: {fileID: 9016292163162055318}
   _feedback: {fileID: 9035497664065842176}
   _debugFeedback: {fileID: 3984864946309631804}
+  _vfx: {fileID: 2189285926878354938}
+  _logCombo: 1
   _radioHitbox: 1.5
   _alcanceHitbox: 1
+  _proyectilPrefab: {fileID: 0}
+  _origenDisparo: {fileID: 0}
   _rangoDisparo: 25
   _radioDisparo: 0.5
 --- !u!114 &80633533661117880
@@ -404,6 +409,7 @@ MonoBehaviour:
   _animator: {fileID: 7460070526515792067}
 --- !u!120 &8501239841203941201
 LineRenderer:
+  serializedVersion: 3
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -422,6 +428,8 @@ LineRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -443,9 +451,11 @@ LineRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_Positions:
   - {x: 0, y: 0, z: 0}
   - {x: 0, y: 0, z: 0}
@@ -506,6 +516,7 @@ LineRenderer:
     generateLightingData: 0
   m_UseWorldSpace: 1
   m_Loop: 0
+  m_ApplyActiveColorSpace: 0
 --- !u!114 &8501239841203941202
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -518,6 +529,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d6d877f65324b05a19a599734588eff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Locomotion.GrappleVisual
+  ShowTopMostFoldoutHeaderGroup: 1
   _lineRenderer: {fileID: 8501239841203941201}
   _manoTransform: {fileID: 0}
   _offset: {x: 0, y: 1.2, z: 0}
@@ -674,7 +686,6 @@ GameObject:
   - component: {fileID: 2392308613036309648}
   - component: {fileID: 7810872528337834703}
   - component: {fileID: 9035497664065842176}
-  - component: {fileID: 1835974296317337711}
   m_Layer: 0
   m_Name: CameraPivot
   m_TagString: Untagged
@@ -849,7 +860,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.PlayerCameraActivator
   ShowTopMostFoldoutHeaderGroup: 1
   _camara: {fileID: 9223194379691784331}
-  _audioListener: {fileID: 1835974296317337711}
 --- !u!114 &9035497664065842176
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -864,14 +874,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.FeedbackDirector
   _cameraRig: {fileID: 4936828311769397002}
   _config: {fileID: 11400000, guid: 25a57fc5bb1d144499fee1fa38be4539, type: 2}
---- !u!81 &1835974296317337711
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5367181811903037097}
-  m_Enabled: 1
 --- !u!1 &7545009732972984067
 GameObject:
   m_ObjectHideFlags: 0
@@ -1084,4 +1086,78 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6680a93d235657441adf952c17c42af0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.ViewmodelRig
-  _placeholderNoUsar: 0
+  _estadoPendiente: "PENDIENTE DE IMPLEMENTACI\xD3N:\nAnimator de brazos en primera
+    persona y sway.\nNo forma parte del entregable de 3 semanas."
+--- !u!1001 &9094838142294137057
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 562586211900250982}
+    m_Modifications:
+    - target: {fileID: 2178800891133331861, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_Name
+      value: CombatVfx
+      objectReference: {fileID: 0}
+    - target: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+--- !u!114 &2189285926878354938 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6941943588414883099, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+  m_PrefabInstance: {fileID: 9094838142294137057}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4c397cc27118384683a90bcff564846, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.CombatVfx
+--- !u!4 &5043099369150335702 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+  m_PrefabInstance: {fileID: 9094838142294137057}
+  m_PrefabAsset: {fileID: 0}
