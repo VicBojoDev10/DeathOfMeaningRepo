@@ -51,22 +51,6 @@ namespace TDOM.Unity.Combat
 
         public Vector3 Centro(float alcance) => Origen.position + Origen.forward * alcance;
 
-        public NetworkObject[] Detectar(float radio, float alcance)
-        {
-            Transform orig = Origen;
-            Vector3 centro = orig.position + orig.forward * alcance;
-
-            Debug.DrawRay(orig.position, orig.forward * alcance, Color.red, 0.25f);
-
-            var hits = Physics.OverlapSphere(centro, radio, _objetivos);
-
-            return hits.Select(h => h.GetComponentInParent<NetworkObject>())
-                .Where(n => n != null)
-                .Where(n => _owner == null || n != _owner)
-                .Distinct()
-                .ToArray();
-        }
-
         public NetworkObject[] DetectarDisparo(float radio, float alcanceMaximo)
         {
             Transform orig = Origen;
