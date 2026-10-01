@@ -249,9 +249,8 @@ namespace TDOM.Unity.Combat
                 {
                     if (imp.Objeto != null)
                     {
-                        NetworkBehaviourReference zoneRef = imp.Zona != null
-                            ? new NetworkBehaviourReference(imp.Zona)
-                            : default;
+                        NetworkBehaviourReference zoneRef =
+                            imp.Zona != null ? new NetworkBehaviourReference(imp.Zona) : default;
 
                         ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, zoneRef);
                     }
@@ -261,7 +260,13 @@ namespace TDOM.Unity.Combat
             ReproducirGolpeRpc(evento.ComboIndex, cargado, evento.ChargeRatio);
         }
 
-        private bool EstaEnRango(ulong objetivoId, NetworkBehaviourReference hitZoneRef, float alcanceCentro, float radio, float tolerancia = 1.3f)
+        private bool EstaEnRango(
+            ulong objetivoId,
+            NetworkBehaviourReference hitZoneRef,
+            float alcanceCentro,
+            float radio,
+            float tolerancia = 1.3f
+        )
         {
             if (NetworkManager.Singleton == null)
                 return false;
@@ -275,7 +280,10 @@ namespace TDOM.Unity.Combat
             )
                 return false;
 
-            Vector3 centro = _hitbox != null ? _hitbox.Centro(alcanceCentro) : transform.position + transform.forward * alcanceCentro;
+            Vector3 centro =
+                _hitbox != null
+                    ? _hitbox.Centro(alcanceCentro)
+                    : transform.position + transform.forward * alcanceCentro;
             float rangoPermitido = radio * tolerancia;
 
             Collider[] colliders = null;
@@ -304,7 +312,6 @@ namespace TDOM.Unity.Combat
                 return minDistance <= rangoPermitido;
             }
 
-            // Fallback si no hay colliders
             float distancia = Vector3.Distance(centro, objetivo.transform.position);
             return distancia <= rangoPermitido;
         }
@@ -330,9 +337,15 @@ namespace TDOM.Unity.Combat
         }
 
         [Rpc(SendTo.Server)]
-        private void ReportarGolpeRpc(AttackEvent evento, ulong objetivoId, NetworkBehaviourReference hitZoneRef = default)
+        private void ReportarGolpeRpc(
+            AttackEvent evento,
+            ulong objetivoId,
+            NetworkBehaviourReference hitZoneRef = default
+        )
         {
-            if (!EstaEnRango(objetivoId, hitZoneRef, _alcanceHitbox, _radioHitbox, tolerancia: 1.3f))
+            if (
+                !EstaEnRango(objetivoId, hitZoneRef, _alcanceHitbox, _radioHitbox, tolerancia: 1.3f)
+            )
             {
                 Debug.LogWarning(
                     $"[SERVER] Golpe Melee rechazado fuera de rango contra objetivo {objetivoId}"

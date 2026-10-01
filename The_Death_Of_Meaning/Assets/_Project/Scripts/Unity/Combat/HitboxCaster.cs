@@ -38,8 +38,10 @@ namespace TDOM.Unity.Combat
 
             var hits = Physics.OverlapSphere(centro, radio, _objetivos);
 
-            return hits
-                .Select(h => new Impacto(h.GetComponentInParent<NetworkObject>(), h.GetComponentInParent<HitZone>()))
+            return hits.Select(h => new Impacto(
+                    h.GetComponentInParent<NetworkObject>(),
+                    h.GetComponentInParent<HitZone>()
+                ))
                 .Where(i => i.Objeto != null)
                 .Where(i => _owner == null || i.Objeto != _owner)
                 .GroupBy(i => new { i.Objeto, i.Zona })
