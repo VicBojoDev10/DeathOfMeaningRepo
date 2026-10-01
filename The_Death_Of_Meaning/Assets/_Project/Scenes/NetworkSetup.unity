@@ -3002,6 +3002,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c9131bd2b7dcbf4d801001e3beec638, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.ConnectionManager
+  dontDestroyOnLoad: 1
   gameFlowNetworkPrefab: {fileID: 8473628879619465374, guid: a18c5b45ca4dd3b4dbfdeb8c07419c3b, type: 3}
 --- !u!4 &2123154848
 Transform:
@@ -3026,6 +3027,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 50739924159839016, guid: 046c6a86f28520b45a2bb43f95eada6b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.7
+      objectReference: {fileID: 0}
     - target: {fileID: 137371614332605861, guid: 046c6a86f28520b45a2bb43f95eada6b, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -3130,10 +3135,26 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 2076180301}
+    - target: {fileID: 3336233813768521114, guid: 046c6a86f28520b45a2bb43f95eada6b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 3368499423696924583, guid: 046c6a86f28520b45a2bb43f95eada6b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -21.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 3368499423696924583, guid: 046c6a86f28520b45a2bb43f95eada6b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 4460603391540517799, guid: 046c6a86f28520b45a2bb43f95eada6b, type: 3}
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 2076180301}
+    - target: {fileID: 6877032525152326429, guid: 046c6a86f28520b45a2bb43f95eada6b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
