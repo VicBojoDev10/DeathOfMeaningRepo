@@ -33,7 +33,8 @@ namespace TDOM.Unity
             }
 
             Vector3 pos = _puntoOrigenMano != null ? _puntoOrigenMano.position : transform.position;
-            Quaternion rot = _puntoOrigenMano != null ? _puntoOrigenMano.rotation : transform.rotation;
+            Quaternion rot =
+                _puntoOrigenMano != null ? _puntoOrigenMano.rotation : transform.rotation;
 
             GameObject go = Instantiate(_prefabAtaqueMano, pos, rot);
             var no = go.GetComponent<NetworkObject>();
@@ -50,7 +51,11 @@ namespace TDOM.Unity
                 return;
 
             // Ubicado en la esquina superior derecha para no solapar el debug UI de la izquierda
-            GUILayout.BeginArea(new Rect(Screen.width - 180, 20, 160, 80), "Boss Attacks Host", GUI.skin.window);
+            GUILayout.BeginArea(
+                new Rect(Screen.width - 180, 20, 160, 80),
+                "Boss Attacks Host",
+                GUI.skin.window
+            );
             if (GUILayout.Button("Lanzar Mano", GUILayout.Height(35)))
             {
                 Lanzar(BossAttackKind.Basico);

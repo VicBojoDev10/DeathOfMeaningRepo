@@ -41,7 +41,7 @@ namespace TDOM.Unity
             Aviso,
             Barrido,
             Retirada,
-            Despawn
+            Despawn,
         }
 
         private FaseMano _fase = FaseMano.Aviso;
@@ -138,10 +138,18 @@ namespace TDOM.Unity
         private void DetectarImpactos()
         {
             Vector3 halfExtents = new Vector3(_ancho * 0.5f, _alto * 0.5f, _radio * 0.5f);
-            Vector3 center = transform.position + transform.rotation * new Vector3(0f, _alto * 0.5f, _radio * 0.5f);
+            Vector3 center =
+                transform.position
+                + transform.rotation * new Vector3(0f, _alto * 0.5f, _radio * 0.5f);
             Quaternion orientation = transform.rotation;
 
-            Collider[] hits = Physics.OverlapBox(center, halfExtents, orientation, Physics.AllLayers, QueryTriggerInteraction.Collide);
+            Collider[] hits = Physics.OverlapBox(
+                center,
+                halfExtents,
+                orientation,
+                Physics.AllLayers,
+                QueryTriggerInteraction.Collide
+            );
 
             foreach (var hit in hits)
             {
@@ -246,7 +254,10 @@ namespace TDOM.Unity
                 _flashRojoTimer -= Time.deltaTime;
                 Color prev = GUI.color;
                 GUI.color = new Color(1f, 0f, 0f, 0.4f);
-                GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
+                GUI.DrawTexture(
+                    new Rect(0, 0, Screen.width, Screen.height),
+                    Texture2D.whiteTexture
+                );
                 GUI.color = prev;
             }
         }
@@ -255,7 +266,9 @@ namespace TDOM.Unity
         {
             Gizmos.color = Color.red;
             Vector3 halfExtents = new Vector3(_ancho * 0.5f, _alto * 0.5f, _radio * 0.5f);
-            Vector3 center = transform.position + transform.rotation * new Vector3(0f, _alto * 0.5f, _radio * 0.5f);
+            Vector3 center =
+                transform.position
+                + transform.rotation * new Vector3(0f, _alto * 0.5f, _radio * 0.5f);
 
             Matrix4x4 prev = Gizmos.matrix;
             Gizmos.matrix = Matrix4x4.TRS(center, transform.rotation, Vector3.one);
