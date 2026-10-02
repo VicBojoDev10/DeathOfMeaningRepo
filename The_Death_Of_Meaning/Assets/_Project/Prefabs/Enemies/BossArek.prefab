@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1000000000000004}
   - component: {fileID: 1000000000000005}
   - component: {fileID: 1000000000000006}
+  - component: {fileID: 2051056658159739734}
   m_Layer: 0
   m_Name: BossArek
   m_TagString: Untagged
@@ -191,9 +192,23 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 191e12d76e24d454495892ff794ccad9, type: 2}
   - {fileID: 11400000, guid: 150083dfa1721bf4e89e2708c401cc17, type: 2}
   _vidaMaxima: 1000
-  _dummyAiActivo: 1
-  _intervaloAtaqueDummy: 4
+  _cooldownEntreAtaques: 3
+  _duracionTelegraph: 1.25
   _mostrarDebugUI: 1
+--- !u!114 &2051056658159739734
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a43af4f20f8ba82408bfc5ada9a22096, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.AtaquesArek
+  _prefabAtaqueMano: {fileID: 5381868843865432001, guid: 5a1ce6f4bf029484fb8a0e9ce3d79d18, type: 3}
+  _puntoOrigenMano: {fileID: 0}
 --- !u!1 &2000000000000000
 GameObject:
   m_ObjectHideFlags: 0
