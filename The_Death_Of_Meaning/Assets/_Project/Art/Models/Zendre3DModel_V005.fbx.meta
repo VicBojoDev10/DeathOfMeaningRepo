@@ -1,9 +1,39 @@
 fileFormatVersion: 2
-guid: ad0cb97b65dfa3046b6139a16c372c93
+guid: 4f73b805bf8760546b44abbe0983d52b
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CaraZendre
+    second: {fileID: 2100000, guid: 58d760562537c974e95412397646c51a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MaterialCendreCabello
+    second: {fileID: 2100000, guid: 8722e20ffc5f7594dad258ede569dd98, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MaterialCuerpo_Zendre
+    second: {fileID: 2100000, guid: 0835cfe1edaa43b4ea415de8adb3adeb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MaterialOjoBocaAyla
+    second: {fileID: 2100000, guid: d8955983994f55b48be7b13ee59ef5c2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MaterialOjoBocaAyla.001
+    second: {fileID: 2100000, guid: d8955983994f55b48be7b13ee59ef5c2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: ZendreModoTanque
+    second: {fileID: 2100000, guid: ae9cebf1364361d45a7a81e1795eb8e6, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -96,7 +126,7 @@ ModelImporter:
     legStretch: 0.05
     feetSpacing: 0
     globalScale: 1
-    rootMotionBoneName: 
+    rootMotionBoneName: root
     hasTranslationDoF: 0
     hasExtraRoot: 0
     skeletonHasParents: 1
@@ -104,7 +134,7 @@ ModelImporter:
   autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 2
   humanoidOversampling: 1
-  avatarSetup: 0
+  avatarSetup: 1
   addHumanoidExtraRootOnlyWhenUsingAvatar: 1
   importBlendShapeDeformPercent: 1
   remapMaterialsIfMaterialImportModeIsNone: 0
