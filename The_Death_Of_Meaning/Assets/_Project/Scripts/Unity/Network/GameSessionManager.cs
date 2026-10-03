@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
@@ -146,7 +146,11 @@ namespace TDOM.Unity
             {
                 var prefab =
                     Jugadores[i].Character == CharacterIds.Zendre ? _prefabZendre : _prefabAyla;
-                var go = Instantiate(prefab, _puntosDeSpawn[i].position, Quaternion.identity);
+                var go = Instantiate(
+                    prefab,
+                    _puntosDeSpawn[i].position,
+                    _puntosDeSpawn[i].rotation
+                );
                 go.GetComponent<NetworkObject>().SpawnWithOwnership(Jugadores[i].ClientId);
             }
 
