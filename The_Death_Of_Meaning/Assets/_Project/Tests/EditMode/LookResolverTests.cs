@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using TDOM.Gameplay.Camera;
 using UnityEngine;
 
@@ -41,6 +41,16 @@ namespace TDOM.Tests.EditMode
             rapido.Tick(new Vector2(1f, 0f), dt: 1f);
 
             Assert.Greater(rapido.Yaw, lento.Yaw);
+        }
+
+        [Test]
+        public void arranca_con_yaw_inicial_correcto()
+        {
+            var resolver = new LookResolver(sensibilidad: 1f, yawInicial: 90f);
+            Vector3 result = resolver.YawRotation * Vector3.forward;
+            Assert.AreEqual(Vector3.right.x, result.x, 0.001f);
+            Assert.AreEqual(Vector3.right.y, result.y, 0.001f);
+            Assert.AreEqual(Vector3.right.z, result.z, 0.001f);
         }
     }
 }

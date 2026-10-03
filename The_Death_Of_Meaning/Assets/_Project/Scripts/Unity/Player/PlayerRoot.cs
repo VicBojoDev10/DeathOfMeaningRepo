@@ -1,4 +1,4 @@
-using TDOM.Contracts;
+﻿using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Camera;
 using TDOM.Gameplay.Locomotion;
@@ -42,7 +42,7 @@ namespace TDOM.Unity.Player
 
         public override void OnNetworkSpawn()
         {
-            _look = new LookResolver(_sensitivity);
+            _look = new LookResolver(_sensitivity, yawInicial: transform.eulerAngles.y);
             _locomocion = new PlayerLocomotion(_definition);
             _camera.gameObject.SetActive(IsOwner);
             _inputReader.enabled = IsOwner;
