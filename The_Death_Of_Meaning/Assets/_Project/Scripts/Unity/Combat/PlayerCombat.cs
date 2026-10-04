@@ -1,4 +1,4 @@
-﻿using TDOM.Contracts;
+using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.Gameplay.Core;
@@ -114,8 +114,6 @@ namespace TDOM.Unity.Combat
                 Debug.Log("[Energia] sin energía para el cargado");
                 return false;
             }
-
-            Debug.Log("[CLIENT] Mandando RPC de consumo...");
             ConsumirEnergiaRpc(_definition.Energy.ChargedCost);
             return true;
         }
@@ -169,7 +167,7 @@ namespace TDOM.Unity.Combat
             if (_melee != null && _melee.Fase != prevMeleePhase)
             {
                 if (_logCombo)
-                    Debug.Log($"[Combo][{NombrePersonaje}] {prevMeleePhase} â†’ {_melee.Fase}");
+                    Debug.Log($"[Combo][{NombrePersonaje}] {prevMeleePhase} → {_melee.Fase}");
 
                 bool estabaCargando = prevMeleePhase == ComboPhase.Charging;
                 bool estaCargando = _melee.Fase == ComboPhase.Charging;
@@ -184,7 +182,7 @@ namespace TDOM.Unity.Combat
             if (_disparo != null && _disparo.Fase != prevDisparoPhase)
             {
                 if (_logCombo)
-                    Debug.Log($"[Combo][{NombrePersonaje}] {prevDisparoPhase} â†’ {_disparo.Fase}");
+                    Debug.Log($"[Combo][{NombrePersonaje}] {prevDisparoPhase} → {_disparo.Fase}");
 
                 bool estabaCargando = prevDisparoPhase == ComboPhase.Charging;
                 bool estaCargando = _disparo.Fase == ComboPhase.Charging;
@@ -208,7 +206,7 @@ namespace TDOM.Unity.Combat
                 int totalPasos =
                     _definition?.Ranged?.Steps != null ? _definition.Ranged.Steps.Length : 1;
                 Debug.Log(
-                    $"[Combo][{NombrePersonaje}] disparo {evento.ComboIndex + 1}/{totalPasos} {evento.Kind} carga {evento.ChargeRatio:F2} daÃ±o {evento.Damage}"
+                    $"[Combo][{NombrePersonaje}] disparo {evento.ComboIndex + 1}/{totalPasos} {evento.Kind} carga {evento.ChargeRatio:F2} daño {evento.Damage}"
                 );
             }
             if (_combatAnimator != null)
@@ -267,7 +265,7 @@ namespace TDOM.Unity.Combat
                 int totalPasos =
                     _definition?.Melee?.Steps != null ? _definition.Melee.Steps.Length : 3;
                 Debug.Log(
-                    $"[Combo][{NombrePersonaje}] golpe {evento.ComboIndex + 1}/{totalPasos} {evento.Kind} carga {evento.ChargeRatio:F2} daÃ±o {evento.Damage}"
+                    $"[Combo][{NombrePersonaje}] golpe {evento.ComboIndex + 1}/{totalPasos} {evento.Kind} carga {evento.ChargeRatio:F2} daño {evento.Damage}"
                 );
             }
             if (_combatAnimator != null)
@@ -403,7 +401,7 @@ namespace TDOM.Unity.Combat
                 else
                 {
                     Debug.Log(
-                        $"[SERVER] Golpe melee validado contra {objetivoId} ({obj.name}): {evento.Damage} de daÃ±o"
+                        $"[SERVER] Golpe melee validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño"
                     );
                 }
             }
@@ -436,7 +434,7 @@ namespace TDOM.Unity.Combat
                 else
                 {
                     Debug.Log(
-                        $"[SERVER] Disparo validado contra {objetivoId} ({obj.name}): {evento.Damage} de daÃ±o"
+                        $"[SERVER] Disparo validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño"
                     );
                 }
             }

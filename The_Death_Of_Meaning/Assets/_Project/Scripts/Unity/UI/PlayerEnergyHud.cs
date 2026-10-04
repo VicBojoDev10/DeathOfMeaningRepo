@@ -1,4 +1,4 @@
-﻿using TDOM.Unity.Player;
+using TDOM.Unity.Player;
 using UnityEngine;
 using UnityEngine.UI;
 
