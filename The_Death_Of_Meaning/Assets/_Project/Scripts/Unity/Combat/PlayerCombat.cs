@@ -101,6 +101,22 @@ namespace TDOM.Unity.Combat
             }
         }
 
+        
+        private bool PuedeConsumirEnergia(AttackEvent evento)
+        {
+            if (evento.Kind != AttackKind.Charged || _definition?.Energy == null) 
+                return true;
+
+            if (_root != null && _root.Energia.Value < _definition.Energy.ChargedCost)
+            {
+                Debug.Log("[Energia] sin energía para el cargado");
+                return false;
+            }
+
+            ConsumirEnergiaRpc(_definition.Energy.ChargedCost);
+            return true;
+        }
+
         [Rpc(SendTo.Server)]
         private void ConsumirEnergiaRpc(float cantidad)
         {
@@ -181,15 +197,8 @@ namespace TDOM.Unity.Combat
         private void EjecutarDisparo(AttackEvent evento)
         {
             bool cargado = evento.Kind == AttackKind.Charged;
-            if (cargado && _definition != null && _definition.Energy != null)
-            {
-                if (_root != null && _root.Energia.Value < _definition.Energy.ChargedCost)
-                {
-                    Debug.Log("[Energia] sin energía para el cargado");
-                    return;
-                }
-                ConsumirEnergiaRpc(_definition.Energy.ChargedCost);
-            }
+            if (!PuedeConsumirEnergia(evento))
+                return;
 
             if (_logCombo)
             {
@@ -199,8 +208,6 @@ namespace TDOM.Unity.Combat
                     $"[Combo][{NombrePersonaje}] disparo {evento.ComboIndex + 1}/{totalPasos} {evento.Kind} carga {evento.ChargeRatio:F2} daÃ±o {evento.Damage}"
                 );
             }
-
-            // Feedback visual instantÃ¡neo para el dueÃ±o
             if (_combatAnimator != null)
                 _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
             if (_vfx != null)
@@ -249,15 +256,8 @@ namespace TDOM.Unity.Combat
         private void EjecutarGolpe(AttackEvent evento)
         {
             bool cargado = evento.Kind == AttackKind.Charged;
-            if (cargado && _definition != null && _definition.Energy != null)
-            {
-                if (_root != null && _root.Energia.Value < _definition.Energy.ChargedCost)
-                {
-                    Debug.Log("[Energia] sin energía para el cargado");
-                    return;
-                }
-                ConsumirEnergiaRpc(_definition.Energy.ChargedCost);
-            }
+            if (!PuedeConsumirEnergia(evento))
+                return;
 
             if (_logCombo)
             {
@@ -267,8 +267,6 @@ namespace TDOM.Unity.Combat
                     $"[Combo][{NombrePersonaje}] golpe {evento.ComboIndex + 1}/{totalPasos} {evento.Kind} carga {evento.ChargeRatio:F2} daÃ±o {evento.Damage}"
                 );
             }
-
-            // Feedback visual instantÃ¡neo para el dueÃ±o
             if (_combatAnimator != null)
                 _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
             if (_vfx != null)
@@ -276,8 +274,6 @@ namespace TDOM.Unity.Combat
             _debugFeedback?.FlashActive(0.1f);
             if (_feedback != null)
                 _feedback.OnGolpeConectado();
-
-            // DetecciÃ³n de impacto
             if (_hitbox != null)
             {
                 var impactos = _hitbox.DetectarImpactos(_radioHitbox, _alcanceHitbox);
@@ -490,3 +486,10 @@ namespace TDOM.Unity.Combat
         }
     }
 }
+
+
+
+
+
+
+

@@ -83,15 +83,13 @@ namespace TDOM.Unity.Player
                     var hudComp = _hudInstance.GetComponent<PlayerEnergyHud>();
                     if (hudComp != null)
                     {
-                        string etiqueta =
-                            GetCharacterId() == CharacterIds.Ayla ? "Stamina" : "Maná";
-                        hudComp.Initialize(
-                            this,
-                            etiqueta,
-                            _definition != null && _definition.Energy != null
-                                ? _definition.Energy.Max
-                                : 100f
-                        );
+                        string etiqueta = GetCharacterId() switch
+                        {
+                            CharacterIds.Ayla => "Stamina",
+                            CharacterIds.Zendre => "Maná",
+                            _ => "Energy",
+                        };
+                        hudComp.Initialize(this, etiqueta, _definition?.Energy?.Max ?? 100f);
                     }
                 }
             }
@@ -99,26 +97,11 @@ namespace TDOM.Unity.Player
 
         private CharacterIds GetCharacterId()
         {
-            if (_definition != null)
-            {
-                if (
-                    string.Equals(
-                        _definition.DisplayName,
-                        "Zendre",
-                        System.StringComparison.OrdinalIgnoreCase
-                    )
-                )
-                    return CharacterIds.Zendre;
-                if (
-                    string.Equals(
-                        _definition.DisplayName,
-                        "Ayla",
-                        System.StringComparison.OrdinalIgnoreCase
-                    )
-                )
-                    return CharacterIds.Ayla;
-            }
-            return CharacterIds.None;
+            if (_definition == null || string.IsNullOrEmpty(_definition.DisplayName))
+                return CharacterIds.None;
+            return System.Enum.TryParse(_definition.DisplayName, true, out CharacterIds id)
+                ? id
+                : CharacterIds.None;
         }
 
         public void ConsumirEnergiaEnServidor(float cantidad)
@@ -209,3 +192,4 @@ namespace TDOM.Unity.Player
         }
     }
 }
+
