@@ -107,12 +107,14 @@ namespace TDOM.Unity.Combat
             if (evento.Kind != AttackKind.Charged || _definition?.Energy == null) 
                 return true;
 
+            Debug.Log($"[CLIENT] Verificando energia. Current: {_root?.Energia.Value}, Required: {_definition.Energy.ChargedCost}");
             if (_root != null && _root.Energia.Value < _definition.Energy.ChargedCost)
             {
                 Debug.Log("[Energia] sin energía para el cargado");
                 return false;
             }
 
+            Debug.Log("[CLIENT] Mandando RPC de consumo...");
             ConsumirEnergiaRpc(_definition.Energy.ChargedCost);
             return true;
         }
@@ -486,6 +488,7 @@ namespace TDOM.Unity.Combat
         }
     }
 }
+
 
 
 

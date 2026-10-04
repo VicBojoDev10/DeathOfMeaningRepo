@@ -42,10 +42,15 @@ namespace TDOM.Unity.UI
 
         private void UpdateFill(float currentEnergy)
         {
+            Debug.Log($"[HUD] UpdateFill: {currentEnergy} / {_maxEnergy}");
             if (FillImage != null && _maxEnergy > 0)
             {
-                FillImage.fillAmount = currentEnergy / _maxEnergy;
+                float pct = currentEnergy / _maxEnergy;
+                FillImage.fillAmount = pct;
+                FillImage.rectTransform.anchorMax = new Vector2(pct, 1f);
             }
         }
     }
 }
+
+
