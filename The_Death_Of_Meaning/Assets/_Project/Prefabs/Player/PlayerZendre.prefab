@@ -417,7 +417,7 @@ MonoBehaviour:
   _hitbox: {fileID: 2768756111779032546}
   _feedback: {fileID: 7054898957245270891}
   _debugFeedback: {fileID: 3869141073335305693}
-  _vfx: {fileID: 6087383552892531074}
+  _vfx: {fileID: 0}
   _logCombo: 1
   _radioHitbox: 1.5
   _alcanceHitbox: 1
@@ -679,17 +679,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
   m_PrefabInstance: {fileID: 3759388581550093465}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &6087383552892531074 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6941943588414883099, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
-  m_PrefabInstance: {fileID: 3759388581550093465}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d4c397cc27118384683a90bcff564846, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.CombatVfx
 --- !u!1001 &7955888821186340880
 PrefabInstance:
   m_ObjectHideFlags: 0
