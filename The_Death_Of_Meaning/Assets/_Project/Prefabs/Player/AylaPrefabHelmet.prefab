@@ -3694,7 +3694,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _definition: {fileID: 11400000, guid: ca27be79a00e0f94ba283a4b56d12db0, type: 2}
   _motor: {fileID: -2505153575053055825}
-  _camera: {fileID: 0}
+  _camera: {fileID: 4935631012845733984}
   _inputReader: {fileID: 2293757921341916988}
   _combat: {fileID: 589031726301522223}
   _grappleVisual: {fileID: 0}
@@ -3715,7 +3715,7 @@ MonoBehaviour:
   _definition: {fileID: 11400000, guid: ca27be79a00e0f94ba283a4b56d12db0, type: 2}
   _combatAnimator: {fileID: 1810640966045980871}
   _hitbox: {fileID: 3649608957365800554}
-  _feedback: {fileID: 0}
+  _feedback: {fileID: 6575528799082043915}
   _debugFeedback: {fileID: 468859612894255862}
   _vfx: {fileID: 0}
   _logCombo: 1
@@ -5337,3 +5337,25 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 9119041166865434399, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
   m_PrefabInstance: {fileID: 6106897692952246640}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &4935631012845733984 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1206662717142757648, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
+  m_PrefabInstance: {fileID: 6106897692952246640}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13833322503ee3b4288be01b80524d04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.PlayerCameraRig
+--- !u!114 &6575528799082043915 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1117164846172922747, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
+  m_PrefabInstance: {fileID: 6106897692952246640}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62e5c4d7e6d1cc641829029e86a6acf5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.FeedbackDirector
