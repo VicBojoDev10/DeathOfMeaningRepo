@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Events;
 
 namespace TDOM.Unity
@@ -24,7 +24,7 @@ namespace TDOM.Unity
                 {
                     if (_instance == null)
                     {
-                        _instance = FindFirstObjectByType<T>();
+                        _instance = FindAnyObjectByType<T>();
                         if (_instance == null)
                         {
                             GameObject singletonObject = new GameObject(typeof(T).Name);
@@ -54,3 +54,4 @@ namespace TDOM.Unity
         }
     }
 }
+

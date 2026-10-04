@@ -1,8 +1,9 @@
-using TDOM.Contracts;
+﻿using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Camera;
+using TDOM.Unity.Player;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -64,8 +65,16 @@ namespace TDOM.Unity.Combat
         public bool AtaqueActivo =>
             (_melee?.BloqueaMovimiento ?? false) || (_disparo?.BloqueaMovimiento ?? false);
 
+        private PlayerRoot _root;
+
         public override void OnNetworkSpawn()
         {
+            _root = GetComponentInParent<PlayerRoot>();
+            if (_root == null)
+            {
+                _root = GetComponent<PlayerRoot>();
+            }
+
             if (!IsOwner)
                 return;
 
@@ -89,6 +98,15 @@ namespace TDOM.Unity.Combat
                     _definition.Ranged.MaxChargeTime,
                     _definition.Ranged.BufferWindow
                 );
+            }
+        }
+
+        [Rpc(SendTo.Server)]
+        private void ConsumirEnergiaRpc(float cantidad)
+        {
+            if (_root != null)
+            {
+                _root.ConsumirEnergiaEnServidor(cantidad);
             }
         }
 
@@ -132,7 +150,7 @@ namespace TDOM.Unity.Combat
             if (_melee != null && _melee.Fase != prevMeleePhase)
             {
                 if (_logCombo)
-                    Debug.Log($"[Combo][{NombrePersonaje}] {prevMeleePhase} → {_melee.Fase}");
+                    Debug.Log($"[Combo][{NombrePersonaje}] {prevMeleePhase} â†’ {_melee.Fase}");
 
                 bool estabaCargando = prevMeleePhase == ComboPhase.Charging;
                 bool estaCargando = _melee.Fase == ComboPhase.Charging;
@@ -147,7 +165,7 @@ namespace TDOM.Unity.Combat
             if (_disparo != null && _disparo.Fase != prevDisparoPhase)
             {
                 if (_logCombo)
-                    Debug.Log($"[Combo][{NombrePersonaje}] {prevDisparoPhase} → {_disparo.Fase}");
+                    Debug.Log($"[Combo][{NombrePersonaje}] {prevDisparoPhase} â†’ {_disparo.Fase}");
 
                 bool estabaCargando = prevDisparoPhase == ComboPhase.Charging;
                 bool estaCargando = _disparo.Fase == ComboPhase.Charging;
@@ -163,17 +181,26 @@ namespace TDOM.Unity.Combat
         private void EjecutarDisparo(AttackEvent evento)
         {
             bool cargado = evento.Kind == AttackKind.Charged;
+            if (cargado && _definition != null && _definition.Energy != null)
+            {
+                if (_root != null && _root.Energia.Value < _definition.Energy.ChargedCost)
+                {
+                    Debug.Log("[Energia] sin energía para el cargado");
+                    return;
+                }
+                ConsumirEnergiaRpc(_definition.Energy.ChargedCost);
+            }
 
             if (_logCombo)
             {
                 int totalPasos =
                     _definition?.Ranged?.Steps != null ? _definition.Ranged.Steps.Length : 1;
                 Debug.Log(
-                    $"[Combo][{NombrePersonaje}] disparo {evento.ComboIndex + 1}/{totalPasos} {evento.Kind} carga {evento.ChargeRatio:F2} daño {evento.Damage}"
+                    $"[Combo][{NombrePersonaje}] disparo {evento.ComboIndex + 1}/{totalPasos} {evento.Kind} carga {evento.ChargeRatio:F2} daÃ±o {evento.Damage}"
                 );
             }
 
-            // Feedback visual instantáneo para el dueño
+            // Feedback visual instantÃ¡neo para el dueÃ±o
             if (_combatAnimator != null)
                 _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
             if (_vfx != null)
@@ -222,17 +249,26 @@ namespace TDOM.Unity.Combat
         private void EjecutarGolpe(AttackEvent evento)
         {
             bool cargado = evento.Kind == AttackKind.Charged;
+            if (cargado && _definition != null && _definition.Energy != null)
+            {
+                if (_root != null && _root.Energia.Value < _definition.Energy.ChargedCost)
+                {
+                    Debug.Log("[Energia] sin energía para el cargado");
+                    return;
+                }
+                ConsumirEnergiaRpc(_definition.Energy.ChargedCost);
+            }
 
             if (_logCombo)
             {
                 int totalPasos =
                     _definition?.Melee?.Steps != null ? _definition.Melee.Steps.Length : 3;
                 Debug.Log(
-                    $"[Combo][{NombrePersonaje}] golpe {evento.ComboIndex + 1}/{totalPasos} {evento.Kind} carga {evento.ChargeRatio:F2} daño {evento.Damage}"
+                    $"[Combo][{NombrePersonaje}] golpe {evento.ComboIndex + 1}/{totalPasos} {evento.Kind} carga {evento.ChargeRatio:F2} daÃ±o {evento.Damage}"
                 );
             }
 
-            // Feedback visual instantáneo para el dueño
+            // Feedback visual instantÃ¡neo para el dueÃ±o
             if (_combatAnimator != null)
                 _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
             if (_vfx != null)
@@ -241,7 +277,7 @@ namespace TDOM.Unity.Combat
             if (_feedback != null)
                 _feedback.OnGolpeConectado();
 
-            // Detección de impacto
+            // DetecciÃ³n de impacto
             if (_hitbox != null)
             {
                 var impactos = _hitbox.DetectarImpactos(_radioHitbox, _alcanceHitbox);
@@ -368,7 +404,7 @@ namespace TDOM.Unity.Combat
                 else
                 {
                     Debug.Log(
-                        $"[SERVER] Golpe melee validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño"
+                        $"[SERVER] Golpe melee validado contra {objetivoId} ({obj.name}): {evento.Damage} de daÃ±o"
                     );
                 }
             }
@@ -401,7 +437,7 @@ namespace TDOM.Unity.Combat
                 else
                 {
                     Debug.Log(
-                        $"[SERVER] Disparo validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño"
+                        $"[SERVER] Disparo validado contra {objetivoId} ({obj.name}): {evento.Damage} de daÃ±o"
                     );
                 }
             }

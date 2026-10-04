@@ -1,11 +1,13 @@
 ﻿using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Camera;
+using TDOM.Gameplay.Core;
 using TDOM.Gameplay.Locomotion;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Input;
 using TDOM.Unity.Locomotion;
+using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -38,6 +40,17 @@ namespace TDOM.Unity.Player
 
         private bool _ganchoActivoPrevio;
 
+        public NetworkVariable<float> Energia = new NetworkVariable<float>(
+            0,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+        private EnergyPool _energyPool;
+
+        [SerializeField]
+        private GameObject _hudEnergiaPrefab;
+        private GameObject _hudInstance;
+
         public bool AtaqueActivo => _combat != null && _combat.AtaqueActivo;
 
         public override void OnNetworkSpawn()
@@ -50,9 +63,37 @@ namespace TDOM.Unity.Player
             if (_grappleVisual == null)
                 _grappleVisual = GetComponentInChildren<GrappleVisual>();
 
+            if (IsServer && _definition != null && _definition.Energy != null)
+            {
+                _energyPool = new EnergyPool(
+                    _definition.Energy.Max,
+                    _definition.Energy.RegenPerSecond,
+                    _definition.Energy.DrainPerSecondDowned
+                );
+                Energia.Value = _energyPool.Current;
+            }
+
             if (IsOwner)
             {
                 _inputReader.ActivarPersonaje(GetCharacterId());
+
+                if (_hudEnergiaPrefab != null)
+                {
+                    _hudInstance = Instantiate(_hudEnergiaPrefab);
+                    var hudComp = _hudInstance.GetComponent<PlayerEnergyHud>();
+                    if (hudComp != null)
+                    {
+                        string etiqueta =
+                            GetCharacterId() == CharacterIds.Ayla ? "Stamina" : "Maná";
+                        hudComp.Initialize(
+                            this,
+                            etiqueta,
+                            _definition != null && _definition.Energy != null
+                                ? _definition.Energy.Max
+                                : 100f
+                        );
+                    }
+                }
             }
         }
 
@@ -80,15 +121,30 @@ namespace TDOM.Unity.Player
             return CharacterIds.None;
         }
 
+        public void ConsumirEnergiaEnServidor(float cantidad)
+        {
+            if (!IsServer || _energyPool == null)
+                return;
+            if (_energyPool.TryConsume(cantidad))
+            {
+                Energia.Value = _energyPool.Current;
+            }
+        }
+
         private void Update()
         {
+            if (IsServer && _energyPool != null)
+            {
+                _energyPool.Tick(Time.deltaTime, isDowned: false);
+                Energia.Value = _energyPool.Current;
+            }
+
             if (!IsOwner)
                 return;
 
             float dt = Time.deltaTime;
             var input = _inputReader.Read();
 
-            // Actualizar rotación POCO y aplicar a la cámara
             _look.Tick(input.Look, dt);
             transform.rotation = _look.YawRotation;
 
