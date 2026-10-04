@@ -173,7 +173,6 @@ namespace TDOM.Unity.Combat
                 );
             }
 
-            // Feedback visual instantáneo para el dueño
             if (_combatAnimator != null)
                 _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
             if (_vfx != null)
@@ -232,31 +231,29 @@ namespace TDOM.Unity.Combat
                 );
             }
 
-            // Feedback visual instantáneo para el dueño
             if (_combatAnimator != null)
                 _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
             if (_vfx != null)
                 _vfx.Golpe(evento.ComboIndex, cargado, evento.ChargeRatio);
             _debugFeedback?.FlashActive(0.1f);
-            if (_feedback != null)
-                _feedback.OnGolpeConectado();
-
-            // Detección de impacto
-            if (_hitbox != null)
+            bool huboImpacto = false;
+           if(_hitbox != null)
             {
                 var impactos = _hitbox.DetectarImpactos(_radioHitbox, _alcanceHitbox);
                 foreach (var imp in impactos)
                 {
                     if (imp.Objeto != null)
                     {
-                        NetworkBehaviourReference zoneRef =
-                            imp.Zona != null ? new NetworkBehaviourReference(imp.Zona) : default;
-
-                        ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, zoneRef);
+                        huboImpacto = true;
+                        NetworkBehaviourReference zoneRef = imp.Zona != null ? new NetworkBehaviourReference(imp.Zona) : default;
+                        ReproducirGolpeRpc(evento.ComboIndex, cargado, evento.ChargeRatio);
                     }
                 }
             }
-
+            if (huboImpacto && _feedback != null)
+            {
+                _feedback.OnGolpeConectado();
+            }
             ReproducirGolpeRpc(evento.ComboIndex, cargado, evento.ChargeRatio);
         }
 

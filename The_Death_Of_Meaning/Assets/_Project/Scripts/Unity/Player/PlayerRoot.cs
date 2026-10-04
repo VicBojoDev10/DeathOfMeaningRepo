@@ -1,5 +1,4 @@
-﻿using TDOM.Contracts;
-using TDOM.Data;
+﻿using TDOM.Data;
 using TDOM.Gameplay.Camera;
 using TDOM.Gameplay.Locomotion;
 using TDOM.Unity.Camera;
@@ -38,6 +37,8 @@ namespace TDOM.Unity.Player
 
         private bool _ganchoActivoPrevio;
 
+        private FeedbackDirector _feedback;
+        private CharacterIds _characterId = CharacterIds.None;
         public bool AtaqueActivo => _combat != null && _combat.AtaqueActivo;
 
         public override void OnNetworkSpawn()
@@ -52,7 +53,11 @@ namespace TDOM.Unity.Player
 
             if (IsOwner)
             {
+                _characterId = GetCharacterId();
                 _inputReader.ActivarPersonaje(GetCharacterId());
+
+                if(_camera != null)
+                    _feedback = _camera.GetComponent<FeedbackDirector>();
             }
         }
 
@@ -79,6 +84,28 @@ namespace TDOM.Unity.Player
             }
             return CharacterIds.None;
         }
+        private void DispararFeedbackDeLocomocion()
+        {
+            if (_feedback == null || _locomocion == null)
+                return;
+
+            if (_locomocion.DashIniciado)
+            {
+                switch (_characterId)
+                {
+                    case CharacterIds.Ayla:
+                        _feedback.OnDashAyla();
+                        break;
+                    case CharacterIds.Zendre:
+                        _feedback.OnEmbestidaZendre();
+                        break;
+                }
+            }
+            if (_locomocion.SaltoAereo)
+                _feedback.OnDobleSalto();
+            if (_locomocion.Aterrizaje)
+                _feedback.OnAterrizajeFuerte();    
+        }
 
         private void Update()
         {
@@ -88,7 +115,6 @@ namespace TDOM.Unity.Player
             float dt = Time.deltaTime;
             var input = _inputReader.Read();
 
-            // Actualizar rotación POCO y aplicar a la cámara
             _look.Tick(input.Look, dt);
             transform.rotation = _look.YawRotation;
 
@@ -137,6 +163,8 @@ namespace TDOM.Unity.Player
                 transform.position
             );
             _motor.Apply(intent, dt);
+
+            DispararFeedbackDeLocomocion();
 
             bool ganchoActivoActual = _locomocion != null && _locomocion.GanchoActivo;
             if (ganchoActivoActual != _ganchoActivoPrevio)
