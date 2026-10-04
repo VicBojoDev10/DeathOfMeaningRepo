@@ -56,7 +56,7 @@ namespace TDOM.Unity.Player
                 _characterId = GetCharacterId();
                 _inputReader.ActivarPersonaje(GetCharacterId());
 
-                if(_camera != null)
+                if (_camera != null)
                     _feedback = _camera.GetComponent<FeedbackDirector>();
             }
         }
@@ -84,6 +84,7 @@ namespace TDOM.Unity.Player
             }
             return CharacterIds.None;
         }
+
         private void DispararFeedbackDeLocomocion()
         {
             if (_feedback == null || _locomocion == null)
@@ -104,7 +105,7 @@ namespace TDOM.Unity.Player
             if (_locomocion.SaltoAereo)
                 _feedback.OnDobleSalto();
             if (_locomocion.Aterrizaje)
-                _feedback.OnAterrizajeFuerte();    
+                _feedback.OnAterrizajeFuerte();
         }
 
         private void Update()

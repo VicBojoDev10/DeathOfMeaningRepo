@@ -108,6 +108,7 @@ namespace TDOM.Gameplay.Locomotion
 
             return intent;
         }
+
         private MotionIntent TickInterno(
             InputSnapshot input,
             Quaternion yaw,
@@ -140,7 +141,7 @@ namespace TDOM.Gameplay.Locomotion
             if (!blockMove && input.DashPressed)
             {
                 Vector3 dir = DireccionDeDash(input, yaw);
-                if(_dash.TryIniciar(dir))
+                if (_dash.TryIniciar(dir))
                 {
                     DashIniciado = true;
                 }
@@ -165,7 +166,7 @@ namespace TDOM.Gameplay.Locomotion
                 }
                 int saltosAntes = State.JumpsUsed;
                 _jump.Tick(State, input, dt);
-                if(State.JumpsUsed > saltosAntes && State.JumpsUsed > 1)
+                if (State.JumpsUsed > saltosAntes && State.JumpsUsed > 1)
                     SaltoAereo = true;
                 _ground.Tick(State, input.Move, yaw, _run.Corriendo, dt);
             }

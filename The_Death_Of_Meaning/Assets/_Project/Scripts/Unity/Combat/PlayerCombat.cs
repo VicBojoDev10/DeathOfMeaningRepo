@@ -237,7 +237,7 @@ namespace TDOM.Unity.Combat
                 _vfx.Golpe(evento.ComboIndex, cargado, evento.ChargeRatio);
             _debugFeedback?.FlashActive(0.1f);
             bool huboImpacto = false;
-           if(_hitbox != null)
+            if (_hitbox != null)
             {
                 var impactos = _hitbox.DetectarImpactos(_radioHitbox, _alcanceHitbox);
                 foreach (var imp in impactos)
@@ -245,7 +245,8 @@ namespace TDOM.Unity.Combat
                     if (imp.Objeto != null)
                     {
                         huboImpacto = true;
-                        NetworkBehaviourReference zoneRef = imp.Zona != null ? new NetworkBehaviourReference(imp.Zona) : default;
+                        NetworkBehaviourReference zoneRef =
+                            imp.Zona != null ? new NetworkBehaviourReference(imp.Zona) : default;
                         ReproducirGolpeRpc(evento.ComboIndex, cargado, evento.ChargeRatio);
                     }
                 }

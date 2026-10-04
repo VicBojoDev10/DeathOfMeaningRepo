@@ -25,10 +25,12 @@ namespace TDOM.Unity.Camera
             if (_animatorAtacante != null)
                 _animatorAtacante = transform.root.GetComponentInChildren<Animator>();
         }
+
         private void OnDisable()
         {
             DetenerHitstop();
         }
+
         public void OnDashAyla()
         {
             _cameraRig.PunchFov(_config.dashFov, _config.dashFovDuracion);
@@ -61,6 +63,7 @@ namespace TDOM.Unity.Camera
         {
             _cameraRig.Impacto(-_config.aterrizajeImpulso);
         }
+
         private void IniciarHitstop(int frames)
         {
             if (_animatorAtacante == null || frames <= 0)
@@ -80,6 +83,7 @@ namespace TDOM.Unity.Camera
 
             RestaurarAnimator();
         }
+
         private void DetenerHitstop()
         {
             if (_hitstop != null)
@@ -89,6 +93,7 @@ namespace TDOM.Unity.Camera
             StopCoroutine(_hitstop);
             RestaurarAnimator();
         }
+
         private void RestaurarAnimator()
         {
             _hitstop = null;

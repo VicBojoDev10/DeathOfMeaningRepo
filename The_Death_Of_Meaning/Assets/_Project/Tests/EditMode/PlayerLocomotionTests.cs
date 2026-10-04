@@ -333,6 +333,7 @@ namespace TDOM.Tests.EditMode
             Assert.IsTrue(locomotion.IntentarGancho(Vector3.zero, new Vector3(0f, 0f, 10f)));
             Assert.IsTrue(locomotion.GanchoActivo);
         }
+
         private static PlayerLocomotion CrearLocomotion(int maxJumps = 1)
         {
             var gravity = new GravityModel(-9.81f, -20f, 1f);
@@ -375,7 +376,11 @@ namespace TDOM.Tests.EditMode
                 Quaternion.identity,
                 dt
             );
-            Assert.That(locomotion.State.Velocity.y, Is.GreaterThan(0f), "el primer salto debe ejecutarse");
+            Assert.That(
+                locomotion.State.Velocity.y,
+                Is.GreaterThan(0f),
+                "el primer salto debe ejecutarse"
+            );
             Assert.That(locomotion.SaltoAereo, Is.False);
 
             locomotion.State.IsGrounded = false;
@@ -446,7 +451,10 @@ namespace TDOM.Tests.EditMode
             locomotion.State.IsGrounded = true;
             locomotion.Tick(CreateInput(), Quaternion.identity, dt);
 
-            Assert.That(locomotion.State.Velocity.y, Is.GreaterThan(PlayerLocomotion.UmbralAterrizajeFuerte));
+            Assert.That(
+                locomotion.State.Velocity.y,
+                Is.GreaterThan(PlayerLocomotion.UmbralAterrizajeFuerte)
+            );
             Assert.That(locomotion.Aterrizaje, Is.False);
         }
 
