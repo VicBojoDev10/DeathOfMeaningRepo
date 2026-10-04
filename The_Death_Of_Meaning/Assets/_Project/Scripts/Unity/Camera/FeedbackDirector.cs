@@ -22,7 +22,7 @@ namespace TDOM.Unity.Camera
 
         private void Awake()
         {
-            if (_animatorAtacante != null)
+            if (_animatorAtacante == null)
                 _animatorAtacante = transform.root.GetComponentInChildren<Animator>();
         }
 
@@ -86,7 +86,7 @@ namespace TDOM.Unity.Camera
 
         private void DetenerHitstop()
         {
-            if (_hitstop != null)
+            if (_hitstop == null)
             {
                 return;
             }

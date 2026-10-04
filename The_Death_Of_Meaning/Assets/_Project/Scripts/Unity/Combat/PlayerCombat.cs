@@ -247,7 +247,7 @@ namespace TDOM.Unity.Combat
                         huboImpacto = true;
                         NetworkBehaviourReference zoneRef =
                             imp.Zona != null ? new NetworkBehaviourReference(imp.Zona) : default;
-                        ReproducirGolpeRpc(evento.ComboIndex, cargado, evento.ChargeRatio);
+                        ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, zoneRef);
                     }
                 }
             }
