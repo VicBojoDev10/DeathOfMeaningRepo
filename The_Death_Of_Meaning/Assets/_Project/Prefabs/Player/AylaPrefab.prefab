@@ -1285,7 +1285,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6680a93d235657441adf952c17c42af0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.ViewmodelRig
-  _placeholderNoUsar: 0
+  _estadoPendiente: "PENDIENTE DE IMPLEMENTACI\xD3N:\nAnimator de brazos en primera
+    persona y sway.\nNo forma parte del entregable de 3 semanas."
 --- !u!1 &2024113473113149840
 GameObject:
   m_ObjectHideFlags: 0
@@ -3454,7 +3455,6 @@ GameObject:
   - component: {fileID: 4929398780653911420}
   - component: {fileID: 4578863075892715349}
   - component: {fileID: 2928866286614663531}
-  - component: {fileID: 1799162822207381745}
   - component: {fileID: 7973672959331071818}
   - component: {fileID: 5695018075778593020}
   m_Layer: 0
@@ -3590,21 +3590,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.PlayerCameraRig
   _camara: {fileID: 4929398780653911420}
   _impulso: {fileID: 4578863075892715349}
---- !u!114 &1799162822207381745
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5373571598416247975}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 380ba4080d72a2c43aa87b207bc24ff0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.PlayerCameraActivator
-  ShowTopMostFoldoutHeaderGroup: 1
-  _camara: {fileID: 4929398780653911420}
-  _audioListener: {fileID: 5695018075778593020}
 --- !u!114 &7973672959331071818
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3925,6 +3910,7 @@ MonoBehaviour:
   _camera: {fileID: 2928866286614663531}
   _inputReader: {fileID: 4041130192931646182}
   _combat: {fileID: 1570498927451495665}
+  _grappleVisual: {fileID: 0}
   _sensitivity: 200
 --- !u!114 &1570498927451495665
 MonoBehaviour:
@@ -3944,6 +3930,14 @@ MonoBehaviour:
   _hitbox: {fileID: 3594862307857289856}
   _feedback: {fileID: 7973672959331071818}
   _debugFeedback: {fileID: 3296974097619359331}
+  _vfx: {fileID: 0}
+  _logCombo: 1
+  _radioHitbox: 1.5
+  _alcanceHitbox: 1
+  _proyectilPrefab: {fileID: 0}
+  _origenDisparo: {fileID: 0}
+  _rangoDisparo: 25
+  _radioDisparo: 0.5
 --- !u!114 &1083922204836215214
 MonoBehaviour:
   m_ObjectHideFlags: 0

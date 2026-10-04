@@ -2138,7 +2138,6 @@ GameObject:
   - component: {fileID: 6221807604304341340}
   - component: {fileID: 4795684310873769141}
   - component: {fileID: 5237556679702688460}
-  - component: {fileID: 5120127484379058857}
   - component: {fileID: 8316987065129218648}
   - component: {fileID: 1633311825597747879}
   m_Layer: 0
@@ -2301,21 +2300,6 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
---- !u!114 &5120127484379058857
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3887470374449938589}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 380ba4080d72a2c43aa87b207bc24ff0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.PlayerCameraActivator
-  ShowTopMostFoldoutHeaderGroup: 1
-  _camara: {fileID: 5295843562668345957}
-  _audioListener: {fileID: 1633311825597747879}
 --- !u!114 &8316987065129218648
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3691,7 +3675,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6680a93d235657441adf952c17c42af0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.ViewmodelRig
-  _placeholderNoUsar: 0
+  _estadoPendiente: "PENDIENTE DE IMPLEMENTACI\xD3N:\nAnimator de brazos en primera
+    persona y sway.\nNo forma parte del entregable de 3 semanas."
 --- !u!1 &5908916637788969451
 GameObject:
   m_ObjectHideFlags: 0
@@ -3955,6 +3940,7 @@ MonoBehaviour:
   _camera: {fileID: 4795684310873769141}
   _inputReader: {fileID: 2293757921341916988}
   _combat: {fileID: 589031726301522223}
+  _grappleVisual: {fileID: 0}
   _sensitivity: 200
 --- !u!114 &589031726301522223
 MonoBehaviour:
@@ -3974,6 +3960,14 @@ MonoBehaviour:
   _hitbox: {fileID: 3649608957365800554}
   _feedback: {fileID: 8316987065129218648}
   _debugFeedback: {fileID: 468859612894255862}
+  _vfx: {fileID: 0}
+  _logCombo: 1
+  _radioHitbox: 1.5
+  _alcanceHitbox: 1
+  _proyectilPrefab: {fileID: 0}
+  _origenDisparo: {fileID: 0}
+  _rangoDisparo: 25
+  _radioDisparo: 0.5
 --- !u!114 &1810640966045980871
 MonoBehaviour:
   m_ObjectHideFlags: 0
