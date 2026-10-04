@@ -192,5 +192,3 @@ namespace TDOM.Unity.Player
         }
     }
 }
-
-

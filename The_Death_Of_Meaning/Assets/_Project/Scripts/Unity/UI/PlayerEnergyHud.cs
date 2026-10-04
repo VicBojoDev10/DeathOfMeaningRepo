@@ -52,5 +52,3 @@ namespace TDOM.Unity.UI
         }
     }
 }
-
-

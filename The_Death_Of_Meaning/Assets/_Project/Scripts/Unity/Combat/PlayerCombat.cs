@@ -101,13 +101,14 @@ namespace TDOM.Unity.Combat
             }
         }
 
-        
         private bool PuedeConsumirEnergia(AttackEvent evento)
         {
-            if (evento.Kind != AttackKind.Charged || _definition?.Energy == null) 
+            if (evento.Kind != AttackKind.Charged || _definition?.Energy == null)
                 return true;
 
-            Debug.Log($"[CLIENT] Verificando energia. Current: {_root?.Energia.Value}, Required: {_definition.Energy.ChargedCost}");
+            Debug.Log(
+                $"[CLIENT] Verificando energia. Current: {_root?.Energia.Value}, Required: {_definition.Energy.ChargedCost}"
+            );
             if (_root != null && _root.Energia.Value < _definition.Energy.ChargedCost)
             {
                 Debug.Log("[Energia] sin energía para el cargado");
@@ -488,11 +489,3 @@ namespace TDOM.Unity.Combat
         }
     }
 }
-
-
-
-
-
-
-
-
