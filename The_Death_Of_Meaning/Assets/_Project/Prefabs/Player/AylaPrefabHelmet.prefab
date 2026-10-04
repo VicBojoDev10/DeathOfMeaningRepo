@@ -2139,7 +2139,6 @@ GameObject:
   - component: {fileID: 4795684310873769141}
   - component: {fileID: 5237556679702688460}
   - component: {fileID: 8316987065129218648}
-  - component: {fileID: 1633311825597747879}
   m_Layer: 0
   m_Name: CameraPivot
   m_TagString: Untagged
@@ -2314,14 +2313,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.FeedbackDirector
   _cameraRig: {fileID: 4795684310873769141}
   _config: {fileID: 11400000, guid: 25a57fc5bb1d144499fee1fa38be4539, type: 2}
---- !u!81 &1633311825597747879
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3887470374449938589}
-  m_Enabled: 1
 --- !u!1 &3899803692796723151
 GameObject:
   m_ObjectHideFlags: 0
