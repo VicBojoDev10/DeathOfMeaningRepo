@@ -256,6 +256,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlayerZendre
       objectReference: {fileID: 0}
+    - target: {fileID: 6165887026863076165, guid: 3b9fc55ebdbbc8b41a0369fe6fd45add, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2134040368
+      objectReference: {fileID: 0}
     - target: {fileID: 8082532671853994287, guid: 3b9fc55ebdbbc8b41a0369fe6fd45add, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.666661
@@ -666,6 +670,7 @@ GameObject:
   - component: {fileID: 1850033671}
   - component: {fileID: 1850033673}
   - component: {fileID: 1850033674}
+  - component: {fileID: 1850033675}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -733,7 +738,7 @@ Transform:
   m_GameObject: {fileID: 1850033669}
   serializedVersion: 2
   m_LocalRotation: {x: -0.03027851, y: 0.6870378, z: -0.022354309, w: -0.72564626}
-  m_LocalPosition: {x: 0.05699998, y: 6.3630004, z: 2.6965506}
+  m_LocalPosition: {x: -0.99466103, y: 6.3630004, z: 2.6965506}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -815,6 +820,14 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!81 &1850033675
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1850033669}
+  m_Enabled: 1
 --- !u!1 &6340916604649367
 GameObject:
   m_ObjectHideFlags: 0
@@ -34144,6 +34157,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: a35fa00656e00164a8d5eae421249773, type: 2}
+    - target: {fileID: 8357090641415134859, guid: 077a56197965ada46bbb0c6f276b36be, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 3652723415
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
