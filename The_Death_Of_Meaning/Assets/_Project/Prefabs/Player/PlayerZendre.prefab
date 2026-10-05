@@ -438,6 +438,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.PlayerCombatAnimator
   _animator: {fileID: 5236200153884079466}
+--- !u!114 &8086599341354008101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5125041952874771469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1c30e10ed89780bdf53afc2793e3785, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.AnchorLauncher
+  ShowTopMostFoldoutHeaderGroup: 1
+  _perfil: {fileID: 11400000, guid: a83c7bd99240bd4cc7f75fc106980b23, type: 2}
+  _input: {fileID: 4485191308997266209}
+  _root: {fileID: 6272158663871412553}
+  _origen: {fileID: 1217565209590083343}
+  _anclaPrefab: {fileID: 8192847192837461520, guid: 769db5fe59a949a179b292707c6f3375, type: 3}
 --- !u!1 &5152080394067024196
 GameObject:
   m_ObjectHideFlags: 0
@@ -834,21 +852,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13833322503ee3b4288be01b80524d04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.PlayerCameraRig
-
---- !u!114 &8086599341354008101
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5125041952874771469}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f1c30e10ed89780bdf53afc2793e3785, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.AnchorLauncher
-  _perfil: {fileID: 11400000, guid: a83c7bd99240bd4cc7f75fc106980b23, type: 2}
-  _input: {fileID: 4485191308997266209}
-  _root: {fileID: 6272158663871412553}
-  _origen: {fileID: 1217565209590083343}
-  _anclaPrefab: {fileID: 8192847192837461520, guid: 769db5fe59a949a179b292707c6f3375, type: 3}
