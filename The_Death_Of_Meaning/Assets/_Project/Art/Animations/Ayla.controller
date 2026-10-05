@@ -33,7 +33,7 @@ BlendTree:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Locomotion
+  m_Name: Locomocion
   m_Childs:
   - serializedVersion: 2
     m_Motion: {fileID: 7176209919637214875, guid: 67c8c08e45ad18e4cb1ed74bd0fcae4c, type: 3}
@@ -44,7 +44,7 @@ BlendTree:
     m_DirectBlendParameter: Speed
     m_Mirror: 0
   - serializedVersion: 2
-    m_Motion: {fileID: 7176209919637214875, guid: 8c09e6bc743e69249a2e16f4c072aaf5, type: 3}
+    m_Motion: {fileID: 7176209919637214875, guid: 303e965b582dcd340b7d701a4c6c0f35, type: 3}
     m_Threshold: 10
     m_Position: {x: 0, y: 0}
     m_TimeScale: 1
@@ -52,7 +52,7 @@ BlendTree:
     m_DirectBlendParameter: Speed
     m_Mirror: 0
   - serializedVersion: 2
-    m_Motion: {fileID: 7176209919637214875, guid: 303e965b582dcd340b7d701a4c6c0f35, type: 3}
+    m_Motion: {fileID: 7176209919637214875, guid: 8c09e6bc743e69249a2e16f4c072aaf5, type: 3}
     m_Threshold: 20
     m_Position: {x: 0, y: 0}
     m_TimeScale: 1
@@ -63,7 +63,7 @@ BlendTree:
   m_BlendParameterY: Speed
   m_MinThreshold: 0
   m_MaxThreshold: 20
-  m_UseAutomaticThresholds: 0
+  m_UseAutomaticThresholds: 1
   m_NormalizedBlendValues: 0
   m_BlendType: 0
 --- !u!1107 &-7855750387368193020
@@ -89,7 +89,7 @@ AnimatorStateMachine:
     m_Position: {x: 660, y: 90, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -577790349530333556}
-    m_Position: {x: 250, y: 170, z: 0}
+    m_Position: {x: 330, y: 160, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions: []
   m_EntryTransitions: []
@@ -237,7 +237,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Locomotion
+  m_Name: Locomocion
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
