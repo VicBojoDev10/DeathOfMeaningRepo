@@ -1,10 +1,12 @@
-﻿using TDOM.Data;
+using TDOM.Data;
 using TDOM.Gameplay.Camera;
+using TDOM.Gameplay.Core;
 using TDOM.Gameplay.Locomotion;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Input;
 using TDOM.Unity.Locomotion;
+using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -37,6 +39,16 @@ namespace TDOM.Unity.Player
 
         private bool _ganchoActivoPrevio;
 
+        public NetworkVariable<float> Energia = new NetworkVariable<float>(
+            0,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+        private EnergyPool _energyPool;
+
+        [SerializeField]
+        private GameObject _hudEnergiaPrefab;
+        private GameObject _hudInstance;
         private FeedbackDirector _feedback;
         private CharacterIds _characterId = CharacterIds.None;
         public bool AtaqueActivo => _combat != null && _combat.AtaqueActivo;
@@ -51,11 +63,36 @@ namespace TDOM.Unity.Player
             if (_grappleVisual == null)
                 _grappleVisual = GetComponentInChildren<GrappleVisual>();
 
+            if (IsServer && _definition != null && _definition.Energy != null)
+            {
+                _energyPool = new EnergyPool(
+                    _definition.Energy.Max,
+                    _definition.Energy.RegenPerSecond,
+                    _definition.Energy.DrainPerSecondDowned
+                );
+                Energia.Value = _energyPool.Current;
+            }
+
             if (IsOwner)
             {
                 _characterId = GetCharacterId();
                 _inputReader.ActivarPersonaje(GetCharacterId());
 
+                if (_hudEnergiaPrefab != null)
+                {
+                    _hudInstance = Instantiate(_hudEnergiaPrefab);
+                    var hudComp = _hudInstance.GetComponent<PlayerEnergyHud>();
+                    if (hudComp != null)
+                    {
+                        string etiqueta = _characterId switch
+                        {
+                            CharacterIds.Ayla => "Stamina",
+                            CharacterIds.Zendre => "Maná",
+                            _ => "Energy",
+                        };
+                        hudComp.Initialize(this, etiqueta, _definition?.Energy?.Max ?? 100f);
+                    }
+                }
                 if (_camera != null)
                     _feedback = _camera.GetComponent<FeedbackDirector>();
             }
@@ -63,26 +100,23 @@ namespace TDOM.Unity.Player
 
         private CharacterIds GetCharacterId()
         {
-            if (_definition != null)
-            {
-                if (
-                    string.Equals(
-                        _definition.DisplayName,
-                        "Zendre",
-                        System.StringComparison.OrdinalIgnoreCase
-                    )
-                )
-                    return CharacterIds.Zendre;
-                if (
-                    string.Equals(
-                        _definition.DisplayName,
-                        "Ayla",
-                        System.StringComparison.OrdinalIgnoreCase
-                    )
-                )
-                    return CharacterIds.Ayla;
-            }
+            if (_definition == null || string.IsNullOrEmpty(_definition.DisplayName))
+                return CharacterIds.None;
+            if (_definition.DisplayName.Equals("Ayla", System.StringComparison.OrdinalIgnoreCase))
+                return CharacterIds.Ayla;
+            if (_definition.DisplayName.Equals("Zendre", System.StringComparison.OrdinalIgnoreCase))
+                return CharacterIds.Zendre;
             return CharacterIds.None;
+        }
+
+        public void ConsumirEnergiaEnServidor(float cantidad)
+        {
+            if (!IsServer || _energyPool == null)
+                return;
+            if (_energyPool.TryConsume(cantidad))
+            {
+                Energia.Value = _energyPool.Current;
+            }
         }
 
         private void DispararFeedbackDeLocomocion()
@@ -110,6 +144,12 @@ namespace TDOM.Unity.Player
 
         private void Update()
         {
+            if (IsServer && _energyPool != null)
+            {
+                _energyPool.Tick(Time.deltaTime, isDowned: false);
+                Energia.Value = _energyPool.Current;
+            }
+
             if (!IsOwner)
                 return;
 

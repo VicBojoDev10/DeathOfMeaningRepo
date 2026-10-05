@@ -3,6 +3,7 @@ using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Camera;
+using TDOM.Unity.Player;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -64,8 +65,12 @@ namespace TDOM.Unity.Combat
         public bool AtaqueActivo =>
             (_melee?.BloqueaMovimiento ?? false) || (_disparo?.BloqueaMovimiento ?? false);
 
+        private PlayerRoot _root;
+
         public override void OnNetworkSpawn()
         {
+            _root = GetComponentInParent<PlayerRoot>();
+
             if (!IsOwner)
                 return;
 
@@ -89,6 +94,29 @@ namespace TDOM.Unity.Combat
                     _definition.Ranged.MaxChargeTime,
                     _definition.Ranged.BufferWindow
                 );
+            }
+        }
+
+        private bool PuedeConsumirEnergia(AttackEvent evento)
+        {
+            if (evento.Kind != AttackKind.Charged || _definition?.Energy == null)
+                return true;
+
+            if (_root == null || _root.Energia.Value < _definition.Energy.ChargedCost)
+            {
+                Debug.Log("[Energia] sin energía para el cargado");
+                return false;
+            }
+            ConsumirEnergiaRpc(_definition.Energy.ChargedCost);
+            return true;
+        }
+
+        [Rpc(SendTo.Server)]
+        private void ConsumirEnergiaRpc(float cantidad)
+        {
+            if (_root != null)
+            {
+                _root.ConsumirEnergiaEnServidor(cantidad);
             }
         }
 
@@ -163,6 +191,8 @@ namespace TDOM.Unity.Combat
         private void EjecutarDisparo(AttackEvent evento)
         {
             bool cargado = evento.Kind == AttackKind.Charged;
+            if (!PuedeConsumirEnergia(evento))
+                return;
 
             if (_logCombo)
             {
@@ -221,6 +251,8 @@ namespace TDOM.Unity.Combat
         private void EjecutarGolpe(AttackEvent evento)
         {
             bool cargado = evento.Kind == AttackKind.Charged;
+            if (!PuedeConsumirEnergia(evento))
+                return;
 
             if (_logCombo)
             {
