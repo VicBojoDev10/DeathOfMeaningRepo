@@ -1,3 +1,4 @@
+using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Camera;
 using TDOM.Gameplay.Core;
@@ -39,6 +40,16 @@ namespace TDOM.Unity.Player
 
         private bool _ganchoActivoPrevio;
 
+        public NetworkVariable<float> Energia = new NetworkVariable<float>(
+            0,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+        private EnergyPool _energyPool;
+
+        [SerializeField]
+        private GameObject _hudEnergiaPrefab;
+        private GameObject _hudInstance;
         private FeedbackDirector _feedback;
         private CharacterIds _characterId = CharacterIds.None;
         public bool AtaqueActivo => _combat != null && _combat.AtaqueActivo;
@@ -68,6 +79,21 @@ namespace TDOM.Unity.Player
                 _characterId = GetCharacterId();
                 _inputReader.ActivarPersonaje(GetCharacterId());
 
+                if (_hudEnergiaPrefab != null)
+                {
+                    _hudInstance = Instantiate(_hudEnergiaPrefab);
+                    var hudComp = _hudInstance.GetComponent<PlayerEnergyHud>();
+                    if (hudComp != null)
+                    {
+                        string etiqueta = _characterId switch
+                        {
+                            CharacterIds.Ayla => "Stamina",
+                            CharacterIds.Zendre => "Maná",
+                            _ => "Energy",
+                        };
+                        hudComp.Initialize(this, etiqueta, _definition?.Energy?.Max ?? 100f);
+                    }
+                }
                 if (_camera != null)
                     _feedback = _camera.GetComponent<FeedbackDirector>();
             }
