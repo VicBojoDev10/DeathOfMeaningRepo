@@ -206,6 +206,7 @@ namespace TDOM.Unity.Combat
                     $"[Combo][{NombrePersonaje}] disparo {evento.ComboIndex + 1}/{totalPasos} {evento.Kind} carga {evento.ChargeRatio:F2} daño {evento.Damage}"
                 );
             }
+
             if (_combatAnimator != null)
                 _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
             if (_vfx != null)
@@ -265,13 +266,13 @@ namespace TDOM.Unity.Combat
                     $"[Combo][{NombrePersonaje}] golpe {evento.ComboIndex + 1}/{totalPasos} {evento.Kind} carga {evento.ChargeRatio:F2} daño {evento.Damage}"
                 );
             }
+
             if (_combatAnimator != null)
                 _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
             if (_vfx != null)
                 _vfx.Golpe(evento.ComboIndex, cargado, evento.ChargeRatio);
             _debugFeedback?.FlashActive(0.1f);
-            if (_feedback != null)
-                _feedback.OnGolpeConectado();
+            bool huboImpacto = false;
             if (_hitbox != null)
             {
                 var impactos = _hitbox.DetectarImpactos(_radioHitbox, _alcanceHitbox);
@@ -279,14 +280,17 @@ namespace TDOM.Unity.Combat
                 {
                     if (imp.Objeto != null)
                     {
+                        huboImpacto = true;
                         NetworkBehaviourReference zoneRef =
                             imp.Zona != null ? new NetworkBehaviourReference(imp.Zona) : default;
-
                         ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, zoneRef);
                     }
                 }
             }
-
+            if (huboImpacto && _feedback != null)
+            {
+                _feedback.OnGolpeConectado();
+            }
             ReproducirGolpeRpc(evento.ComboIndex, cargado, evento.ChargeRatio);
         }
 

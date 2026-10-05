@@ -1,4 +1,3 @@
-using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Camera;
 using TDOM.Gameplay.Core;
@@ -40,17 +39,8 @@ namespace TDOM.Unity.Player
 
         private bool _ganchoActivoPrevio;
 
-        public NetworkVariable<float> Energia = new NetworkVariable<float>(
-            0,
-            NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Server
-        );
-        private EnergyPool _energyPool;
-
-        [SerializeField]
-        private GameObject _hudEnergiaPrefab;
-        private GameObject _hudInstance;
-
+        private FeedbackDirector _feedback;
+        private CharacterIds _characterId = CharacterIds.None;
         public bool AtaqueActivo => _combat != null && _combat.AtaqueActivo;
 
         public override void OnNetworkSpawn()
@@ -75,23 +65,11 @@ namespace TDOM.Unity.Player
 
             if (IsOwner)
             {
+                _characterId = GetCharacterId();
                 _inputReader.ActivarPersonaje(GetCharacterId());
 
-                if (_hudEnergiaPrefab != null)
-                {
-                    _hudInstance = Instantiate(_hudEnergiaPrefab);
-                    var hudComp = _hudInstance.GetComponent<PlayerEnergyHud>();
-                    if (hudComp != null)
-                    {
-                        string etiqueta = GetCharacterId() switch
-                        {
-                            CharacterIds.Ayla => "Stamina",
-                            CharacterIds.Zendre => "Maná",
-                            _ => "Energy",
-                        };
-                        hudComp.Initialize(this, etiqueta, _definition?.Energy?.Max ?? 100f);
-                    }
-                }
+                if (_camera != null)
+                    _feedback = _camera.GetComponent<FeedbackDirector>();
             }
         }
 
@@ -112,6 +90,29 @@ namespace TDOM.Unity.Player
             {
                 Energia.Value = _energyPool.Current;
             }
+        }
+
+        private void DispararFeedbackDeLocomocion()
+        {
+            if (_feedback == null || _locomocion == null)
+                return;
+
+            if (_locomocion.DashIniciado)
+            {
+                switch (_characterId)
+                {
+                    case CharacterIds.Ayla:
+                        _feedback.OnDashAyla();
+                        break;
+                    case CharacterIds.Zendre:
+                        _feedback.OnEmbestidaZendre();
+                        break;
+                }
+            }
+            if (_locomocion.SaltoAereo)
+                _feedback.OnDobleSalto();
+            if (_locomocion.Aterrizaje)
+                _feedback.OnAterrizajeFuerte();
         }
 
         private void Update()
@@ -176,6 +177,8 @@ namespace TDOM.Unity.Player
                 transform.position
             );
             _motor.Apply(intent, dt);
+
+            DispararFeedbackDeLocomocion();
 
             bool ganchoActivoActual = _locomocion != null && _locomocion.GanchoActivo;
             if (ganchoActivoActual != _ganchoActivoPrevio)
