@@ -70,14 +70,22 @@ namespace TDOM.Unity.Combat
 
                 float minDistance = float.MaxValue;
                 RaycastHit? closestValidHit = null;
+                bool tocandoInicialmente = false;
 
                 for (int i = 0; i < hitCount; i++)
                 {
                     var hit = _hitsBuffer[i];
-                    if (
-                        hit.distance < minDistance
-                        && hit.collider.GetComponentInParent<PlayerRoot>() == null
-                    )
+                    
+                    if (hit.collider.GetComponentInParent<PlayerRoot>() != null)
+                        continue;
+                        
+                    if (hit.distance <= 0f)
+                    {
+                        tocandoInicialmente = true;
+                        continue;
+                    }
+
+                    if (hit.distance < minDistance)
                     {
                         minDistance = hit.distance;
                         closestValidHit = hit;
@@ -87,6 +95,11 @@ namespace TDOM.Unity.Combat
                 if (closestValidHit.HasValue)
                 {
                     transform.position = closestValidHit.Value.point;
+                    Pegada.Value = true;
+                    _tiempoPegada = 0f;
+                }
+                else if (tocandoInicialmente)
+                {
                     Pegada.Value = true;
                     _tiempoPegada = 0f;
                 }
@@ -121,7 +134,7 @@ namespace TDOM.Unity.Combat
                     var root = duenoObj.GetComponent<PlayerRoot>();
                     Vector3 startPos =
                         root != null
-                            ? root.transform.position + Vector3.up * 1.2f
+                            ? root.transform.position + Vector3.up * 0.4f
                             : duenoObj.transform.position;
 
                     _lineRenderer.positionCount = 2;

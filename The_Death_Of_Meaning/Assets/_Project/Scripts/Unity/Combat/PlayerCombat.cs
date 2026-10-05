@@ -440,8 +440,13 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.Server)]
         private void DispararRpc(Vector3 origen, Vector3 dir, AttackEvent evento)
         {
-            if (Vector3.Distance(origen, transform.position) > 3f)
+            float limit = 6f;
+            float distance = Vector3.Distance(origen, transform.position);
+            if (distance > limit)
+            {
+                Debug.LogWarning($"[PlayerCombat] Disparo rechazado: distancia {distance:F2} > límite {limit:F2}. Zendre se movía demasiado rápido.");
                 return;
+            }
 
             Quaternion rotacion =
                 dir != Vector3.zero ? Quaternion.LookRotation(dir) : transform.rotation;
