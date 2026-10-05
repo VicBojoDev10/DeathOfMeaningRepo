@@ -110,7 +110,8 @@ namespace TDOM.Unity
             // Raíz cuadrada para repartir los puntos parejo por el área, y nunca debajo del jefe.
             float distancia = Mathf.Lerp(_radioArea, _radioArena, Mathf.Sqrt(Random.value));
 
-            Vector3 punto = transform.position + Quaternion.Euler(0f, angulo, 0f) * adelante * distancia;
+            Vector3 punto =
+                transform.position + Quaternion.Euler(0f, angulo, 0f) * adelante * distancia;
             punto.y = AlturaDelPiso(punto);
             return punto;
         }

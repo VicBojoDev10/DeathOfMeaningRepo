@@ -63,7 +63,11 @@ namespace TDOM.Unity
                 return;
             }
 
-            GameObject go = Instantiate(_prefabAtaqueTentaculo, transform.position, transform.rotation);
+            GameObject go = Instantiate(
+                _prefabAtaqueTentaculo,
+                transform.position,
+                transform.rotation
+            );
             var no = go.GetComponent<NetworkObject>();
             if (no != null)
             {
