@@ -13,6 +13,9 @@ namespace TDOM.Unity
         [SerializeField]
         private Transform _puntoOrigenMano;
 
+        [SerializeField]
+        private GameObject _prefabAtaqueTentaculo;
+
         public void Lanzar(BossAttackKind tipo)
         {
             if (!IsServer)
@@ -21,6 +24,10 @@ namespace TDOM.Unity
             if (tipo == BossAttackKind.Basico)
             {
                 LanzarAtaqueMano();
+            }
+            else if (tipo == BossAttackKind.Pesado)
+            {
+                LanzarAtaqueTentaculo();
             }
         }
 
@@ -44,6 +51,26 @@ namespace TDOM.Unity
             }
         }
 
+        // Se spawnea en la posición y rotación del jefe; AtaqueTentaculo elige el punto aleatorio
+        // frente a él al spawnear.
+        private void LanzarAtaqueTentaculo()
+        {
+            if (_prefabAtaqueTentaculo == null)
+            {
+                Debug.LogError(
+                    "[AtaquesArek] _prefabAtaqueTentaculo no está asignado en el Inspector."
+                );
+                return;
+            }
+
+            GameObject go = Instantiate(_prefabAtaqueTentaculo, transform.position, transform.rotation);
+            var no = go.GetComponent<NetworkObject>();
+            if (no != null)
+            {
+                no.Spawn();
+            }
+        }
+
         private void OnGUI()
         {
             // Solo visible para el host (servidor con cliente local) y cuando está spawneado
@@ -52,13 +79,17 @@ namespace TDOM.Unity
 
             // Ubicado en la esquina superior derecha para no solapar el debug UI de la izquierda
             GUILayout.BeginArea(
-                new Rect(Screen.width - 180, 20, 160, 80),
+                new Rect(Screen.width - 180, 20, 160, 125),
                 "Boss Attacks Host",
                 GUI.skin.window
             );
             if (GUILayout.Button("Lanzar Mano", GUILayout.Height(35)))
             {
                 Lanzar(BossAttackKind.Basico);
+            }
+            if (GUILayout.Button("Lanzar Tentáculo", GUILayout.Height(35)))
+            {
+                Lanzar(BossAttackKind.Pesado);
             }
             GUILayout.EndArea();
         }
