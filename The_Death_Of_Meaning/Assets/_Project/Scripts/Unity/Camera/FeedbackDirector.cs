@@ -1,6 +1,5 @@
 using System.Collections;
 using TDOM.Data;
-using TDOM.Unity;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.DualShock;
@@ -14,6 +13,23 @@ namespace TDOM.Unity.Camera
 
         [SerializeField]
         private CameraFeedbackConfig _config;
+
+        [SerializeField]
+        private Animator _animatorAtacante;
+
+        private Coroutine _hitstop;
+        private float _velocidadAnimatorBase = 1f;
+
+        private void Awake()
+        {
+            if (_animatorAtacante == null)
+                _animatorAtacante = transform.root.GetComponentInChildren<Animator>();
+        }
+
+        private void OnDisable()
+        {
+            DetenerHitstop();
+        }
 
         public void OnDashAyla()
         {
@@ -40,7 +56,7 @@ namespace TDOM.Unity.Camera
         public void OnGolpeConectado()
         {
             _cameraRig.Impacto(_config.golpeImpulso);
-            StartCoroutine(Hitstop(_config.golpeHitstopFrames));
+            IniciarHitstop(_config.golpeHitstopFrames);
         }
 
         public void OnAterrizajeFuerte()
@@ -48,15 +64,41 @@ namespace TDOM.Unity.Camera
             _cameraRig.Impacto(-_config.aterrizajeImpulso);
         }
 
+        private void IniciarHitstop(int frames)
+        {
+            if (_animatorAtacante == null || frames <= 0)
+                return;
+
+            if (_hitstop != null)
+                StopCoroutine(_hitstop);
+            else
+                _velocidadAnimatorBase = _animatorAtacante.speed;
+            _hitstop = StartCoroutine(Hitstop(frames));
+        }
+
         private IEnumerator Hitstop(int frames)
         {
-            float escalaOriginal = Time.timeScale;
-            Time.timeScale = 0f;
+            _animatorAtacante.speed = 0f;
+            yield return new WaitForSecondsRealtime(frames * Time.fixedUnscaledDeltaTime);
 
-            for (int i = 0; i < frames; i++)
-                yield return new WaitForSecondsRealtime(Time.fixedUnscaledDeltaTime);
+            RestaurarAnimator();
+        }
 
-            Time.timeScale = escalaOriginal;
+        private void DetenerHitstop()
+        {
+            if (_hitstop == null)
+            {
+                return;
+            }
+            StopCoroutine(_hitstop);
+            RestaurarAnimator();
+        }
+
+        private void RestaurarAnimator()
+        {
+            _hitstop = null;
+            if (_animatorAtacante != null)
+                _animatorAtacante.speed = _velocidadAnimatorBase;
         }
 
         public void Rumble(float bajo, float alto, float duracion)
