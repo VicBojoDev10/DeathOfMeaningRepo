@@ -1,4 +1,3 @@
-using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Camera;
 using TDOM.Gameplay.Core;
@@ -103,9 +102,11 @@ namespace TDOM.Unity.Player
         {
             if (_definition == null || string.IsNullOrEmpty(_definition.DisplayName))
                 return CharacterIds.None;
-            return System.Enum.TryParse(_definition.DisplayName, true, out CharacterIds id)
-                ? id
-                : CharacterIds.None;
+            if (_definition.DisplayName == "Ayla")
+                return CharacterIds.Ayla;
+            if (_definition.DisplayName == "Zendre")
+                return CharacterIds.Zendre;
+            return CharacterIds.None;
         }
 
         public void ConsumirEnergiaEnServidor(float cantidad)

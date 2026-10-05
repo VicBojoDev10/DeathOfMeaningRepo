@@ -42,7 +42,6 @@ namespace TDOM.Unity.UI
 
         private void UpdateFill(float currentEnergy)
         {
-            Debug.Log($"[HUD] UpdateFill: {currentEnergy} / {_maxEnergy}");
             if (FillImage != null && _maxEnergy > 0)
             {
                 float pct = currentEnergy / _maxEnergy;
