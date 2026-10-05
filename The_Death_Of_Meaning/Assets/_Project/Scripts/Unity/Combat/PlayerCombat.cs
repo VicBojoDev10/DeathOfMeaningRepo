@@ -70,10 +70,6 @@ namespace TDOM.Unity.Combat
         public override void OnNetworkSpawn()
         {
             _root = GetComponentInParent<PlayerRoot>();
-            if (_root == null)
-            {
-                _root = GetComponent<PlayerRoot>();
-            }
 
             if (!IsOwner)
                 return;

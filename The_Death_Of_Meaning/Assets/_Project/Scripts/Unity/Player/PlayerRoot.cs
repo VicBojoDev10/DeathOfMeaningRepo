@@ -102,9 +102,9 @@ namespace TDOM.Unity.Player
         {
             if (_definition == null || string.IsNullOrEmpty(_definition.DisplayName))
                 return CharacterIds.None;
-            if (_definition.DisplayName == "Ayla")
+            if (_definition.DisplayName.Equals("Ayla", System.StringComparison.OrdinalIgnoreCase))
                 return CharacterIds.Ayla;
-            if (_definition.DisplayName == "Zendre")
+            if (_definition.DisplayName.Equals("Zendre", System.StringComparison.OrdinalIgnoreCase))
                 return CharacterIds.Zendre;
             return CharacterIds.None;
         }
