@@ -444,7 +444,9 @@ namespace TDOM.Unity.Combat
             float distance = Vector3.Distance(origen, transform.position);
             if (distance > limit)
             {
-                Debug.LogWarning($"[PlayerCombat] Disparo rechazado: distancia {distance:F2} > límite {limit:F2}. Zendre se movía demasiado rápido.");
+                Debug.LogWarning(
+                    $"[PlayerCombat] Disparo rechazado: distancia {distance:F2} > límite {limit:F2}. Zendre se movía demasiado rápido."
+                );
                 return;
             }
 

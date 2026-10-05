@@ -52,12 +52,15 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.Server)]
         private void LanzarAnclaRpc(Vector3 origen, Vector3 dir)
         {
-            float limit = _perfil != null && _perfil.ToleranciaOrigen > 0f ? _perfil.ToleranciaOrigen : 6f;
+            float limit =
+                _perfil != null && _perfil.ToleranciaOrigen > 0f ? _perfil.ToleranciaOrigen : 6f;
             float distance = Vector3.Distance(origen, transform.position);
-            
+
             if (distance > limit)
             {
-                Debug.LogWarning($"[AnchorLauncher] Lanzamiento rechazado: distancia {distance:F2} > límite {limit:F2}. Zendre se movía demasiado rápido.");
+                Debug.LogWarning(
+                    $"[AnchorLauncher] Lanzamiento rechazado: distancia {distance:F2} > límite {limit:F2}. Zendre se movía demasiado rápido."
+                );
                 RechazarLanzamientoRpc();
                 return;
             }

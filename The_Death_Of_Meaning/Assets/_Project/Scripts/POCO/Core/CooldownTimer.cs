@@ -15,7 +15,7 @@ namespace TDOM.Gameplay.Core
         public void Tick(float dt) => _restante -= dt;
 
         public void Disparar() => _restante = _duracion;
-        
+
         public void Resetear() => _restante = 0f;
     }
 }

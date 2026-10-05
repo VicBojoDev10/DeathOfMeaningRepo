@@ -75,10 +75,10 @@ namespace TDOM.Unity.Combat
                 for (int i = 0; i < hitCount; i++)
                 {
                     var hit = _hitsBuffer[i];
-                    
+
                     if (hit.collider.GetComponentInParent<PlayerRoot>() != null)
                         continue;
-                        
+
                     if (hit.distance <= 0f)
                     {
                         tocandoInicialmente = true;
