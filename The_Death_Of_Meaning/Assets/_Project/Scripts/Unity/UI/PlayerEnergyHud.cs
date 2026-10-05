@@ -47,7 +47,6 @@ namespace TDOM.Unity.UI
             {
                 float pct = currentEnergy / _maxEnergy;
                 FillImage.fillAmount = pct;
-                FillImage.rectTransform.anchorMax = new Vector2(pct, 1f);
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿using TDOM.Contracts;
+using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Camera;
 using TDOM.Gameplay.Core;
