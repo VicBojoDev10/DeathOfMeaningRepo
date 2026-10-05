@@ -15,6 +15,14 @@ namespace TDOM.Gameplay.Locomotion
 
         public LocomotionState State { get; } = new();
 
+        public const float UmbralAterrizajeFuerte = -12f;
+        public bool DashIniciado { get; private set; }
+        public bool SaltoAereo { get; private set; }
+        public bool Aterrizaje { get; private set; }
+
+        private bool _groundedPrevio = true;
+        private float _velYPrevia;
+
         public bool GanchoActivo => _grapple != null && _grapple.Activo;
         public Vector3 PuntoGancho => _grapple != null ? _grapple.Punto : Vector3.zero;
 
@@ -84,6 +92,31 @@ namespace TDOM.Gameplay.Locomotion
             Vector3 posicion = default
         )
         {
+            DashIniciado = false;
+            SaltoAereo = false;
+            Aterrizaje = false;
+
+            if (State.IsGrounded && !_groundedPrevio && _velYPrevia < UmbralAterrizajeFuerte)
+            {
+                Aterrizaje = true;
+            }
+
+            var intent = TickInterno(input, yaw, dt, blockMove, posicion);
+
+            _groundedPrevio = State.IsGrounded;
+            _velYPrevia = State.Velocity.y;
+
+            return intent;
+        }
+
+        private MotionIntent TickInterno(
+            InputSnapshot input,
+            Quaternion yaw,
+            float dt,
+            bool blockMove,
+            Vector3 posicion
+        )
+        {
             _run.Tick(input);
 
             if (_grapple != null && _grapple.Activo)
@@ -91,7 +124,6 @@ namespace TDOM.Gameplay.Locomotion
                 if (input.JumpPressed)
                 {
                     _grapple.Cancelar();
-                    // Se llama a Tick justo después de cancelar para que el cooldown avance en este frame
                     _grapple.Tick(State, posicion, dt);
                 }
                 else
@@ -109,7 +141,10 @@ namespace TDOM.Gameplay.Locomotion
             if (!blockMove && input.DashPressed)
             {
                 Vector3 dir = DireccionDeDash(input, yaw);
-                _dash.TryIniciar(dir);
+                if (_dash.TryIniciar(dir))
+                {
+                    DashIniciado = true;
+                }
             }
 
             Vector3 direccionDeseada = yaw * new Vector3(input.Move.x, 0f, input.Move.y);
@@ -129,7 +164,10 @@ namespace TDOM.Gameplay.Locomotion
                         ? LocomotionPhase.Grounded
                         : LocomotionPhase.Airborne;
                 }
+                int saltosAntes = State.JumpsUsed;
                 _jump.Tick(State, input, dt);
+                if (State.JumpsUsed > saltosAntes && State.JumpsUsed > 1)
+                    SaltoAereo = true;
                 _ground.Tick(State, input.Move, yaw, _run.Corriendo, dt);
             }
             else
