@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: f19b9f2756cd74048a8d911e6a54ea1c
+guid: 837e70755914be5438b88c1db9c47b74
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
@@ -7,33 +7,28 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: CaraZendre
-    second: {fileID: 2100000, guid: 58d760562537c974e95412397646c51a, type: 2}
+      name: MAterialCabelloAyla
+    second: {fileID: 2100000, guid: 3ad2d2eff1058834bba3cf5ba768a791, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: MaterialCendreCabello
-    second: {fileID: -876546973899608171, guid: 80048147302eddb4c81c72bc35ed43a9, type: 3}
+      name: MaterialCaraAyla
+    second: {fileID: 2100000, guid: 426370b4f3cb77447b46e34b6c035dd8, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: MaterialCuerpo_Zendre
-    second: {fileID: 2100000, guid: 0835cfe1edaa43b4ea415de8adb3adeb, type: 2}
+      name: MaterialCascoEspada
+    second: {fileID: 2100000, guid: 60731e2d41540894da32036ee8d2f672, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MaterialCuerpoAyla
+    second: {fileID: 2100000, guid: ea63be2d1c1066444a92dd09b6586ee4, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MaterialOjoBocaAyla
-    second: {fileID: 2100000, guid: d8955983994f55b48be7b13ee59ef5c2, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: MaterialOjoBocaAyla.001
-    second: {fileID: 2100000, guid: d8955983994f55b48be7b13ee59ef5c2, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: ZendreModoTanque
-    second: {fileID: 2100000, guid: ae9cebf1364361d45a7a81e1795eb8e6, type: 2}
+    second: {fileID: 2100000, guid: 8300d1b97f164c64ba43dacad33f0acb, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -66,7 +61,7 @@ ModelImporter:
       takeName: Action
       internalID: 7176209919637214875
       firstFrame: 0
-      lastFrame: 60
+      lastFrame: 36
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -91,11 +86,11 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: ZendreRigg|Action
-      takeName: ZendreRigg|Action
-      internalID: 8860301551848580695
+      name: RiggAyla|Action
+      takeName: RiggAyla|Action
+      internalID: -1139443521579822167
       firstFrame: 0
-      lastFrame: 60
+      lastFrame: 36
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -120,11 +115,40 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: ZendreRigg|rigAction
-      takeName: ZendreRigg|rigAction
-      internalID: 1440321595853945430
+      name: RiggAyla|Action.001
+      takeName: RiggAyla|Action.001
+      internalID: -3832387610677550894
       firstFrame: 0
-      lastFrame: 61
+      lastFrame: 83
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: RiggAyla|rigAction
+      takeName: RiggAyla|rigAction
+      internalID: -8797277532666122768
+      firstFrame: 0
+      lastFrame: 158
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -217,7 +241,7 @@ ModelImporter:
     hasTranslationDoF: 0
     hasExtraRoot: 0
     skeletonHasParents: 1
-  lastHumanDescriptionAvatarSource: {fileID: 9000000, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
+  lastHumanDescriptionAvatarSource: {fileID: 9000000, guid: dd231410cc4883d46a86af96ca12ccf3, type: 3}
   autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 2
   humanoidOversampling: 1

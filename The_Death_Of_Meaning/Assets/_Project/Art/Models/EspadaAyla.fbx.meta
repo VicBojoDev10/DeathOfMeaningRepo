@@ -1,9 +1,14 @@
 fileFormatVersion: 2
-guid: 4c7c2dc58578f5e4f8fb04521fe38a8a
+guid: 37219bc8d012be148b8c8545aea22f34
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MaterialCascoEspada
+    second: {fileID: 2100000, guid: 60731e2d41540894da32036ee8d2f672, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 0f6fe10521a22b44293e27b3d3efee94
+guid: dd231410cc4883d46a86af96ca12ccf3
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
@@ -8,7 +8,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MAterialCabelloAyla
-    second: {fileID: -876546973899608171, guid: 2ba3f7f3fa57db948a3524e818797a69, type: 3}
+    second: {fileID: 2100000, guid: 3ad2d2eff1058834bba3cf5ba768a791, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -18,14 +18,14 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MaterialCuerpoAyla
-    second: {fileID: 2100000, guid: 7717dbcb1392f204cb922fab3795a0f4, type: 2}
+    second: {fileID: 2100000, guid: ea63be2d1c1066444a92dd09b6586ee4, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MaterialOjoBocaAyla
     second: {fileID: 2100000, guid: 8300d1b97f164c64ba43dacad33f0acb, type: 2}
   materials:
-    materialImportMode: 1
+    materialImportMode: 2
     materialName: 0
     materialSearch: 1
     materialLocation: 1
@@ -116,7 +116,7 @@ ModelImporter:
     legStretch: 0.05
     feetSpacing: 0
     globalScale: 1
-    rootMotionBoneName: 
+    rootMotionBoneName: root
     hasTranslationDoF: 0
     hasExtraRoot: 0
     skeletonHasParents: 1
@@ -124,7 +124,7 @@ ModelImporter:
   autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 2
   humanoidOversampling: 1
-  avatarSetup: 0
+  avatarSetup: 1
   addHumanoidExtraRootOnlyWhenUsingAvatar: 1
   importBlendShapeDeformPercent: 1
   remapMaterialsIfMaterialImportModeIsNone: 0
