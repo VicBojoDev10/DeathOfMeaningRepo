@@ -7,11 +7,14 @@ namespace TDOM.Unity
     public class PlayerLocomotionAnimator : NetworkBehaviour
     {
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
+        private static readonly int SprintHash = Animator.StringToHash("Sprint");
+        private float _rawSpeed;
         private const float DampTime = 0.1f;
 
         [SerializeField]
         private Animator _animator;
         private Vector3 _ultimaPos;
+
 
         public override void OnNetworkSpawn()
         {
@@ -35,9 +38,19 @@ namespace TDOM.Unity
             Vector3 pos = transform.position;
             Vector3 v = (pos - _ultimaPos) / dt;
             v.y = 0f;
+            _rawSpeed = v.magnitude;
 
             _animator.SetFloat(SpeedHash, v.magnitude, DampTime, dt);
             _ultimaPos = pos;
         }
+        public void NotifySprintPressed()
+        {
+            if(!IsOwner || _rawSpeed < 0.1f) return;
+
+            _animator.SetTrigger(SprintHash);
+            SprintRpc();
+        }
+        [Rpc(SendTo.NotOwner)]
+        private void SprintRpc() => _animator.SetTrigger(SprintHash);
     }
 }
