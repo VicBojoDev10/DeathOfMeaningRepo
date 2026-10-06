@@ -9,7 +9,7 @@ namespace TDOM.Unity.Combat
 {
     public sealed class AnchorLauncher : NetworkBehaviour
     {
-        private const float MAX_RPC_DISTANCE = 3f;
+        public bool AnclaActiva { get; internal set; }
 
         [SerializeField]
         private AnchorProfile _perfil;
@@ -44,9 +44,16 @@ namespace TDOM.Unity.Combat
 
             var input = _input.Read();
 
-            if (input.AimHeld && input.GrapplePressed && !_root.AtaqueActivo && _cooldown.Listo)
+            if (
+                input.AimHeld
+                && input.GrapplePressed
+                && !_root.AtaqueActivo
+                && _cooldown.Listo
+                && !AnclaActiva
+            )
             {
                 _cooldown.Disparar();
+                AnclaActiva = true;
                 LanzarAnclaRpc(_origen.position, _origen.forward);
             }
         }
@@ -54,8 +61,18 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.Server)]
         private void LanzarAnclaRpc(Vector3 origen, Vector3 dir)
         {
-            if (Vector3.Distance(origen, transform.position) > MAX_RPC_DISTANCE)
+            float limit =
+                _perfil != null && _perfil.ToleranciaOrigen > 0f ? _perfil.ToleranciaOrigen : 6f;
+            float distance = Vector3.Distance(origen, transform.position);
+
+            if (distance > limit)
+            {
+                Debug.LogWarning(
+                    $"[AnchorLauncher] Lanzamiento rechazado: distancia {distance:F2} > límite {limit:F2}. Zendre se movía demasiado rápido."
+                );
+                RechazarLanzamientoRpc();
                 return;
+            }
 
             var go = Instantiate(_anclaPrefab, origen, Quaternion.identity);
             var ancla = go.GetComponent<Ancla>();
@@ -68,6 +85,16 @@ namespace TDOM.Unity.Combat
             var netObj = go.GetComponent<NetworkObject>();
             if (netObj != null)
                 netObj.Spawn();
+        }
+
+        [Rpc(SendTo.Owner)]
+        private void RechazarLanzamientoRpc()
+        {
+            if (_cooldown != null)
+            {
+                _cooldown.Resetear();
+                AnclaActiva = false;
+            }
         }
     }
 }

@@ -442,7 +442,6 @@ namespace TDOM.Unity.Combat
         {
             if (Vector3.Distance(origen, transform.position) > 3f)
                 return;
-
             Quaternion rotacion =
                 dir != Vector3.zero ? Quaternion.LookRotation(dir) : transform.rotation;
             GameObject go = Instantiate(_proyectilPrefab, origen, rotacion);
