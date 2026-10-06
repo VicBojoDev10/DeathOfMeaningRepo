@@ -9,5 +9,6 @@ namespace TDOM.Data
         public float TravelSpeed;
         public float StuckDuration;
         public float Cooldown;
+        public float ToleranciaOrigen = 6f;
     }
 }

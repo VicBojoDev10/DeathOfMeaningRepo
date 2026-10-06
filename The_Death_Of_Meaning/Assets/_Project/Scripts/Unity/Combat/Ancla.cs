@@ -70,14 +70,22 @@ namespace TDOM.Unity.Combat
 
                 float minDistance = float.MaxValue;
                 RaycastHit? closestValidHit = null;
+                bool tocandoInicialmente = false;
 
                 for (int i = 0; i < hitCount; i++)
                 {
                     var hit = _hitsBuffer[i];
-                    if (
-                        hit.distance < minDistance
-                        && hit.collider.GetComponentInParent<PlayerRoot>() == null
-                    )
+
+                    if (hit.collider.GetComponentInParent<PlayerRoot>() != null)
+                        continue;
+
+                    if (hit.distance <= 0f)
+                    {
+                        tocandoInicialmente = true;
+                        continue;
+                    }
+
+                    if (hit.distance < minDistance)
                     {
                         minDistance = hit.distance;
                         closestValidHit = hit;
@@ -90,6 +98,11 @@ namespace TDOM.Unity.Combat
                     Pegada.Value = true;
                     _tiempoPegada = 0f;
                 }
+                else if (tocandoInicialmente)
+                {
+                    Pegada.Value = true;
+                    _tiempoPegada = 0f;
+                }
                 else
                 {
                     transform.position += _direccion * step;
@@ -99,6 +112,26 @@ namespace TDOM.Unity.Combat
                     {
                         if (NetworkObject.IsSpawned)
                             NetworkObject.Despawn();
+                    }
+                }
+            }
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.SpawnManager != null)
+            {
+                if (
+                    NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
+                        _duenoId.Value,
+                        out var duenoObj
+                    )
+                )
+                {
+                    var launcher = duenoObj.GetComponentInChildren<AnchorLauncher>();
+                    if (launcher != null)
+                    {
+                        launcher.AnclaActiva = false;
                     }
                 }
             }
@@ -121,7 +154,7 @@ namespace TDOM.Unity.Combat
                     var root = duenoObj.GetComponent<PlayerRoot>();
                     Vector3 startPos =
                         root != null
-                            ? root.transform.position + Vector3.up * 1.2f
+                            ? root.transform.position + Vector3.up * 0.4f
                             : duenoObj.transform.position;
 
                     _lineRenderer.positionCount = 2;
