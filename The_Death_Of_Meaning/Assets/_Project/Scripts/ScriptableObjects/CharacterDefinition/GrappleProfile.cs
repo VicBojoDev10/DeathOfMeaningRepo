@@ -7,5 +7,8 @@ namespace TDOM.Data
     {
         public float Range;
         public float PullSpeed;
+        public float Cooldown;
+        public float ArrivalDistance;
+        public float MaxDuration;
     }
 }

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace TDOM.Gameplay.Camera
 {
@@ -13,11 +13,17 @@ namespace TDOM.Gameplay.Camera
 
         public Quaternion YawRotation => Quaternion.Euler(0f, Yaw, 0f);
 
-        public LookResolver(float sensibilidad, float pitchMin = -85f, float pitchMax = 85f)
+        public LookResolver(
+            float sensibilidad,
+            float pitchMin = -85f,
+            float pitchMax = 85f,
+            float yawInicial = 0f
+        )
         {
             _sensibilidad = sensibilidad;
             _pitchMin = pitchMin;
             _pitchMax = pitchMax;
+            Yaw = yawInicial;
         }
 
         public void Tick(Vector2 look, float dt)

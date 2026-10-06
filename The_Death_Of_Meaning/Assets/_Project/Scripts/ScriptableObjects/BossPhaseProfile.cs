@@ -7,7 +7,9 @@ namespace TDOM.POCO.ScriptableObjects
     public class BossPhaseProfile : ScriptableObject
     {
         public int Fase;
-        public BossAttackKind[] OrdenDeAtaque;
+
+        [SerializeField]
+        public BossAttackStep[] OrdenDeAtaque;
 
         [Range(0f, 1f)]
         public float VidaTransicion; // Ejemplo: 0.8f para 80%

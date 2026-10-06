@@ -19,8 +19,7 @@ namespace TDOM.Unity
         [SerializeField]
         private bool hideOnStart = true;
 
-        [SerializeField]
-        private float duration = 1f;
+        private float duration = 0f;
 
         [SerializeField]
         private Ease easeIn = Ease.InBack;
