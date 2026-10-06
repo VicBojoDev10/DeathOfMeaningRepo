@@ -9,6 +9,8 @@ namespace TDOM.Unity.Combat
 {
     public sealed class AnchorLauncher : NetworkBehaviour
     {
+        public bool AnclaActiva { get; internal set; }
+
         [SerializeField]
         private AnchorProfile _perfil;
 
@@ -42,9 +44,10 @@ namespace TDOM.Unity.Combat
 
             var input = _input.Read();
 
-            if (input.AimHeld && input.GrapplePressed && !_root.AtaqueActivo && _cooldown.Listo)
+            if (input.AimHeld && input.GrapplePressed && !_root.AtaqueActivo && _cooldown.Listo && !AnclaActiva)
             {
                 _cooldown.Disparar();
+                AnclaActiva = true;
                 LanzarAnclaRpc(_origen.position, _origen.forward);
             }
         }
@@ -84,6 +87,7 @@ namespace TDOM.Unity.Combat
             if (_cooldown != null)
             {
                 _cooldown.Resetear();
+                AnclaActiva = false;
             }
         }
     }
