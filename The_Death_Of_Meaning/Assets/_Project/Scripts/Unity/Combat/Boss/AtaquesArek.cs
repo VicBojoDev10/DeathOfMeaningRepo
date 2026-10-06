@@ -16,6 +16,9 @@ namespace TDOM.Unity
         [SerializeField]
         private GameObject _prefabAtaqueTentaculo;
 
+        [SerializeField]
+        private GameObject _prefabAtaqueRayo;
+
         public void Lanzar(BossAttackKind tipo)
         {
             if (!IsServer)
