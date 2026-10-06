@@ -30,7 +30,6 @@ namespace TDOM.Unity.Player
 
         private AnchorLauncher _anchorLauncher;
 
-        
         private PlayerCombat _combat;
 
         [SerializeField]
