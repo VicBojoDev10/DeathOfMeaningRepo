@@ -44,7 +44,13 @@ namespace TDOM.Unity.Combat
 
             var input = _input.Read();
 
-            if (input.AimHeld && input.GrapplePressed && !_root.AtaqueActivo && _cooldown.Listo && !AnclaActiva)
+            if (
+                input.AimHeld
+                && input.GrapplePressed
+                && !_root.AtaqueActivo
+                && _cooldown.Listo
+                && !AnclaActiva
+            )
             {
                 _cooldown.Disparar();
                 AnclaActiva = true;

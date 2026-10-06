@@ -52,7 +52,9 @@ namespace TDOM.Unity.Player
         private GameObject _hudInstance;
         private FeedbackDirector _feedback;
         private CharacterIds _characterId = CharacterIds.None;
-        public bool AtaqueActivo => (_combat != null && _combat.AtaqueActivo) || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
+        public bool AtaqueActivo =>
+            (_combat != null && _combat.AtaqueActivo)
+            || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
 
         public override void OnNetworkSpawn()
         {

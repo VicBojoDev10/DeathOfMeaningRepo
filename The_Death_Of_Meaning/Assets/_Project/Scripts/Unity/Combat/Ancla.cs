@@ -121,7 +121,12 @@ namespace TDOM.Unity.Combat
         {
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.SpawnManager != null)
             {
-                if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(_duenoId.Value, out var duenoObj))
+                if (
+                    NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
+                        _duenoId.Value,
+                        out var duenoObj
+                    )
+                )
                 {
                     var launcher = duenoObj.GetComponentInChildren<AnchorLauncher>();
                     if (launcher != null)
