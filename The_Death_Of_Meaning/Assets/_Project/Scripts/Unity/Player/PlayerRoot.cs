@@ -28,8 +28,9 @@ namespace TDOM.Unity.Player
         [SerializeField]
         private PlayerInputReader _inputReader;
 
-        [SerializeField]
         private AnchorLauncher _anchorLauncher;
+
+        [SerializeField]
         private PlayerCombat _combat;
 
         [SerializeField]
