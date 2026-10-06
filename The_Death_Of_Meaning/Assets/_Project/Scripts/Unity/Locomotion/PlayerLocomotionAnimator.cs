@@ -15,7 +15,6 @@ namespace TDOM.Unity
         private Animator _animator;
         private Vector3 _ultimaPos;
 
-
         public override void OnNetworkSpawn()
         {
             _ultimaPos = transform.position;
@@ -43,13 +42,16 @@ namespace TDOM.Unity
             _animator.SetFloat(SpeedHash, v.magnitude, DampTime, dt);
             _ultimaPos = pos;
         }
+
         public void NotifySprintPressed()
         {
-            if(!IsOwner || _rawSpeed < 0.1f) return;
+            if (!IsOwner || _rawSpeed < 0.1f)
+                return;
 
             _animator.SetTrigger(SprintHash);
             SprintRpc();
         }
+
         [Rpc(SendTo.NotOwner)]
         private void SprintRpc() => _animator.SetTrigger(SprintHash);
     }
