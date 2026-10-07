@@ -260,7 +260,6 @@ MonoBehaviour:
   _motor: {fileID: 1330538883063362301}
   _camera: {fileID: 6394526385662522574}
   _inputReader: {fileID: 76253369680155383}
-  _combat: {fileID: 4980952421584352872}
   _grappleVisual: {fileID: 8501239841203941202}
   _sensitivity: 200
   Energia:
@@ -682,6 +681,10 @@ PrefabInstance:
     - target: {fileID: 2294028743705186128, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
       propertyPath: m_Name
       value: VisualRoot
+      objectReference: {fileID: 0}
+    - target: {fileID: 2294028743705186128, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7211782858631420564, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
       propertyPath: m_LocalPosition.x
