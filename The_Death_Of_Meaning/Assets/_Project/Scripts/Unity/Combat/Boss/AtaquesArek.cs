@@ -95,9 +95,11 @@ namespace TDOM.Unity
 
             GameObject go = Instantiate(_prefabAtaqueRayo, transform.position, transform.rotation);
 
+            Transform boca = _bocaRayo != null ? _bocaRayo : transform.Find("Boca");
+
             var rayo = go.GetComponent<AtaqueRayo>();
-            if (rayo != null && _bocaRayo != null)
-                rayo.AsignarBoca(_bocaRayo);
+            if (rayo != null && boca != null)
+                rayo.AsignarBoca(boca);
 
             var no = go.GetComponent<NetworkObject>();
             if (no != null)
