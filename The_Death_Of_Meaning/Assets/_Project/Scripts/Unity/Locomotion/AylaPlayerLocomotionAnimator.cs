@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace TDOM.Unity
 {
-    public class PlayerLocomotionAnimator : NetworkBehaviour
+    public class AylaPlayerLocomotionAnimator : NetworkBehaviour
     {
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
         private static readonly int SprintHash = Animator.StringToHash("Sprint");
