@@ -110,7 +110,6 @@ namespace TDOM.Unity
             int cantidad = Mathf.Max(1, _lineas);
             float paso = _aberturaGrados / cantidad;
             float desfase = Random.Range(-paso * 0.5f, paso * 0.5f);
-            float pisoY = BuscarPiso(origen + adelante * 5f, transform.position.y);
 
             var finales = new Vector3[cantidad];
             for (int i = 0; i < cantidad; i++)
@@ -118,7 +117,7 @@ namespace TDOM.Unity
                 float angulo = -_aberturaGrados * 0.5f + paso * (i + 0.5f) + desfase;
                 Vector3 direccion = Quaternion.Euler(0f, angulo, 0f) * adelante;
                 Vector3 final = origen + direccion * _largo;
-                final.y = pisoY;
+                final.y = BuscarPiso(final, transform.position.y);
                 finales[i] = final;
             }
 
