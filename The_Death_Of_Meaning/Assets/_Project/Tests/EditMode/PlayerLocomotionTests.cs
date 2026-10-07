@@ -458,6 +458,31 @@ namespace TDOM.Tests.EditMode
             Assert.That(locomotion.Aterrizaje, Is.False);
         }
 
+        [Test]
+        [TestCase(1f / 60f)]
+        [TestCase(1f / 30f)]
+        public void frena_en_menos_de_cero_punto_quince_segundos_con_friccion_80(float dt)
+        {
+            var ground = new GroundControlResolver(10f, 20f, 60f, 80f, 2.5f);
+            var state = new LocomotionState
+            {
+                IsGrounded = true,
+                Velocity = new Vector3(10f, 0f, 0f),
+            };
+
+            float elapsed = 0f;
+            int limit = 100;
+
+            while (state.Velocity.sqrMagnitude > 0.001f && limit-- > 0)
+            {
+                ground.Tick(state, Vector2.zero, Quaternion.identity, false, dt);
+                elapsed += dt;
+            }
+
+            Assert.That(elapsed, Is.LessThanOrEqualTo(0.15f + dt));
+            Assert.That(state.Velocity.sqrMagnitude, Is.LessThan(0.001f));
+        }
+
         private static DashProfile CrearDashProfile(float distance, float duration)
         {
             var profile = ScriptableObject.CreateInstance<DashProfile>();
