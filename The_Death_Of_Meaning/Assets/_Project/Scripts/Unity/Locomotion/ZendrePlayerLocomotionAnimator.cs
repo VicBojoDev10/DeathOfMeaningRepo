@@ -1,23 +1,27 @@
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Rendering;
-using Unity.Netcode;
 
 namespace TDOM.Unity
 {
     public class ZendrePlayerLocomotionAnimator : NetworkBehaviour
     {
         private static readonly int RunHash = Animator.StringToHash("run");
+
         [Header("Referencias")]
         [SerializeField]
         private Animator _animator;
         private static readonly int WalkHash = Animator.StringToHash("walk");
+
         [Header("Umbrales de Velocidad (m/s)")]
         [SerializeField]
         private float _walkThreshold = 0.5f;
+
         [SerializeField]
         private float _runThreshold = 8.5f;
         private Vector3 _ultimaPos;
         private float _rawSpeed;
+
         public override void OnNetworkSpawn()
         {
             _ultimaPos = transform.position;
