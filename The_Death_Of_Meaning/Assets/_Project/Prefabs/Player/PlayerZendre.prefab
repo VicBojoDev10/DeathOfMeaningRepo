@@ -69,6 +69,7 @@ GameObject:
   - component: {fileID: 1936378743045420831}
   - component: {fileID: 4753092728623070081}
   - component: {fileID: 8086599341354008101}
+  - component: {fileID: 1537443789259067397}
   m_Layer: 0
   m_Name: PlayerZendre
   m_TagString: Untagged
@@ -130,7 +131,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 126803822
+  GlobalObjectIdHash: 3941894389
   InScenePlacedSourceGlobalObjectIdHash: 3093320301
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -323,6 +324,19 @@ MonoBehaviour:
   _root: {fileID: 6272158663871412553}
   _origen: {fileID: 1217565209590083343}
   _anclaPrefab: {fileID: 8192847192837461520, guid: 769db5fe59a949a179b292707c6f3375, type: 3}
+--- !u!114 &1537443789259067397
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5125041952874771469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 513da3d066ce5b045842228a643900ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.ZendrePlayerLocomotionAnimator
+  _animator: {fileID: 3310299557817736656}
 --- !u!1 &5152080394067024196
 GameObject:
   m_ObjectHideFlags: 0
@@ -492,21 +506,41 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6709377691196727562}
     m_Modifications:
+    - target: {fileID: 1127990116355230326, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1127990116355230326, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1127990116355230326, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1127990116355230326, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1127990116355230326, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2178800891133331861, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
       propertyPath: m_Name
       value: CombatVfx (1)
       objectReference: {fileID: 0}
     - target: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.70016
-      objectReference: {fileID: 0}
-    - target: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
-      propertyPath: m_LocalPosition.y
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.464
+      objectReference: {fileID: 0}
+    - target: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 1.51109
+      value: 0.111
       objectReference: {fileID: 0}
     - target: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
       propertyPath: m_LocalRotation.w
