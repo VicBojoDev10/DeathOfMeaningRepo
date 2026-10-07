@@ -1,3 +1,4 @@
+using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Camera;
 using TDOM.Gameplay.Core;
@@ -59,6 +60,7 @@ namespace TDOM.Unity.Player
         public override void OnNetworkSpawn()
         {
             _anchorLauncher = GetComponentInChildren<AnchorLauncher>();
+            _combat = GetComponentInChildren<PlayerCombat>();
             _look = new LookResolver(_sensitivity, yawInicial: transform.eulerAngles.y);
             _locomocion = new PlayerLocomotion(_definition);
             _camera.gameObject.SetActive(IsOwner);
@@ -207,6 +209,15 @@ namespace TDOM.Unity.Player
                 AtaqueActivo,
                 transform.position
             );
+            if (
+                _anchorLauncher != null
+                && _anchorLauncher.AnclaActiva
+                && _anchorLauncher.AnclaActual != null
+                && _anchorLauncher.AnclaActual.Pegada.Value
+            )
+            {
+                intent = new MotionIntent(Vector3.zero, ignoreGravity: true);
+            }
             _motor.Apply(intent, dt);
 
             DispararFeedbackDeLocomocion();

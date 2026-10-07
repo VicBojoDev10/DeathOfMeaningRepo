@@ -30,6 +30,7 @@ namespace TDOM.Tests.EditMode
                 false,
                 false,
                 false,
+                false,
                 false
             );
         }

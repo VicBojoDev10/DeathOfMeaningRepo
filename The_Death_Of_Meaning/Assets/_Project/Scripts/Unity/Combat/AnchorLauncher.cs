@@ -26,7 +26,21 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private GameObject _anclaPrefab;
 
+        [SerializeField]
+        private float _tiempoMaximoColgado = 5f;
+
+        private float _tiempoColgado;
+        private bool _esperandoSoltar;
+
         private CooldownTimer _cooldown;
+        private NetworkObject _anclaSpawnada;
+
+        public Ancla AnclaActual { get; private set; }
+
+        public void RegistrarAncla(Ancla ancla)
+        {
+            AnclaActual = ancla;
+        }
 
         public override void OnNetworkSpawn()
         {
@@ -43,18 +57,43 @@ namespace TDOM.Unity.Combat
             _cooldown.Tick(dt);
 
             var input = _input.Read();
+            bool holdingL2R1 = input.AimHeld && input.GrappleHeld;
 
             if (
-                input.AimHeld
-                && input.GrapplePressed
+                holdingL2R1
                 && !_root.AtaqueActivo
                 && _cooldown.Listo
                 && !AnclaActiva
+                && !_esperandoSoltar
             )
             {
                 _cooldown.Disparar();
                 AnclaActiva = true;
+                _tiempoColgado = 0f;
                 LanzarAnclaRpc(_origen.position, _origen.forward);
+            }
+            else if (AnclaActiva && holdingL2R1)
+            {
+                if (AnclaActual != null && AnclaActual.Pegada.Value)
+                {
+                    _tiempoColgado += dt;
+                    if (_tiempoColgado >= _tiempoMaximoColgado)
+                    {
+                        AnclaActiva = false;
+                        _esperandoSoltar = true;
+                        SoltarAnclaRpc();
+                    }
+                }
+            }
+            else if (AnclaActiva && !holdingL2R1)
+            {
+                AnclaActiva = false;
+                SoltarAnclaRpc();
+            }
+
+            if (!holdingL2R1)
+            {
+                _esperandoSoltar = false;
             }
         }
 
@@ -84,7 +123,20 @@ namespace TDOM.Unity.Combat
 
             var netObj = go.GetComponent<NetworkObject>();
             if (netObj != null)
+            {
                 netObj.Spawn();
+                _anclaSpawnada = netObj;
+            }
+        }
+
+        [Rpc(SendTo.Server)]
+        private void SoltarAnclaRpc()
+        {
+            if (_anclaSpawnada != null && _anclaSpawnada.IsSpawned)
+            {
+                _anclaSpawnada.Despawn();
+                _anclaSpawnada = null;
+            }
         }
 
         [Rpc(SendTo.Owner)]
