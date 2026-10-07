@@ -19,6 +19,9 @@ namespace TDOM.Unity
         [SerializeField]
         private GameObject _prefabAtaqueRayo;
 
+        [SerializeField]
+        private Transform _bocaRayo;
+
         public void Lanzar(BossAttackKind tipo)
         {
             if (!IsServer)
@@ -31,6 +34,10 @@ namespace TDOM.Unity
             else if (tipo == BossAttackKind.Pesado)
             {
                 LanzarAtaqueTentaculo();
+            }
+            else if (tipo == BossAttackKind.Especial)
+            {
+                LanzarAtaqueRayo();
             }
         }
 
@@ -78,6 +85,25 @@ namespace TDOM.Unity
             }
         }
 
+        private void LanzarAtaqueRayo()
+        {
+            if (_prefabAtaqueRayo == null)
+            {
+                Debug.LogError("[AtaquesArek] _prefabAtaqueRayo no está asignado en el Inspector.");
+                return;
+            }
+
+            GameObject go = Instantiate(_prefabAtaqueRayo, transform.position, transform.rotation);
+
+            var rayo = go.GetComponent<AtaqueRayo>();
+            if (rayo != null && _bocaRayo != null)
+                rayo.AsignarBoca(_bocaRayo);
+
+            var no = go.GetComponent<NetworkObject>();
+            if (no != null)
+                no.Spawn();
+        }
+
         private void OnGUI()
         {
             // Solo visible para el host (servidor con cliente local) y cuando está spawneado
@@ -86,7 +112,7 @@ namespace TDOM.Unity
 
             // Ubicado en la esquina superior derecha para no solapar el debug UI de la izquierda
             GUILayout.BeginArea(
-                new Rect(Screen.width - 180, 20, 160, 125),
+                new Rect(Screen.width - 180, 20, 160, 170),
                 "Boss Attacks Host",
                 GUI.skin.window
             );
@@ -97,6 +123,10 @@ namespace TDOM.Unity
             if (GUILayout.Button("Lanzar Tentáculo", GUILayout.Height(35)))
             {
                 Lanzar(BossAttackKind.Pesado);
+            }
+            if (GUILayout.Button("Lanzar Rayo", GUILayout.Height(35)))
+            {
+                Lanzar(BossAttackKind.Especial);
             }
             GUILayout.EndArea();
         }

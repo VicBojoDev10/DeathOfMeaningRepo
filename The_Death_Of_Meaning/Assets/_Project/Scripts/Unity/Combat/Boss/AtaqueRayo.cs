@@ -86,7 +86,9 @@ namespace TDOM.Unity
                 return;
 
             _origenServidor =
-                _boca != null ? _boca.position : transform.position + Vector3.up * _alturaBocaPorDefecto;
+                _boca != null
+                    ? _boca.position
+                    : transform.position + Vector3.up * _alturaBocaPorDefecto;
             _finalesServidor = CalcularFinales(_origenServidor);
             _fase = FaseRayo.Aviso;
             _tiempoEnFase = 0f;
