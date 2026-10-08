@@ -46,6 +46,10 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private float _duracionTelegraph = 1.25f;
 
+        // TW-96: lanzador de los ataques reales; si queda vacío se toma del mismo objeto.
+        [SerializeField]
+        private AtaquesArek _ataques;
+
         // Solo existe en el servidor. Decide cuándo avisar (Telegraph) y cuándo golpear (Impacto).
         private BossAttackScheduler _scheduler;
 
@@ -88,6 +92,10 @@ namespace TDOM.Unity.Combat
                 _duracionTelegraph
             );
             _indiceEnFase = 0;
+
+            // TW-96
+            if (_ataques == null)
+                _ataques = GetComponent<AtaquesArek>();
 
             if (_hitZones == null)
                 return;
@@ -169,6 +177,9 @@ namespace TDOM.Unity.Combat
             {
                 case EventoAtaque.Telegraph:
                     TelegraphAtaqueRpc(ataque);
+                    // TW-96: el ataque se lanza en el Telegraph; cada prefab trae su propio aviso.
+                    if (_ataques != null)
+                        _ataques.Lanzar(ataque);
                     break;
                 case EventoAtaque.Impacto:
                     ImpactoAtaqueRpc(ataque);
@@ -181,14 +192,12 @@ namespace TDOM.Unity.Combat
         public void TelegraphAtaqueRpc(BossAttackKind ataque)
         {
             Debug.Log($"[BossController][RPC Telegraph] Aviso de ataque: {ataque}");
-            // Aquí irá la animación/VFX del aviso (fuera de alcance de TW-79).
         }
 
         [Rpc(SendTo.ClientsAndHost)]
         public void ImpactoAtaqueRpc(BossAttackKind ataque)
         {
             Debug.Log($"[BossController][RPC Impacto] Golpe: {ataque}");
-            // Aquí irán la geometría/colliders del ataque y el daño (tickets separados).
         }
 
         public void CambiarFase(int nuevaFase)

@@ -47,6 +47,7 @@ Transform:
   - {fileID: 2000000000000091}
   - {fileID: 2000000000000101}
   - {fileID: 2000000000000111}
+  - {fileID: 4697298118952322085}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &1000000000000002
@@ -211,6 +212,8 @@ MonoBehaviour:
   _prefabAtaqueMano: {fileID: 5381868843865432001, guid: 5a1ce6f4bf029484fb8a0e9ce3d79d18, type: 3}
   _puntoOrigenMano: {fileID: 0}
   _prefabAtaqueTentaculo: {fileID: 5721917524803759468, guid: 24ded71b584282e4487e876d73deaaec, type: 3}
+  _prefabAtaqueRayo: {fileID: 6513317133961753232, guid: 062bca06b2013cb4d847514abc135328, type: 3}
+  _bocaRayo: {fileID: 4697298118952322085}
 --- !u!1 &2000000000000000
 GameObject:
   m_ObjectHideFlags: 0
@@ -1807,3 +1810,34 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
+--- !u!1 &5748332768805258594
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4697298118952322085}
+  m_Layer: 0
+  m_Name: Boca
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4697298118952322085
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5748332768805258594}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.125, z: 0.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1000000000000001}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
