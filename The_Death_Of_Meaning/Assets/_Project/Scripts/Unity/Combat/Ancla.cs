@@ -23,6 +23,26 @@ namespace TDOM.Unity.Combat
 
         private readonly RaycastHit[] _hitsBuffer = new RaycastHit[16];
 
+        public override void OnNetworkSpawn()
+        {
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.SpawnManager != null)
+            {
+                if (
+                    NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
+                        _duenoId.Value,
+                        out var duenoObj
+                    )
+                )
+                {
+                    var launcher = duenoObj.GetComponentInChildren<AnchorLauncher>();
+                    if (launcher != null)
+                    {
+                        launcher.RegistrarAncla(this);
+                    }
+                }
+            }
+        }
+
         public void Inicializar(Vector3 dir, AnchorProfile perfil, ulong duenoId)
         {
             _direccion = dir.normalized;
@@ -48,11 +68,6 @@ namespace TDOM.Unity.Combat
             if (Pegada.Value)
             {
                 _tiempoPegada += dt;
-                if (_tiempoPegada >= _perfil.StuckDuration)
-                {
-                    if (NetworkObject.IsSpawned)
-                        NetworkObject.Despawn();
-                }
             }
             else
             {
