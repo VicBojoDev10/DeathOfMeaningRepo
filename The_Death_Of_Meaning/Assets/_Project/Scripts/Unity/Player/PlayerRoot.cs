@@ -57,6 +57,15 @@ namespace TDOM.Unity.Player
             (_combat != null && _combat.AtaqueActivo)
             || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
 
+        public CharacterIds CharacterId => _characterId;
+        public Transform CameraTransform => _camera != null ? _camera.transform : null;
+        public PlayerInputReader InputReader => _inputReader;
+        public float GrappleRange => _definition?.Grapple != null ? _definition.Grapple.Range : 30f;
+        public float AnchorRange =>
+            _anchorLauncher != null && _anchorLauncher.Perfil != null
+                ? _anchorLauncher.Perfil.Range
+                : 20f;
+
         public override void OnNetworkSpawn()
         {
             _anchorLauncher = GetComponentInChildren<AnchorLauncher>();
@@ -83,7 +92,6 @@ namespace TDOM.Unity.Player
             {
                 _characterId = GetCharacterId();
                 _inputReader.ActivarPersonaje(GetCharacterId());
-
                 if (_hudEnergiaPrefab != null)
                 {
                     _hudInstance = Instantiate(_hudEnergiaPrefab);
@@ -148,6 +156,15 @@ namespace TDOM.Unity.Player
                 _feedback.OnAterrizajeFuerte();
         }
 
+        public override void OnNetworkDespawn()
+        {
+            if (_hudInstance != null)
+            {
+                Destroy(_hudInstance);
+                _hudInstance = null;
+            }
+        }
+
         private void Update()
         {
             if (IsServer && _energyPool != null)
@@ -166,7 +183,11 @@ namespace TDOM.Unity.Player
             transform.rotation = _look.YawRotation;
 
             if (_camera != null)
+            {
                 _camera.ApplyLook(_look.Yaw, _look.Pitch);
+                _camera.SetZoom(input.AimHeld);
+                _camera.UpdateZoom(dt);
+            }
 
             _motor.ProbeGround(_locomocion.State);
 

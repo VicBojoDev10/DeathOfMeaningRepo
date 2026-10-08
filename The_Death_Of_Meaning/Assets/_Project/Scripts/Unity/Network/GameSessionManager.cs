@@ -172,6 +172,7 @@ namespace TDOM.Unity
         {
             OnPartidaIniciada?.Invoke();
             UiManager.Instance.CloseWindow(WindowsIds.ChSelectionUI);
+            UiManager.Instance.ShowWindow(WindowsIds.GamePlayUI);
         }
     }
 }

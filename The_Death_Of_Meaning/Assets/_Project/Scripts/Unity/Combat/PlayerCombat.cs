@@ -71,6 +71,9 @@ namespace TDOM.Unity.Combat
         {
             _root = GetComponentInParent<PlayerRoot>();
 
+            if (_vfx == null)
+                Debug.LogWarning($"[PlayerCombat] _vfx no asignado en {name}");
+
             if (!IsOwner)
                 return;
 
