@@ -1479,10 +1479,11 @@ MonoBehaviour:
   _controlsButton: {fileID: 6214338335426997859}
   _volumeButton: {fileID: 5629706477063405785}
   _creditsButton: {fileID: 7419124543025773885}
-  _backFromOptionsButton: {fileID: 6968052589485670162}
-  _backToOptionsButtons: []
-  _mixer: {fileID: 0}
-  _volumeChannels: []
+  _optionsBackButton: {fileID: 6968052589485670162}
+  _volumeBackButton: {fileID: 2563011224688061683}
+  _controlsBackButton: {fileID: 112420912731692948}
+  _creditsBackButton: {fileID: 5233172209540981298}
+  _volumeSliders: []
   _multiplayerSceneName: NetworkSetup
 --- !u!1 &2500798100658629601
 GameObject:

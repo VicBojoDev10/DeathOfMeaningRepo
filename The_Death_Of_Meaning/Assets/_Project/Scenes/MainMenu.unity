@@ -426,7 +426,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2134237554}
-  - component: {fileID: 2134237553}
+  - component: {fileID: 2134237555}
   m_Layer: 0
   m_Name: UIManager
   m_TagString: Untagged
@@ -434,21 +434,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2134237553
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2134237552}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 586d8fe96bee8514e9c18d91da821212, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.UiManager
-  dontDestroyOnLoad: 1
-  windows:
-  - {fileID: 8966708820150393817}
 --- !u!4 &2134237554
 Transform:
   m_ObjectHideFlags: 0
@@ -465,6 +450,20 @@ Transform:
   - {fileID: 8966708820150393818}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2134237555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2134237552}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c4ca5ebb7cceb04bacc0681cbed9846, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UIManagerMenu
+  _mainMenu: {fileID: 8966708820150393817}
+  _mainMenuPrefab: {fileID: 8966708820150393817}
 --- !u!1001 &8966708820150393816
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -1,9 +1,12 @@
 using System;
 using System.Collections;
+using TDOM.Unity.Audio;
+using TDOM.Unity.Input;
 using UnityEngine;
-using UnityEngine.Audio;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.InputSystem.Utilities;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
@@ -15,14 +18,14 @@ namespace TDOM.Unity
     {
         [Header("Paneles")]
         [SerializeField] private GameObject _splashPanel;
-        [SerializeField] private GameObject _mainPanel; 
-        [SerializeField] private GameObject _optionsPanel;         
-        [SerializeField] private GameObject _volumePanel; 
-        [SerializeField] private GameObject _controlsPanel; 
-        [SerializeField] private GameObject _creditsPanel; 
+        [SerializeField] private GameObject _mainPanel;
+        [SerializeField] private GameObject _optionsPanel;
+        [SerializeField] private GameObject _volumePanel;
+        [SerializeField] private GameObject _controlsPanel;
+        [SerializeField] private GameObject _creditsPanel;
 
         [Header("Splash")]
-        [Tooltip("0 = solo avanza con input")]
+        [Tooltip("0 = solo avanza al presionar cualquier botón")]
         [SerializeField] private float _splashAutoAdvanceSeconds = 0f;
 
         [Header("Menú principal")]
@@ -35,25 +38,30 @@ namespace TDOM.Unity
         [SerializeField] private Button _controlsButton;
         [SerializeField] private Button _volumeButton;
         [SerializeField] private Button _creditsButton;
-        [SerializeField] private Button _backFromOptionsButton;
-        [SerializeField] private Button[] _backToOptionsButtons;
+        [SerializeField] private Button _optionsBackButton;
 
-        [Header("Volumen")]
-        [SerializeField] private AudioMixer _mixer;
-        [SerializeField] private VolumeChannel[] _volumeChannels;
+        [Header("Botones Regresar (-> Ajustes)")]
+        [SerializeField] private Button _volumeBackButton;
+        [SerializeField] private Button _controlsBackButton;
+        [SerializeField] private Button _creditsBackButton;
+
+        [Header("Volumen (el mixer vive en AudioManager)")]
+        [FormerlySerializedAs("_volumeChannels")]
+        [SerializeField] private VolumeSlider[] _volumeSliders;
 
         [Header("Escenas")]
         [SerializeField] private string _multiplayerSceneName = "Multiplayer";
 
         [Serializable]
-        private class VolumeChannel
+        private class VolumeSlider
         {
+            public AudioChannel channel;
             public Slider slider;
-            public string mixerParam;
         }
 
         private GameObject[] _panels;
         private IDisposable _anyButtonSub;
+        private PlayerInputActions _uiActions;
 
         public override void Initialize()
         {
@@ -68,30 +76,72 @@ namespace TDOM.Unity
             Bind(_optionsButton, () => ShowPanel(_optionsPanel, _volumeButton));
             Bind(_exitButton, OnExitClicked);
 
-            Bind(_volumeButton, () => ShowPanel(_volumePanel, FirstSlider()));
-            Bind(_controlsButton, () => ShowPanel(_controlsPanel, BackButtonOf(_controlsPanel)));
-            Bind(_creditsButton, () => ShowPanel(_creditsPanel, BackButtonOf(_creditsPanel)));
-            Bind(_backFromOptionsButton, () => ShowPanel(_mainPanel, _optionsButton));
-
-            if (_backToOptionsButtons != null)
+            Bind(_volumeButton, () =>
             {
-                foreach (var back in _backToOptionsButtons)
-                {
-                    Bind(back, ReturnToOptions);
-                }
-            }
+                RefreshVolumeSliders();
+                ShowPanel(_volumePanel, FirstSlider());
+            });
+            Bind(_controlsButton, () => ShowPanel(_controlsPanel, _controlsBackButton));
+            Bind(_creditsButton, () => ShowPanel(_creditsPanel, _creditsBackButton));
+            Bind(_optionsBackButton, () => ShowPanel(_mainPanel, _optionsButton));
+
+            Bind(_volumeBackButton, ReturnToOptions);
+            Bind(_controlsBackButton, ReturnToOptions);
+            Bind(_creditsBackButton, ReturnToOptions);
 
             BindVolume();
+            SetupGamepadUI();
 
             ShowPanel(_splashPanel, (GameObject)null);
             WaitForSplashInput();
+
             if (_splashAutoAdvanceSeconds > 0f)
                 StartCoroutine(SplashAutoAdvance());
 
             Show();
         }
 
+        private void OnDisable()
+        {
+            _anyButtonSub?.Dispose();
+            _anyButtonSub = null;
 
+            if (_uiActions != null)
+            {
+                _uiActions.UI.Cancel.performed -= OnCancelPerformed;
+                _uiActions.Dispose();
+                _uiActions = null;
+            }
+        }
+
+        private void SetupGamepadUI()
+        {
+            var eventSystem = EventSystem.current;
+            var module = eventSystem != null ? eventSystem.GetComponent<InputSystemUIInputModule>() : null;
+            if (module == null)
+            {
+                Debug.LogWarning(
+                    "El EventSystem no tiene InputSystemUIInputModule: no se podrá navegar con gamepad."
+                );
+                return;
+            }
+
+            _uiActions = new PlayerInputActions();
+            module.move = InputActionReference.Create(_uiActions.UI.Navigate);
+            module.submit = InputActionReference.Create(_uiActions.UI.Submit);
+            module.cancel = InputActionReference.Create(_uiActions.UI.Cancel);
+
+            _uiActions.UI.Cancel.performed += OnCancelPerformed;
+            _uiActions.UI.Enable();
+        }
+
+        private void OnCancelPerformed(InputAction.CallbackContext ctx) => GoBack();
+
+        private void WaitForSplashInput()
+        {
+            _anyButtonSub?.Dispose();
+            _anyButtonSub = InputSystem.onAnyButtonPress.CallOnce(_ => GoToMain());
+        }
         private void ShowPanel(GameObject panel, Button focusButton)
         {
             ShowPanel(panel, focusButton != null ? focusButton.gameObject : null);
@@ -108,20 +158,11 @@ namespace TDOM.Unity
             if (focusTarget != null)
                 FocusElement(focusTarget);
         }
-           private void WaitForSplashInput()
-        {
-            _anyButtonSub?.Dispose();
-            _anyButtonSub = InputSystem.onAnyButtonPress.CallOnce(_ => GoToMain());
-        }
-          private void OnDisable()
-        {
-            _anyButtonSub?.Dispose();
-            _anyButtonSub = null;
-        }
+
         private void GoToMain()
         {
-            if (_splashPanel != null && _splashPanel.activeSelf)
-                ShowPanel(_mainPanel, _playButton != null ? _playButton.gameObject : null);
+            if (IsActive(_splashPanel))
+                ShowPanel(_mainPanel, _playButton);
         }
 
         private IEnumerator SplashAutoAdvance()
@@ -130,38 +171,41 @@ namespace TDOM.Unity
             GoToMain();
         }
 
+        private void GoBack()
+        {
+            if (IsActive(_volumePanel) || IsActive(_controlsPanel) || IsActive(_creditsPanel))
+                ReturnToOptions();
+            else if (IsActive(_optionsPanel))
+                ShowPanel(_mainPanel, _optionsButton);
+        }
+
         private void ReturnToOptions()
         {
-            GameObject focus = null;
-            if (_volumePanel != null && _volumePanel.activeSelf && _volumeButton != null)
-                focus = _volumeButton.gameObject;
-            else if (_controlsPanel != null && _controlsPanel.activeSelf && _controlsButton != null)
-                focus = _controlsButton.gameObject;
-            else if (_creditsPanel != null && _creditsPanel.activeSelf && _creditsButton != null)
-                focus = _creditsButton.gameObject;
+            Button focus = null;
+            if (IsActive(_volumePanel))
+                focus = _volumeButton;
+            else if (IsActive(_controlsPanel))
+                focus = _controlsButton;
+            else if (IsActive(_creditsPanel))
+                focus = _creditsButton;
 
             ShowPanel(_optionsPanel, focus);
         }
 
         private GameObject FirstSlider()
         {
-            if (_volumeChannels != null && _volumeChannels.Length > 0 && _volumeChannels[0].slider != null)
-                return _volumeChannels[0].slider.gameObject;
-            return BackButtonOf(_volumePanel);
+            if (
+                _volumeSliders != null
+                && _volumeSliders.Length > 0
+                && _volumeSliders[0] != null
+                && _volumeSliders[0].slider != null
+            )
+                return _volumeSliders[0].slider.gameObject;
+
+            return _volumeBackButton != null ? _volumeBackButton.gameObject : null;
         }
 
-        private GameObject BackButtonOf(GameObject panel)
-        {
-            if (panel == null || _backToOptionsButtons == null)
-                return null;
-
-            foreach (var back in _backToOptionsButtons)
-            {
-                if (back != null && back.transform.IsChildOf(panel.transform))
-                    return back.gameObject;
-            }
-            return null;
-        }
+        private static bool IsActive(GameObject go) => go != null && go.activeSelf;
         private void OnPlayClicked()
         {
             if (!Application.CanStreamedLevelBeLoaded(_multiplayerSceneName))
@@ -186,33 +230,43 @@ namespace TDOM.Unity
         }
         private void BindVolume()
         {
-            if (_mixer == null || _volumeChannels == null)
+            if (_volumeSliders == null)
                 return;
 
-            foreach (var channel in _volumeChannels)
+            if (AudioManager.Instance == null)
             {
-                if (channel == null || channel.slider == null || string.IsNullOrEmpty(channel.mixerParam))
+                Debug.LogWarning("No hay AudioManager en la escena: los sliders de volumen no harán nada.");
+                return;
+            }
+
+            foreach (var entry in _volumeSliders)
+            {
+                if (entry == null || entry.slider == null)
                     continue;
 
-                string param = channel.mixerParam;
-                string key = "vol_" + param;
+                AudioChannel channel = entry.channel;
+                entry.slider.onValueChanged.AddListener(value => SetVolume(channel, value));
+            }
 
-                float saved = PlayerPrefs.GetFloat(key, 1f);
-                channel.slider.SetValueWithoutNotify(saved);
-                ApplyVolume(param, saved);
+            RefreshVolumeSliders();
+        }
 
-                channel.slider.onValueChanged.AddListener(value =>
-                {
-                    ApplyVolume(param, value);
-                    PlayerPrefs.SetFloat(key, value);
-                });
+        private void RefreshVolumeSliders()
+        {
+            if (_volumeSliders == null || AudioManager.Instance == null)
+                return;
+
+            foreach (var entry in _volumeSliders)
+            {
+                if (entry != null && entry.slider != null)
+                    entry.slider.SetValueWithoutNotify(AudioManager.Instance.GetVolume(entry.channel));
             }
         }
 
-        private void ApplyVolume(string param, float linear)
+        private static void SetVolume(AudioChannel channel, float value)
         {
-            float db = Mathf.Log10(Mathf.Clamp(linear, 0.0001f, 1f)) * 20f;
-            _mixer.SetFloat(param, db);
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.SetVolume(channel, value);
         }
         private static void Bind(Button button, UnityAction action)
         {
