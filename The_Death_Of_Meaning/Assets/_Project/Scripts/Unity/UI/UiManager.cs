@@ -5,7 +5,6 @@ namespace TDOM.Unity.UI
 {
     public class UiManager : Singleton<UiManager>
     {
-
         [SerializeField]
         private List<UIWindow> windows = new List<UIWindow>();
 
@@ -13,9 +12,10 @@ namespace TDOM.Unity.UI
         {
             Initialize();
         }
+
         private void Initialize()
         {
-            FoundUIScene();  
+            FoundUIScene();
         }
 
         private void FoundUIScene()
