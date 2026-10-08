@@ -12,7 +12,7 @@ namespace TDOM.Unity
     /// frente al jefe, muestra un círculo de aviso, deja caer el tentáculo y detecta a los
     /// jugadores dentro del área. No resta vida: solo detecta y reporta (04. Daño en WIP).
     /// </summary>
-    public class AtaqueTentaculo : NetworkBehaviour
+    public class AtaqueMortero : NetworkBehaviour
     {
         [Header("Tiempos")]
         [SerializeField]
