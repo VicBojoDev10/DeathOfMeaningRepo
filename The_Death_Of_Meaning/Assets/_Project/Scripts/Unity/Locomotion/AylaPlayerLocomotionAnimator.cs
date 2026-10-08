@@ -10,14 +10,18 @@ namespace TDOM.Unity
         private static readonly int WalkHash = Animator.StringToHash("walk");
         private static readonly int RunHash = Animator.StringToHash("run");
         private static readonly int JumpHash = Animator.StringToHash("jump");
+
         [Header("Referencias")]
         [SerializeField]
         private Animator _animator;
+
         [SerializeField]
         private CharacterController _characterController;
+
         [Header("Umbrales de Velocidad (m/s)")]
         [SerializeField]
         private float _walkThreshold = 0.5f;
+
         [SerializeField]
         private float _runThreshold = 14.0f; // Punto medio seguro: caminar es 10 m/s y sprint es 20 m/s
         private Vector3 _ultimaPos;
@@ -25,6 +29,7 @@ namespace TDOM.Unity
         private float _smoothSpeed;
         private float _tiempoEnAire;
         private bool _isJumpingPrevio;
+
         private void Awake()
         {
             if (_animator == null)
@@ -32,6 +37,7 @@ namespace TDOM.Unity
             if (_characterController == null)
                 _characterController = GetComponent<CharacterController>();
         }
+
         public override void OnNetworkSpawn()
         {
             _ultimaPos = transform.position;
@@ -46,6 +52,7 @@ namespace TDOM.Unity
                 }
             }
         }
+
         private void Update()
         {
             float dt = Time.deltaTime;
@@ -96,12 +103,11 @@ namespace TDOM.Unity
                 _animator.SetBool(RunHash, isRunning);
             }
         }
+
         [Rpc(SendTo.NotOwner)]
         private void SyncJumpStateRpc(bool isJumping)
         {
             _isJumpingPrevio = isJumping;
         }
     }
-
-
 }
