@@ -7,6 +7,13 @@ namespace TDOM.Unity
     public class MainMenuUI : UIWindow
     {
         [SerializeField]
+        private Canvas _splashCanvas;
+        [SerializeField]
+        private Canvas _MainMenuCanvas;
+        [SerializeField]
+        private Canvas _optionsCanvas;
+
+        [SerializeField]
         private Button _continueButton;
 
         [SerializeField]
@@ -17,5 +24,15 @@ namespace TDOM.Unity
 
         [SerializeField]
         private Button _exitButton;
+
+        private void Awake()
+        {
+            
+        }
+        public override void Initialize()
+        {
+            base.Initialize();
+        }
+
     }
 }
