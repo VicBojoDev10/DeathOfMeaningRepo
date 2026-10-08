@@ -17,6 +17,7 @@ namespace TDOM.Contracts
         public bool FireHeld;
         public bool FireReleased;
         public bool GrapplePressed;
+        public bool GrappleHeld;
         public bool JumpPressed;
 
         public InputSnapshot() { }
@@ -41,7 +42,8 @@ namespace TDOM.Contracts
             bool firePressed,
             bool fireHeld,
             bool fireReleased,
-            bool grapplePressed
+            bool grapplePressed,
+            bool grappleHeld
         )
         {
             Move = move;
@@ -58,6 +60,7 @@ namespace TDOM.Contracts
             FireHeld = fireHeld;
             FireReleased = fireReleased;
             GrapplePressed = grapplePressed;
+            GrappleHeld = grappleHeld;
         }
     }
 
