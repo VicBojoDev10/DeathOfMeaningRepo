@@ -3,9 +3,8 @@ using UnityEngine;
 
 namespace TDOM.Unity.UI
 {
-    public class UiManager : MonoBehaviour
+    public class UiManager : Singleton<UiManager>
     {
-        public static UiManager Instance { get; private set; }
 
         [SerializeField]
         private List<UIWindow> windows = new List<UIWindow>();
@@ -14,19 +13,10 @@ namespace TDOM.Unity.UI
         {
             Initialize();
         }
-
-        private void Awake()
+        private void Initialize()
         {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-            Instance = this;
-            FoundUIScene();
+            FoundUIScene();  
         }
-
-        private void Initialize() { }
 
         private void FoundUIScene()
         {
