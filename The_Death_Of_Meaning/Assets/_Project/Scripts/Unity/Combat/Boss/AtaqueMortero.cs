@@ -4,13 +4,15 @@ using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace TDOM.Unity
 {
     /// <summary>
-    /// Ataque Tentáculo (Pesado) de AREK en greybox. El servidor elige un punto aleatorio
-    /// frente al jefe, muestra un círculo de aviso, deja caer el tentáculo y detecta a los
-    /// jugadores dentro del área. No resta vida: solo detecta y reporta (04. Daño en WIP).
+    /// Ataque Mortero (InstaKill) de AREK en greybox: tres disparos simultáneos. El servidor
+    /// elige 3 puntos aleatorios frente al jefe (separados al menos 2 × _radioArea), todos ven
+    /// un disco de aviso en cada punto, después cae una "piedra" en cada uno y el servidor
+    /// detecta a los jugadores dentro. No resta vida: solo detecta y reporta (04. Daño en WIP).
     /// </summary>
     public class AtaqueMortero : NetworkBehaviour
     {
@@ -24,7 +26,10 @@ namespace TDOM.Unity
         [SerializeField]
         private float _retirada = 0.5f;
 
-        [Header("Área")]
+        [Header("Disparos")]
+        [SerializeField]
+        private int _disparos = 3;
+
         [SerializeField]
         private float _radioArea = 4f;
 
@@ -32,19 +37,24 @@ namespace TDOM.Unity
         private float _radioArena = 25f;
 
         [SerializeField]
+        private int _intentosPorPunto = 30;
+
+        [SerializeField]
         private float _alturaCaida = 15f;
 
         [SerializeField]
-        private float _altoTentaculo = 6f;
+        [FormerlySerializedAs("_altoTentaculo")]
+        private float _altoPiedra = 6f;
 
-        [Header("Visuales")]
+        [Header("Visuales (plantillas, se clonan una vez por disparo)")]
         [SerializeField]
         private Transform _discoAviso;
 
         [SerializeField]
-        private Transform _tentaculo;
+        [FormerlySerializedAs("_tentaculo")]
+        private Transform _piedra;
 
-        private enum FaseTentaculo
+        private enum FaseMortero
         {
             Aviso,
             Caida,
@@ -52,14 +62,19 @@ namespace TDOM.Unity
             Terminado,
         }
 
-        private FaseTentaculo _fase = FaseTentaculo.Aviso;
+        private FaseMortero _fase = FaseMortero.Aviso;
         private float _tiempoEnFase;
         private readonly HashSet<ulong> _golpeados = new HashSet<ulong>();
 
-        // Animación local de la caída (corre en todos los clientes a partir de CaidaRpc).
+        // Solo servidor: puntos de impacto para la detección.
+        private Vector3[] _puntosServidor;
+
+        // Todos los clientes: clones visuales creados a partir de AvisoRpc.
+        private readonly List<Transform> _discos = new List<Transform>();
+        private readonly List<Transform> _piedras = new List<Transform>();
+        private readonly List<Vector3> _puntosLocales = new List<Vector3>();
         private float _tiempoCaidaLocal = -1f;
 
-        // Flash rojo de pantalla en el cliente golpeado.
         private float _flashGolpe;
 
         private void Awake()
@@ -68,20 +83,11 @@ namespace TDOM.Unity
             foreach (var colisionador in GetComponentsInChildren<Collider>(true))
                 colisionador.enabled = false;
 
+            // Las plantillas no se ven; solo sus clones.
             if (_discoAviso != null)
-            {
-                _discoAviso.localScale = new Vector3(_radioArea * 2f, 0.02f, _radioArea * 2f);
-                _discoAviso.localPosition = new Vector3(0f, 0.05f, 0f);
                 _discoAviso.gameObject.SetActive(false);
-            }
-
-            if (_tentaculo != null)
-            {
-                // El cilindro primitivo de Unity mide 2 de alto con escala 1.
-                _tentaculo.localScale = new Vector3(1.5f, _altoTentaculo * 0.5f, 1.5f);
-                ColocarTentaculo(_alturaCaida);
-                _tentaculo.gameObject.SetActive(false);
-            }
+            if (_piedra != null)
+                _piedra.gameObject.SetActive(false);
         }
 
         public override void OnNetworkSpawn()
@@ -89,16 +95,16 @@ namespace TDOM.Unity
             if (!IsServer)
                 return;
 
-            transform.SetPositionAndRotation(ElegirPuntoFrenteAlJefe(), Quaternion.identity);
-            _fase = FaseTentaculo.Aviso;
+            _puntosServidor = ElegirPuntos();
+            _fase = FaseMortero.Aviso;
             _tiempoEnFase = 0f;
             _golpeados.Clear();
 
-            AvisoRpc();
+            AvisoRpc(_puntosServidor);
         }
 
-        // Se spawnea en la posición y rotación del jefe; el punto cae en su semicírculo frontal.
-        private Vector3 ElegirPuntoFrenteAlJefe()
+        // Se spawnea en la posición y rotación del jefe; los puntos caen en su semicírculo frontal.
+        private Vector3[] ElegirPuntos()
         {
             Vector3 adelante = transform.forward;
             adelante.y = 0f;
@@ -106,14 +112,48 @@ namespace TDOM.Unity
                 adelante = Vector3.forward;
             adelante.Normalize();
 
+            int cantidad = Mathf.Max(1, _disparos);
+            float separacionMinima = 2f * _radioArea;
+            var puntos = new List<Vector3>(cantidad);
+
+            for (int i = 0; i < cantidad; i++)
+            {
+                Vector3 candidato = PuntoAleatorio(adelante);
+                for (int intento = 1; intento < _intentosPorPunto; intento++)
+                {
+                    if (EstaSeparado(candidato, puntos, separacionMinima))
+                        break;
+                    candidato = PuntoAleatorio(adelante);
+                }
+                // Si la arena es muy chica y no se logra la separación, se acepta el último.
+                puntos.Add(candidato);
+            }
+
+            return puntos.ToArray();
+        }
+
+        private Vector3 PuntoAleatorio(Vector3 adelante)
+        {
             float angulo = Random.Range(-90f, 90f);
-            // Raíz cuadrada para repartir los puntos parejo por el área, y nunca debajo del jefe.
+            // Raíz cuadrada para repartir parejo por el área, y nunca debajo del jefe.
             float distancia = Mathf.Lerp(_radioArea, _radioArena, Mathf.Sqrt(Random.value));
 
             Vector3 punto =
                 transform.position + Quaternion.Euler(0f, angulo, 0f) * adelante * distancia;
             punto.y = AlturaDelPiso(punto);
             return punto;
+        }
+
+        private static bool EstaSeparado(Vector3 candidato, List<Vector3> puntos, float minimo)
+        {
+            foreach (var punto in puntos)
+            {
+                Vector2 a = new Vector2(candidato.x, candidato.z);
+                Vector2 b = new Vector2(punto.x, punto.z);
+                if (Vector2.Distance(a, b) < minimo)
+                    return false;
+            }
+            return true;
         }
 
         // Busca el piso debajo del punto; si hay varios golpes (jefe, jugadores), el más bajo es el piso.
@@ -153,33 +193,33 @@ namespace TDOM.Unity
 
             switch (_fase)
             {
-                case FaseTentaculo.Aviso:
+                case FaseMortero.Aviso:
                     if (_tiempoEnFase >= _aviso)
                     {
-                        CambiarFase(FaseTentaculo.Caida);
+                        CambiarFase(FaseMortero.Caida);
                         CaidaRpc();
                     }
                     break;
 
-                case FaseTentaculo.Caida:
+                case FaseMortero.Caida:
                     if (_tiempoEnFase >= _caida)
                     {
                         DetectarImpactos();
-                        CambiarFase(FaseTentaculo.Retirada);
+                        CambiarFase(FaseMortero.Retirada);
                     }
                     break;
 
-                case FaseTentaculo.Retirada:
+                case FaseMortero.Retirada:
                     if (_tiempoEnFase >= _retirada)
                     {
-                        CambiarFase(FaseTentaculo.Terminado);
+                        CambiarFase(FaseMortero.Terminado);
                         NetworkObject.Despawn(true);
                     }
                     break;
             }
         }
 
-        private void CambiarFase(FaseTentaculo nueva)
+        private void CambiarFase(FaseMortero nueva)
         {
             _fase = nueva;
             _tiempoEnFase = 0f;
@@ -187,57 +227,86 @@ namespace TDOM.Unity
 
         private void AnimarCaidaLocal(float dt)
         {
-            if (_tiempoCaidaLocal < 0f || _tentaculo == null)
+            if (_tiempoCaidaLocal < 0f)
                 return;
 
             _tiempoCaidaLocal += dt;
             float t = Mathf.Clamp01(_tiempoCaidaLocal / _caida);
-            ColocarTentaculo(Mathf.Lerp(_alturaCaida, 0f, t));
+            float altura = Mathf.Lerp(_alturaCaida, 0f, t);
+
+            for (int i = 0; i < _piedras.Count; i++)
+                ColocarPiedra(_piedras[i], _puntosLocales[i], altura);
         }
 
-        // Coloca la base del tentáculo a la altura indicada sobre el centro del área.
-        private void ColocarTentaculo(float alturaBase)
+        // Coloca la base de la piedra a la altura indicada sobre su punto de impacto.
+        private void ColocarPiedra(Transform piedra, Vector3 punto, float alturaBase)
         {
-            if (_tentaculo != null)
-                _tentaculo.localPosition = new Vector3(0f, alturaBase + _altoTentaculo * 0.5f, 0f);
+            piedra.position = punto + Vector3.up * (alturaBase + _altoPiedra * 0.5f);
         }
 
         private void DetectarImpactos()
         {
-            Collider[] dentro = Physics.OverlapSphere(
-                transform.position,
-                _radioArea,
-                Physics.AllLayers,
-                QueryTriggerInteraction.Collide
-            );
+            if (_puntosServidor == null)
+                return;
 
-            foreach (var colisionador in dentro)
+            foreach (var punto in _puntosServidor)
             {
-                var jugador = colisionador.GetComponentInParent<PlayerRoot>();
-                if (jugador == null)
-                    continue;
+                Collider[] dentro = Physics.OverlapSphere(
+                    punto,
+                    _radioArea,
+                    Physics.AllLayers,
+                    QueryTriggerInteraction.Collide
+                );
 
-                ulong id = jugador.OwnerClientId;
-                if (!_golpeados.Add(id))
-                    continue; // cada jugador solo una vez
+                foreach (var colisionador in dentro)
+                {
+                    var jugador = colisionador.GetComponentInParent<PlayerRoot>();
+                    if (jugador == null)
+                        continue;
 
-                Debug.Log($"[AREK][Tentaculo] golpeó a cliente {id}");
-                JugadorGolpeadoRpc(RpcTarget.Single(id, RpcTargetUse.Temp));
+                    ulong id = jugador.OwnerClientId;
+                    if (!_golpeados.Add(id))
+                        continue; // cada jugador solo una vez por ataque, aunque esté en dos círculos
+
+                    Debug.Log($"[AREK][Mortero] golpeó a cliente {id}");
+                    JugadorGolpeadoRpc(RpcTarget.Single(id, RpcTargetUse.Temp));
+                }
             }
         }
 
         [Rpc(SendTo.ClientsAndHost)]
-        private void AvisoRpc()
+        private void AvisoRpc(Vector3[] puntos)
         {
-            if (_discoAviso != null)
-                _discoAviso.gameObject.SetActive(true);
+            _puntosLocales.Clear();
+            _puntosLocales.AddRange(puntos);
+
+            foreach (var punto in puntos)
+            {
+                if (_discoAviso != null)
+                {
+                    var disco = Instantiate(_discoAviso, transform);
+                    disco.localScale = new Vector3(_radioArea * 2f, 0.02f, _radioArea * 2f);
+                    disco.position = punto + Vector3.up * 0.05f;
+                    disco.gameObject.SetActive(true);
+                    _discos.Add(disco);
+                }
+
+                if (_piedra != null)
+                {
+                    var piedra = Instantiate(_piedra, transform);
+                    // El cilindro primitivo de Unity mide 2 de alto con escala 1.
+                    piedra.localScale = new Vector3(1.5f, _altoPiedra * 0.5f, 1.5f);
+                    ColocarPiedra(piedra, punto, _alturaCaida);
+                    _piedras.Add(piedra);
+                }
+            }
         }
 
         [Rpc(SendTo.ClientsAndHost)]
         private void CaidaRpc()
         {
-            if (_tentaculo != null)
-                _tentaculo.gameObject.SetActive(true);
+            foreach (var piedra in _piedras)
+                piedra.gameObject.SetActive(true);
 
             _tiempoCaidaLocal = 0f;
         }
@@ -274,8 +343,12 @@ namespace TDOM.Unity
 
         private void OnDrawGizmosSelected()
         {
+            if (_puntosServidor == null)
+                return;
+
             Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(transform.position, _radioArea);
+            foreach (var punto in _puntosServidor)
+                Gizmos.DrawWireSphere(punto, _radioArea);
         }
     }
 }

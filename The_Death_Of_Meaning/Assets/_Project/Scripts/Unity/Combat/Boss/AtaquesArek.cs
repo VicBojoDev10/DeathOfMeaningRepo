@@ -1,6 +1,7 @@
 using TDOM.Contracts;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace TDOM.Unity
 {
@@ -13,76 +14,59 @@ namespace TDOM.Unity
         [SerializeField]
         private Transform _puntoOrigenMano;
 
+        // Antes era el "Tentáculo" (TW-86); en realidad es el Mortero (TW-96).
         [SerializeField]
-        private GameObject _prefabAtaqueTentaculo;
+        [FormerlySerializedAs("_prefabAtaqueTentaculo")]
+        private GameObject _prefabAtaqueMortero;
 
         [SerializeField]
         private GameObject _prefabAtaqueRayo;
 
         [SerializeField]
-        private Transform _bocaRayo;
+        private Transform _bocaRayo; // opcional; si es null se busca el hijo "Boca" del jefe
 
+        // Mapeo de Confluence: Basico = Mano, Pesado = Tentáculo, Especial = Rayo, InstaKill = Mortero.
         public void Lanzar(BossAttackKind tipo)
         {
             if (!IsServer)
                 return;
 
-            if (tipo == BossAttackKind.Basico)
+            switch (tipo)
             {
-                LanzarAtaqueMano();
-            }
-            else if (tipo == BossAttackKind.Pesado)
-            {
-                LanzarAtaqueTentaculo();
-            }
-            else if (tipo == BossAttackKind.Especial)
-            {
-                LanzarAtaqueRayo();
+                case BossAttackKind.Basico:
+                    LanzarAtaqueMano();
+                    break;
+                case BossAttackKind.Pesado:
+                    // Reservado para el Tentáculo nuevo (otro ticket).
+                    Debug.LogWarning("[AtaquesArek] Tentáculo no implementado");
+                    break;
+                case BossAttackKind.Especial:
+                    LanzarAtaqueRayo();
+                    break;
+                case BossAttackKind.InstaKill:
+                    LanzarAtaqueMortero();
+                    break;
             }
         }
 
         private void LanzarAtaqueMano()
         {
-            if (_prefabAtaqueMano == null)
-            {
-                Debug.LogError("[AtaquesArek] _prefabAtaqueMano no está asignado en el Inspector.");
-                return;
-            }
-
             Vector3 pos = _puntoOrigenMano != null ? _puntoOrigenMano.position : transform.position;
             Quaternion rot =
                 _puntoOrigenMano != null ? _puntoOrigenMano.rotation : transform.rotation;
 
-            GameObject go = Instantiate(_prefabAtaqueMano, pos, rot);
-            var no = go.GetComponent<NetworkObject>();
-            if (no != null)
-            {
-                no.Spawn();
-            }
+            Spawnear(_prefabAtaqueMano, "_prefabAtaqueMano", pos, rot);
         }
 
-        // Se spawnea en la posición y rotación del jefe; AtaqueTentaculo elige el punto aleatorio
-        // frente a él al spawnear.
-        private void LanzarAtaqueTentaculo()
+        // Se spawnea en la posición y rotación del jefe; AtaqueMortero elige los 3 puntos al spawnear.
+        private void LanzarAtaqueMortero()
         {
-            if (_prefabAtaqueTentaculo == null)
-            {
-                Debug.LogError(
-                    "[AtaquesArek] _prefabAtaqueTentaculo no está asignado en el Inspector."
-                );
-                return;
-            }
-
-            GameObject go = Instantiate(
-                _prefabAtaqueTentaculo,
+            Spawnear(
+                _prefabAtaqueMortero,
+                "_prefabAtaqueMortero",
                 transform.position,
                 transform.rotation
             );
-            var no = go.GetComponent<NetworkObject>();
-            if (no != null)
-            {
-                no.Spawn();
-            }
         }
 
         private void LanzarAtaqueRayo()
@@ -95,12 +79,27 @@ namespace TDOM.Unity
 
             GameObject go = Instantiate(_prefabAtaqueRayo, transform.position, transform.rotation);
 
+            // Si no se asignó en el Inspector, usa el hijo "Boca" del jefe.
             Transform boca = _bocaRayo != null ? _bocaRayo : transform.Find("Boca");
 
             var rayo = go.GetComponent<AtaqueRayo>();
             if (rayo != null && boca != null)
                 rayo.AsignarBoca(boca);
 
+            var no = go.GetComponent<NetworkObject>();
+            if (no != null)
+                no.Spawn();
+        }
+
+        private void Spawnear(GameObject prefab, string nombreCampo, Vector3 pos, Quaternion rot)
+        {
+            if (prefab == null)
+            {
+                Debug.LogError($"[AtaquesArek] {nombreCampo} no está asignado en el Inspector.");
+                return;
+            }
+
+            GameObject go = Instantiate(prefab, pos, rot);
             var no = go.GetComponent<NetworkObject>();
             if (no != null)
                 no.Spawn();
@@ -114,7 +113,7 @@ namespace TDOM.Unity
 
             // Ubicado en la esquina superior derecha para no solapar el debug UI de la izquierda
             GUILayout.BeginArea(
-                new Rect(Screen.width - 180, 20, 160, 170),
+                new Rect(Screen.width - 180, 20, 160, 215),
                 "Boss Attacks Host",
                 GUI.skin.window
             );
@@ -125,6 +124,10 @@ namespace TDOM.Unity
             if (GUILayout.Button("Lanzar Tentáculo", GUILayout.Height(35)))
             {
                 Lanzar(BossAttackKind.Pesado);
+            }
+            if (GUILayout.Button("Lanzar Mortero", GUILayout.Height(35)))
+            {
+                Lanzar(BossAttackKind.InstaKill);
             }
             if (GUILayout.Button("Lanzar Rayo", GUILayout.Height(35)))
             {
