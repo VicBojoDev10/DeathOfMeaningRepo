@@ -38,9 +38,6 @@ namespace TDOM.Unity.Player
 
         [SerializeField]
         private float _sensitivity = 200f;
-        [SerializeField]
-        private GameObject _hudMiraPrefab;
-        private GameObject _hudMiraInstance;
 
         private bool _ganchoActivoPrevio;
 
@@ -59,6 +56,15 @@ namespace TDOM.Unity.Player
         public bool AtaqueActivo =>
             (_combat != null && _combat.AtaqueActivo)
             || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
+
+        public CharacterIds CharacterId => _characterId;
+        public Transform CameraTransform => _camera != null ? _camera.transform : null;
+        public PlayerInputReader InputReader => _inputReader;
+        public float GrappleRange => _definition?.Grapple != null ? _definition.Grapple.Range : 30f;
+        public float AnchorRange =>
+            _anchorLauncher != null && _anchorLauncher.Perfil != null
+                ? _anchorLauncher.Perfil.Range
+                : 20f;
 
         public override void OnNetworkSpawn()
         {
@@ -100,26 +106,6 @@ namespace TDOM.Unity.Player
                         };
                         hudComp.Initialize(this, etiqueta, _definition?.Energy?.Max ?? 100f);
                     }
-                }
-                var gameplayUI = UiManager.Instance != null ? UiManager.Instance.GetWindow(WindowsIds.GamePlayUI) as GameplayUI
-                    : FindObjectOfType<GameplayUI>(true);
-                if (gameplayUI != null && _camera != null)
-                {
-                    float alcance = 30f;
-                    bool soloAlApuntar = false;
-                    if (_characterId == CharacterIds.Ayla)
-                    {
-                        // Ayla: alcance del gancho (30m), siempre visible
-                        alcance = _definition?.Grapple != null ? _definition.Grapple.Range : 30f;
-                        soloAlApuntar = false;
-                    }
-                    else if (_characterId == CharacterIds.Zendre)
-                    {
-                        // Zendre: alcance del ancla (20m), solo visible con L2 (Aim)
-                        alcance = _anchorLauncher != null && _anchorLauncher.Perfil != null ? _anchorLauncher.Perfil.Range : 20f;
-                        soloAlApuntar = true;
-                    }
-                    gameplayUI.ConfigurarMira(_camera.transform, alcance, soloAlApuntar, _inputReader);
                 }
                 if (_camera != null)
                     _feedback = _camera.GetComponent<FeedbackDirector>();
@@ -169,22 +155,13 @@ namespace TDOM.Unity.Player
             if (_locomocion.Aterrizaje)
                 _feedback.OnAterrizajeFuerte();
         }
+
         public override void OnNetworkDespawn()
         {
             if (_hudInstance != null)
             {
                 Destroy(_hudInstance);
                 _hudInstance = null;
-            }
-            if (IsOwner)
-            {
-                var gameplayUI = UiManager.Instance != null
-                    ? UiManager.Instance.GetWindow(WindowsIds.GamePlayUI) as GameplayUI
-                    : FindObjectOfType<GameplayUI>(true);
-                if (gameplayUI != null)
-                {
-                    gameplayUI.DesactivarMira();
-                }
             }
         }
 

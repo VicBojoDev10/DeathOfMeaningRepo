@@ -1,4 +1,4 @@
-using TDOM.Unity.Input;
+using TDOM.Contracts;
 using TDOM.Unity.Player;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,25 +9,27 @@ namespace TDOM.Unity
     {
         [Header("Referencias Crosshair")]
         [Tooltip("Mira de habilidad / apuntado (con raycast de rango, escala y cambio de color)")]
-        [SerializeField] private Image crosshairImage;
+        [SerializeField]
+        private Image crosshairImage;
 
         [Tooltip("Mira básica por defecto (visible en modo libre / cadera)")]
-        [SerializeField] private Image crosshairDefaultImage;
+        [SerializeField]
+        private Image crosshairDefaultImage;
 
         [Header("Colores")]
-        [SerializeField] private Color colorFueraDeRango = Color.white;
-        [SerializeField] private Color colorEnRango = new Color(0.2f, 1f, 0.2f, 1f);
+        [SerializeField]
+        private Color colorFueraDeRango = Color.white;
+
+        [SerializeField]
+        private Color colorEnRango = new Color(0.2f, 1f, 0.2f, 1f);
 
         [Header("Multiplicador de Escala en Rango")]
-        [SerializeField] private float multiplicadorEscalaEnRango = 1.15f;
+        [SerializeField]
+        private float multiplicadorEscalaEnRango = 1.15f;
 
-        private Transform _camara;
-        private float _alcance;
-        private bool _soloAlApuntar;
-        private PlayerInputReader _inputReader;
+        private PlayerRoot _localPlayer;
         private RectTransform _crosshairRect;
         private Vector3 _escalaBase;
-        private bool _estaConfigurado;
 
         public override void Initialize()
         {
@@ -49,51 +51,46 @@ namespace TDOM.Unity
             }
         }
 
-        public void ConfigurarMira(Transform camara, float alcance, bool soloAlApuntar, PlayerInputReader inputReader)
+        private void OnDisable()
         {
-            _camara = camara;
-            _alcance = alcance;
-            _soloAlApuntar = soloAlApuntar;
-            _inputReader = inputReader;
-            _estaConfigurado = true;
-
-            if (_crosshairRect == null && crosshairImage != null)
-            {
-                _crosshairRect = crosshairImage.rectTransform;
-                _escalaBase = _crosshairRect.localScale;
-            }
-        }
-
-        public void DesactivarMira()
-        {
-            _estaConfigurado = false;
-            _camara = null;
-            _inputReader = null;
-
+            _localPlayer = null;
             if (crosshairImage != null)
                 crosshairImage.gameObject.SetActive(false);
-
             if (crosshairDefaultImage != null)
                 crosshairDefaultImage.gameObject.SetActive(false);
         }
 
         private void LateUpdate()
         {
-            if (!_estaConfigurado || _camara == null)
+            // Si no tenemos referencia al jugador local, lo buscamos en la escena
+            if (_localPlayer == null)
+            {
+                BuscarJugadorLocal();
+                if (_localPlayer == null)
+                    return;
+            }
+
+            var camTransform = _localPlayer.CameraTransform;
+            if (camTransform == null)
                 return;
 
-            var input = _inputReader != null ? _inputReader.Read() : default;
+            var input =
+                _localPlayer.InputReader != null ? _localPlayer.InputReader.Read() : default;
 
-            // Zendre: visible solo sosteniendo L2 (AimHeld). Ayla: siempre visible.
-            bool mostrarMiraApuntado = !_soloAlApuntar || input.AimHeld;
+            bool esZendre = _localPlayer.CharacterId == CharacterIds.Zendre;
+            bool soloAlApuntar = esZendre;
+            float alcance = esZendre ? _localPlayer.AnchorRange : _localPlayer.GrappleRange;
 
             // Control de mira por defecto (ej. el punto de cadera de Zendre cuando no está apuntando)
             if (crosshairDefaultImage != null)
             {
-                bool mostrarMiraDefault = _soloAlApuntar && !input.AimHeld;
+                bool mostrarMiraDefault = soloAlApuntar && !input.AimHeld;
                 if (crosshairDefaultImage.gameObject.activeSelf != mostrarMiraDefault)
                     crosshairDefaultImage.gameObject.SetActive(mostrarMiraDefault);
             }
+
+            // Control de la mira de habilidad / apuntado
+            bool mostrarMiraApuntado = !soloAlApuntar || input.AimHeld;
 
             if (crosshairImage == null)
                 return;
@@ -108,11 +105,19 @@ namespace TDOM.Unity
             if (!crosshairImage.gameObject.activeSelf)
                 crosshairImage.gameObject.SetActive(true);
 
-            // Raycast desde el centro de la cámara
-            Ray ray = new Ray(_camara.position, _camara.forward);
+            // Raycast desde el centro de la cámara hacia adelante
+            Ray ray = new Ray(camTransform.position, camTransform.forward);
             bool valido = false;
 
-            if (Physics.Raycast(ray, out RaycastHit hit, _alcance, Physics.AllLayers, QueryTriggerInteraction.Ignore))
+            if (
+                Physics.Raycast(
+                    ray,
+                    out RaycastHit hit,
+                    alcance,
+                    Physics.AllLayers,
+                    QueryTriggerInteraction.Ignore
+                )
+            )
             {
                 // Ignorar colisiones con el propio o con otro jugador
                 if (hit.collider.GetComponentInParent<PlayerRoot>() == null)
@@ -128,6 +133,24 @@ namespace TDOM.Unity
             {
                 float factor = valido ? multiplicadorEscalaEnRango : 1f;
                 _crosshairRect.localScale = _escalaBase * factor;
+            }
+        }
+
+        private void BuscarJugadorLocal()
+        {
+            var players = FindObjectsByType<PlayerRoot>(FindObjectsSortMode.None);
+            foreach (var p in players)
+            {
+                if (p != null && p.IsOwner)
+                {
+                    _localPlayer = p;
+                    if (_crosshairRect == null && crosshairImage != null)
+                    {
+                        _crosshairRect = crosshairImage.rectTransform;
+                        _escalaBase = _crosshairRect.localScale;
+                    }
+                    break;
+                }
             }
         }
     }

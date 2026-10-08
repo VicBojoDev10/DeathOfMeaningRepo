@@ -16,6 +16,7 @@ namespace TDOM.Unity.Camera
         private float _roll;
         private float _zoomOffset;
         private float _zoomTarget;
+
         [SerializeField]
         private float _velocidadZoom = 12f;
 
