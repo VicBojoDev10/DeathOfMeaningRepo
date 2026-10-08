@@ -242,6 +242,7 @@ namespace TDOM.Unity.Combat
                 attackReleased: input.FireReleased,
                 aimHeld: input.AimHeld,
                 grapplePressed: input.GrapplePressed,
+                grappleHeld: input.GrappleHeld,
                 firePressed: false,
                 fireHeld: false,
                 fireReleased: false
