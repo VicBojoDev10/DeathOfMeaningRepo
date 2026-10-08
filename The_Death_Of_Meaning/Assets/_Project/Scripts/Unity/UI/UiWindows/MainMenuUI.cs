@@ -17,40 +17,71 @@ namespace TDOM.Unity
     public class MainMenuUI : UIWindow
     {
         [Header("Paneles")]
-        [SerializeField] private GameObject _splashPanel;
-        [SerializeField] private GameObject _mainPanel;
-        [SerializeField] private GameObject _optionsPanel;
-        [SerializeField] private GameObject _volumePanel;
-        [SerializeField] private GameObject _controlsPanel;
-        [SerializeField] private GameObject _creditsPanel;
+        [SerializeField]
+        private GameObject _splashPanel;
+
+        [SerializeField]
+        private GameObject _mainPanel;
+
+        [SerializeField]
+        private GameObject _optionsPanel;
+
+        [SerializeField]
+        private GameObject _volumePanel;
+
+        [SerializeField]
+        private GameObject _controlsPanel;
+
+        [SerializeField]
+        private GameObject _creditsPanel;
 
         [Header("Splash")]
         [Tooltip("0 = solo avanza al presionar cualquier botón")]
-        [SerializeField] private float _splashAutoAdvanceSeconds = 0f;
+        [SerializeField]
+        private float _splashAutoAdvanceSeconds = 0f;
 
         [Header("Menú principal")]
-        [SerializeField] private Button _playButton;
-        [SerializeField] private Button _optionsButton;
-        [SerializeField] private Button _exitButton;
+        [SerializeField]
+        private Button _playButton;
+
+        [SerializeField]
+        private Button _optionsButton;
+
+        [SerializeField]
+        private Button _exitButton;
 
         [Header("Ajustes")]
         [FormerlySerializedAs("_continueButton")]
-        [SerializeField] private Button _controlsButton;
-        [SerializeField] private Button _volumeButton;
-        [SerializeField] private Button _creditsButton;
-        [SerializeField] private Button _optionsBackButton;
+        [SerializeField]
+        private Button _controlsButton;
+
+        [SerializeField]
+        private Button _volumeButton;
+
+        [SerializeField]
+        private Button _creditsButton;
+
+        [SerializeField]
+        private Button _optionsBackButton;
 
         [Header("Botones Regresar (-> Ajustes)")]
-        [SerializeField] private Button _volumeBackButton;
-        [SerializeField] private Button _controlsBackButton;
-        [SerializeField] private Button _creditsBackButton;
+        [SerializeField]
+        private Button _volumeBackButton;
+
+        [SerializeField]
+        private Button _controlsBackButton;
+
+        [SerializeField]
+        private Button _creditsBackButton;
 
         [Header("Volumen (el mixer vive en AudioManager)")]
         [FormerlySerializedAs("_volumeChannels")]
-        [SerializeField] private VolumeSlider[] _volumeSliders;
+        [SerializeField]
+        private VolumeSlider[] _volumeSliders;
 
         [Header("Escenas")]
-        [SerializeField] private string _multiplayerSceneName = "Multiplayer";
+        [SerializeField]
+        private string _multiplayerSceneName = "Multiplayer";
 
         [Serializable]
         private class VolumeSlider
@@ -69,18 +100,26 @@ namespace TDOM.Unity
 
             _panels = new[]
             {
-                _splashPanel, _mainPanel, _optionsPanel, _volumePanel, _controlsPanel, _creditsPanel,
+                _splashPanel,
+                _mainPanel,
+                _optionsPanel,
+                _volumePanel,
+                _controlsPanel,
+                _creditsPanel,
             };
 
             Bind(_playButton, OnPlayClicked);
             Bind(_optionsButton, () => ShowPanel(_optionsPanel, _volumeButton));
             Bind(_exitButton, OnExitClicked);
 
-            Bind(_volumeButton, () =>
-            {
-                RefreshVolumeSliders();
-                ShowPanel(_volumePanel, FirstSlider());
-            });
+            Bind(
+                _volumeButton,
+                () =>
+                {
+                    RefreshVolumeSliders();
+                    ShowPanel(_volumePanel, FirstSlider());
+                }
+            );
             Bind(_controlsButton, () => ShowPanel(_controlsPanel, _controlsBackButton));
             Bind(_creditsButton, () => ShowPanel(_creditsPanel, _creditsBackButton));
             Bind(_optionsBackButton, () => ShowPanel(_mainPanel, _optionsButton));
@@ -117,7 +156,8 @@ namespace TDOM.Unity
         private void SetupGamepadUI()
         {
             var eventSystem = EventSystem.current;
-            var module = eventSystem != null ? eventSystem.GetComponent<InputSystemUIInputModule>() : null;
+            var module =
+                eventSystem != null ? eventSystem.GetComponent<InputSystemUIInputModule>() : null;
             if (module == null)
             {
                 Debug.LogWarning(
@@ -142,6 +182,7 @@ namespace TDOM.Unity
             _anyButtonSub?.Dispose();
             _anyButtonSub = InputSystem.onAnyButtonPress.CallOnce(_ => GoToMain());
         }
+
         private void ShowPanel(GameObject panel, Button focusButton)
         {
             ShowPanel(panel, focusButton != null ? focusButton.gameObject : null);
@@ -206,6 +247,7 @@ namespace TDOM.Unity
         }
 
         private static bool IsActive(GameObject go) => go != null && go.activeSelf;
+
         private void OnPlayClicked()
         {
             if (!Application.CanStreamedLevelBeLoaded(_multiplayerSceneName))
@@ -228,6 +270,7 @@ namespace TDOM.Unity
             Application.Quit();
 #endif
         }
+
         private void BindVolume()
         {
             if (_volumeSliders == null)
@@ -235,7 +278,9 @@ namespace TDOM.Unity
 
             if (AudioManager.Instance == null)
             {
-                Debug.LogWarning("No hay AudioManager en la escena: los sliders de volumen no harán nada.");
+                Debug.LogWarning(
+                    "No hay AudioManager en la escena: los sliders de volumen no harán nada."
+                );
                 return;
             }
 
@@ -259,7 +304,9 @@ namespace TDOM.Unity
             foreach (var entry in _volumeSliders)
             {
                 if (entry != null && entry.slider != null)
-                    entry.slider.SetValueWithoutNotify(AudioManager.Instance.GetVolume(entry.channel));
+                    entry.slider.SetValueWithoutNotify(
+                        AudioManager.Instance.GetVolume(entry.channel)
+                    );
             }
         }
 
@@ -268,6 +315,7 @@ namespace TDOM.Unity
             if (AudioManager.Instance != null)
                 AudioManager.Instance.SetVolume(channel, value);
         }
+
         private static void Bind(Button button, UnityAction action)
         {
             if (button != null)

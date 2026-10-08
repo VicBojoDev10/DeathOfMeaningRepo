@@ -18,6 +18,7 @@ namespace TDOM.Unity
         {
             EnsureMainMenu();
         }
+
         private void EnsureMainMenu()
         {
             if (_mainMenu == null)

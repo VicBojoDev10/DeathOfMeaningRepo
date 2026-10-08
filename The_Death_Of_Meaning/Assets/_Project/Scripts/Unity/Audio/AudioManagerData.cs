@@ -5,7 +5,11 @@ using AudioType = TDOM.Unity.Audio.AudioType;
 
 namespace TDOM.Unity
 {
-    [CreateAssetMenu(fileName = "AudioManagerData", menuName = "DINO/Audio/AudioManagerData", order = 0)]
+    [CreateAssetMenu(
+        fileName = "AudioManagerData",
+        menuName = "DINO/Audio/AudioManagerData",
+        order = 0
+    )]
     public class AudioManagerData : ScriptableObject
     {
         public List<AudioData> audioData = new List<AudioData>();

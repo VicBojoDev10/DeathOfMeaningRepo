@@ -17,7 +17,9 @@ namespace TDOM.Unity.Audio
         [SerializeField]
         private AudioMixer _mixer;
 
-        [Tooltip("Music y Sfx deben ser hijos del grupo Master para que el slider general afecte todo")]
+        [Tooltip(
+            "Music y Sfx deben ser hijos del grupo Master para que el slider general afecte todo"
+        )]
         [SerializeField]
         private AudioMixerGroup _musicGroup;
 
@@ -55,9 +57,12 @@ namespace TDOM.Unity.Audio
         private const float MinLinear = 0.0001f;
 
         private GameObject _soundsContainer;
-        private readonly Dictionary<string, AudioData> _dataByName = new Dictionary<string, AudioData>();
-        private readonly Dictionary<string, AudioSource> _sourcesByName = new Dictionary<string, AudioSource>();
-        private readonly Dictionary<AudioSource, Coroutine> _fades = new Dictionary<AudioSource, Coroutine>();
+        private readonly Dictionary<string, AudioData> _dataByName =
+            new Dictionary<string, AudioData>();
+        private readonly Dictionary<string, AudioSource> _sourcesByName =
+            new Dictionary<string, AudioSource>();
+        private readonly Dictionary<AudioSource, Coroutine> _fades =
+            new Dictionary<AudioSource, Coroutine>();
         private AudioSource _currentMusic;
 
         #endregion
@@ -128,7 +133,9 @@ namespace TDOM.Unity.Audio
                     continue;
 
                 if (!_dataByName.TryAdd(data.name, data))
-                    Debug.LogWarning($"AudioManager: nombre de sonido duplicado '{data.name}', se usa el primero.");
+                    Debug.LogWarning(
+                        $"AudioManager: nombre de sonido duplicado '{data.name}', se usa el primero."
+                    );
             }
         }
 
@@ -216,7 +223,12 @@ namespace TDOM.Unity.Audio
             _fades[source] = StartCoroutine(FadeRoutine(source, target, duration, stopAtEnd));
         }
 
-        private IEnumerator FadeRoutine(AudioSource source, float target, float duration, bool stopAtEnd)
+        private IEnumerator FadeRoutine(
+            AudioSource source,
+            float target,
+            float duration,
+            bool stopAtEnd
+        )
         {
             float start = source.volume;
 
@@ -289,7 +301,8 @@ namespace TDOM.Unity.Audio
             }
         }
 
-        public float GetVolume(AudioChannel channel) => PlayerPrefs.GetFloat(PrefsPrefix + channel, 1f);
+        public float GetVolume(AudioChannel channel) =>
+            PlayerPrefs.GetFloat(PrefsPrefix + channel, 1f);
 
         public void SetVolume(AudioChannel channel, float linear)
         {
