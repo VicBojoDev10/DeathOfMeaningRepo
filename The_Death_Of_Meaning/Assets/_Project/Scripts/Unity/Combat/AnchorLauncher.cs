@@ -35,6 +35,8 @@ namespace TDOM.Unity.Combat
         private CooldownTimer _cooldown;
         private NetworkObject _anclaSpawnada;
 
+        public AnchorProfile Perfil => _perfil;
+
         public Ancla AnclaActual { get; private set; }
 
         public void RegistrarAncla(Ancla ancla)

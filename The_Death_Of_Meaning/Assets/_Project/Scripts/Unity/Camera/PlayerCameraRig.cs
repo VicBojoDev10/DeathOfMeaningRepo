@@ -14,6 +14,10 @@ namespace TDOM.Unity.Camera
         private float _fovBase;
         private float _fovExtra;
         private float _roll;
+        private float _zoomOffset;
+        private float _zoomTarget;
+        [SerializeField]
+        private float _velocidadZoom = 12f;
 
         private Coroutine _rutinaFovActual;
         private Coroutine _rutinaTiltActual;
@@ -27,6 +31,17 @@ namespace TDOM.Unity.Camera
         public void ApplyLook(float yaw, float pitch)
         {
             transform.rotation = Quaternion.Euler(pitch, yaw, _roll);
+        }
+
+        public void SetZoom(bool activo, float reduccionFov = 15f)
+        {
+            _zoomTarget = activo ? -reduccionFov : 0f;
+        }
+
+        public void UpdateZoom(float dt)
+        {
+            _zoomOffset = Mathf.Lerp(_zoomOffset, _zoomTarget, _velocidadZoom * dt);
+            AplicarFov();
         }
 
         public void PunchFov(float grados, float duracion)
@@ -73,7 +88,7 @@ namespace TDOM.Unity.Camera
             if (_camara != null)
             {
                 var lente = _camara.Lens;
-                lente.FieldOfView = _fovBase + _fovExtra;
+                lente.FieldOfView = _fovBase + _fovExtra + _zoomOffset;
                 _camara.Lens = lente;
             }
         }

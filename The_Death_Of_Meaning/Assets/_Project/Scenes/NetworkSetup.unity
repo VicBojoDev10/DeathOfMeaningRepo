@@ -2490,6 +2490,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1483942399}
     m_Modifications:
+    - target: {fileID: 3219943889108106489, guid: 41ad955346d1e9647a9fe0eb042c34b3, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 37c1035da21723845bf65d3eb3facff8, type: 3}
+    - target: {fileID: 3302684591821321247, guid: 41ad955346d1e9647a9fe0eb042c34b3, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3302684591821321247, guid: 41ad955346d1e9647a9fe0eb042c34b3, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3302684591821321247, guid: 41ad955346d1e9647a9fe0eb042c34b3, type: 3}
       propertyPath: m_LocalPosition.x
       value: -982.0008
@@ -2535,6 +2547,26 @@ PrefabInstance:
       value: GameplayUI
       objectReference: {fileID: 0}
     - target: {fileID: 7534492179137533098, guid: 41ad955346d1e9647a9fe0eb042c34b3, type: 3}
+      propertyPath: crosshairImage
+      value: 
+      objectReference: {fileID: 1956707534}
+    - target: {fileID: 7534492179137533098, guid: 41ad955346d1e9647a9fe0eb042c34b3, type: 3}
+      propertyPath: tamanoNormal.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7534492179137533098, guid: 41ad955346d1e9647a9fe0eb042c34b3, type: 3}
+      propertyPath: tamanoNormal.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7534492179137533098, guid: 41ad955346d1e9647a9fe0eb042c34b3, type: 3}
+      propertyPath: tamanoEnRango.x
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7534492179137533098, guid: 41ad955346d1e9647a9fe0eb042c34b3, type: 3}
+      propertyPath: tamanoEnRango.y
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7534492179137533098, guid: 41ad955346d1e9647a9fe0eb042c34b3, type: 3}
       propertyPath: firstSelectedObject
       value: 
       objectReference: {fileID: 1956707533}
@@ -2553,6 +2585,17 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 8897225745906666690, guid: 41ad955346d1e9647a9fe0eb042c34b3, type: 3}
   m_PrefabInstance: {fileID: 1956707531}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1956707534 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3219943889108106489, guid: 41ad955346d1e9647a9fe0eb042c34b3, type: 3}
+  m_PrefabInstance: {fileID: 1956707531}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!1 &2123154846
 GameObject:
   m_ObjectHideFlags: 0

@@ -101,6 +101,7 @@ namespace TDOM.Unity.UI
         public const string ConnectionMenuUI = "connectionui";
         public const string ChSelectionUI = "chselectionui";
         public const string KeyboardUI = "keyboardui";
+        public const string GamePlayUI = "gameplayui";
 
 
     }
