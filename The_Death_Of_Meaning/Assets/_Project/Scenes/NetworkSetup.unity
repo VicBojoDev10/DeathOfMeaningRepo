@@ -530,6 +530,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: NArenaArek
       objectReference: {fileID: 0}
+    - target: {fileID: 4900613404146909162, guid: a444d9beeee86a94cb3ad76616354d1e, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5216575711712895861, guid: a444d9beeee86a94cb3ad76616354d1e, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -553,6 +557,10 @@ PrefabInstance:
     - target: {fileID: 6330437800306571892, guid: a444d9beeee86a94cb3ad76616354d1e, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 6337973357643847202, guid: a444d9beeee86a94cb3ad76616354d1e, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6409810684321016006, guid: a444d9beeee86a94cb3ad76616354d1e, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -2273,6 +2281,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 586d8fe96bee8514e9c18d91da821212, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UiManager
+  dontDestroyOnLoad: 1
   windows:
   - {fileID: 311593445}
   - {fileID: 8926104049234083231}
