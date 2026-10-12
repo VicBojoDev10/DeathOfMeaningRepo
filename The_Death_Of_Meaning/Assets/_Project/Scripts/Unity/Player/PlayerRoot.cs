@@ -112,6 +112,22 @@ namespace TDOM.Unity.Player
             }
         }
 
+        public void SetControlCinematica(bool activa)
+        {
+            if (!IsOwner)
+                return;
+
+            _inputReader.SetEntradaHabilitada(!activa);
+            if (_hudInstance != null)
+                _hudInstance.SetActive(!activa);
+        }
+
+        public void SetCamaraCedida(bool cedida)
+        {
+            if (IsOwner && _camera != null)
+                _camera.CederPrioridad(cedida);
+        }
+
         private CharacterIds GetCharacterId()
         {
             if (_definition == null || string.IsNullOrEmpty(_definition.DisplayName))

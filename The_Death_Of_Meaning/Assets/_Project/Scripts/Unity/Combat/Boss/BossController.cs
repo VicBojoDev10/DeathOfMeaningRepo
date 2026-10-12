@@ -17,7 +17,13 @@ namespace TDOM.Unity.Combat
             NetworkVariableWritePermission.Server
         );
 
+        public static event Action<BossController> Spawned;
+
         public event Action<int, int> OnFaseChanged;
+
+        private bool _pausado;
+
+        public void Pausar(bool pausado) => _pausado = pausado;
 
         [Header("Puntos Débiles (Ojos)")]
         [SerializeField]
@@ -71,6 +77,7 @@ namespace TDOM.Unity.Combat
         public override void OnNetworkSpawn()
         {
             Fase.OnValueChanged += HandleFaseChanged;
+            Spawned?.Invoke(this);
 
             Debug.Log(
                 $"[BossController] Spawneado en red. Fase inicial: {Fase.Value}, IsServer: {IsServer}"
@@ -168,7 +175,7 @@ namespace TDOM.Unity.Combat
         private void Update()
         {
             // Toda la lógica del jefe corre únicamente en el servidor.
-            if (!IsServer || _scheduler == null)
+            if (!IsServer || _scheduler == null || _pausado)
                 return;
 
             var evento = _scheduler.Tick(Time.deltaTime, out var ataque);

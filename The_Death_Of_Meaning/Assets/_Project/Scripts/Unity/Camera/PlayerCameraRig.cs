@@ -20,13 +20,26 @@ namespace TDOM.Unity.Camera
         [SerializeField]
         private float _velocidadZoom = 12f;
 
+        [SerializeField]
+        private int _prioridadCedida = -10;
+
+        private int _prioridadBase;
         private Coroutine _rutinaFovActual;
         private Coroutine _rutinaTiltActual;
 
         private void Awake()
         {
+            if (_camara == null)
+                return;
+
+            _fovBase = _camara.Lens.FieldOfView;
+            _prioridadBase = _camara.Priority.Value;
+        }
+
+        public void CederPrioridad(bool cedida)
+        {
             if (_camara != null)
-                _fovBase = _camara.Lens.FieldOfView;
+                _camara.Priority.Value = cedida ? _prioridadCedida : _prioridadBase;
         }
 
         public void ApplyLook(float yaw, float pitch)
