@@ -1,6 +1,18 @@
 ﻿flowchart TD
-    MENU[ConnectionMenuUI] -->|StartHost/Client| NM[NetworkManager + UnityTransport]
-    NM --> SEL[Seleccion de personaje]
-    SEL -->|ElegirPersonaje| GSM[GameSessionManager servidor]
-    GSM -->|SpawnWithOwnership| P[PlayerZendre / PlayerAyla]
-    P -->|IsOwner| CAM[camara + input activos solo del dueno]
+    MENU[ConnectionUI] -->|"Crear partida / Unirse por IP"| CM["ConnectionManager + SessionStatus"]
+    CM -->|"StartHost / StartClient, puerto 7777"| NM[NetworkManager + UnityTransport]
+    NM -->|"OnServerStarted: Spawn"| GFN[GameFlowNetwork]
+    GFN -->|"Spawned (evento estatico)"| MENU
+    MENU -->|"Host con 2 jugadores: StartMatch"| GFN
+    GFN -->|StartMatchClientRpc| SEL[CharacterSelUI]
+    SEL -->|"ElegirPersonajeRpc, MarcarListoRpc (Server)"| GSM[GameSessionManager servidor]
+    GSM -->|"Jugadores: NetworkList de PlayerSelectionState"| SEL
+    GSM -.->|"PersonajeRechazadoRpc, NotificarDesconexionClientRpc"| SEL
+    GSM -->|"2 listos: SpawnWithOwnership"| P[PlayerZendre / PlayerAyla]
+    GSM -->|"Spawn en runtime"| BOSS["BossArek: BossController"]
+    GSM -->|"IniciarPartidaClientRpc: OnPartidaIniciada"| CLI[Clientes]
+    P -->|IsOwner| OWN["camara, input y HUD de energia solo del dueno"]
+    P -.->|"Energia (NetworkVariable, escribe el servidor)"| HUDE[PlayerEnergyHud]
+    BOSS -->|"Spawned (evento estatico, solo servidor)"| CD[CinematicDirector en escena]
+    CD -->|"ReproducirRpc, TerminarRpc (ClientsAndHost)"| CLI
+    CD -->|"LocalClient.OwnedObjects"| P
