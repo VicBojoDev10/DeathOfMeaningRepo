@@ -362,7 +362,7 @@ namespace TDOM.Unity.Audio
 
     public enum AudioChannel
     {
-        Master,
+        Master,                                                                                                                                                                                                                                                                     
         Music,
         Sfx,
     }
