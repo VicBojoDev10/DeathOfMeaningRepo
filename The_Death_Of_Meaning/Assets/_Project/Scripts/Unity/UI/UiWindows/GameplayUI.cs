@@ -30,6 +30,14 @@ namespace TDOM.Unity
         private PlayerRoot _localPlayer;
         private RectTransform _crosshairRect;
         private Vector3 _escalaBase;
+        private bool _hudVisible = true;
+
+        public void SetHudVisible(bool visible)
+        {
+            _hudVisible = visible;
+            if (canvasGroup != null)
+                canvasGroup.alpha = visible ? 1f : 0f;
+        }
 
         public override void Initialize()
         {
@@ -62,6 +70,9 @@ namespace TDOM.Unity
 
         private void LateUpdate()
         {
+            if (!_hudVisible)
+                return;
+
             // Si no tenemos referencia al jugador local, lo buscamos en la escena
             if (_localPlayer == null)
             {
