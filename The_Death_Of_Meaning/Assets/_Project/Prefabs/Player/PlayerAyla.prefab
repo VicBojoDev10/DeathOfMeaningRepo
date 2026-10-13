@@ -73,7 +73,7 @@ GameObject:
   - component: {fileID: 1793130870331789386}
   m_Layer: 0
   m_Name: PlayerAyla
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -509,7 +509,7 @@ GameObject:
   - component: {fileID: 4505444027090492446}
   m_Layer: 6
   m_Name: HurtBox
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -602,31 +602,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9119041166865434399, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.022000015
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9119041166865434399, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.776
+      value: 1.6
       objectReference: {fileID: 0}
     - target: {fileID: 9119041166865434399, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.098
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9119041166865434399, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.9989186
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9119041166865434399, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.03721703
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9119041166865434399, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.027298823
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9119041166865434399, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.0056032003
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9119041166865434399, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
