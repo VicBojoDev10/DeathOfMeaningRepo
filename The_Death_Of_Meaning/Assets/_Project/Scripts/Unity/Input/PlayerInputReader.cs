@@ -24,6 +24,19 @@ namespace TDOM.Unity.Input
                 _actions.Ayla.Enable();
         }
 
+        public void SetEntradaHabilitada(bool habilitada)
+        {
+            if (!habilitada)
+            {
+                _actions.Zendre.Disable();
+                _actions.Ayla.Disable();
+                return;
+            }
+
+            if (_personajeActivo != CharacterIds.None)
+                ActivarPersonaje(_personajeActivo);
+        }
+
         public InputSnapshot Read()
         {
             if (_personajeActivo == CharacterIds.Zendre)
