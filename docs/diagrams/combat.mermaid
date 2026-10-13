@@ -1,6 +1,24 @@
-﻿flowchart LR
-    IN[InputSnapshot] --> CSM[ComboStateMachine]
-    BUF[InputBuffer] --> CSM
-    CSM -->|AttackEvent| PC[PlayerCombat]
-    PC -->|RPC servidor| SRV[Validacion + dano WIP]
-    PC -->|RPC NotOwner| ANIM[Animator del otro cliente]
+﻿flowchart TD
+    IN[InputSnapshot] --> PC["PlayerCombat.Tick (solo dueno)"]
+    PC --> MEL["ComboStateMachine melee + InputBuffer"]
+    PC --> RNG["ComboStateMachine disparo + InputBuffer"]
+    MEL -->|AttackEvent| GOLPE[Golpe melee]
+    RNG -->|AttackEvent| DISP[Disparo]
+    GOLPE -->|"cargado: ConsumirEnergiaRpc (Server)"| EN["PlayerRoot.ConsumirEnergiaEnServidor: EnergyPool"]
+    DISP -->|"cargado: ConsumirEnergiaRpc (Server)"| EN
+    GOLPE --> HB[HitboxCaster.DetectarImpactos]
+    HB -->|"ReportarGolpeRpc (Server)"| VAL[Servidor valida el rango]
+    DISP -->|"con prefab: DispararRpc (Server)"| PROY[Proyectil spawneado en el servidor]
+    DISP -->|"sin prefab: DetectarDisparo + ReportarDisparoRpc (Server)"| VAL
+    VAL --> HZ[HitZone.RegistrarDanio]
+    PROY --> HZ
+    HZ -->|"DanioAcumulado (NetworkVariable)"| BOSS[BossController]
+    GOLPE --> LOCAL["Local: PlayerCombatAnimator, CombatVfx, FeedbackDirector"]
+    DISP --> LOCAL
+    PC -.->|"ReproducirGolpeRpc, ReproducirDisparoRpc, CargaRpc (NotOwner)"| REM[Animator y VFX del otro cliente]
+    PC -->|AtaqueActivo bloquea la locomocion| ROOT[PlayerRoot]
+    INZ["InputSnapshot: AimHeld + GrappleHeld (Zendre)"] --> AL["AnchorLauncher + CooldownTimer"]
+    AL -->|"LanzarAnclaRpc (Server)"| AN[Ancla spawneada en el servidor]
+    AL -->|"SoltarAnclaRpc (Server)"| AN
+    AN -.->|"RechazarLanzamientoRpc (Owner)"| AL
+    AN -->|"Pegada (NetworkVariable)"| ROOT

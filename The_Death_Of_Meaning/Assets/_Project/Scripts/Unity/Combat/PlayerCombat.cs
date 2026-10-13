@@ -71,6 +71,9 @@ namespace TDOM.Unity.Combat
         {
             _root = GetComponentInParent<PlayerRoot>();
 
+            if (_vfx == null)
+                Debug.LogWarning($"[PlayerCombat] _vfx no asignado en {name}");
+
             if (!IsOwner)
                 return;
 
@@ -242,6 +245,7 @@ namespace TDOM.Unity.Combat
                 attackReleased: input.FireReleased,
                 aimHeld: input.AimHeld,
                 grapplePressed: input.GrapplePressed,
+                grappleHeld: input.GrappleHeld,
                 firePressed: false,
                 fireHeld: false,
                 fireReleased: false

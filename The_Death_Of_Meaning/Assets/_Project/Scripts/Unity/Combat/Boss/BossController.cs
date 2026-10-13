@@ -17,7 +17,13 @@ namespace TDOM.Unity.Combat
             NetworkVariableWritePermission.Server
         );
 
+        public static event Action<BossController> Spawned;
+
         public event Action<int, int> OnFaseChanged;
+
+        private bool _pausado;
+
+        public void Pausar(bool pausado) => _pausado = pausado;
 
         [Header("Puntos Débiles (Ojos)")]
         [SerializeField]
@@ -46,6 +52,10 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private float _duracionTelegraph = 1.25f;
 
+        // TW-96: lanzador de los ataques reales; si queda vacío se toma del mismo objeto.
+        [SerializeField]
+        private AtaquesArek _ataques;
+
         // Solo existe en el servidor. Decide cuándo avisar (Telegraph) y cuándo golpear (Impacto).
         private BossAttackScheduler _scheduler;
 
@@ -67,6 +77,7 @@ namespace TDOM.Unity.Combat
         public override void OnNetworkSpawn()
         {
             Fase.OnValueChanged += HandleFaseChanged;
+            Spawned?.Invoke(this);
 
             Debug.Log(
                 $"[BossController] Spawneado en red. Fase inicial: {Fase.Value}, IsServer: {IsServer}"
@@ -88,6 +99,10 @@ namespace TDOM.Unity.Combat
                 _duracionTelegraph
             );
             _indiceEnFase = 0;
+
+            // TW-96
+            if (_ataques == null)
+                _ataques = GetComponent<AtaquesArek>();
 
             if (_hitZones == null)
                 return;
@@ -160,7 +175,7 @@ namespace TDOM.Unity.Combat
         private void Update()
         {
             // Toda la lógica del jefe corre únicamente en el servidor.
-            if (!IsServer || _scheduler == null)
+            if (!IsServer || _scheduler == null || _pausado)
                 return;
 
             var evento = _scheduler.Tick(Time.deltaTime, out var ataque);
@@ -169,6 +184,9 @@ namespace TDOM.Unity.Combat
             {
                 case EventoAtaque.Telegraph:
                     TelegraphAtaqueRpc(ataque);
+                    // TW-96: el ataque se lanza en el Telegraph; cada prefab trae su propio aviso.
+                    if (_ataques != null)
+                        _ataques.Lanzar(ataque);
                     break;
                 case EventoAtaque.Impacto:
                     ImpactoAtaqueRpc(ataque);
@@ -181,14 +199,12 @@ namespace TDOM.Unity.Combat
         public void TelegraphAtaqueRpc(BossAttackKind ataque)
         {
             Debug.Log($"[BossController][RPC Telegraph] Aviso de ataque: {ataque}");
-            // Aquí irá la animación/VFX del aviso (fuera de alcance de TW-79).
         }
 
         [Rpc(SendTo.ClientsAndHost)]
         public void ImpactoAtaqueRpc(BossAttackKind ataque)
         {
             Debug.Log($"[BossController][RPC Impacto] Golpe: {ataque}");
-            // Aquí irán la geometría/colliders del ataque y el daño (tickets separados).
         }
 
         public void CambiarFase(int nuevaFase)

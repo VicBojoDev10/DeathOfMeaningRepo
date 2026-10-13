@@ -1,5 +1,25 @@
-﻿flowchart LR
-    IN[InputSnapshot] --> PL[PlayerLocomotion]
-    PL -->|orden fijo| ORD["Dash -> Gancho -> Control"]
-    PL -->|orden fijo| 1["Salto -> Gravedad -> Suelo"]
-    PL --> MI[MotionIntent] --> PM[PlayerMotor] --> CC["CharacterController.Move()"]
+﻿flowchart TD
+    IN[InputSnapshot] --> ROOT["PlayerRoot.Update (solo dueno)"]
+    DEF["CharacterDefinition: MovementProfile, DashProfile, GrappleProfile"] -->|construye los resolvers| PL[PlayerLocomotion.Tick]
+    ROOT -->|"ProbeGround: IsGrounded"| MOTOR[PlayerMotor]
+    ROOT -->|"GrapplePressed + Raycast: IntentarGancho"| PL
+    ROOT -->|"input, yaw, dt, AtaqueActivo"| PL
+    PL --> SPR[SprintResolver]
+    SPR --> GAN{"GrappleResolver activo?"}
+    GAN -->|si| SINGRAV["MotionIntent sin gravedad"]
+    GAN -->|no| DASH{"DashResolver activo?"}
+    DASH -->|si| SINGRAV
+    DASH -->|no| BLOQ{"Ataque bloquea movimiento?"}
+    BLOQ -->|no| MOV["JumpResolver -> GroundControlResolver"]
+    BLOQ -->|si| ATK["Fase Attacking: GroundControlResolver sin input"]
+    MOV --> GRAV[GravityModel]
+    ATK --> GRAV
+    GRAV --> CONGRAV["MotionIntent con gravedad"]
+    SINGRAV --> ANCLA{"Ancla de Zendre pegada?"}
+    CONGRAV --> ANCLA
+    ANCLA -->|si| CERO["MotionIntent en cero"]
+    ANCLA -->|no| APPLY[PlayerMotor.Apply]
+    CERO --> APPLY
+    APPLY --> CC["CharacterController.Move()"]
+    PL -.->|"DashIniciado, SaltoAereo, Aterrizaje"| FB[FeedbackDirector]
+    PL -.->|"GanchoActivo, PuntoGancho"| GV[GrappleVisual]

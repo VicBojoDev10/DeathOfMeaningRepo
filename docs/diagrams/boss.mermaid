@@ -1,0 +1,22 @@
+flowchart TD
+    GSM[GameSessionManager servidor] -->|"Instantiate + Spawn al iniciar la partida"| BC["BossArek: BossController"]
+    BC --> PSM["BossPhaseStateMachine (BossPhaseProfile)"]
+    BC --> SCH[BossAttackScheduler]
+    SCH -->|Telegraph| AA[AtaquesArek.Lanzar]
+    AA -->|Basico| MANO[AtaqueMano]
+    AA -->|Especial| RAYO[AtaqueRayo]
+    AA -->|InstaKill| MORT[AtaqueMortero]
+    AA -.->|"Pesado: Tentaculo pendiente"| TENT[Sin implementar]
+    SCH -->|"Telegraph / Impacto: TelegraphAtaqueRpc, ImpactoAtaqueRpc (ClientsAndHost)"| CLI[Clientes]
+    MANO -->|"AvisoRpc (ClientsAndHost)"| CLI
+    RAYO -->|"AvisoRpc, RayoRpc, ApagarRpc (ClientsAndHost)"| CLI
+    MORT -->|"AvisoRpc, CaidaRpc (ClientsAndHost)"| CLI
+    MANO -->|"JugadorGolpeadoRpc (SpecifiedInParams)"| HIT[Jugador golpeado]
+    RAYO -->|"JugadorGolpeadoRpc (SpecifiedInParams)"| HIT
+    MORT -->|"JugadorGolpeadoRpc (SpecifiedInParams)"| HIT
+    HZ["HitZone x12: ojos"] -->|"DanioAcumulado (NetworkVariable)"| BC
+    BC -->|AplicarDano| PSM
+    PSM -->|cambio de fase| FASE["Fase (NetworkVariable)"]
+    FASE -->|OnFaseChanged| CD[CinematicDirector]
+    BC -->|"Spawned (evento estatico)"| CD
+    CD -->|"Pausar: detiene el scheduler"| BC

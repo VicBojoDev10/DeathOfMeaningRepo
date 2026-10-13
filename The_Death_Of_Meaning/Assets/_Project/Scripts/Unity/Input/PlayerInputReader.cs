@@ -24,6 +24,19 @@ namespace TDOM.Unity.Input
                 _actions.Ayla.Enable();
         }
 
+        public void SetEntradaHabilitada(bool habilitada)
+        {
+            if (!habilitada)
+            {
+                _actions.Zendre.Disable();
+                _actions.Ayla.Disable();
+                return;
+            }
+
+            if (_personajeActivo != CharacterIds.None)
+                ActivarPersonaje(_personajeActivo);
+        }
+
         public InputSnapshot Read()
         {
             if (_personajeActivo == CharacterIds.Zendre)
@@ -40,10 +53,11 @@ namespace TDOM.Unity.Input
                     attackHeld: m.Attack.IsPressed(),
                     attackReleased: m.Attack.WasReleasedThisFrame(),
                     aimHeld: m.Aim.IsPressed(),
-                    grapplePressed: m.Grapple.WasPressedThisFrame(),
                     firePressed: m.Fire.WasPressedThisFrame(),
                     fireHeld: m.Fire.IsPressed(),
-                    fireReleased: m.Fire.WasReleasedThisFrame()
+                    fireReleased: m.Fire.WasReleasedThisFrame(),
+                    grapplePressed: m.Grapple.WasPressedThisFrame(),
+                    grappleHeld: m.Grapple.IsPressed()
                 );
             }
             else if (_personajeActivo == CharacterIds.Ayla)
@@ -60,29 +74,15 @@ namespace TDOM.Unity.Input
                     attackHeld: m.Attack.IsPressed(),
                     attackReleased: m.Attack.WasReleasedThisFrame(),
                     aimHeld: m.Aim.IsPressed(),
-                    grapplePressed: m.Grapple.WasPressedThisFrame(),
                     firePressed: false,
                     fireHeld: false,
-                    fireReleased: false
+                    fireReleased: false,
+                    grapplePressed: m.Grapple.WasPressedThisFrame(),
+                    grappleHeld: m.Grapple.IsPressed()
                 );
             }
 
-            return new InputSnapshot(
-                Vector2.zero,
-                Vector2.zero,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false
-            );
+            return new InputSnapshot();
         }
     }
 }

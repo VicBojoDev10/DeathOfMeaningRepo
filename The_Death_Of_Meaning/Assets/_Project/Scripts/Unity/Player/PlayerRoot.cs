@@ -1,3 +1,4 @@
+using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Camera;
 using TDOM.Gameplay.Core;
@@ -56,9 +57,19 @@ namespace TDOM.Unity.Player
             (_combat != null && _combat.AtaqueActivo)
             || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
 
+        public CharacterIds CharacterId => _characterId;
+        public Transform CameraTransform => _camera != null ? _camera.transform : null;
+        public PlayerInputReader InputReader => _inputReader;
+        public float GrappleRange => _definition?.Grapple != null ? _definition.Grapple.Range : 30f;
+        public float AnchorRange =>
+            _anchorLauncher != null && _anchorLauncher.Perfil != null
+                ? _anchorLauncher.Perfil.Range
+                : 20f;
+
         public override void OnNetworkSpawn()
         {
             _anchorLauncher = GetComponentInChildren<AnchorLauncher>();
+            _combat = GetComponentInChildren<PlayerCombat>();
             _look = new LookResolver(_sensitivity, yawInicial: transform.eulerAngles.y);
             _locomocion = new PlayerLocomotion(_definition);
             _camera.gameObject.SetActive(IsOwner);
@@ -81,7 +92,6 @@ namespace TDOM.Unity.Player
             {
                 _characterId = GetCharacterId();
                 _inputReader.ActivarPersonaje(GetCharacterId());
-
                 if (_hudEnergiaPrefab != null)
                 {
                     _hudInstance = Instantiate(_hudEnergiaPrefab);
@@ -100,6 +110,22 @@ namespace TDOM.Unity.Player
                 if (_camera != null)
                     _feedback = _camera.GetComponent<FeedbackDirector>();
             }
+        }
+
+        public void SetControlCinematica(bool activa)
+        {
+            if (!IsOwner)
+                return;
+
+            _inputReader.SetEntradaHabilitada(!activa);
+            if (_hudInstance != null)
+                _hudInstance.SetActive(!activa);
+        }
+
+        public void SetCamaraCedida(bool cedida)
+        {
+            if (IsOwner && _camera != null)
+                _camera.CederPrioridad(cedida);
         }
 
         private CharacterIds GetCharacterId()
@@ -146,6 +172,15 @@ namespace TDOM.Unity.Player
                 _feedback.OnAterrizajeFuerte();
         }
 
+        public override void OnNetworkDespawn()
+        {
+            if (_hudInstance != null)
+            {
+                Destroy(_hudInstance);
+                _hudInstance = null;
+            }
+        }
+
         private void Update()
         {
             if (IsServer && _energyPool != null)
@@ -164,7 +199,11 @@ namespace TDOM.Unity.Player
             transform.rotation = _look.YawRotation;
 
             if (_camera != null)
+            {
                 _camera.ApplyLook(_look.Yaw, _look.Pitch);
+                _camera.SetZoom(input.AimHeld);
+                _camera.UpdateZoom(dt);
+            }
 
             _motor.ProbeGround(_locomocion.State);
 
@@ -207,6 +246,15 @@ namespace TDOM.Unity.Player
                 AtaqueActivo,
                 transform.position
             );
+            if (
+                _anchorLauncher != null
+                && _anchorLauncher.AnclaActiva
+                && _anchorLauncher.AnclaActual != null
+                && _anchorLauncher.AnclaActual.Pegada.Value
+            )
+            {
+                intent = new MotionIntent(Vector3.zero, ignoreGravity: true);
+            }
             _motor.Apply(intent, dt);
 
             DispararFeedbackDeLocomocion();
