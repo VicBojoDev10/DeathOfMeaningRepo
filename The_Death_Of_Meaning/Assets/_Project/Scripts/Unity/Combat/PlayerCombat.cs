@@ -216,7 +216,7 @@ namespace TDOM.Unity.Combat
 
             if (_proyectilPrefab != null && _origenDisparo != null)
             {
-                DispararRpc(_origenDisparo.position, _origenDisparo.forward, evento);
+                DispararRpc(_origenDisparo.position, DireccionDeDisparo(), evento);
             }
             else if (_hitbox != null)
             {
@@ -440,6 +440,11 @@ namespace TDOM.Unity.Combat
                 }
             }
         }
+
+        private Vector3 DireccionDeDisparo() =>
+            _root != null
+                ? _root.ResolverApuntado(_origenDisparo.position).Direction
+                : _origenDisparo.forward;
 
         [Rpc(SendTo.Server)]
         private void DispararRpc(Vector3 origen, Vector3 dir, AttackEvent evento)
