@@ -53,6 +53,10 @@ namespace TDOM.Unity.Player
         private GameObject _hudInstance;
         private FeedbackDirector _feedback;
         private CharacterIds _characterId = CharacterIds.None;
+        private bool _initialSpawnApplied;
+        private bool _originResetLogged;
+        private Vector3 _initialSpawnPosition;
+        private Vector3 _lastObservedPosition;
         public bool AtaqueActivo =>
             (_combat != null && _combat.AtaqueActivo)
             || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
@@ -73,7 +77,7 @@ namespace TDOM.Unity.Player
             _look = new LookResolver(_sensitivity, yawInicial: transform.eulerAngles.y);
             _locomocion = new PlayerLocomotion(_definition);
             _camera.gameObject.SetActive(IsOwner);
-            _inputReader.enabled = IsOwner;
+            _inputReader.enabled = false;
 
             if (_grappleVisual == null)
                 _grappleVisual = GetComponentInChildren<GrappleVisual>();
@@ -110,6 +114,53 @@ namespace TDOM.Unity.Player
                 if (_camera != null)
                     _feedback = _camera.GetComponent<FeedbackDirector>();
             }
+        }
+
+        public void EnviarSpawnInicial(Vector3 position, Quaternion rotation)
+        {
+            if (IsServer)
+                AplicarSpawnInicialRpc(position, rotation);
+        }
+
+        [Rpc(SendTo.Owner)]
+        private void AplicarSpawnInicialRpc(Vector3 position, Quaternion rotation)
+        {
+            if (!IsOwner)
+                return;
+
+            var characterController = GetComponent<CharacterController>();
+            bool controllerWasEnabled = characterController != null && characterController.enabled;
+            if (controllerWasEnabled)
+                characterController.enabled = false;
+
+            try
+            {
+                var networkTransform = GetComponent<ClientNetworkTransform>();
+                if (networkTransform != null)
+                {
+                    networkTransform.HabilitarAutoridadDelDueño();
+                    networkTransform.Teleport(position, rotation, transform.localScale);
+                }
+                else
+                {
+                    transform.SetPositionAndRotation(position, rotation);
+                }
+            }
+            finally
+            {
+                if (controllerWasEnabled)
+                    characterController.enabled = true;
+            }
+
+            _look = new LookResolver(_sensitivity, yawInicial: transform.eulerAngles.y);
+            _initialSpawnApplied = true;
+            _inputReader.enabled = true;
+            _initialSpawnPosition = transform.position;
+            _lastObservedPosition = transform.position;
+            Debug.Log(
+                $"[SPAWN][OWNER] client={NetworkManager.LocalClientId} "
+                    + $"position={transform.position} rotation={transform.eulerAngles}"
+            );
         }
 
         public void SetControlCinematica(bool activa)
@@ -189,7 +240,7 @@ namespace TDOM.Unity.Player
                 Energia.Value = _energyPool.Current;
             }
 
-            if (!IsOwner)
+            if (!IsOwner || !_initialSpawnApplied)
                 return;
 
             float dt = Time.deltaTime;
@@ -271,6 +322,34 @@ namespace TDOM.Unity.Player
                         _grappleVisual.Ocultar();
                 }
             }
+        }
+
+        private void LateUpdate()
+        {
+            if (!IsOwner || !_initialSpawnApplied)
+                return;
+
+            Vector3 currentPosition = transform.position;
+            Vector2 currentPlanarPosition = new Vector2(currentPosition.x, currentPosition.z);
+            Vector2 initialPlanarPosition = new Vector2(
+                _initialSpawnPosition.x,
+                _initialSpawnPosition.z
+            );
+            if (
+                !_originResetLogged
+                && currentPlanarPosition.sqrMagnitude < 9f
+                && initialPlanarPosition.sqrMagnitude > 100f
+            )
+            {
+                _originResetLogged = true;
+                Debug.LogError(
+                    $"[SPAWN][ORIGIN-RESET] client={NetworkManager.LocalClientId} "
+                        + $"owner={OwnerClientId} previous={_lastObservedPosition} "
+                        + $"current={currentPosition} frame={Time.frameCount}"
+                );
+            }
+
+            _lastObservedPosition = currentPosition;
         }
     }
 }
