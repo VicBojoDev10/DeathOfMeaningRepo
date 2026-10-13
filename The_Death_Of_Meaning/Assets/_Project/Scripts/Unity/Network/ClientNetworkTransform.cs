@@ -26,10 +26,7 @@ namespace TDOM.Unity
         )
         {
             Vector3 position = newState.GetPosition();
-            if (
-                newState.HasPositionChange
-                && new Vector2(position.x, position.z).sqrMagnitude < 9f
-            )
+            if (newState.HasPositionChange && new Vector2(position.x, position.z).sqrMagnitude < 9f)
             {
                 Debug.LogError(
                     $"[SPAWN][NET-STATE-NEAR-ORIGIN] local={NetworkManager.LocalClientId} "
