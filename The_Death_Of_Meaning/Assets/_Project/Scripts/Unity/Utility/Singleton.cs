@@ -4,7 +4,7 @@ using UnityEngine.Events;
 namespace TDOM.Unity
 {
     public abstract class Singleton<T> : MonoBehaviour
-        where T : MonoBehaviour
+        where T : Singleton<T>
     {
         private static T _instance;
         private static readonly object _lock = new object();
@@ -16,6 +16,8 @@ namespace TDOM.Unity
         [SerializeField]
         private bool dontDestroyOnLoad = true;
 
+        public bool DontDestroyOnLoadEnabled => dontDestroyOnLoad;
+
         public static T Instance
         {
             get
@@ -24,11 +26,12 @@ namespace TDOM.Unity
                 {
                     if (_instance == null)
                     {
-                        _instance = FindFirstObjectByType<T>();
-                        if (_instance == null)
+                        _instance = FindAnyObjectByType<T>(FindObjectsInactive.Include);
+                        if (_instance != null && _instance.dontDestroyOnLoad)
                         {
-                            GameObject singletonObject = new GameObject(typeof(T).Name);
-                            _instance = singletonObject.AddComponent<T>();
+                            if (_instance.transform.parent != null)
+                                _instance.transform.SetParent(null);
+                            DontDestroyOnLoad(_instance.gameObject);
                         }
                     }
                     return _instance;
@@ -38,15 +41,21 @@ namespace TDOM.Unity
 
         protected virtual void Awake()
         {
-            if (_instance == null)
+            if (_instance == null || _instance == this)
             {
-                if (dontDestroyOnLoad)
-                    DontDestroyOnLoad(gameObject);
                 _instance = this as T;
+                if (dontDestroyOnLoad)
+                {
+                    if (transform.parent != null)
+                        transform.SetParent(null);
+                    DontDestroyOnLoad(gameObject);
+                }
             }
-            else if (_instance != this)
+            else
             {
+                Debug.LogWarning($"[Singleton] Instancia duplicada de {typeof(T).Name} destruida en {gameObject.name}");
                 Destroy(gameObject);
+                return;
             }
 
             OnFinishedInitializing?.Invoke();

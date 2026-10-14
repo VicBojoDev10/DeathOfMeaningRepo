@@ -1,4 +1,3 @@
-using System.Collections;
 using TDOM.Unity.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -29,27 +28,6 @@ namespace TDOM.Unity
             }
         }
 
-        private void Start()
-        {
-            StartCoroutine(StartupRoutine());
-        }
-
-        private IEnumerator StartupRoutine()
-        {
-            yield return null;
-
-            // En la escena MainMenu nos aseguramos de que ConnectionUI esté cerrado
-            if (UiManager.Instance != null)
-            {
-                UiManager.Instance.CloseWindow(WindowsIds.ConnectionMenuUI);
-            }
-
-            if (!HideOnStart)
-            {
-                FocusFirstElement();
-            }
-        }
-
         private void OnEnable()
         {
             if (playButton != null)
@@ -72,8 +50,6 @@ namespace TDOM.Unity
 
             if (exitButton != null)
                 exitButton.onClick.RemoveListener(OnExitButtonClicked);
-
-            SceneManager.sceneLoaded -= OnSceneLoaded;
         }
 
         private void OnPlayButtonClicked()
@@ -81,23 +57,10 @@ namespace TDOM.Unity
             if (UiManager.Instance != null)
             {
                 UiManager.Instance.CloseWindow(WindowsIds.MainMenuUI);
+                UiManager.Instance.ShowWindow(WindowsIds.ConnectionMenuUI);
             }
 
-            SceneManager.sceneLoaded -= OnSceneLoaded;
-            SceneManager.sceneLoaded += OnSceneLoaded;
             SceneManager.LoadScene(networkSetupSceneName);
-        }
-
-        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-        {
-            if (scene.name == networkSetupSceneName)
-            {
-                SceneManager.sceneLoaded -= OnSceneLoaded;
-                if (UiManager.Instance != null)
-                {
-                    UiManager.Instance.ShowWindow(WindowsIds.ConnectionMenuUI);
-                }
-            }
         }
 
         private void OnOptionsButtonClicked()
