@@ -25,6 +25,7 @@ namespace TDOM.Unity.Player
         [SerializeField]
         private PlayerCameraRig _camera;
         private LookResolver _look;
+        private FacingResolver _facing;
 
         [SerializeField]
         private PlayerInputReader _inputReader;
@@ -77,6 +78,7 @@ namespace TDOM.Unity.Player
                 transform.eulerAngles.y
             );
             _locomocion = new PlayerLocomotion(_definition);
+            _facing = new FacingResolver(_definition.Movement.TurnSpeed, transform.eulerAngles.y);
             _camera.gameObject.SetActive(IsOwner);
             _inputReader.enabled = IsOwner;
 
@@ -183,6 +185,16 @@ namespace TDOM.Unity.Player
                 _feedback.OnAterrizajeFuerte();
         }
 
+        private void AlinearConCamaraAlAtacar(InputSnapshot input)
+        {
+            bool iniciaAtaque = input.AttackPressed || input.FirePressed;
+            if (!_definition.Movement.SnapToCameraOnAttack || input.AimHeld || !iniciaAtaque)
+                return;
+
+            _facing.AlinearCon(_look.Yaw);
+            transform.rotation = _facing.Rotacion;
+        }
+
         private void RegistrarDesplazamientoLateralEnCamara(Vector2 movimiento)
         {
             if (_camera == null || !_locomocion.DashIniciado)
@@ -225,7 +237,6 @@ namespace TDOM.Unity.Player
             var input = _inputReader.Read();
 
             _look.Tick(input.Look, dt);
-            transform.rotation = _look.YawRotation;
 
             if (_camera != null)
             {
@@ -234,6 +245,8 @@ namespace TDOM.Unity.Player
             }
 
             _motor.ProbeGround(_locomocion.State);
+
+            AlinearConCamaraAlAtacar(input);
 
             if (_combat != null)
                 _combat.Tick(input, dt);
@@ -264,6 +277,8 @@ namespace TDOM.Unity.Player
                 intent = new MotionIntent(Vector3.zero, ignoreGravity: true);
             }
             _motor.Apply(intent, dt);
+            _facing.Tick(_locomocion.State.Velocity, _look.Yaw, input.AimHeld, dt);
+            transform.rotation = _facing.Rotacion;
 
             DispararFeedbackDeLocomocion();
             RegistrarDesplazamientoLateralEnCamara(input.Move);
