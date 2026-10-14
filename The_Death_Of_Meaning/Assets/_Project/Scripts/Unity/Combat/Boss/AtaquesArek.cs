@@ -20,6 +20,9 @@ namespace TDOM.Unity
         private GameObject _prefabAtaqueMortero;
 
         [SerializeField]
+        private GameObject _prefabAtaqueTentaculo;
+
+        [SerializeField]
         private GameObject _prefabAtaqueRayo;
 
         [SerializeField]
@@ -37,8 +40,7 @@ namespace TDOM.Unity
                     LanzarAtaqueMano();
                     break;
                 case BossAttackKind.Pesado:
-                    // Reservado para el Tentáculo nuevo (otro ticket).
-                    Debug.LogWarning("[AtaquesArek] Tentáculo no implementado");
+                    LanzarAtaqueTentaculo();
                     break;
                 case BossAttackKind.Especial:
                     LanzarAtaqueRayo();
@@ -64,6 +66,17 @@ namespace TDOM.Unity
             Spawnear(
                 _prefabAtaqueMortero,
                 "_prefabAtaqueMortero",
+                transform.position,
+                transform.rotation
+            );
+        }
+
+        // Se spawnea en la posición y rotación del jefe; AtaqueTentaculo elige la dirección al spawnear.
+        private void LanzarAtaqueTentaculo()
+        {
+            Spawnear(
+                _prefabAtaqueTentaculo,
+                "_prefabAtaqueTentaculo",
                 transform.position,
                 transform.rotation
             );
