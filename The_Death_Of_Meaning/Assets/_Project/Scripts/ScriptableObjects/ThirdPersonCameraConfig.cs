@@ -26,7 +26,7 @@ namespace TDOM.Data
         public float TransitionSpeed = 12f;
         public float CombatLingerSeconds = 3f;
 
-        [Header("Cambio de hombro al esquivar en combate")]
+        [Header("Cambio de hombro por dash o carga lateral en combate")]
         public float ShoulderSwapSpeed = 8f;
 
         [Range(0f, 1f)]

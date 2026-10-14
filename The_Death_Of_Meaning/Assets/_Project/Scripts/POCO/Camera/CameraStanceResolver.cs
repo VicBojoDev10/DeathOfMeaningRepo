@@ -44,7 +44,7 @@ namespace TDOM.Gameplay.Camera
             );
         }
 
-        public void RegistrarEsquiva(Vector2 movimientoRelativoACamara)
+        public void RegistrarDesplazamientoLateral(Vector2 movimientoRelativoACamara)
         {
             if (!EnCombate || movimientoRelativoACamara.sqrMagnitude < MovimientoMinimoCuadrado)
                 return;

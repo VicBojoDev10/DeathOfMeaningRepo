@@ -20,7 +20,7 @@ flowchart TD
     Root -->|"ApplyLook, ActualizarEncuadre"| Pivot
     Pivot --> Config["ThirdPersonCameraConfig (valores por stance)"]
     Pivot --> Stances["CameraStanceResolver: Exploracion, Sprint, Combate, Apuntado"]
-    Root -->|"RegistrarEsquiva (dash lateral en combate)"| Pivot
+    Root -->|"RegistrarDesplazamientoLateral (dash o carga lateral en combate)"| Pivot
     Combat -->|"ResolverApuntado (AimResolver)"| Root
     Anchor -->|"ResolverApuntado (AimResolver)"| Root
     Root --> Grapple

@@ -183,12 +183,12 @@ namespace TDOM.Unity.Player
                 _feedback.OnAterrizajeFuerte();
         }
 
-        private void RegistrarEsquivaEnCamara(Vector2 movimiento)
+        private void RegistrarDesplazamientoLateralEnCamara(Vector2 movimiento)
         {
             if (_camera == null || !_locomocion.DashIniciado)
                 return;
 
-            _camera.RegistrarEsquiva(movimiento);
+            _camera.RegistrarDesplazamientoLateral(movimiento);
         }
 
         private void IntentarGanchoApuntado()
@@ -266,7 +266,7 @@ namespace TDOM.Unity.Player
             _motor.Apply(intent, dt);
 
             DispararFeedbackDeLocomocion();
-            RegistrarEsquivaEnCamara(input.Move);
+            RegistrarDesplazamientoLateralEnCamara(input.Move);
 
             bool ganchoActivoActual = _locomocion != null && _locomocion.GanchoActivo;
             if (ganchoActivoActual != _ganchoActivoPrevio)

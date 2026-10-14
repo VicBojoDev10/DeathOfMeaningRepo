@@ -74,9 +74,9 @@ namespace TDOM.Unity.Camera
             AplicarEncuadre();
         }
 
-        public void RegistrarEsquiva(Vector2 movimientoRelativoACamara)
+        public void RegistrarDesplazamientoLateral(Vector2 movimientoRelativoACamara)
         {
-            _stances.RegistrarEsquiva(movimientoRelativoACamara);
+            _stances.RegistrarDesplazamientoLateral(movimientoRelativoACamara);
         }
 
         private void AplicarEncuadre()

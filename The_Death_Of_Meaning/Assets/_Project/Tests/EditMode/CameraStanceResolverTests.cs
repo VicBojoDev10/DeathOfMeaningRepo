@@ -142,23 +142,23 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
-        public void esquivar_hacia_la_izquierda_en_combate_cambia_al_hombro_izquierdo()
+        public void dash_hacia_la_izquierda_en_combate_cambia_al_hombro_izquierdo()
         {
             var resolver = CrearResolver();
             EntrarEnCombate(resolver);
 
-            resolver.RegistrarEsquiva(Vector2.left);
+            resolver.RegistrarDesplazamientoLateral(Vector2.left);
             Simular(resolver, 60, atacando: true);
 
             Assert.AreEqual(CameraStanceResolver.LadoIzquierdo, resolver.CameraSide, Tolerancia);
         }
 
         [Test]
-        public void esquivar_fuera_de_combate_no_cambia_de_hombro()
+        public void dash_fuera_de_combate_no_cambia_de_hombro()
         {
             var resolver = CrearResolver();
 
-            resolver.RegistrarEsquiva(Vector2.left);
+            resolver.RegistrarDesplazamientoLateral(Vector2.left);
             Simular(resolver, 60);
 
             Assert.AreEqual(CameraStance.Exploration, resolver.Stance);
@@ -166,12 +166,12 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
-        public void esquivar_casi_de_frente_no_cambia_de_hombro()
+        public void dash_casi_de_frente_no_cambia_de_hombro()
         {
             var resolver = CrearResolver();
             EntrarEnCombate(resolver);
 
-            resolver.RegistrarEsquiva(new Vector2(-0.2f, 1f));
+            resolver.RegistrarDesplazamientoLateral(new Vector2(-0.2f, 1f));
             Simular(resolver, 60, atacando: true);
 
             Assert.AreEqual(CameraStanceResolver.LadoDerecho, resolver.CameraSide, Tolerancia);
@@ -183,7 +183,7 @@ namespace TDOM.Tests.EditMode
             var resolver = CrearResolver();
             EntrarEnCombate(resolver);
 
-            resolver.RegistrarEsquiva(Vector2.left);
+            resolver.RegistrarDesplazamientoLateral(Vector2.left);
             resolver.Tick(apuntando: false, atacando: true, corriendo: false, Dt);
 
             Assert.Less(resolver.CameraSide, CameraStanceResolver.LadoDerecho);
@@ -195,7 +195,7 @@ namespace TDOM.Tests.EditMode
         {
             var resolver = CrearResolver();
             EntrarEnCombate(resolver);
-            resolver.RegistrarEsquiva(Vector2.left);
+            resolver.RegistrarDesplazamientoLateral(Vector2.left);
             Simular(resolver, 60, atacando: true);
 
             Simular(resolver, FramesParaEstabilizar);
@@ -217,8 +217,8 @@ namespace TDOM.Tests.EditMode
                 bool corriendo = i % 50 < 30;
                 if (i % 40 == 5)
                 {
-                    primero.RegistrarEsquiva(Vector2.left);
-                    segundo.RegistrarEsquiva(Vector2.left);
+                    primero.RegistrarDesplazamientoLateral(Vector2.left);
+                    segundo.RegistrarDesplazamientoLateral(Vector2.left);
                 }
                 primero.Tick(apuntando, atacando, corriendo, Dt);
                 segundo.Tick(apuntando, atacando, corriendo, Dt);
