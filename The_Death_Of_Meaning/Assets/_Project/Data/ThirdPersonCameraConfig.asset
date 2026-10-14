@@ -12,12 +12,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52f4fbee3bcae2a4197036fa8de8b2cf, type: 3}
   m_Name: ThirdPersonCameraConfig
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.ThirdPersonCameraConfig
-  PivotHeight: 0.6
-  Distance: 4
-  ShoulderOffsetX: 0.8
-  AimDistance: 2
-  AimShoulderOffsetX: 0.5
-  ZoomSpeed: 12
+  Exploration:
+    Distance: 4
+    ShoulderOffsetX: 0.8
+    PivotHeight: 0.6
+    FieldOfView: 40
+  Sprint:
+    Distance: 5
+    ShoulderOffsetX: 0.8
+    PivotHeight: 0.5
+    FieldOfView: 50
+  Combat:
+    Distance: 3.3
+    ShoulderOffsetX: 0.8
+    PivotHeight: 0.6
+    FieldOfView: 37
+  Aim:
+    Distance: 2
+    ShoulderOffsetX: 0.5
+    PivotHeight: 0.6
+    FieldOfView: 27
+  TransitionSpeed: 12
+  CombatLingerSeconds: 3
+  ShoulderSwapSpeed: 8
+  StrafeSwingThreshold: 0.5
   PitchMin: -40
   PitchMax: 70
   AimMaxRange: 200
