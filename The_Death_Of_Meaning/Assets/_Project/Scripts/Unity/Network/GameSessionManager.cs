@@ -22,7 +22,10 @@ namespace TDOM.Unity
         private Transform _puntoSpawnArek;
 
         [SerializeField]
-        private Transform[] _puntosDeSpawn;
+        private Transform _spawnPointZendre;
+
+        [SerializeField]
+        private Transform _spawnPointAyla;
         public NetworkList<PlayerSelectionState> Jugadores { get; private set; }
 
         public event Action OnJugadorDesconectado;
@@ -142,16 +145,39 @@ namespace TDOM.Unity
                 if (!j.Ready)
                     return;
 
-            for (int i = 0; i < Jugadores.Count; i++)
+            foreach (var jugador in Jugadores)
             {
-                var prefab =
-                    Jugadores[i].Character == CharacterIds.Zendre ? _prefabZendre : _prefabAyla;
-                var go = Instantiate(
-                    prefab,
-                    _puntosDeSpawn[i].position,
-                    _puntosDeSpawn[i].rotation
+                var (prefab, spawnPoint) = jugador.Character switch
+                {
+                    CharacterIds.Zendre => (_prefabZendre, _spawnPointZendre),
+                    CharacterIds.Ayla => (_prefabAyla, _spawnPointAyla),
+                    _ => (null, null),
+                };
+
+                if (prefab == null || spawnPoint == null)
+                {
+                    Debug.LogError(
+                        $"No se puede iniciar: falta prefab o punto de spawn para {jugador.Character}."
+                    );
+                    return;
+                }
+
+                var go = Instantiate(prefab, spawnPoint.position, spawnPoint.rotation);
+                Debug.Log(
+                    $"[SPAWN][SERVER] {jugador.Character} owner={jugador.ClientId} "
+                        + $"point={spawnPoint.name} position={spawnPoint.position}"
                 );
-                go.GetComponent<NetworkObject>().SpawnWithOwnership(Jugadores[i].ClientId);
+                var player = go.GetComponent<TDOM.Unity.Player.PlayerRoot>();
+                if (player == null)
+                {
+                    Debug.LogError($"El prefab de {jugador.Character} no tiene PlayerRoot.");
+                    Destroy(go);
+                    return;
+                }
+
+                var networkObject = go.GetComponent<NetworkObject>();
+                networkObject.SpawnWithOwnership(jugador.ClientId);
+                player.EnviarSpawnInicial(spawnPoint.position, spawnPoint.rotation);
             }
 
             if (_prefabArek != null)

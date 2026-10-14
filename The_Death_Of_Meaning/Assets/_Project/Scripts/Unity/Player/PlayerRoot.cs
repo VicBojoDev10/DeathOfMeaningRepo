@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Camera;
@@ -25,6 +26,9 @@ namespace TDOM.Unity.Player
         [SerializeField]
         private PlayerCameraRig _camera;
         private LookResolver _look;
+        private FacingResolver _facing;
+        private LockOnResolver _fijacion;
+        private readonly List<LockOnCandidate> _candidatosFijacion = new List<LockOnCandidate>();
 
         [SerializeField]
         private PlayerInputReader _inputReader;
@@ -53,6 +57,10 @@ namespace TDOM.Unity.Player
         private GameObject _hudInstance;
         private FeedbackDirector _feedback;
         private CharacterIds _characterId = CharacterIds.None;
+        private bool _initialSpawnApplied;
+        private bool _originResetLogged;
+        private Vector3 _initialSpawnPosition;
+        private Vector3 _lastObservedPosition;
         public bool AtaqueActivo =>
             (_combat != null && _combat.AtaqueActivo)
             || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
@@ -77,8 +85,10 @@ namespace TDOM.Unity.Player
                 transform.eulerAngles.y
             );
             _locomocion = new PlayerLocomotion(_definition);
+            _facing = new FacingResolver(_definition.Movement.TurnSpeed, transform.eulerAngles.y);
+            _fijacion = new LockOnResolver(CrearAjustesFijacion(_camera.Config));
             _camera.gameObject.SetActive(IsOwner);
-            _inputReader.enabled = IsOwner;
+            _inputReader.enabled = false;
 
             if (_grappleVisual == null)
                 _grappleVisual = GetComponentInChildren<GrappleVisual>();
@@ -115,6 +125,53 @@ namespace TDOM.Unity.Player
                 if (_camera != null)
                     _feedback = _camera.GetComponent<FeedbackDirector>();
             }
+        }
+
+        public void EnviarSpawnInicial(Vector3 position, Quaternion rotation)
+        {
+            if (IsServer)
+                AplicarSpawnInicialRpc(position, rotation);
+        }
+
+        [Rpc(SendTo.Owner)]
+        private void AplicarSpawnInicialRpc(Vector3 position, Quaternion rotation)
+        {
+            if (!IsOwner)
+                return;
+
+            var characterController = GetComponent<CharacterController>();
+            bool controllerWasEnabled = characterController != null && characterController.enabled;
+            if (controllerWasEnabled)
+                characterController.enabled = false;
+
+            try
+            {
+                var networkTransform = GetComponent<ClientNetworkTransform>();
+                if (networkTransform != null)
+                {
+                    networkTransform.HabilitarAutoridadDelDueño();
+                    networkTransform.Teleport(position, rotation, transform.localScale);
+                }
+                else
+                {
+                    transform.SetPositionAndRotation(position, rotation);
+                }
+            }
+            finally
+            {
+                if (controllerWasEnabled)
+                    characterController.enabled = true;
+            }
+
+            _look = new LookResolver(_sensitivity, yawInicial: transform.eulerAngles.y);
+            _initialSpawnApplied = true;
+            _inputReader.enabled = true;
+            _initialSpawnPosition = transform.position;
+            _lastObservedPosition = transform.position;
+            Debug.Log(
+                $"[SPAWN][OWNER] client={NetworkManager.LocalClientId} "
+                    + $"position={transform.position} rotation={transform.eulerAngles}"
+            );
         }
 
         public void SetControlCinematica(bool activa)
@@ -183,6 +240,65 @@ namespace TDOM.Unity.Player
                 _feedback.OnAterrizajeFuerte();
         }
 
+        private void AplicarMiradaACamara()
+        {
+            if (_camera != null)
+                _camera.ApplyLook(_look.Yaw, _look.Pitch);
+        }
+
+        private void ActualizarMirada(InputSnapshot input, float dt)
+        {
+            ActualizarFijacion(input.LockOnPressed, dt);
+
+            if (_fijacion.Activo)
+            {
+                _look.EstablecerOrientacion(_fijacion.Yaw, _fijacion.Pitch);
+                return;
+            }
+
+            _look.Tick(input.Look, dt);
+        }
+
+        private void ActualizarFijacion(bool alternar, float dt)
+        {
+            _candidatosFijacion.Clear();
+            foreach (var objetivo in LockOnTarget.Activos)
+                _candidatosFijacion.Add(new LockOnCandidate(objetivo.Id, objetivo.PuntoDeMira));
+
+            _fijacion.Tick(
+                alternar,
+                _camera.transform.position,
+                _camera.CamaraTransform.forward,
+                _look.Yaw,
+                _look.Pitch,
+                _candidatosFijacion,
+                dt
+            );
+        }
+
+        private static LockOnSettings CrearAjustesFijacion(ThirdPersonCameraConfig config)
+        {
+            return new LockOnSettings(
+                config.LockOnRange,
+                config.LockOnSmoothTime,
+                config.LockOnPitchMin,
+                config.LockOnPitchMax
+            );
+        }
+
+        private void AlinearConCamaraAlAtacar(InputSnapshot input)
+        {
+            bool iniciaAtaque = input.AttackPressed || input.FirePressed;
+            if (!_definition.Movement.SnapToCameraOnAttack || input.AimHeld || !iniciaAtaque)
+                return;
+
+            float yawObjetivo = _fijacion.Activo
+                ? _fijacion.YawHacia(transform.position)
+                : _look.Yaw;
+            _facing.AlinearCon(yawObjetivo);
+            transform.rotation = _facing.Rotacion;
+        }
+
         private void RegistrarDesplazamientoLateralEnCamara(Vector2 movimiento)
         {
             if (_camera == null || !_locomocion.DashIniciado)
@@ -218,22 +334,25 @@ namespace TDOM.Unity.Player
                 Energia.Value = _energyPool.Current;
             }
 
-            if (!IsOwner)
+            if (!IsOwner || !_initialSpawnApplied)
                 return;
 
             float dt = Time.deltaTime;
             var input = _inputReader.Read();
 
-            _look.Tick(input.Look, dt);
-            transform.rotation = _look.YawRotation;
+            ActualizarMirada(input, dt);
 
             if (_camera != null)
-            {
-                _camera.ApplyLook(_look.Yaw, _look.Pitch);
-                _camera.ActualizarEncuadre(input.AimHeld, AtaqueActivo, _locomocion.Corriendo, dt);
-            }
+                _camera.ActualizarEncuadre(
+                    input.AimHeld,
+                    AtaqueActivo || _fijacion.Activo,
+                    _locomocion.Corriendo,
+                    dt
+                );
 
             _motor.ProbeGround(_locomocion.State);
+
+            AlinearConCamaraAlAtacar(input);
 
             if (_combat != null)
                 _combat.Tick(input, dt);
@@ -264,6 +383,9 @@ namespace TDOM.Unity.Player
                 intent = new MotionIntent(Vector3.zero, ignoreGravity: true);
             }
             _motor.Apply(intent, dt);
+            _facing.Tick(_locomocion.State.Velocity, _look.Yaw, input.AimHeld, dt);
+            transform.rotation = _facing.Rotacion;
+            AplicarMiradaACamara();
 
             DispararFeedbackDeLocomocion();
             RegistrarDesplazamientoLateralEnCamara(input.Move);
@@ -280,6 +402,34 @@ namespace TDOM.Unity.Player
                         _grappleVisual.Ocultar();
                 }
             }
+        }
+
+        private void LateUpdate()
+        {
+            if (!IsOwner || !_initialSpawnApplied)
+                return;
+
+            Vector3 currentPosition = transform.position;
+            Vector2 currentPlanarPosition = new Vector2(currentPosition.x, currentPosition.z);
+            Vector2 initialPlanarPosition = new Vector2(
+                _initialSpawnPosition.x,
+                _initialSpawnPosition.z
+            );
+            if (
+                !_originResetLogged
+                && currentPlanarPosition.sqrMagnitude < 9f
+                && initialPlanarPosition.sqrMagnitude > 100f
+            )
+            {
+                _originResetLogged = true;
+                Debug.LogError(
+                    $"[SPAWN][ORIGIN-RESET] client={NetworkManager.LocalClientId} "
+                        + $"owner={OwnerClientId} previous={_lastObservedPosition} "
+                        + $"current={currentPosition} frame={Time.frameCount}"
+                );
+            }
+
+            _lastObservedPosition = currentPosition;
         }
     }
 }

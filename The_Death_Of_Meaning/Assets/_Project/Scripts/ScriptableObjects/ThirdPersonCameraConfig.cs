@@ -32,6 +32,12 @@ namespace TDOM.Data
         [Range(0f, 1f)]
         public float StrafeSwingThreshold = 0.5f;
 
+        [Header("Lock-on")]
+        public float LockOnRange = 60f;
+        public float LockOnSmoothTime = 0.15f;
+        public float LockOnPitchMin = -60f;
+        public float LockOnPitchMax = 60f;
+
         [Header("Pitch")]
         public float PitchMin = -40f;
         public float PitchMax = 70f;
