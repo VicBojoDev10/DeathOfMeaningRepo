@@ -32,6 +32,16 @@ namespace TDOM.Data
         [Range(0f, 1f)]
         public float StrafeSwingThreshold = 0.5f;
 
+        [Header("Autorrotacion detras del personaje")]
+        public float AutoRotationMinSpeed = 1f;
+        public float AutoRotationLookCooldown = 1f;
+        public float AutoRotationLookDeadzone = 0.1f;
+        public float AutoRotationGraceDelay = 0.3f;
+        public float AutoRotationSpeed = 90f;
+        public float AutoRotationEaseAngle = 45f;
+        public float AutoRotationMinAngle = 5f;
+        public float AutoRotationMaxAngle = 135f;
+
         [Header("Pitch")]
         public float PitchMin = -40f;
         public float PitchMax = 70f;
