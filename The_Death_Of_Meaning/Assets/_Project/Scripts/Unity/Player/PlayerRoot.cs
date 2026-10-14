@@ -193,6 +193,12 @@ namespace TDOM.Unity.Player
                 _feedback.OnAterrizajeFuerte();
         }
 
+        private void AplicarMiradaACamara()
+        {
+            if (_camera != null)
+                _camera.ApplyLook(_look.Yaw, _look.Pitch);
+        }
+
         private void ActualizarMirada(InputSnapshot input, float dt)
         {
             ActualizarFijacion(input.LockOnPressed, dt);
@@ -325,15 +331,12 @@ namespace TDOM.Unity.Player
             ActualizarMirada(input, dt);
 
             if (_camera != null)
-            {
-                _camera.ApplyLook(_look.Yaw, _look.Pitch);
                 _camera.ActualizarEncuadre(
                     input.AimHeld,
                     AtaqueActivo || _fijacion.Activo,
                     _locomocion.Corriendo,
                     dt
                 );
-            }
 
             _motor.ProbeGround(_locomocion.State);
 
@@ -371,6 +374,7 @@ namespace TDOM.Unity.Player
             _facing.Tick(_locomocion.State.Velocity, _look.Yaw, input.AimHeld, dt);
             transform.rotation = _facing.Rotacion;
             AutorrotarCamara(input, dt);
+            AplicarMiradaACamara();
 
             DispararFeedbackDeLocomocion();
             RegistrarDesplazamientoLateralEnCamara(input.Move);
