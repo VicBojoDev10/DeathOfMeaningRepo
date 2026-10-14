@@ -180,7 +180,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8258489290393807377}
-  - component: {fileID: 2995354192666397665}
+  - component: {fileID: 912922137948307408}
   m_Layer: 0
   m_Name: CreditsUI
   m_TagString: Untagged
@@ -204,7 +204,7 @@ Transform:
   - {fileID: 4057069625058227675}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2995354192666397665
+--- !u!114 &912922137948307408
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -213,35 +213,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 2388071375972608761}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aabaa2c3ba4de7c4ab47db838c56da85, type: 3}
+  m_Script: {fileID: 11500000, guid: 9a6d884925aa31a488c54d62c7b90e2c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.MainMenuUI
-  windowId: mainmenuui
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.CreditsUI
+  windowId: creditsui
   canvas: {fileID: 2582795148745597875}
   canvasGroup: {fileID: 4778021876425875871}
   hideOnStart: 1
   easeIn: 26
   easeOut: 27
-  firstSelectedObject: {fileID: 0}
-  _splashPanel: {fileID: 0}
-  _mainPanel: {fileID: 0}
-  _optionsPanel: {fileID: 0}
-  _volumePanel: {fileID: 0}
-  _controlsPanel: {fileID: 0}
-  _creditsPanel: {fileID: 7960052946912963824}
-  _splashAutoAdvanceSeconds: 0
-  _playButton: {fileID: 0}
-  _optionsButton: {fileID: 0}
-  _exitButton: {fileID: 0}
-  _controlsButton: {fileID: 0}
-  _volumeButton: {fileID: 0}
-  _creditsButton: {fileID: 0}
-  _optionsBackButton: {fileID: 0}
-  _volumeBackButton: {fileID: 0}
-  _controlsBackButton: {fileID: 0}
-  _creditsBackButton: {fileID: 5233172209540981298}
-  _volumeSliders: []
-  _multiplayerSceneName: NetworkSetup
+  firstSelectedObject: {fileID: 573603942522855669}
+  backCreditsButton: {fileID: 5233172209540981298}
 --- !u!1 &2537860625089804063
 GameObject:
   m_ObjectHideFlags: 0
@@ -397,7 +379,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1209873880584305430}
   m_HandleRect: {fileID: 3873404565376970048}
   m_Direction: 2
-  m_Value: 1.0000049
+  m_Value: 1.0000037
   m_Size: 0.92765754
   m_NumberOfSteps: 0
   m_OnValueChanged:

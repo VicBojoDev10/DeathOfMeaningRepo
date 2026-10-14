@@ -93,5 +93,9 @@ namespace TDOM.Unity.UI
         public const string KeyboardUI = "keyboardui";
         public const string MainMenuUI = "mainmenuui";
         public const string GamePlayUI = "gameplayui";
+        public const string CreditsUI = "creditsui";
+        public const string OptionsUI = "optionsui";
+        public const string VolumeUI = "volumeui";
+        public const string ControlEsquemaUI = "controlesquemaui";
     }
 }
