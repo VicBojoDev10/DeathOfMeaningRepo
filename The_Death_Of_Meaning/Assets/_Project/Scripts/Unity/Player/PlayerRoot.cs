@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Camera;
@@ -27,6 +28,8 @@ namespace TDOM.Unity.Player
         private LookResolver _look;
         private FacingResolver _facing;
         private CameraAutoRotationResolver _autoRotacion;
+        private LockOnResolver _fijacion;
+        private readonly List<LockOnCandidate> _candidatosFijacion = new List<LockOnCandidate>();
 
         [SerializeField]
         private PlayerInputReader _inputReader;
@@ -83,6 +86,7 @@ namespace TDOM.Unity.Player
             _autoRotacion = new CameraAutoRotationResolver(
                 CrearAjustesAutoRotacion(_camera.Config)
             );
+            _fijacion = new LockOnResolver(CrearAjustesFijacion(_camera.Config));
             _camera.gameObject.SetActive(IsOwner);
             _inputReader.enabled = IsOwner;
 
@@ -189,8 +193,51 @@ namespace TDOM.Unity.Player
                 _feedback.OnAterrizajeFuerte();
         }
 
+        private void ActualizarMirada(InputSnapshot input, float dt)
+        {
+            ActualizarFijacion(input.LockOnPressed, dt);
+
+            if (_fijacion.Activo)
+            {
+                _look.EstablecerOrientacion(_fijacion.Yaw, _fijacion.Pitch);
+                return;
+            }
+
+            _look.Tick(input.Look, dt);
+        }
+
+        private void ActualizarFijacion(bool alternar, float dt)
+        {
+            _candidatosFijacion.Clear();
+            foreach (var objetivo in LockOnTarget.Activos)
+                _candidatosFijacion.Add(new LockOnCandidate(objetivo.Id, objetivo.PuntoDeMira));
+
+            _fijacion.Tick(
+                alternar,
+                _camera.transform.position,
+                _camera.CamaraTransform.forward,
+                _look.Yaw,
+                _look.Pitch,
+                _candidatosFijacion,
+                dt
+            );
+        }
+
+        private static LockOnSettings CrearAjustesFijacion(ThirdPersonCameraConfig config)
+        {
+            return new LockOnSettings(
+                config.LockOnRange,
+                config.LockOnSmoothTime,
+                config.LockOnPitchMin,
+                config.LockOnPitchMax
+            );
+        }
+
         private void AutorrotarCamara(InputSnapshot input, float dt)
         {
+            if (_fijacion.Activo)
+                return;
+
             Vector3 velocidad = _locomocion.State.Velocity;
             float velocidadHorizontal = new Vector2(velocidad.x, velocidad.z).magnitude;
             _look.AjustarYaw(
@@ -227,7 +274,10 @@ namespace TDOM.Unity.Player
             if (!_definition.Movement.SnapToCameraOnAttack || input.AimHeld || !iniciaAtaque)
                 return;
 
-            _facing.AlinearCon(_look.Yaw);
+            float yawObjetivo = _fijacion.Activo
+                ? _fijacion.YawHacia(transform.position)
+                : _look.Yaw;
+            _facing.AlinearCon(yawObjetivo);
             transform.rotation = _facing.Rotacion;
         }
 
@@ -272,12 +322,17 @@ namespace TDOM.Unity.Player
             float dt = Time.deltaTime;
             var input = _inputReader.Read();
 
-            _look.Tick(input.Look, dt);
+            ActualizarMirada(input, dt);
 
             if (_camera != null)
             {
                 _camera.ApplyLook(_look.Yaw, _look.Pitch);
-                _camera.ActualizarEncuadre(input.AimHeld, AtaqueActivo, _locomocion.Corriendo, dt);
+                _camera.ActualizarEncuadre(
+                    input.AimHeld,
+                    AtaqueActivo || _fijacion.Activo,
+                    _locomocion.Corriendo,
+                    dt
+                );
             }
 
             _motor.ProbeGround(_locomocion.State);
