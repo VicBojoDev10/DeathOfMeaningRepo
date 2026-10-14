@@ -6,7 +6,6 @@ using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace TDOM.Unity
 {
@@ -23,7 +22,6 @@ namespace TDOM.Unity
         private Transform _discoAviso;
 
         [SerializeField]
-        [FormerlySerializedAs("_tentaculo")]
         private Transform _piedra;
 
         private enum FaseMortero
