@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace TDOM.Data
 {
@@ -8,17 +9,28 @@ namespace TDOM.Data
     )]
     public sealed class ThirdPersonCameraConfig : ScriptableObject
     {
-        [Header("Pivot")]
-        public float PivotHeight = 1.6f;
+        [Header("Exploracion")]
+        public CameraStanceValues Exploration = new CameraStanceValues(4f, 0.8f, 0.6f, 40f);
 
-        [Header("Encuadre libre")]
-        public float Distance = 4f;
-        public float ShoulderOffsetX = 0.5f;
+        [Header("Sprint")]
+        public CameraStanceValues Sprint = new CameraStanceValues(5f, 0.8f, 0.5f, 50f);
 
-        [Header("Encuadre apuntando (L2)")]
-        public float AimDistance = 2f;
-        public float AimShoulderOffsetX = 0.3f;
-        public float ZoomSpeed = 12f;
+        [Header("Combate")]
+        public CameraStanceValues Combat = new CameraStanceValues(3.3f, 0.8f, 0.6f, 37f);
+
+        [Header("Apuntado (L2)")]
+        public CameraStanceValues Aim = new CameraStanceValues(2f, 0.5f, 0.6f, 27f);
+
+        [Header("Transiciones")]
+        [FormerlySerializedAs("ZoomSpeed")]
+        public float TransitionSpeed = 12f;
+        public float CombatLingerSeconds = 3f;
+
+        [Header("Cambio de hombro al esquivar en combate")]
+        public float ShoulderSwapSpeed = 8f;
+
+        [Range(0f, 1f)]
+        public float StrafeSwingThreshold = 0.5f;
 
         [Header("Pitch")]
         public float PitchMin = -40f;

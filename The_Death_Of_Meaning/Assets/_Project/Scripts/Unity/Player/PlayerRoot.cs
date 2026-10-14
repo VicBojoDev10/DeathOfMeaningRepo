@@ -183,6 +183,14 @@ namespace TDOM.Unity.Player
                 _feedback.OnAterrizajeFuerte();
         }
 
+        private void RegistrarEsquivaEnCamara(Vector2 movimiento)
+        {
+            if (_camera == null || !_locomocion.DashIniciado)
+                return;
+
+            _camera.RegistrarEsquiva(movimiento);
+        }
+
         private void IntentarGanchoApuntado()
         {
             var apuntado = ResolverApuntado(transform.position, out Collider impactado);
@@ -222,7 +230,7 @@ namespace TDOM.Unity.Player
             if (_camera != null)
             {
                 _camera.ApplyLook(_look.Yaw, _look.Pitch);
-                _camera.ActualizarEncuadre(input.AimHeld, dt);
+                _camera.ActualizarEncuadre(input.AimHeld, AtaqueActivo, _locomocion.Corriendo, dt);
             }
 
             _motor.ProbeGround(_locomocion.State);
@@ -258,6 +266,7 @@ namespace TDOM.Unity.Player
             _motor.Apply(intent, dt);
 
             DispararFeedbackDeLocomocion();
+            RegistrarEsquivaEnCamara(input.Move);
 
             bool ganchoActivoActual = _locomocion != null && _locomocion.GanchoActivo;
             if (ganchoActivoActual != _ganchoActivoPrevio)

@@ -27,9 +27,8 @@ namespace TDOM.Unity.Camera
 
         private readonly RaycastHit[] _impactosApuntado = new RaycastHit[CapacidadImpactosApuntado];
 
-        private ThirdPersonFraming _encuadre;
+        private CameraStanceResolver _stances;
         private Transform _cuerpo;
-        private float _fovBase;
         private float _fovExtra;
         private float _dutchBase;
         private float _dutchExtra;
@@ -39,23 +38,21 @@ namespace TDOM.Unity.Camera
 
         public ThirdPersonCameraConfig Config => _config;
         public Transform CamaraTransform => _camara != null ? _camara.transform : transform;
+        public CameraStance Stance => _stances.Stance;
 
         private void Awake()
         {
             _cuerpo = transform.root;
-            transform.localPosition = Vector3.up * _config.PivotHeight;
-            _encuadre = new ThirdPersonFraming(
-                _config.Distance,
-                _config.AimDistance,
-                _config.ShoulderOffsetX,
-                _config.AimShoulderOffsetX,
-                _config.ZoomSpeed
-            );
+            _stances = new CameraStanceResolver(CrearAjustes(_config));
+            LeerValoresBaseDeCamara();
+            AplicarEncuadre();
+        }
 
+        private void LeerValoresBaseDeCamara()
+        {
             if (_camara == null)
                 return;
 
-            _fovBase = _camara.Lens.FieldOfView;
             _dutchBase = _camara.Lens.Dutch;
             _prioridadBase = _camara.Priority.Value;
         }
@@ -71,17 +68,55 @@ namespace TDOM.Unity.Camera
             transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
         }
 
-        public void ActualizarEncuadre(bool apuntando, float dt)
+        public void ActualizarEncuadre(bool apuntando, bool atacando, bool corriendo, float dt)
         {
-            _encuadre.Tick(apuntando, dt);
+            _stances.Tick(apuntando, atacando, corriendo, dt);
+            AplicarEncuadre();
+        }
+
+        public void RegistrarEsquiva(Vector2 movimientoRelativoACamara)
+        {
+            _stances.RegistrarEsquiva(movimientoRelativoACamara);
+        }
+
+        private void AplicarEncuadre()
+        {
+            StanceFraming encuadre = _stances.Framing;
+            transform.localPosition = Vector3.up * encuadre.PivotHeight;
+            AplicarLente();
 
             if (_seguimiento == null)
                 return;
 
-            _seguimiento.CameraDistance = _encuadre.Distance;
+            _seguimiento.CameraDistance = encuadre.Distance;
+            _seguimiento.CameraSide = _stances.CameraSide;
             Vector3 hombro = _seguimiento.ShoulderOffset;
-            hombro.x = _encuadre.ShoulderOffset;
+            hombro.x = encuadre.ShoulderOffset;
             _seguimiento.ShoulderOffset = hombro;
+        }
+
+        private static CameraStanceSettings CrearAjustes(ThirdPersonCameraConfig config)
+        {
+            return new CameraStanceSettings(
+                CrearEncuadre(config.Exploration),
+                CrearEncuadre(config.Sprint),
+                CrearEncuadre(config.Combat),
+                CrearEncuadre(config.Aim),
+                config.TransitionSpeed,
+                config.CombatLingerSeconds,
+                config.ShoulderSwapSpeed,
+                config.StrafeSwingThreshold
+            );
+        }
+
+        private static StanceFraming CrearEncuadre(CameraStanceValues valores)
+        {
+            return new StanceFraming(
+                valores.Distance,
+                valores.ShoulderOffsetX,
+                valores.PivotHeight,
+                valores.FieldOfView
+            );
         }
 
         public AimSolution ResolverApuntado(Vector3 origen, out Collider colliderImpactado)
@@ -168,7 +203,7 @@ namespace TDOM.Unity.Camera
                 return;
 
             var lente = _camara.Lens;
-            lente.FieldOfView = _fovBase + _fovExtra;
+            lente.FieldOfView = _stances.Framing.FieldOfView + _fovExtra;
             lente.Dutch = _dutchBase + _dutchExtra;
             _camara.Lens = lente;
         }
