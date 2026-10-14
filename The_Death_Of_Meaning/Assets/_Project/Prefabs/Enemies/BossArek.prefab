@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 1000000000000005}
   - component: {fileID: 1000000000000006}
   - component: {fileID: 2051056658159739734}
+  - component: {fileID: 133378955916453962}
   m_Layer: 0
   m_Name: BossArek
   m_TagString: Untagged
@@ -48,6 +49,7 @@ Transform:
   - {fileID: 2000000000000101}
   - {fileID: 2000000000000111}
   - {fileID: 4697298118952322085}
+  - {fileID: 3166704286360089097}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &1000000000000002
@@ -195,6 +197,7 @@ MonoBehaviour:
   _vidaMaxima: 1000
   _cooldownEntreAtaques: 3
   _duracionTelegraph: 1.25
+  _ataques: {fileID: 0}
   _mostrarDebugUI: 1
 --- !u!114 &2051056658159739734
 MonoBehaviour:
@@ -211,9 +214,22 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _prefabAtaqueMano: {fileID: 5381868843865432001, guid: 5a1ce6f4bf029484fb8a0e9ce3d79d18, type: 3}
   _puntoOrigenMano: {fileID: 0}
-  _prefabAtaqueTentaculo: {fileID: 5721917524803759468, guid: 24ded71b584282e4487e876d73deaaec, type: 3}
+  _prefabAtaqueMortero: {fileID: 5721917524803759468, guid: 24ded71b584282e4487e876d73deaaec, type: 3}
   _prefabAtaqueRayo: {fileID: 6513317133961753232, guid: 062bca06b2013cb4d847514abc135328, type: 3}
   _bocaRayo: {fileID: 4697298118952322085}
+--- !u!114 &133378955916453962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8eb3f22f61e633342a612b77aaad1453, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.LockOnTarget
+  _puntoDeMira: {fileID: 3166704286360089097}
 --- !u!1 &2000000000000000
 GameObject:
   m_ObjectHideFlags: 0
@@ -1810,6 +1826,37 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
+--- !u!1 &3574229149281096029
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3166704286360089097}
+  m_Layer: 0
+  m_Name: LockOnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3166704286360089097
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3574229149281096029}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1000000000000001}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5748332768805258594
 GameObject:
   m_ObjectHideFlags: 0

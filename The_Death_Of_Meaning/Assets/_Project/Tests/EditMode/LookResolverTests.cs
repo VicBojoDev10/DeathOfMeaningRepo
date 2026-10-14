@@ -44,6 +44,17 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
+        public void establecer_orientacion_envuelve_el_yaw_y_aplica_el_pitch_dado()
+        {
+            var resolver = new LookResolver(sensibilidad: 1f, pitchMin: -40f, pitchMax: 70f);
+
+            resolver.EstablecerOrientacion(-30f, -55f);
+
+            Assert.AreEqual(330f, resolver.Yaw, 0.001f);
+            Assert.AreEqual(-55f, resolver.Pitch, 0.001f);
+        }
+
+        [Test]
         public void arranca_con_yaw_inicial_correcto()
         {
             var resolver = new LookResolver(sensibilidad: 1f, yawInicial: 90f);

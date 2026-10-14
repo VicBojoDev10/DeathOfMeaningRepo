@@ -21,5 +21,8 @@
     ANCLA -->|no| APPLY[PlayerMotor.Apply]
     CERO --> APPLY
     APPLY --> CC["CharacterController.Move()"]
+    APPLY --> FACE["FacingResolver.Tick: velocidad, yaw de camara, L2"]
+    ROOT -->|"Ataque sin L2 y SnapToCameraOnAttack: AlinearCon yaw de camara"| FACE
+    FACE --> ROT["transform.rotation del root (replicada por ClientNetworkTransform)"]
     PL -.->|"DashIniciado, SaltoAereo, Aterrizaje"| FB[FeedbackDirector]
     PL -.->|"GanchoActivo, PuntoGancho"| GV[GrappleVisual]

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Camera;
@@ -25,6 +26,9 @@ namespace TDOM.Unity.Player
         [SerializeField]
         private PlayerCameraRig _camera;
         private LookResolver _look;
+        private FacingResolver _facing;
+        private LockOnResolver _fijacion;
+        private readonly List<LockOnCandidate> _candidatosFijacion = new List<LockOnCandidate>();
 
         [SerializeField]
         private PlayerInputReader _inputReader;
@@ -81,6 +85,8 @@ namespace TDOM.Unity.Player
                 transform.eulerAngles.y
             );
             _locomocion = new PlayerLocomotion(_definition);
+            _facing = new FacingResolver(_definition.Movement.TurnSpeed, transform.eulerAngles.y);
+            _fijacion = new LockOnResolver(CrearAjustesFijacion(_camera.Config));
             _camera.gameObject.SetActive(IsOwner);
             _inputReader.enabled = false;
 
@@ -234,6 +240,65 @@ namespace TDOM.Unity.Player
                 _feedback.OnAterrizajeFuerte();
         }
 
+        private void AplicarMiradaACamara()
+        {
+            if (_camera != null)
+                _camera.ApplyLook(_look.Yaw, _look.Pitch);
+        }
+
+        private void ActualizarMirada(InputSnapshot input, float dt)
+        {
+            ActualizarFijacion(input.LockOnPressed, dt);
+
+            if (_fijacion.Activo)
+            {
+                _look.EstablecerOrientacion(_fijacion.Yaw, _fijacion.Pitch);
+                return;
+            }
+
+            _look.Tick(input.Look, dt);
+        }
+
+        private void ActualizarFijacion(bool alternar, float dt)
+        {
+            _candidatosFijacion.Clear();
+            foreach (var objetivo in LockOnTarget.Activos)
+                _candidatosFijacion.Add(new LockOnCandidate(objetivo.Id, objetivo.PuntoDeMira));
+
+            _fijacion.Tick(
+                alternar,
+                _camera.transform.position,
+                _camera.CamaraTransform.forward,
+                _look.Yaw,
+                _look.Pitch,
+                _candidatosFijacion,
+                dt
+            );
+        }
+
+        private static LockOnSettings CrearAjustesFijacion(ThirdPersonCameraConfig config)
+        {
+            return new LockOnSettings(
+                config.LockOnRange,
+                config.LockOnSmoothTime,
+                config.LockOnPitchMin,
+                config.LockOnPitchMax
+            );
+        }
+
+        private void AlinearConCamaraAlAtacar(InputSnapshot input)
+        {
+            bool iniciaAtaque = input.AttackPressed || input.FirePressed;
+            if (!_definition.Movement.SnapToCameraOnAttack || input.AimHeld || !iniciaAtaque)
+                return;
+
+            float yawObjetivo = _fijacion.Activo
+                ? _fijacion.YawHacia(transform.position)
+                : _look.Yaw;
+            _facing.AlinearCon(yawObjetivo);
+            transform.rotation = _facing.Rotacion;
+        }
+
         private void RegistrarDesplazamientoLateralEnCamara(Vector2 movimiento)
         {
             if (_camera == null || !_locomocion.DashIniciado)
@@ -275,16 +340,19 @@ namespace TDOM.Unity.Player
             float dt = Time.deltaTime;
             var input = _inputReader.Read();
 
-            _look.Tick(input.Look, dt);
-            transform.rotation = _look.YawRotation;
+            ActualizarMirada(input, dt);
 
             if (_camera != null)
-            {
-                _camera.ApplyLook(_look.Yaw, _look.Pitch);
-                _camera.ActualizarEncuadre(input.AimHeld, AtaqueActivo, _locomocion.Corriendo, dt);
-            }
+                _camera.ActualizarEncuadre(
+                    input.AimHeld,
+                    AtaqueActivo || _fijacion.Activo,
+                    _locomocion.Corriendo,
+                    dt
+                );
 
             _motor.ProbeGround(_locomocion.State);
+
+            AlinearConCamaraAlAtacar(input);
 
             if (_combat != null)
                 _combat.Tick(input, dt);
@@ -315,6 +383,9 @@ namespace TDOM.Unity.Player
                 intent = new MotionIntent(Vector3.zero, ignoreGravity: true);
             }
             _motor.Apply(intent, dt);
+            _facing.Tick(_locomocion.State.Velocity, _look.Yaw, input.AimHeld, dt);
+            transform.rotation = _facing.Rotacion;
+            AplicarMiradaACamara();
 
             DispararFeedbackDeLocomocion();
             RegistrarDesplazamientoLateralEnCamara(input.Move);

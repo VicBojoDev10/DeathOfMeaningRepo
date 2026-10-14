@@ -22,5 +22,9 @@ namespace TDOM.Data
         public float Acceleration = 15f;
         public float Friction = 5f;
         public float AirControl = 2.5f;
+
+        [Header("Facing")]
+        public float TurnSpeed = 720f;
+        public bool SnapToCameraOnAttack = true;
     }
 }
