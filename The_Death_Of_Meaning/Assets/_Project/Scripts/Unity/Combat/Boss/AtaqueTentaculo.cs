@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TDOM.Data;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
@@ -13,32 +14,8 @@ namespace TDOM.Unity
     /// abajo sobre ella. Se esquiva saliéndose de la franja hacia un lado, no saltando.
     /// No resta vida: solo detecta y reporta (04. Daño en WIP).
     /// </summary>
-    public class AtaqueTentaculo : NetworkBehaviour
+    public class AtaqueTentaculo : AtaqueArekBase
     {
-        [Header("Tiempos")]
-        [SerializeField]
-        private float _aviso = 1.25f;
-
-        [SerializeField]
-        private float _azote = 0.35f;
-
-        [SerializeField]
-        private float _retirada = 0.4f;
-
-        [Header("Dimensiones del Tentáculo")]
-        [SerializeField]
-        private float _largo = 25f;
-
-        [SerializeField]
-        private float _ancho = 3f;
-
-        [SerializeField]
-        private float _alto = 1.5f;
-
-        [Header("Dirección")]
-        [SerializeField]
-        private float _desvioMaximo = 15f;
-
         [Header("Visuales")]
         [SerializeField]
         private Transform _tentaculoVisual;
@@ -53,6 +30,9 @@ namespace TDOM.Unity
             Retirada,
             Terminado,
         }
+
+        // Tuning: lo lee de AtaquesArek (BossArek.prefab) al spawnear.
+        private AtaqueTentaculoProfile _perfil;
 
         private FaseTentaculo _fase = FaseTentaculo.Aviso;
         private float _tiempoEnFase;
@@ -75,8 +55,6 @@ namespace TDOM.Unity
             // Los visuales son solo decoración: sin colliders para no empujar jugadores.
             foreach (var colisionador in GetComponentsInChildren<Collider>(true))
                 colisionador.enabled = false;
-
-            ConfigurarGeometriaVisual();
         }
 
         // El pivote es la base del tentáculo; el bloque se extiende hacia +Z local.
@@ -88,12 +66,29 @@ namespace TDOM.Unity
             // El cilindro primitivo de Unity mide 2 de alto con escala 1 y su eje largo es Y;
             // se acuesta sobre Z para que el largo quede a lo largo de la franja.
             _tentaculoVisual.localRotation = Quaternion.Euler(90f, 0f, 0f);
-            _tentaculoVisual.localScale = new Vector3(_ancho, _largo * 0.5f, _alto);
-            _tentaculoVisual.localPosition = new Vector3(0f, _alto * 0.5f, _largo * 0.5f);
+            _tentaculoVisual.localScale = new Vector3(
+                _perfil.ancho,
+                _perfil.largo * 0.5f,
+                _perfil.alto
+            );
+            _tentaculoVisual.localPosition = new Vector3(
+                0f,
+                _perfil.alto * 0.5f,
+                _perfil.largo * 0.5f
+            );
         }
 
-        public override void OnNetworkSpawn()
+        protected override void AlSpawnear()
         {
+            _perfil = Lanzador != null ? Lanzador.PerfilTentaculo : null;
+            if (_perfil == null)
+            {
+                Debug.LogError("[AtaqueTentaculo] Falta el AtaqueTentaculoProfile en AtaquesArek.");
+                return;
+            }
+
+            ConfigurarGeometriaVisual();
+
             if (!IsServer)
                 return;
 
@@ -118,7 +113,8 @@ namespace TDOM.Unity
                 Destroy(_franja);
         }
 
-        // Hacia un jugador al azar (en XZ) ± _desvioMaximo, o al azar en el frente de 180° si no hay jugadores.
+        // Hacia el objetivo elegido por AtaquesArek (en XZ) ± desvioMaximo. Sin objetivo (botón de
+        // debug): hacia un jugador al azar, o al azar en el frente de 180° si no hay jugadores.
         private Vector3 ElegirDireccion()
         {
             Vector3 adelante = transform.forward;
@@ -127,27 +123,38 @@ namespace TDOM.Unity
                 adelante = Vector3.forward;
             adelante.Normalize();
 
-            var jugadores = new List<Transform>();
-            foreach (var cliente in NetworkManager.ConnectedClientsList)
+            if (TryPosicionObjetivo(out Vector3 posicion))
             {
-                if (cliente.PlayerObject != null)
-                    jugadores.Add(cliente.PlayerObject.transform);
-            }
-
-            if (jugadores.Count > 0)
-            {
-                Transform objetivo = jugadores[Random.Range(0, jugadores.Count)];
-                Vector3 haciaJugador = objetivo.position - transform.position;
+                Vector3 haciaJugador = posicion - transform.position;
                 haciaJugador.y = 0f;
 
                 if (haciaJugador.sqrMagnitude > 0.0001f)
                 {
-                    float desvio = Random.Range(-_desvioMaximo, _desvioMaximo);
+                    float desvio = Random.Range(-_perfil.desvioMaximo, _perfil.desvioMaximo);
                     return Quaternion.Euler(0f, desvio, 0f) * haciaJugador.normalized;
                 }
             }
 
             return Quaternion.Euler(0f, Random.Range(-90f, 90f), 0f) * adelante;
+        }
+
+        private bool TryPosicionObjetivo(out Vector3 posicion)
+        {
+            posicion = default;
+
+            if (Lanzador != null && Lanzador.ObjetivoActual.HasValue)
+                return Lanzador.TryPosicionJugador(Lanzador.ObjetivoActual.Value, out posicion);
+
+            if (Lanzador == null)
+                return false;
+
+            var jugadores = new List<PlayerRoot>();
+            Lanzador.ListarJugadores(jugadores);
+            if (jugadores.Count == 0)
+                return false;
+
+            posicion = jugadores[Random.Range(0, jugadores.Count)].transform.position;
+            return true;
         }
 
         // Busca el piso debajo del punto; si hay varios golpes (jefe, jugadores), el más bajo es el piso.
@@ -184,7 +191,7 @@ namespace TDOM.Unity
             if (_flashGolpe > 0f)
                 _flashGolpe -= dt;
 
-            if (!IsServer || !IsSpawned)
+            if (!IsServer || !IsSpawned || _perfil == null)
                 return;
 
             _tiempoEnFase += dt;
@@ -192,16 +199,16 @@ namespace TDOM.Unity
             switch (_fase)
             {
                 case FaseTentaculo.Aviso:
-                    if (_tiempoEnFase >= _aviso)
+                    if (_tiempoEnFase >= _perfil.aviso)
                         CambiarFase(FaseTentaculo.Azote);
                     break;
 
                 case FaseTentaculo.Azote:
-                    float t = Mathf.Clamp01(_tiempoEnFase / _azote);
+                    float t = Mathf.Clamp01(_tiempoEnFase / _perfil.azote);
                     transform.rotation = RotacionConInclinacion(Mathf.Lerp(-90f, 0f, t));
 
                     // Golpe seco: se detecta una sola vez, al terminar el azote.
-                    if (_tiempoEnFase >= _azote)
+                    if (_tiempoEnFase >= _perfil.azote)
                     {
                         DetectarImpactos();
                         CambiarFase(FaseTentaculo.Retirada);
@@ -209,7 +216,7 @@ namespace TDOM.Unity
                     break;
 
                 case FaseTentaculo.Retirada:
-                    if (_tiempoEnFase >= _retirada)
+                    if (_tiempoEnFase >= _perfil.retirada)
                     {
                         CambiarFase(FaseTentaculo.Terminado);
                         NetworkObject.Despawn(true);
@@ -224,12 +231,17 @@ namespace TDOM.Unity
             _tiempoEnFase = 0f;
         }
 
-        // Caja con la forma de la franja, pegada al piso y de altura _alto: saltar no salva.
+        // Caja con la forma de la franja, pegada al piso y con la altura del perfil: saltar no salva.
         private void DetectarImpactos()
         {
-            Vector3 mitad = new Vector3(_ancho * 0.5f, _alto * 0.5f, _largo * 0.5f);
+            Vector3 mitad = new Vector3(
+                _perfil.ancho * 0.5f,
+                _perfil.alto * 0.5f,
+                _perfil.largo * 0.5f
+            );
             Vector3 centro =
-                transform.position + _rotacionBase * new Vector3(0f, _alto * 0.5f, _largo * 0.5f);
+                transform.position
+                + _rotacionBase * new Vector3(0f, _perfil.alto * 0.5f, _perfil.largo * 0.5f);
 
             Collider[] dentro = Physics.OverlapBox(
                 centro,
@@ -263,7 +275,7 @@ namespace TDOM.Unity
             CrearFranja(origen, direccion);
         }
 
-        // Franja roja semitransparente de _largo × _ancho en el piso, en la dirección del azote.
+        // Franja roja semitransparente de largo × ancho en el piso, en la dirección del azote.
         private void CrearFranja(Vector3 origen, Vector3 direccion)
         {
             if (_franja != null)
@@ -278,9 +290,9 @@ namespace TDOM.Unity
             linea.alignment = LineAlignment.TransformZ;
             linea.positionCount = 2;
             linea.SetPosition(0, origen + Vector3.up * 0.05f);
-            linea.SetPosition(1, origen + direccion * _largo + Vector3.up * 0.05f);
-            linea.startWidth = _ancho;
-            linea.endWidth = _ancho;
+            linea.SetPosition(1, origen + direccion * _perfil.largo + Vector3.up * 0.05f);
+            linea.startWidth = _perfil.ancho;
+            linea.endWidth = _perfil.ancho;
 
             var color = new Color(1f, 0f, 0f, 0.35f);
 
@@ -331,10 +343,18 @@ namespace TDOM.Unity
 
         private void OnDrawGizmosSelected()
         {
+            if (_perfil == null)
+                return;
+
             Gizmos.color = Color.red;
-            Vector3 mitad = new Vector3(_ancho * 0.5f, _alto * 0.5f, _largo * 0.5f);
+            Vector3 mitad = new Vector3(
+                _perfil.ancho * 0.5f,
+                _perfil.alto * 0.5f,
+                _perfil.largo * 0.5f
+            );
             Vector3 centro =
-                transform.position + _rotacionBase * new Vector3(0f, _alto * 0.5f, _largo * 0.5f);
+                transform.position
+                + _rotacionBase * new Vector3(0f, _perfil.alto * 0.5f, _perfil.largo * 0.5f);
 
             Matrix4x4 anterior = Gizmos.matrix;
             Gizmos.matrix = Matrix4x4.TRS(centro, _rotacionBase, Vector3.one);
