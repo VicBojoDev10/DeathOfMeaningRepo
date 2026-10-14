@@ -26,6 +26,12 @@ namespace TDOM.Gameplay.Camera
             Yaw = yawInicial;
         }
 
+        public void EstablecerOrientacion(float yaw, float pitch)
+        {
+            Yaw = Mathf.Repeat(yaw, 360f);
+            Pitch = pitch;
+        }
+
         public void AjustarYaw(float delta)
         {
             Yaw = Mathf.Repeat(Yaw + delta, 360f);
