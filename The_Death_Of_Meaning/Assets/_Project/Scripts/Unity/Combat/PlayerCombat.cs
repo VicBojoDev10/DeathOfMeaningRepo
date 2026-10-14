@@ -62,8 +62,9 @@ namespace TDOM.Unity.Combat
         public GameObject ProyectilPrefab => _proyectilPrefab;
         public Transform OrigenDisparo => _origenDisparo;
 
-        public bool AtaqueActivo =>
-            (_melee?.BloqueaMovimiento ?? false) || (_disparo?.BloqueaMovimiento ?? false);
+        public bool BloqueaMovimiento => _melee?.BloqueaMovimiento ?? false;
+        public bool DisparoActivo => _disparo?.BloqueaMovimiento ?? false;
+        public bool AtaqueActivo => BloqueaMovimiento || DisparoActivo;
 
         private PlayerRoot _root;
 
