@@ -44,6 +44,10 @@ MonoBehaviour:
   AutoRotationEaseAngle: 45
   AutoRotationMinAngle: 5
   AutoRotationMaxAngle: 135
+  LockOnRange: 60
+  LockOnSmoothTime: 0.15
+  LockOnPitchMin: -60
+  LockOnPitchMax: 60
   PitchMin: -40
   PitchMax: 70
   AimMaxRange: 200
