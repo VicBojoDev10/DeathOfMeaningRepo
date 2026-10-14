@@ -72,7 +72,10 @@ namespace TDOM.Unity.Combat
                 _cooldown.Disparar();
                 AnclaActiva = true;
                 _tiempoColgado = 0f;
-                LanzarAnclaRpc(_origen.position, _origen.forward);
+                LanzarAnclaRpc(
+                    _origen.position,
+                    _root.ResolverApuntado(_origen.position).Direction
+                );
             }
             else if (AnclaActiva && holdingL2R1)
             {

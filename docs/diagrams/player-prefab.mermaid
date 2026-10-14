@@ -11,12 +11,18 @@ flowchart TD
     Player --> HitboxOrigin["HitboxOrigin - HitboxCaster"]
     HitboxOrigin --> Vfx[CombatVfx]
     Player --> HurtBox["HurtBox - CapsuleCollider"]
-    Player --> Pivot["CameraPivot - CinemachineCamera, CinemachineImpulseSource, PlayerCameraRig, FeedbackDirector"]
-    Pivot --> VM["Viewmodel - ViewmodelRig"]
+    Player --> Pivot["CameraPivot - CinemachineImpulseSource, PlayerCameraRig, FeedbackDirector"]
+    Pivot --> TPC["ThirdPersonCamera - CinemachineCamera, CinemachineThirdPersonFollow, CinemachineImpulseListener"]
+    Pivot --> VM["Viewmodel - ViewmodelRig (inactivo)"]
     Player --> Modelo["Modelo: AylaModel / ZendreModel"]
     Root --> Motor
     Root --> Reader
-    Root --> Pivot
+    Root -->|"ApplyLook, ActualizarEncuadre"| Pivot
+    Pivot --> Config["ThirdPersonCameraConfig (valores por stance)"]
+    Pivot --> Stances["CameraStanceResolver: Exploracion, Sprint, Combate, Apuntado"]
+    Root -->|"RegistrarDesplazamientoLateral (dash o carga lateral en combate)"| Pivot
+    Combat -->|"ResolverApuntado (AimResolver)"| Root
+    Anchor -->|"ResolverApuntado (AimResolver)"| Root
     Root --> Grapple
     Root -->|GetComponentInChildren| Combat
     Root -->|GetComponentInChildren| Anchor

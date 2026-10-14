@@ -1,4 +1,6 @@
 using System.Collections;
+using TDOM.Data;
+using TDOM.Gameplay.Camera;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -6,33 +8,52 @@ namespace TDOM.Unity.Camera
 {
     public sealed class PlayerCameraRig : MonoBehaviour
     {
+        private const int CapacidadImpactosApuntado = 16;
+
         [SerializeField]
         private CinemachineCamera _camara;
 
         [SerializeField]
-        private CinemachineImpulseSource _impulso;
-        private float _fovBase;
-        private float _fovExtra;
-        private float _roll;
-        private float _zoomOffset;
-        private float _zoomTarget;
+        private CinemachineThirdPersonFollow _seguimiento;
 
         [SerializeField]
-        private float _velocidadZoom = 12f;
+        private CinemachineImpulseSource _impulso;
+
+        [SerializeField]
+        private ThirdPersonCameraConfig _config;
 
         [SerializeField]
         private int _prioridadCedida = -10;
 
+        private readonly RaycastHit[] _impactosApuntado = new RaycastHit[CapacidadImpactosApuntado];
+
+        private CameraStanceResolver _stances;
+        private Transform _cuerpo;
+        private float _fovExtra;
+        private float _dutchBase;
+        private float _dutchExtra;
         private int _prioridadBase;
         private Coroutine _rutinaFovActual;
         private Coroutine _rutinaTiltActual;
 
+        public ThirdPersonCameraConfig Config => _config;
+        public Transform CamaraTransform => _camara != null ? _camara.transform : transform;
+        public CameraStance Stance => _stances.Stance;
+
         private void Awake()
+        {
+            _cuerpo = transform.root;
+            _stances = new CameraStanceResolver(CrearAjustes(_config));
+            LeerValoresBaseDeCamara();
+            AplicarEncuadre();
+        }
+
+        private void LeerValoresBaseDeCamara()
         {
             if (_camara == null)
                 return;
 
-            _fovBase = _camara.Lens.FieldOfView;
+            _dutchBase = _camara.Lens.Dutch;
             _prioridadBase = _camara.Priority.Value;
         }
 
@@ -44,18 +65,98 @@ namespace TDOM.Unity.Camera
 
         public void ApplyLook(float yaw, float pitch)
         {
-            transform.rotation = Quaternion.Euler(pitch, yaw, _roll);
+            transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
         }
 
-        public void SetZoom(bool activo, float reduccionFov = 15f)
+        public void ActualizarEncuadre(bool apuntando, bool atacando, bool corriendo, float dt)
         {
-            _zoomTarget = activo ? -reduccionFov : 0f;
+            _stances.Tick(apuntando, atacando, corriendo, dt);
+            AplicarEncuadre();
         }
 
-        public void UpdateZoom(float dt)
+        public void RegistrarDesplazamientoLateral(Vector2 movimientoRelativoACamara)
         {
-            _zoomOffset = Mathf.Lerp(_zoomOffset, _zoomTarget, _velocidadZoom * dt);
-            AplicarFov();
+            _stances.RegistrarDesplazamientoLateral(movimientoRelativoACamara);
+        }
+
+        private void AplicarEncuadre()
+        {
+            StanceFraming encuadre = _stances.Framing;
+            transform.localPosition = Vector3.up * encuadre.PivotHeight;
+            AplicarLente();
+
+            if (_seguimiento == null)
+                return;
+
+            _seguimiento.CameraDistance = encuadre.Distance;
+            _seguimiento.CameraSide = _stances.CameraSide;
+            Vector3 hombro = _seguimiento.ShoulderOffset;
+            hombro.x = encuadre.ShoulderOffset;
+            _seguimiento.ShoulderOffset = hombro;
+        }
+
+        private static CameraStanceSettings CrearAjustes(ThirdPersonCameraConfig config)
+        {
+            return new CameraStanceSettings(
+                CrearEncuadre(config.Exploration),
+                CrearEncuadre(config.Sprint),
+                CrearEncuadre(config.Combat),
+                CrearEncuadre(config.Aim),
+                config.TransitionSpeed,
+                config.CombatLingerSeconds,
+                config.ShoulderSwapSpeed,
+                config.StrafeSwingThreshold
+            );
+        }
+
+        private static StanceFraming CrearEncuadre(CameraStanceValues valores)
+        {
+            return new StanceFraming(
+                valores.Distance,
+                valores.ShoulderOffsetX,
+                valores.PivotHeight,
+                valores.FieldOfView
+            );
+        }
+
+        public AimSolution ResolverApuntado(Vector3 origen, out Collider colliderImpactado)
+        {
+            Transform camara = CamaraTransform;
+            var rayo = new Ray(camara.position, camara.forward);
+            colliderImpactado = null;
+
+            if (!TryImpactoMasCercano(rayo, out RaycastHit impacto))
+                return AimResolver.ResolveMiss(rayo, _config.AimMaxRange, origen);
+
+            colliderImpactado = impacto.collider;
+            return AimResolver.ResolveHit(rayo, impacto.point, origen);
+        }
+
+        private bool TryImpactoMasCercano(Ray rayo, out RaycastHit masCercano)
+        {
+            int cantidad = Physics.RaycastNonAlloc(
+                rayo,
+                _impactosApuntado,
+                _config.AimMaxRange,
+                Physics.AllLayers,
+                QueryTriggerInteraction.Ignore
+            );
+
+            masCercano = default;
+            bool encontrado = false;
+            for (int i = 0; i < cantidad; i++)
+            {
+                RaycastHit impacto = _impactosApuntado[i];
+                if (impacto.collider.transform.IsChildOf(_cuerpo))
+                    continue;
+                if (encontrado && impacto.distance >= masCercano.distance)
+                    continue;
+
+                masCercano = impacto;
+                encontrado = true;
+            }
+
+            return encontrado;
         }
 
         public void PunchFov(float grados, float duracion)
@@ -78,49 +179,52 @@ namespace TDOM.Unity.Camera
 
         private IEnumerator RutinaFov(float grados, float duracion)
         {
-            // Sube rápido y regresa suave (como pide el ticket para el dash: "punch")
             float tiempoTranscurrido = 0f;
             _fovExtra = grados;
-            AplicarFov();
+            AplicarLente();
 
             while (tiempoTranscurrido < duracion)
             {
                 tiempoTranscurrido += Time.deltaTime;
                 float t = Mathf.Clamp01(tiempoTranscurrido / duracion);
                 _fovExtra = Mathf.Lerp(grados, 0f, t);
-                AplicarFov();
+                AplicarLente();
                 yield return null;
             }
 
             _fovExtra = 0f;
-            AplicarFov();
+            AplicarLente();
             _rutinaFovActual = null;
         }
 
-        private void AplicarFov()
+        private void AplicarLente()
         {
-            if (_camara != null)
-            {
-                var lente = _camara.Lens;
-                lente.FieldOfView = _fovBase + _fovExtra + _zoomOffset;
-                _camara.Lens = lente;
-            }
+            if (_camara == null)
+                return;
+
+            var lente = _camara.Lens;
+            lente.FieldOfView = _stances.Framing.FieldOfView + _fovExtra;
+            lente.Dutch = _dutchBase + _dutchExtra;
+            _camara.Lens = lente;
         }
 
         private IEnumerator RutinaTilt(float grados, float duracion)
         {
             float tiempoTranscurrido = 0f;
-            _roll = grados;
+            _dutchExtra = grados;
+            AplicarLente();
 
             while (tiempoTranscurrido < duracion)
             {
                 tiempoTranscurrido += Time.deltaTime;
                 float t = Mathf.Clamp01(tiempoTranscurrido / duracion);
-                _roll = Mathf.Lerp(grados, 0f, t);
+                _dutchExtra = Mathf.Lerp(grados, 0f, t);
+                AplicarLente();
                 yield return null;
             }
 
-            _roll = 0f;
+            _dutchExtra = 0f;
+            AplicarLente();
             _rutinaTiltActual = null;
         }
 
@@ -146,33 +250,30 @@ namespace TDOM.Unity.Camera
             float duracionBajada
         )
         {
-            // Sube al valor objetivo
             float t = 0f;
             while (t < duracionSubida)
             {
                 t += Time.deltaTime;
                 _fovExtra = Mathf.Lerp(0f, grados, Mathf.Clamp01(t / duracionSubida));
-                AplicarFov();
+                AplicarLente();
                 yield return null;
             }
             _fovExtra = grados;
-            AplicarFov();
+            AplicarLente();
 
-            // Meseta: se mantiene fijo, esto es lo que la distingue del punch
             yield return new WaitForSeconds(duracionSostenido);
 
-            // Decae solo al final
             t = 0f;
             while (t < duracionBajada)
             {
                 t += Time.deltaTime;
                 _fovExtra = Mathf.Lerp(grados, 0f, Mathf.Clamp01(t / duracionBajada));
-                AplicarFov();
+                AplicarLente();
                 yield return null;
             }
 
             _fovExtra = 0f;
-            AplicarFov();
+            AplicarLente();
             _rutinaFovActual = null;
         }
     }
