@@ -19,7 +19,6 @@ flowchart TD
     Root --> Reader
     Root -->|"ApplyLook, ActualizarEncuadre"| Pivot
     Root --> Facing["FacingResolver: giro del root hacia el movimiento"]
-    Root --> AutoRot["CameraAutoRotationResolver: camara vuelve detras al correr"]
     Root -->|"LockOnPressed (R3)"| LockOn["LockOnResolver: fija yaw y pitch hacia el objetivo"]
     LockOn -.->|"LockOnTarget.Activos"| Objetivo["LockOnTarget + LockOnPoint (hoy solo BossArek)"]
     Pivot --> Config["ThirdPersonCameraConfig (valores por stance)"]

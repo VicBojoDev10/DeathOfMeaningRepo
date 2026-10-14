@@ -44,16 +44,6 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
-        public void ajustar_yaw_suma_el_delta_y_envuelve_en_360()
-        {
-            var resolver = new LookResolver(sensibilidad: 1f, yawInicial: 350f);
-
-            resolver.AjustarYaw(20f);
-
-            Assert.AreEqual(10f, resolver.Yaw, 0.001f);
-        }
-
-        [Test]
         public void establecer_orientacion_envuelve_el_yaw_y_aplica_el_pitch_dado()
         {
             var resolver = new LookResolver(sensibilidad: 1f, pitchMin: -40f, pitchMax: 70f);
@@ -62,18 +52,6 @@ namespace TDOM.Tests.EditMode
 
             Assert.AreEqual(330f, resolver.Yaw, 0.001f);
             Assert.AreEqual(-55f, resolver.Pitch, 0.001f);
-        }
-
-        [Test]
-        public void ajustar_yaw_no_cambia_el_pitch()
-        {
-            var resolver = new LookResolver(sensibilidad: 1f);
-            resolver.Tick(new Vector2(0f, -10f), dt: 1f);
-            float pitchPrevio = resolver.Pitch;
-
-            resolver.AjustarYaw(45f);
-
-            Assert.AreEqual(pitchPrevio, resolver.Pitch);
         }
 
         [Test]

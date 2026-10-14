@@ -32,11 +32,6 @@ namespace TDOM.Gameplay.Camera
             Pitch = pitch;
         }
 
-        public void AjustarYaw(float delta)
-        {
-            Yaw = Mathf.Repeat(Yaw + delta, 360f);
-        }
-
         public void Tick(Vector2 look, float dt)
         {
             Yaw += look.x * _sensibilidad * dt;

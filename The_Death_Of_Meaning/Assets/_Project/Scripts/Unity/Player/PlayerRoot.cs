@@ -27,7 +27,6 @@ namespace TDOM.Unity.Player
         private PlayerCameraRig _camera;
         private LookResolver _look;
         private FacingResolver _facing;
-        private CameraAutoRotationResolver _autoRotacion;
         private LockOnResolver _fijacion;
         private readonly List<LockOnCandidate> _candidatosFijacion = new List<LockOnCandidate>();
 
@@ -83,9 +82,6 @@ namespace TDOM.Unity.Player
             );
             _locomocion = new PlayerLocomotion(_definition);
             _facing = new FacingResolver(_definition.Movement.TurnSpeed, transform.eulerAngles.y);
-            _autoRotacion = new CameraAutoRotationResolver(
-                CrearAjustesAutoRotacion(_camera.Config)
-            );
             _fijacion = new LockOnResolver(CrearAjustesFijacion(_camera.Config));
             _camera.gameObject.SetActive(IsOwner);
             _inputReader.enabled = IsOwner;
@@ -239,41 +235,6 @@ namespace TDOM.Unity.Player
             );
         }
 
-        private void AutorrotarCamara(InputSnapshot input, float dt)
-        {
-            if (_fijacion.Activo)
-                return;
-
-            Vector3 velocidad = _locomocion.State.Velocity;
-            float velocidadHorizontal = new Vector2(velocidad.x, velocidad.z).magnitude;
-            _look.AjustarYaw(
-                _autoRotacion.Tick(
-                    _look.Yaw,
-                    _facing.YawActual,
-                    velocidadHorizontal,
-                    input.Look,
-                    input.AimHeld,
-                    dt
-                )
-            );
-        }
-
-        private static CameraAutoRotationSettings CrearAjustesAutoRotacion(
-            ThirdPersonCameraConfig config
-        )
-        {
-            return new CameraAutoRotationSettings(
-                config.AutoRotationMinSpeed,
-                config.AutoRotationLookCooldown,
-                config.AutoRotationLookDeadzone,
-                config.AutoRotationGraceDelay,
-                config.AutoRotationSpeed,
-                config.AutoRotationEaseAngle,
-                config.AutoRotationMinAngle,
-                config.AutoRotationMaxAngle
-            );
-        }
-
         private void AlinearConCamaraAlAtacar(InputSnapshot input)
         {
             bool iniciaAtaque = input.AttackPressed || input.FirePressed;
@@ -373,7 +334,6 @@ namespace TDOM.Unity.Player
             _motor.Apply(intent, dt);
             _facing.Tick(_locomocion.State.Velocity, _look.Yaw, input.AimHeld, dt);
             transform.rotation = _facing.Rotacion;
-            AutorrotarCamara(input, dt);
             AplicarMiradaACamara();
 
             DispararFeedbackDeLocomocion();
