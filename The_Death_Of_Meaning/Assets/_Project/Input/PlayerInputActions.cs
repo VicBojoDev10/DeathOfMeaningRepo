@@ -183,6 +183,16 @@ namespace TDOM.Unity.Input
                     ""interactions"": """",
                     ""initialStateCheck"": false,
                     ""priority"": 0
+                },
+                {
+                    ""name"": ""LockOn"",
+                    ""type"": ""Button"",
+                    ""id"": ""6aa44194-4563-4d9a-aa18-92ca0fcd7fe1"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
                 }
             ],
             ""bindings"": [
@@ -284,6 +294,17 @@ namespace TDOM.Unity.Input
                     ""action"": ""Grapple"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""47b08f3d-f7af-4037-a41e-dc2409ea23d8"",
+                    ""path"": ""<Gamepad>/rightStickPress"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""LockOn"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -365,6 +386,16 @@ namespace TDOM.Unity.Input
                     ""name"": ""Grapple"",
                     ""type"": ""Button"",
                     ""id"": ""95a9be12-43b4-411b-b1de-73109d67c5f9"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""LockOn"",
+                    ""type"": ""Button"",
+                    ""id"": ""35407146-19ea-45fd-b581-7fee46d71232"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -458,6 +489,17 @@ namespace TDOM.Unity.Input
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Grapple"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c7abe984-9a72-4d7e-b06b-691b46c05d93"",
+                    ""path"": ""<Gamepad>/rightStickPress"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""LockOn"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -581,6 +623,7 @@ namespace TDOM.Unity.Input
             m_Zendre_Aim = m_Zendre.FindAction("Aim", throwIfNotFound: true);
             m_Zendre_Fire = m_Zendre.FindAction("Fire", throwIfNotFound: true);
             m_Zendre_Grapple = m_Zendre.FindAction("Grapple", throwIfNotFound: true);
+            m_Zendre_LockOn = m_Zendre.FindAction("LockOn", throwIfNotFound: true);
             // Ayla
             m_Ayla = asset.FindActionMap("Ayla", throwIfNotFound: true);
             m_Ayla_Move = m_Ayla.FindAction("Move", throwIfNotFound: true);
@@ -591,6 +634,7 @@ namespace TDOM.Unity.Input
             m_Ayla_Attack = m_Ayla.FindAction("Attack", throwIfNotFound: true);
             m_Ayla_Aim = m_Ayla.FindAction("Aim", throwIfNotFound: true);
             m_Ayla_Grapple = m_Ayla.FindAction("Grapple", throwIfNotFound: true);
+            m_Ayla_LockOn = m_Ayla.FindAction("LockOn", throwIfNotFound: true);
             // UI
             m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
             m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -688,6 +732,7 @@ namespace TDOM.Unity.Input
         private readonly InputAction m_Zendre_Aim;
         private readonly InputAction m_Zendre_Fire;
         private readonly InputAction m_Zendre_Grapple;
+        private readonly InputAction m_Zendre_LockOn;
         /// <summary>
         /// Provides access to input actions defined in input action map "Zendre".
         /// </summary>
@@ -735,6 +780,10 @@ namespace TDOM.Unity.Input
             /// Provides access to the underlying input action "Zendre/Grapple".
             /// </summary>
             public InputAction @Grapple => m_Wrapper.m_Zendre_Grapple;
+            /// <summary>
+            /// Provides access to the underlying input action "Zendre/LockOn".
+            /// </summary>
+            public InputAction @LockOn => m_Wrapper.m_Zendre_LockOn;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -788,6 +837,9 @@ namespace TDOM.Unity.Input
                 @Grapple.started += instance.OnGrapple;
                 @Grapple.performed += instance.OnGrapple;
                 @Grapple.canceled += instance.OnGrapple;
+                @LockOn.started += instance.OnLockOn;
+                @LockOn.performed += instance.OnLockOn;
+                @LockOn.canceled += instance.OnLockOn;
             }
 
             /// <summary>
@@ -826,6 +878,9 @@ namespace TDOM.Unity.Input
                 @Grapple.started -= instance.OnGrapple;
                 @Grapple.performed -= instance.OnGrapple;
                 @Grapple.canceled -= instance.OnGrapple;
+                @LockOn.started -= instance.OnLockOn;
+                @LockOn.performed -= instance.OnLockOn;
+                @LockOn.canceled -= instance.OnLockOn;
             }
 
             /// <summary>
@@ -871,6 +926,7 @@ namespace TDOM.Unity.Input
         private readonly InputAction m_Ayla_Attack;
         private readonly InputAction m_Ayla_Aim;
         private readonly InputAction m_Ayla_Grapple;
+        private readonly InputAction m_Ayla_LockOn;
         /// <summary>
         /// Provides access to input actions defined in input action map "Ayla".
         /// </summary>
@@ -914,6 +970,10 @@ namespace TDOM.Unity.Input
             /// Provides access to the underlying input action "Ayla/Grapple".
             /// </summary>
             public InputAction @Grapple => m_Wrapper.m_Ayla_Grapple;
+            /// <summary>
+            /// Provides access to the underlying input action "Ayla/LockOn".
+            /// </summary>
+            public InputAction @LockOn => m_Wrapper.m_Ayla_LockOn;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -964,6 +1024,9 @@ namespace TDOM.Unity.Input
                 @Grapple.started += instance.OnGrapple;
                 @Grapple.performed += instance.OnGrapple;
                 @Grapple.canceled += instance.OnGrapple;
+                @LockOn.started += instance.OnLockOn;
+                @LockOn.performed += instance.OnLockOn;
+                @LockOn.canceled += instance.OnLockOn;
             }
 
             /// <summary>
@@ -999,6 +1062,9 @@ namespace TDOM.Unity.Input
                 @Grapple.started -= instance.OnGrapple;
                 @Grapple.performed -= instance.OnGrapple;
                 @Grapple.canceled -= instance.OnGrapple;
+                @LockOn.started -= instance.OnLockOn;
+                @LockOn.performed -= instance.OnLockOn;
+                @LockOn.canceled -= instance.OnLockOn;
             }
 
             /// <summary>
@@ -1244,6 +1310,13 @@ namespace TDOM.Unity.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnGrapple(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "LockOn" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnLockOn(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Ayla" which allows adding and removing callbacks.
@@ -1308,6 +1381,13 @@ namespace TDOM.Unity.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnGrapple(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "LockOn" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnLockOn(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

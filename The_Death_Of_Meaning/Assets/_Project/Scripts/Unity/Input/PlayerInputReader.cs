@@ -58,7 +58,10 @@ namespace TDOM.Unity.Input
                     fireReleased: m.Fire.WasReleasedThisFrame(),
                     grapplePressed: m.Grapple.WasPressedThisFrame(),
                     grappleHeld: m.Grapple.IsPressed()
-                );
+                )
+                {
+                    LockOnPressed = m.LockOn.WasPressedThisFrame(),
+                };
             }
             else if (_personajeActivo == CharacterIds.Ayla)
             {
@@ -79,7 +82,10 @@ namespace TDOM.Unity.Input
                     fireReleased: false,
                     grapplePressed: m.Grapple.WasPressedThisFrame(),
                     grappleHeld: m.Grapple.IsPressed()
-                );
+                )
+                {
+                    LockOnPressed = m.LockOn.WasPressedThisFrame(),
+                };
             }
 
             return new InputSnapshot();
