@@ -1,6 +1,5 @@
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace TDOM.Unity
 {
@@ -43,14 +42,6 @@ namespace TDOM.Unity
             _ultimaPos = transform.position;
             _smoothSpeed = 0f;
             _tiempoEnAire = 0f;
-            // Ocultar sombras del dueño local para la cámara en primera persona / feedback
-            if (IsOwner)
-            {
-                foreach (var r in GetComponentsInChildren<Renderer>(true))
-                {
-                    r.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
-                }
-            }
         }
 
         private void Update()

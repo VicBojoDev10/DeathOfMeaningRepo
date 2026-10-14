@@ -1,6 +1,5 @@
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace TDOM.Unity
 {
@@ -25,13 +24,6 @@ namespace TDOM.Unity
         public override void OnNetworkSpawn()
         {
             _ultimaPos = transform.position;
-            if (IsOwner)
-            {
-                foreach (var r in GetComponentsInChildren<Renderer>(true))
-                {
-                    r.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
-                }
-            }
         }
 
         private void Update()

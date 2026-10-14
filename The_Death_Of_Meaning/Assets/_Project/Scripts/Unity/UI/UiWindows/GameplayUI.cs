@@ -1,4 +1,5 @@
 using TDOM.Contracts;
+using TDOM.Gameplay.Camera;
 using TDOM.Unity.Player;
 using UnityEngine;
 using UnityEngine.UI;
@@ -81,8 +82,7 @@ namespace TDOM.Unity
                     return;
             }
 
-            var camTransform = _localPlayer.CameraTransform;
-            if (camTransform == null)
+            if (_localPlayer.CameraTransform == null)
                 return;
 
             var input =
@@ -116,26 +116,12 @@ namespace TDOM.Unity
             if (!crosshairImage.gameObject.activeSelf)
                 crosshairImage.gameObject.SetActive(true);
 
-            // Raycast desde el centro de la cámara hacia adelante
-            Ray ray = new Ray(camTransform.position, camTransform.forward);
-            bool valido = false;
-
-            if (
-                Physics.Raycast(
-                    ray,
-                    out RaycastHit hit,
-                    alcance,
-                    Physics.AllLayers,
-                    QueryTriggerInteraction.Ignore
-                )
-            )
-            {
-                // Ignorar colisiones con el propio o con otro jugador
-                if (hit.collider.GetComponentInParent<PlayerRoot>() == null)
-                {
-                    valido = true;
-                }
-            }
+            Vector3 origen = _localPlayer.transform.position;
+            var apuntado = _localPlayer.ResolverApuntado(origen, out Collider impactado);
+            bool valido =
+                apuntado.HasHit
+                && impactado.GetComponentInParent<PlayerRoot>() == null
+                && AimResolver.IsWithinRange(origen, apuntado.TargetPoint, alcance);
 
             // Aplicar colores y escala
             crosshairImage.color = valido ? colorEnRango : colorFueraDeRango;

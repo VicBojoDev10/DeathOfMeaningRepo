@@ -23,6 +23,7 @@ namespace TDOM.Gameplay.Locomotion
         private bool _groundedPrevio = true;
         private float _velYPrevia;
 
+        public bool Corriendo => _run != null && _run.Corriendo;
         public bool GanchoActivo => _grapple != null && _grapple.Activo;
         public Vector3 PuntoGancho => _grapple != null ? _grapple.Punto : Vector3.zero;
 

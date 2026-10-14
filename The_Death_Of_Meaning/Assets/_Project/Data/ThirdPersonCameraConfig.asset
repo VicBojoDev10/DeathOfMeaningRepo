@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52f4fbee3bcae2a4197036fa8de8b2cf, type: 3}
+  m_Name: ThirdPersonCameraConfig
+  m_EditorClassIdentifier: TDOM.Data::TDOM.Data.ThirdPersonCameraConfig
+  Exploration:
+    Distance: 4
+    ShoulderOffsetX: 0.8
+    PivotHeight: 0.6
+    FieldOfView: 40
+  Sprint:
+    Distance: 5
+    ShoulderOffsetX: 0.8
+    PivotHeight: 0.5
+    FieldOfView: 50
+  Combat:
+    Distance: 3.3
+    ShoulderOffsetX: 0.8
+    PivotHeight: 0.6
+    FieldOfView: 37
+  Aim:
+    Distance: 2
+    ShoulderOffsetX: 0.5
+    PivotHeight: 0.6
+    FieldOfView: 27
+  TransitionSpeed: 12
+  CombatLingerSeconds: 3
+  ShoulderSwapSpeed: 8
+  StrafeSwingThreshold: 0.5
+  PitchMin: -40
+  PitchMax: 70
+  AimMaxRange: 200
