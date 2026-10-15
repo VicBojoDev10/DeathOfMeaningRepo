@@ -207,8 +207,7 @@ namespace TDOM.Unity
 
             if (UiManager.Instance != null)
             {
-                UiManager.Instance.CloseWindow(WindowsIds.ChSelectionUI);
-                UiManager.Instance.ShowWindow(WindowsIds.GamePlayUI);
+                UiManager.Instance.SwitchWindow(WindowsIds.ChSelectionUI, WindowsIds.GamePlayUI);
             }
         }
     }

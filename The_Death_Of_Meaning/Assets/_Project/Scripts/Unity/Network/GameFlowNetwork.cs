@@ -1,6 +1,7 @@
 using System;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace TDOM.Unity
 {
@@ -27,6 +28,14 @@ namespace TDOM.Unity
             if (!IsServer)
                 return;
             StartMatchClientRpc();
+        }
+
+        public void CargarEscenaEnRed(string nombreEscena)
+        {
+            if (!IsServer || NetworkManager.SceneManager == null)
+                return;
+
+            NetworkManager.SceneManager.LoadScene(nombreEscena, LoadSceneMode.Single);
         }
 
         [ClientRpc]
