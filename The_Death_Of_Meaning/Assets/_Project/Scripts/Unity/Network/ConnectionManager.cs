@@ -16,27 +16,63 @@ namespace TDOM.Unity
         public event Action<EstadoSesion> OnEstadoCambiado;
         public event Action<int> OnJugadoresCambiado;
 
+        private bool _isSubscribed;
+
+        private void Start()
+        {
+            SuscribirEventosNetwork();
+        }
+
         private void OnEnable()
         {
-            NetworkManager.Singleton.OnClientConnectedCallback += HandleClientConnected;
-            NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnected;
-            NetworkManager.Singleton.OnServerStarted += HandleServerStarted;
-            NetworkManager.Singleton.OnTransportFailure += HandleTransportFailure;
+            SuscribirEventosNetwork();
         }
 
         private void OnDisable()
         {
-            if (NetworkManager.Singleton == null)
+            DesuscribirEventosNetwork();
+        }
+
+        private void OnDestroy()
+        {
+            DesuscribirEventosNetwork();
+        }
+
+        private void SuscribirEventosNetwork()
+        {
+            if (_isSubscribed || NetworkManager.Singleton == null)
+                return;
+
+            NetworkManager.Singleton.OnClientConnectedCallback += HandleClientConnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnected;
+            NetworkManager.Singleton.OnServerStarted += HandleServerStarted;
+            NetworkManager.Singleton.OnTransportFailure += HandleTransportFailure;
+            _isSubscribed = true;
+        }
+
+        private void DesuscribirEventosNetwork()
+        {
+            if (!_isSubscribed || NetworkManager.Singleton == null)
                 return;
 
             NetworkManager.Singleton.OnClientConnectedCallback -= HandleClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnected;
             NetworkManager.Singleton.OnServerStarted -= HandleServerStarted;
             NetworkManager.Singleton.OnTransportFailure -= HandleTransportFailure;
+            _isSubscribed = false;
         }
 
         public void OnCrearPartida()
         {
+            if (NetworkManager.Singleton == null)
+            {
+                Debug.LogError(
+                    "[ConnectionManager] NetworkManager.Singleton es null al intentar crear partida."
+                );
+                CambiarEstado(EstadoSesion.Error);
+                return;
+            }
+
             var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
             if (transport != null)
             {
@@ -53,6 +89,15 @@ namespace TDOM.Unity
             if (!IPAddress.TryParse(ip, out _))
             {
                 Debug.LogError($"IP inválida: '{ip}'");
+                CambiarEstado(EstadoSesion.Error);
+                return;
+            }
+
+            if (NetworkManager.Singleton == null)
+            {
+                Debug.LogError(
+                    "[ConnectionManager] NetworkManager.Singleton es null al intentar unirse."
+                );
                 CambiarEstado(EstadoSesion.Error);
                 return;
             }
