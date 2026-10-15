@@ -1,6 +1,6 @@
+using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
-using TDOM.Unity.UI;
 
 namespace TDOM.Unity
 {
@@ -8,8 +8,16 @@ namespace TDOM.Unity
     {
         public static PauseManager Instance { get; private set; }
         public static bool PausadoGlobal { get; private set; }
-        public readonly NetworkVariable<bool> Pausado = new(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-        public readonly NetworkVariable<ulong> QuienPauso = new(ulong.MaxValue, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+        public readonly NetworkVariable<bool> Pausado = new(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+        public readonly NetworkVariable<ulong> QuienPauso = new(
+            ulong.MaxValue,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
         private ulong _solicitante;
         private bool _salir;
 
@@ -19,17 +27,21 @@ namespace TDOM.Unity
             Pausado.OnValueChanged += AlCambiarPausa;
             AlCambiarPausa(false, Pausado.Value);
         }
+
         public override void OnNetworkDespawn()
         {
             Pausado.OnValueChanged -= AlCambiarPausa;
-            if (Instance == this) Instance = null;
+            if (Instance == this)
+                Instance = null;
             PausadoGlobal = false;
         }
+
         private void AlCambiarPausa(bool anterior, bool actual)
         {
             PausadoGlobal = actual;
             var ui = UiManager.Instance;
-            if (ui == null) return;
+            if (ui == null)
+                return;
             if (actual)
             {
                 ui.CloseWindow(WindowsIds.RetryPopUpUI);
@@ -47,38 +59,51 @@ namespace TDOM.Unity
                 ui.ActivarInteraccionSolo(WindowsIds.GamePlayUI);
             }
         }
+
         public void SolicitarPausa(bool pausa) => SolicitarPausaRpc(pausa);
+
         [Rpc(SendTo.Server)]
         public void SolicitarPausaRpc(bool pausa, RpcParams rpc = default)
         {
-            if (!IsServer) return;
+            if (!IsServer)
+                return;
             QuienPauso.Value = pausa ? rpc.Receive.SenderClientId : ulong.MaxValue;
             Pausado.Value = pausa;
         }
+
         public void PedirConfirmacion(bool salir) => PedirConfirmacionRpc(salir);
+
         [Rpc(SendTo.Server)]
         private void PedirConfirmacionRpc(bool salir, RpcParams rpc = default)
         {
-            if (!IsServer || !Pausado.Value) return;
+            if (!IsServer || !Pausado.Value)
+                return;
             _solicitante = rpc.Receive.SenderClientId;
             _salir = salir;
             foreach (var cliente in NetworkManager.ConnectedClientsIds)
-                if (cliente != _solicitante) ConfirmacionClientRpc(salir, RpcTarget.Single(cliente, RpcTargetUse.Temp));
+                if (cliente != _solicitante)
+                    ConfirmacionClientRpc(salir, RpcTarget.Single(cliente, RpcTargetUse.Temp));
         }
+
         [Rpc(SendTo.SpecifiedInParams)]
         private void ConfirmacionClientRpc(bool salir, RpcParams rpc = default)
         {
             MostrarPopupLocal(salir);
         }
+
         public void ResponderConfirmacion(bool aceptar) => ResponderConfirmacionRpc(aceptar);
+
         [Rpc(SendTo.Server)]
         private void ResponderConfirmacionRpc(bool aceptar, RpcParams rpc = default)
         {
-            if (!IsServer || !Pausado.Value) return;
+            if (!IsServer || !Pausado.Value)
+                return;
             if (aceptar)
             {
-                if (_salir) SalirAlMenu();
-                else RecargarNivel();
+                if (_salir)
+                    SalirAlMenu();
+                else
+                    RecargarNivel();
             }
             else
                 RespuestaClientRpc(
@@ -86,6 +111,7 @@ namespace TDOM.Unity
                     RpcTarget.Single(rpc.Receive.SenderClientId, RpcTargetUse.Temp)
                 );
         }
+
         [Rpc(SendTo.SpecifiedInParams)]
         private void RespuestaClientRpc(bool salir, RpcParams rpc = default)
         {
@@ -99,9 +125,7 @@ namespace TDOM.Unity
                 return;
 
             (ui.GetWindow(WindowsIds.PausaUI) as PausaUI)?.SetPopupActivo(true);
-            ui.ActivarInteraccionSolo(
-                salir ? WindowsIds.ExitPopUpUI : WindowsIds.RetryPopUpUI
-            );
+            ui.ActivarInteraccionSolo(salir ? WindowsIds.ExitPopUpUI : WindowsIds.RetryPopUpUI);
             ui.ShowWindow(salir ? WindowsIds.ExitPopUpUI : WindowsIds.RetryPopUpUI);
         }
 
@@ -135,20 +159,25 @@ namespace TDOM.Unity
                 return;
             }
 
-            transicion.EjecutarAccionConCarga(() =>
-            {
-                if (IsServer)
+            transicion.EjecutarAccionConCarga(
+                () =>
                 {
-                    if (GameSessionManager.Instance != null)
-                        GameSessionManager.Instance.ReiniciarPartidaDesdePausa();
-                    else
-                        Debug.LogError("No se encontró GameSessionManager para reiniciar la partida.");
+                    if (IsServer)
+                    {
+                        if (GameSessionManager.Instance != null)
+                            GameSessionManager.Instance.ReiniciarPartidaDesdePausa();
+                        else
+                            Debug.LogError(
+                                "No se encontró GameSessionManager para reiniciar la partida."
+                            );
+                    }
+                },
+                () =>
+                {
+                    if (IsServer)
+                        Pausado.Value = false;
                 }
-            }, () =>
-            {
-                if (IsServer)
-                    Pausado.Value = false;
-            });
+            );
         }
 
         private void SalirAlMenu()
@@ -172,13 +201,16 @@ namespace TDOM.Unity
 
             if (ui != null)
             {
-                ui.LoadScene("MainMenu", onSceneLoaded: () =>
-                {
-                    ui.CloseWindow(WindowsIds.ConnectionMenuUI);
-                    ui.CloseWindow(WindowsIds.ChSelectionUI);
-                    ui.ShowWindow(WindowsIds.MainMenuUI);
-                    (ui.GetWindow(WindowsIds.MainMenuUI) as MainMenuUI)?.FocusFirstElement();
-                });
+                ui.LoadScene(
+                    "MainMenu",
+                    onSceneLoaded: () =>
+                    {
+                        ui.CloseWindow(WindowsIds.ConnectionMenuUI);
+                        ui.CloseWindow(WindowsIds.ChSelectionUI);
+                        ui.ShowWindow(WindowsIds.MainMenuUI);
+                        (ui.GetWindow(WindowsIds.MainMenuUI) as MainMenuUI)?.FocusFirstElement();
+                    }
+                );
             }
             else
             {

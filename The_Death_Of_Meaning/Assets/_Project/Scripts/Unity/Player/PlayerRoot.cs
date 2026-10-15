@@ -357,7 +357,6 @@ namespace TDOM.Unity.Player
             if (!IsOwner || !_initialSpawnApplied)
                 return;
 
-
             float dt = Time.deltaTime;
             var input = _inputReader.Read();
 

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using TDOM.Unity.Combat;
 using TDOM.Gameplay.Core;
+using TDOM.Unity.Combat;
 using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;

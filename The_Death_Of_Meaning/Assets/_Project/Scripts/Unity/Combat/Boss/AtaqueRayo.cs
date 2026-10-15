@@ -168,7 +168,8 @@ namespace TDOM.Unity
 
         private void Update()
         {
-            if (PauseManager.PausadoGlobal) return;
+            if (PauseManager.PausadoGlobal)
+                return;
             float dt = Time.deltaTime;
 
             if (_flashGolpe > 0f)
