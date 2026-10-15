@@ -63,21 +63,26 @@ namespace TDOM.Unity
 
         private void OnPlayButtonClicked()
         {
-            if (UiManager.Instance != null)
+            if (UiManager.Instance == null)
             {
-                UiManager.Instance.CloseWindow(WindowsIds.MainMenuUI);
-                UiManager.Instance.ShowWindow(WindowsIds.ConnectionMenuUI);
+                SceneManager.LoadScene(networkSetupSceneName);
+                return;
             }
 
-            SceneManager.LoadScene(networkSetupSceneName);
+            UiManager.Instance.LoadScene(networkSetupSceneName, ShowConnectionWindow);
+        }
+
+        private static void ShowConnectionWindow()
+        {
+            UiManager.Instance.CloseWindow(WindowsIds.MainMenuUI);
+            UiManager.Instance.ShowWindow(WindowsIds.ConnectionMenuUI);
         }
 
         private void OnOptionsButtonClicked()
         {
             if (UiManager.Instance != null)
             {
-                UiManager.Instance.CloseWindow(WindowsIds.MainMenuUI);
-                UiManager.Instance.ShowWindow(WindowsIds.OptionsUI);
+                UiManager.Instance.SwitchWindow(WindowsIds.MainMenuUI, WindowsIds.OptionsUI);
             }
         }
 

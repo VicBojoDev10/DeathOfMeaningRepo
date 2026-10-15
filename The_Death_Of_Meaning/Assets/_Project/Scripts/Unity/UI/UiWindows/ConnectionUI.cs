@@ -148,8 +148,7 @@ namespace TDOM.Unity
 
         private void IrASeleccionDePersonaje()
         {
-            Hide();
-            UiManager.Instance.ShowWindow(WindowsIds.ChSelectionUI);
+            UiManager.Instance.SwitchWindow(WindowId, WindowsIds.ChSelectionUI);
         }
 
         private void SuscribirseAGameFlow()
