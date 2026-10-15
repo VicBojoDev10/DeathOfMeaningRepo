@@ -913,8 +913,8 @@ MonoBehaviour:
   _prefabAyla: {fileID: 2229917530308356307, guid: 077a56197965ada46bbb0c6f276b36be, type: 3}
   _prefabArek: {fileID: 1000000000000000, guid: c7e54f9a1b2d49e1a8b30129fca10001, type: 3}
   _puntoSpawnArek: {fileID: 6842293942417864967}
-  _spawnPointZendre: {fileID: 890906200}
-  _spawnPointAyla: {fileID: 1380176349}
+  _spawnPointZendre: {fileID: 85802601234731314}
+  _spawnPointAyla: {fileID: 3443063804820025216}
 --- !u!4 &1075050571
 Transform:
   m_ObjectHideFlags: 0
@@ -1833,7 +1833,7 @@ Transform:
   m_GameObject: {fileID: 5126928611803702599}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.79335225, z: -0, w: 0.60876286}
-  m_LocalPosition: {x: -190.7, y: 22.89, z: 38.9}
+  m_LocalPosition: {x: -187.06, y: 19.29, z: 37.32}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1870,7 +1870,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3443063804820025216}
   m_Layer: 0
-  m_Name: SpawnJugadorA
+  m_Name: SpawnJugadorAyla
   m_TagString: Untagged
   m_Icon: {fileID: -1412012063857583412, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
@@ -1900,7 +1900,7 @@ Transform:
   m_GameObject: {fileID: 1565387926868722352}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.7933523, z: -0, w: 0.60876286}
-  m_LocalPosition: {x: -198.6, y: 22.32, z: -19.1}
+  m_LocalPosition: {x: -190.666, y: 19.192, z: -18.42}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

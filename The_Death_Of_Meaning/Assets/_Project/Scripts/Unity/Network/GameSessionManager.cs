@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
@@ -28,6 +28,7 @@ namespace TDOM.Unity
         private Transform _spawnPointAyla;
         public NetworkList<PlayerSelectionState> Jugadores { get; private set; }
 
+        public static event Action PartidaIniciada;
         public event Action OnJugadorDesconectado;
         public event Action OnPartidaIniciada;
 
@@ -196,9 +197,19 @@ namespace TDOM.Unity
         [ClientRpc]
         private void IniciarPartidaClientRpc()
         {
+            PartidaIniciada?.Invoke();
             OnPartidaIniciada?.Invoke();
-            UiManager.Instance.CloseWindow(WindowsIds.ChSelectionUI);
-            UiManager.Instance.ShowWindow(WindowsIds.GamePlayUI);
+
+            if (TDOM.Unity.Audio.AudioManager.Instance != null)
+            {
+                TDOM.Unity.Audio.AudioManager.Instance.Play("battle");
+            }
+
+            if (UiManager.Instance != null)
+            {
+                UiManager.Instance.CloseWindow(WindowsIds.ChSelectionUI);
+                UiManager.Instance.ShowWindow(WindowsIds.GamePlayUI);
+            }
         }
     }
 }

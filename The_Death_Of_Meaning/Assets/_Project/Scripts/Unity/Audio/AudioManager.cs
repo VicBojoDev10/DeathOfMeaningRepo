@@ -5,7 +5,7 @@ using UnityEngine.Audio;
 
 namespace TDOM.Unity.Audio
 {
-    public class AudioManager : MonoBehaviour
+    public class AudioManager :  Singleton<AudioManager>
     {
         #region serialized fields
 
@@ -58,16 +58,14 @@ namespace TDOM.Unity.Audio
 
         private GameObject _soundsContainer;
         private readonly Dictionary<string, AudioData> _dataByName =
-            new Dictionary<string, AudioData>();
+            new Dictionary<string, AudioData>(System.StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, AudioSource> _sourcesByName =
-            new Dictionary<string, AudioSource>();
+            new Dictionary<string, AudioSource>(System.StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<AudioSource, Coroutine> _fades =
             new Dictionary<AudioSource, Coroutine>();
         private AudioSource _currentMusic;
 
         #endregion
-
-        public static AudioManager Instance { get; private set; }
 
         public AudioManagerData AudioManagerData
         {
@@ -77,33 +75,19 @@ namespace TDOM.Unity.Audio
 
         #region unity methods
 
-        private void Awake()
+        protected override void Awake()
         {
-            if (Instance != null && Instance != this)
+            base.Awake();
+            if (Instance == this)
             {
-                Destroy(gameObject);
-                return;
+                Initialize();
             }
-
-            Instance = this;
-
-            if (transform.parent != null)
-                transform.SetParent(null);
-
-            DontDestroyOnLoad(gameObject);
-            Initialize();
         }
 
         private void Start()
         {
             if (Instance == this)
                 ApplyAllSavedVolumes();
-        }
-
-        private void OnDestroy()
-        {
-            if (Instance == this)
-                Instance = null;
         }
 
         #endregion
@@ -249,6 +233,9 @@ namespace TDOM.Unity.Audio
 
         #region public methods
 
+        public void Play(string soundName) => PlaySound(soundName);
+        public void Stop(string soundName) => StopSound(soundName);
+
         public void PlaySound(string soundName)
         {
             if (!TryGetData(soundName, out AudioData data))
@@ -308,6 +295,7 @@ namespace TDOM.Unity.Audio
         {
             linear = Mathf.Clamp01(linear);
             PlayerPrefs.SetFloat(PrefsPrefix + channel, linear);
+            PlayerPrefs.Save();
             ApplyToMixer(channel, linear);
         }
 
@@ -330,7 +318,7 @@ namespace TDOM.Unity.Audio
             if (string.IsNullOrEmpty(param))
                 return;
 
-            float db = Mathf.Log10(Mathf.Max(linear, MinLinear)) * 20f;
+            float db = linear > MinLinear ? Mathf.Log10(linear) * 20f : -80f;
             if (!_mixer.SetFloat(param, db))
                 Debug.LogWarning($"El parámetro '{param}' no está expuesto en el AudioMixer.");
         }
@@ -362,7 +350,7 @@ namespace TDOM.Unity.Audio
 
     public enum AudioChannel
     {
-        Master,                                                                                                                                                                                                                                                                     
+        Master,
         Music,
         Sfx,
     }
