@@ -31,12 +31,20 @@ flowchart TD
     RAYO -->|"JugadorGolpeadoRpc (SpecifiedInParams)"| HIT
     MORT -->|"JugadorGolpeadoRpc (SpecifiedInParams)"| HIT
     TENT -->|"JugadorGolpeadoRpc (SpecifiedInParams)"| HIT
-    HZ["HitZone x12: ojos"] -->|"DanioAcumulado (NetworkVariable)"| BC
+    HZ["HitZone x12: ojos"] -->|"DanioRegistrado (evento, servidor)"| BC
     BC -->|AplicarDano| PSM
-    PSM -->|cambio de fase| FASE["Fase (NetworkVariable)"]
+    PSM -->|"cambio de fase (uno por transición)"| FASE["Fase (NetworkVariable)"]
+    PSM -->|"EnTransicion (DuracionTransicion): ignora daño, el scheduler no avanza"| BC
+    PSM -->|"TransicionTerminada: ReiniciarPorCambioDeFase"| SCH
     FASE -->|OnFaseChanged| CD[CinematicDirector]
+    FASE -->|"OnValueChanged: ColorFase en el cuerpo"| BC
     BC -->|"Spawned (evento estatico)"| CD
     CD -->|"Pausar: detiene el scheduler"| BC
+    BC -->|"CambioDeFaseRpc (ClientsAndHost): partículas y destello"| CLI
+    CLI -->|"SacudidaCambioDeFase (jugador local)"| PR["PlayerRoot"]
+    PR -->|OnCambioDeFase| FB["FeedbackDirector: Impacto de cámara"]
+    BC -->|"RestaurarEnergiaPorCambioDeFase (servidor)"| PR
+    PR -->|RestoreMaxOnPhaseChange| EP[EnergyPool]
     CLI -->|"cada AvisoRpc inicia el parpadeo local, sin red"| AVP["AvisoParpadeo (local, MaterialPropertyBlock)"]
     AA -->|"PerfilAviso: AvisoAtaqueProfile"| AVP
     AVP -->|"_Progreso, _ColorBase, _Intensidad... sobre el área de aviso"| MAT["AvisoAtaque.mat (Shader Graph + AvisoAtaque.hlsl)"]

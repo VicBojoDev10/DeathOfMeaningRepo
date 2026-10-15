@@ -139,7 +139,7 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
-        public void RestoreMaxOnPhaseChange_RestoresMaxButKeepsCurrent()
+        public void RestoreMaxOnPhaseChange_RestoresMaxAndRefillsCurrent()
         {
             var pool = CreatePool();
             pool.Tick(4f, true);
@@ -147,7 +147,18 @@ namespace TDOM.Tests.EditMode
             pool.RestoreMaxOnPhaseChange();
 
             Assert.AreEqual(100f, pool.Max, Tolerance);
-            Assert.AreEqual(80f, pool.Current, Tolerance);
+            Assert.AreEqual(100f, pool.Current, Tolerance);
+        }
+
+        [Test]
+        public void RestoreMaxOnPhaseChange_RefillsCurrentAfterConsuming()
+        {
+            var pool = CreatePool();
+            pool.TryConsume(60f);
+
+            pool.RestoreMaxOnPhaseChange();
+
+            Assert.AreEqual(100f, pool.Current, Tolerance);
         }
 
         [Test]
