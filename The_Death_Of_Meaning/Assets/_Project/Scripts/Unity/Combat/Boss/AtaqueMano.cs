@@ -210,22 +210,7 @@ namespace TDOM.Unity
         private void JugadorGolpeadoRpc(RpcParams rpcParams = default)
         {
             _flashRojoTimer = 0.25f;
-
-            var localPlayer = NetworkManager.Singleton?.LocalClient?.PlayerObject;
-            if (localPlayer != null)
-            {
-                var cameraRig = localPlayer.GetComponentInChildren<PlayerCameraRig>();
-                if (cameraRig != null)
-                {
-                    cameraRig.Impacto(2.5f);
-                }
-
-                var debugFeedback = localPlayer.GetComponentInChildren<CombatDebugFeedback>();
-                if (debugFeedback != null)
-                {
-                    debugFeedback.FlashActive(0.2f);
-                }
-            }
+            NotificarGolpeAlJugadorLocal();
         }
 
         private void CrearArcoTelegraph()

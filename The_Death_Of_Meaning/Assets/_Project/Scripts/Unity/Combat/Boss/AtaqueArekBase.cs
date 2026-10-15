@@ -1,3 +1,5 @@
+using TDOM.Unity.Combat;
+using TDOM.Unity.Player;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -9,6 +11,8 @@ namespace TDOM.Unity
     /// </summary>
     public abstract class AtaqueArekBase : NetworkBehaviour
     {
+        private const float DuracionFlashDebugGolpe = 0.2f;
+
         private readonly NetworkVariable<ulong> _lanzadorId = new NetworkVariable<ulong>();
 
         protected AtaquesArek Lanzador { get; private set; }
@@ -39,5 +43,33 @@ namespace TDOM.Unity
 
         /// <summary>Reemplaza a OnNetworkSpawn en cada ataque; corre en servidor y clientes.</summary>
         protected abstract void AlSpawnear();
+
+        protected static void NotificarGolpeAlJugadorLocal()
+        {
+            var jugador = BuscarJugadorLocal();
+            if (jugador == null)
+                return;
+
+            jugador.RecibirGolpe();
+
+            var feedbackDebug = jugador.GetComponentInChildren<CombatDebugFeedback>();
+            if (feedbackDebug != null)
+                feedbackDebug.FlashActive(DuracionFlashDebugGolpe);
+        }
+
+        private static PlayerRoot BuscarJugadorLocal()
+        {
+            var cliente = NetworkManager.Singleton?.LocalClient;
+            if (cliente == null)
+                return null;
+
+            foreach (var objeto in cliente.OwnedObjects)
+            {
+                if (objeto.TryGetComponent(out PlayerRoot jugador))
+                    return jugador;
+            }
+
+            return null;
+        }
     }
 }

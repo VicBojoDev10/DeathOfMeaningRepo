@@ -213,7 +213,7 @@ namespace TDOM.Unity.Combat
                 _vfx.Disparo(cargado);
             _debugFeedback?.FlashActive(0.1f);
             if (_feedback != null)
-                _feedback.OnGolpeConectado();
+                _feedback.OnDisparo();
 
             if (_proyectilPrefab != null && _origenDisparo != null)
             {

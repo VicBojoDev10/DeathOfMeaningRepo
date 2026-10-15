@@ -192,6 +192,12 @@ namespace TDOM.Unity.Player
         public AimSolution ResolverApuntado(Vector3 origen, out Collider colliderImpactado) =>
             _camera.ResolverApuntado(origen, out colliderImpactado);
 
+        public void RecibirGolpe()
+        {
+            if (IsOwner && _feedback != null)
+                _feedback.OnGolpeRecibido();
+        }
+
         public void SetCamaraCedida(bool cedida)
         {
             if (IsOwner && _camera != null)
