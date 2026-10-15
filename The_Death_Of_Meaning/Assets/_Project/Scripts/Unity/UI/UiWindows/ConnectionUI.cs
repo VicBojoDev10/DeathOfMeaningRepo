@@ -30,7 +30,11 @@ namespace TDOM.Unity
         void Start()
         {
             Show();
-            startMatchButton.gameObject.SetActive(false);
+            ActualizarBotonComenzar(
+                NetworkManager.Singleton != null
+                    ? NetworkManager.Singleton.ConnectedClientsList.Count
+                    : 0
+            );
         }
 
         private void OnEnable()
@@ -59,6 +63,11 @@ namespace TDOM.Unity
             {
                 ConnectionManager.OnEstadoCambiado += ActualizarTextoEstado;
                 ConnectionManager.OnJugadoresCambiado += ActualizarBotonComenzar;
+                ActualizarBotonComenzar(
+                    NetworkManager.Singleton != null
+                        ? NetworkManager.Singleton.ConnectedClientsList.Count
+                        : 0
+                );
             }
 
             GameFlowNetwork.Spawned += SuscribirseAGameFlow;
@@ -159,7 +168,12 @@ namespace TDOM.Unity
         private void ActualizarBotonComenzar(int cantPlayers)
         {
             bool esHost = NetworkManager.Singleton != null && NetworkManager.Singleton.IsHost;
-            startMatchButton.gameObject.SetActive(esHost && cantPlayers >= 2);
+            bool habilitado = esHost && cantPlayers >= 2;
+            startMatchButton.interactable = habilitado;
+            startMatchButton.gameObject.SetActive(habilitado);
+
+            if (habilitado)
+                SetInteractable(true);
         }
 
         private void StartMatchButton_OnClick()

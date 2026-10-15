@@ -25,7 +25,7 @@ namespace TDOM.Unity.Combat
 
         public void Pausar(bool pausado) => _pausado = pausado;
 
-        public bool Pausado => _pausado;
+        public bool Pausado => _pausado || PauseManager.PausadoGlobal;
 
         [Header("Puntos Débiles (Ojos)")]
         [SerializeField]
@@ -177,7 +177,7 @@ namespace TDOM.Unity.Combat
         private void Update()
         {
             // Toda la lógica del jefe corre únicamente en el servidor.
-            if (!IsServer || _scheduler == null || _pausado)
+            if (!IsServer || _scheduler == null || Pausado)
                 return;
 
             var evento = _scheduler.Tick(Time.deltaTime, out var ataque);

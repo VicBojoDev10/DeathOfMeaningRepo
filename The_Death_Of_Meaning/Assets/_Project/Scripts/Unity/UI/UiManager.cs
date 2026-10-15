@@ -103,16 +103,31 @@ namespace TDOM.Unity.UI
             _transitionManager.CambiarVentana(GetWindow(fromWindowId), GetWindow(toWindowId));
         }
 
-        public void LoadScene(string sceneName, Action onScreenCovered = null)
+        public void ActivarInteraccionSolo(string windowId)
+        {
+            if (windows == null || windows.Count == 0)
+                FoundUIScene();
+
+            foreach (UIWindow window in windows)
+                if (window != null)
+                    window.SetInteractable(window.WindowId == windowId);
+        }
+
+        public void LoadScene(
+            string sceneName,
+            Action onScreenCovered = null,
+            Action onSceneLoaded = null
+        )
         {
             if (_transitionManager == null)
             {
                 onScreenCovered?.Invoke();
                 SceneManager.LoadScene(sceneName);
+                onSceneLoaded?.Invoke();
                 return;
             }
 
-            _transitionManager.CargarEscena(sceneName, onScreenCovered);
+            _transitionManager.CargarEscena(sceneName, onScreenCovered, onSceneLoaded);
         }
 
         public UIWindow GetWindow(string windowId)
@@ -144,5 +159,8 @@ namespace TDOM.Unity.UI
         public const string VolumeUI = "volumeui";
         public const string ControlEsquemaUI = "controlesquemaui";
         public const string SplashUI = "splashui";
+        public const string PausaUI = "pausaui";
+        public const string RetryPopUpUI = "retrypopupui";
+        public const string ExitPopUpUI = "exitpopupui";
     }
 }

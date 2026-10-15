@@ -336,6 +336,18 @@ namespace TDOM.Unity.Player
 
         private void Update()
         {
+            if (
+                IsOwner
+                && _initialSpawnApplied
+                && _inputReader.PausaPresionada
+                && PauseManager.Instance != null
+                && UiManager.Instance != null
+                && UiManager.Instance.GetWindow(WindowsIds.GamePlayUI)?.IsOpen == true
+            )
+                PauseManager.Instance.SolicitarPausa(!PauseManager.PausadoGlobal);
+            if (PauseManager.PausadoGlobal)
+                return;
+
             if (IsServer && _energyPool != null)
             {
                 _energyPool.Tick(Time.deltaTime, isDowned: false);
@@ -344,6 +356,7 @@ namespace TDOM.Unity.Player
 
             if (!IsOwner || !_initialSpawnApplied)
                 return;
+
 
             float dt = Time.deltaTime;
             var input = _inputReader.Read();
