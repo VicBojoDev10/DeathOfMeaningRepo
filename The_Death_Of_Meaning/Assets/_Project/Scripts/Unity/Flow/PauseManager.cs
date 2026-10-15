@@ -1,4 +1,5 @@
 using TDOM.Unity.UI;
+using TDOM.Unity.Player;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -20,6 +21,33 @@ namespace TDOM.Unity
         );
         private ulong _solicitante;
         private bool _salir;
+
+        private void Update()
+        {
+            var clienteLocal = NetworkManager?.LocalClient;
+            if (clienteLocal == null)
+                return;
+
+            foreach (var objeto in clienteLocal.OwnedObjects)
+            {
+                if (
+                    objeto == null
+                    || !objeto.TryGetComponent(out PlayerRoot jugador)
+                    || !jugador.SpawnInicialAplicado
+                    || jugador.InputReader == null
+                    || !jugador.InputReader.PausaPresionada
+                )
+                    continue;
+
+                bool gameplayAbierto =
+                    UiManager.Instance != null
+                    && UiManager.Instance.GetWindow(WindowsIds.GamePlayUI)?.IsOpen == true;
+                if (PausadoGlobal || gameplayAbierto)
+                    SolicitarPausa(!PausadoGlobal);
+
+                return;
+            }
+        }
 
         public override void OnNetworkSpawn()
         {
