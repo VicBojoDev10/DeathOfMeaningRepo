@@ -17,6 +17,13 @@ namespace TDOM.Unity
         [SerializeField]
         private Transform _manoVisual;
 
+        [Header("Aviso")]
+        [SerializeField]
+        private Material _materialAviso; // AvisoAtaque.mat
+
+        [SerializeField]
+        private AvisoParpadeo _avisoParpadeo;
+
         private enum FaseMano
         {
             Aviso,
@@ -44,6 +51,9 @@ namespace TDOM.Unity
 
             if (_manoVisual == null && _manoRenderer != null)
                 _manoVisual = _manoRenderer.transform;
+
+            if (_avisoParpadeo == null)
+                _avisoParpadeo = GetComponent<AvisoParpadeo>();
         }
 
         private void ConfigurarGeometriaVisual()
@@ -203,6 +213,14 @@ namespace TDOM.Unity
             if (_arcLineRenderer != null)
             {
                 _arcLineRenderer.enabled = true;
+
+                if (_avisoParpadeo != null && _perfil != null)
+                    _avisoParpadeo.Iniciar(
+                        Lanzador.PerfilAviso,
+                        _perfil.aviso,
+                        new Renderer[] { _arcLineRenderer },
+                        AvisoParpadeo.Forma.FranjaV
+                    );
             }
         }
 
@@ -256,19 +274,11 @@ namespace TDOM.Unity
 
             _arcLineRenderer.SetPositions(posiciones);
 
-            var shader = Shader.Find("Universal Render Pipeline/Unlit");
-            if (shader == null)
-                shader = Shader.Find("Sprites/Default");
+            if (_materialAviso != null)
+                _arcLineRenderer.sharedMaterial = _materialAviso;
+            else
+                Debug.LogWarning("[AtaqueMano] Falta asignar _materialAviso (AvisoAtaque.mat).");
 
-            if (shader != null)
-            {
-                Material mat = new Material(shader);
-                mat.color = new Color(1f, 0f, 0f, 0.35f);
-                _arcLineRenderer.material = mat;
-            }
-
-            _arcLineRenderer.startColor = new Color(1f, 0f, 0f, 0.35f);
-            _arcLineRenderer.endColor = new Color(1f, 0f, 0f, 0.35f);
             _arcLineRenderer.enabled = false;
         }
 

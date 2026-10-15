@@ -24,6 +24,10 @@ namespace TDOM.Unity
         [SerializeField]
         private Transform _piedra;
 
+        [Header("Aviso")]
+        [SerializeField]
+        private AvisoParpadeo _avisoParpadeo;
+
         private enum FaseMortero
         {
             Aviso,
@@ -61,6 +65,9 @@ namespace TDOM.Unity
                 _discoAviso.gameObject.SetActive(false);
             if (_piedra != null)
                 _piedra.gameObject.SetActive(false);
+
+            if (_avisoParpadeo == null)
+                _avisoParpadeo = GetComponent<AvisoParpadeo>();
         }
 
         protected override void AlSpawnear()
@@ -336,6 +343,21 @@ namespace TDOM.Unity
                     ColocarPiedra(piedra, punto, _perfil.alturaCaida);
                     _piedras.Add(piedra);
                 }
+            }
+
+            // Un solo componente para los 3 discos.
+            if (_avisoParpadeo != null)
+            {
+                var renderers = new List<Renderer>(_discos.Count);
+                foreach (var disco in _discos)
+                    renderers.Add(disco.GetComponent<Renderer>());
+
+                _avisoParpadeo.Iniciar(
+                    Lanzador.PerfilAviso,
+                    _perfil.aviso,
+                    renderers,
+                    AvisoParpadeo.Forma.Disco
+                );
             }
         }
 

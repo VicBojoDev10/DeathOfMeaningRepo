@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 2051056658159739734}
   - component: {fileID: 133378955916453962}
   - component: {fileID: -7899386268560657394}
+  - component: {fileID: -4034170539557937550}
   m_Layer: 0
   m_Name: BossArek
   m_TagString: Untagged
@@ -145,7 +146,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2539856075
+  GlobalObjectIdHash: 3659053022
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -271,6 +272,7 @@ MonoBehaviour:
   _perfilTentaculo: {fileID: 11400000, guid: aa4845ba7aa2be342b1ac981ba608b0e, type: 2}
   _perfilMortero: {fileID: 11400000, guid: 9bed97c505f03554d8504921c717d62b, type: 2}
   _perfilRayo: {fileID: 11400000, guid: 942f0a6631046214d98877cc48f69c3d, type: 2}
+  _perfilAviso: {fileID: 11400000, guid: 68576b3caca5b704888cc9a9afe513d3, type: 2}
   _perfilObjetivo: {fileID: 11400000, guid: 8a7bf36cbaa39754184172c0c060987d, type: 2}
 --- !u!114 &133378955916453962
 MonoBehaviour:
@@ -300,6 +302,18 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _ataques: {fileID: 2051056658159739734}
   _jefe: {fileID: 1000000000000006}
+--- !u!114 &-4034170539557937550
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f737c0c18d6d1a54e9c9710214c0aa09, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.AvisoParpadeo
 --- !u!1 &2000000000000000
 GameObject:
   m_ObjectHideFlags: 0
