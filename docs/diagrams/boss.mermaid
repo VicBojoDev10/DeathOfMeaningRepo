@@ -3,17 +3,34 @@ flowchart TD
     BC --> PSM["BossPhaseStateMachine (BossPhaseProfile)"]
     BC --> SCH[BossAttackScheduler]
     SCH -->|Telegraph| AA[AtaquesArek.Lanzar]
+    AA -->|"jugadores: distancia y daño reciente"| SEL["BossTargetSelector (BossTargetingProfile)"]
+    SEL -->|"objetivo en rango del ataque o ninguno: no ataca"| AA
+    PJ["PlayerCombat / Proyectil (servidor)"] -->|"RegistrarDanio(cantidad, atacanteId)"| HZ
+    HZ -->|"DanioRecibido (evento, servidor)"| AGRO[BossAggroTracker]
+    AGRO -->|"daño en los últimos X s"| AA
+    AA -->|"perfil del ataque: AtaqueManoProfile, AtaqueTentaculoProfile, AtaqueMorteroProfile, AtaqueRayoProfile"| BASE["AtaqueArekBase (lanzador en NetworkVariable)"]
+    BASE -.->|hereda| MANO
+    BASE -.->|hereda| RAYO
+    BASE -.->|hereda| MORT
+    BASE -.->|hereda| TENT
+    GIRO["BossGiroHaciaObjetivo (servidor)"] -->|"TryObjetivoVisible, TryPosicionJugador"| AA
+    GIRO -->|"gira en Y; NetworkTransform a clientes; se detiene si BossController.Pausado"| BC
+    TENT -->|"apunta a ObjetivoActual ± desvío"| AA
+    RAYO -->|"centra el abanico en ObjetivoActual, sin pasar el límite frontal"| AA
+    MORT -->|"ObjetivoActual y otros jugadores en rango"| MPL[MorteroPlacement]
     AA -->|Basico| MANO[AtaqueMano]
     AA -->|Especial| RAYO[AtaqueRayo]
     AA -->|InstaKill| MORT[AtaqueMortero]
-    AA -.->|"Pesado: Tentaculo pendiente"| TENT[Sin implementar]
+    AA -->|Pesado| TENT[AtaqueTentaculo]
     SCH -->|"Telegraph / Impacto: TelegraphAtaqueRpc, ImpactoAtaqueRpc (ClientsAndHost)"| CLI[Clientes]
     MANO -->|"AvisoRpc (ClientsAndHost)"| CLI
     RAYO -->|"AvisoRpc, RayoRpc, ApagarRpc (ClientsAndHost)"| CLI
     MORT -->|"AvisoRpc, CaidaRpc (ClientsAndHost)"| CLI
+    TENT -->|"AvisoRpc (ClientsAndHost)"| CLI
     MANO -->|"JugadorGolpeadoRpc (SpecifiedInParams)"| HIT[Jugador golpeado]
     RAYO -->|"JugadorGolpeadoRpc (SpecifiedInParams)"| HIT
     MORT -->|"JugadorGolpeadoRpc (SpecifiedInParams)"| HIT
+    TENT -->|"JugadorGolpeadoRpc (SpecifiedInParams)"| HIT
     HZ["HitZone x12: ojos"] -->|"DanioAcumulado (NetworkVariable)"| BC
     BC -->|AplicarDano| PSM
     PSM -->|cambio de fase| FASE["Fase (NetworkVariable)"]
