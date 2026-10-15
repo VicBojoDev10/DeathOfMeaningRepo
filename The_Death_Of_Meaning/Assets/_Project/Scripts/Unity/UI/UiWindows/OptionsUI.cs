@@ -60,8 +60,10 @@ namespace TDOM.Unity
         {
             if (UiManager.Instance != null)
             {
-                UiManager.Instance.CloseWindow(WindowsIds.OptionsUI);
-                UiManager.Instance.ShowWindow(WindowsIds.ControlEsquemaUI);
+                UiManager.Instance.CambiarVentana(
+                    WindowsIds.OptionsUI,
+                    WindowsIds.ControlEsquemaUI
+                );
             }
         }
 
@@ -69,8 +71,7 @@ namespace TDOM.Unity
         {
             if (UiManager.Instance != null)
             {
-                UiManager.Instance.CloseWindow(WindowsIds.OptionsUI);
-                UiManager.Instance.ShowWindow(WindowsIds.VolumeUI);
+                UiManager.Instance.CambiarVentana(WindowsIds.OptionsUI, WindowsIds.VolumeUI);
             }
         }
 
@@ -78,8 +79,7 @@ namespace TDOM.Unity
         {
             if (UiManager.Instance != null)
             {
-                UiManager.Instance.CloseWindow(WindowsIds.OptionsUI);
-                UiManager.Instance.ShowWindow(WindowsIds.CreditsUI);
+                UiManager.Instance.CambiarVentana(WindowsIds.OptionsUI, WindowsIds.CreditsUI);
             }
         }
 
@@ -87,8 +87,7 @@ namespace TDOM.Unity
         {
             if (UiManager.Instance != null)
             {
-                UiManager.Instance.CloseWindow(WindowsIds.OptionsUI);
-                UiManager.Instance.ShowWindow(WindowsIds.MainMenuUI);
+                UiManager.Instance.CambiarVentana(WindowsIds.OptionsUI, WindowsIds.MainMenuUI);
             }
         }
     }

@@ -106,8 +106,7 @@ namespace TDOM.Unity
 
             if (UiManager.Instance != null)
             {
-                UiManager.Instance.CloseWindow(WindowsIds.SplashUI);
-                UiManager.Instance.ShowWindow(WindowsIds.MainMenuUI);
+                UiManager.Instance.CambiarVentana(WindowsIds.SplashUI, WindowsIds.MainMenuUI);
             }
         }
 
