@@ -622,7 +622,7 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
   m_UseReflectionProbes: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 1000
@@ -3224,7 +3224,7 @@ MonoBehaviour:
   - {fileID: 1556934288}
   - {fileID: 908817100}
   - {fileID: 668626222}
-  _transiciones: {fileID: 452713138}
+  _transitionManager: {fileID: 452713138}
 --- !u!1 &2143097323
 GameObject:
   m_ObjectHideFlags: 0
