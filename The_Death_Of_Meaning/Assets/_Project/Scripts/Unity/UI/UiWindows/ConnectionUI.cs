@@ -68,6 +68,7 @@ namespace TDOM.Unity
             {
                 ConnectionManager.OnEstadoCambiado += ActualizarTextoEstado;
                 ConnectionManager.OnJugadoresCambiado += ActualizarBotonComenzar;
+                ConnectionManager.OnConexionRechazada += MostrarMotivoRechazo;
                 ActualizarBotonComenzar(
                     NetworkManager.Singleton != null
                         ? NetworkManager.Singleton.ConnectedClientsList.Count
