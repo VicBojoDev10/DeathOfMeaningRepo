@@ -43,6 +43,8 @@ namespace TDOM.Unity
         private bool _inicioPartidaNotificado;
         private bool _cerrandoSesionPorSalida;
 
+        public bool PartidaIniciadaEnServidor => _partidaIniciada;
+
         private void Awake()
         {
             Jugadores = new NetworkList<PlayerSelectionState>();

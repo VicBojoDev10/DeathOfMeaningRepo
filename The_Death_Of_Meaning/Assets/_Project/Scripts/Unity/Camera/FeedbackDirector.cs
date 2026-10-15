@@ -75,6 +75,11 @@ namespace TDOM.Unity.Camera
             _cameraRig.Impacto(-_config.aterrizajeImpulso);
         }
 
+        public void OnCambioDeFase()
+        {
+            _cameraRig.Impacto(_config.cambioDeFaseImpulso);
+        }
+
         private void IniciarHitstop(int frames)
         {
             if (_animatorAtacante == null || frames <= 0)

@@ -216,6 +216,23 @@ namespace TDOM.Unity.Player
             return CharacterIds.None;
         }
 
+        // TW-116: el jefe lo llama en el servidor al entrar a una fase nueva.
+        public void RestaurarEnergiaPorCambioDeFase()
+        {
+            if (!IsServer || _energyPool == null)
+                return;
+
+            _energyPool.RestoreMaxOnPhaseChange();
+            Energia.Value = _energyPool.Current;
+        }
+
+        // TW-116: sacudida local por el cambio de fase del jefe.
+        public void SacudidaCambioDeFase()
+        {
+            if (IsOwner && _feedback != null)
+                _feedback.OnCambioDeFase();
+        }
+
         public void ConsumirEnergiaEnServidor(float cantidad)
         {
             if (!IsServer || _energyPool == null)
