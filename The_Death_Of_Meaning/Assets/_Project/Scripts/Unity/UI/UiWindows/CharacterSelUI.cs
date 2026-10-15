@@ -215,7 +215,10 @@ namespace TDOM.Unity
                 null
             );
 
-            Button personajeDisponible = zendreAvailable ? zendreButton : aylaAvailable ? aylaButton : null;
+            Button personajeDisponible =
+                zendreAvailable ? zendreButton
+                : aylaAvailable ? aylaButton
+                : null;
             ConfigurarBotonNavegacion(
                 ready,
                 personajeDisponible,
@@ -249,14 +252,24 @@ namespace TDOM.Unity
             if (EventSystem.current == null)
                 return;
             var selected = EventSystem.current.currentSelectedGameObject;
-            bool focusLost = selected == null
-                || (zendreButton != null && selected == zendreButton.gameObject && !zendreButton.interactable)
-                || (aylaButton != null && selected == aylaButton.gameObject && !aylaButton.interactable)
+            bool focusLost =
+                selected == null
+                || (
+                    zendreButton != null
+                    && selected == zendreButton.gameObject
+                    && !zendreButton.interactable
+                )
+                || (
+                    aylaButton != null
+                    && selected == aylaButton.gameObject
+                    && !aylaButton.interactable
+                )
                 || (ready != null && selected == ready.gameObject && !ready.interactable);
             if (!focusLost)
                 return;
 
-            Button target = ready != null && ready.interactable ? ready
+            Button target =
+                ready != null && ready.interactable ? ready
                 : zendreButton != null && zendreButton.interactable ? zendreButton
                 : aylaButton != null && aylaButton.interactable ? aylaButton
                 : null;
