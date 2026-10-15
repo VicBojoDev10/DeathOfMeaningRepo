@@ -29,6 +29,12 @@ namespace TDOM.Data
         public float golpeImpulso = 0.5f;
         public int golpeHitstopFrames = 3;
 
+        [Header("Disparo de Zendre")]
+        public float disparoImpulso = 0.15f;
+
+        [Header("Golpe recibido de un enemigo")]
+        public float golpeRecibidoImpulso = 2.5f;
+
         [Header("Aterrizaje fuerte")]
         public float aterrizajeImpulso = 0.4f;
     }
