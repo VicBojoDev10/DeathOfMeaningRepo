@@ -21,8 +21,11 @@ MonoBehaviour:
   pausaEntreGolpes: 0.25
   duracionRecuperar: 1
   tamanioGolpe: {x: 1.2, y: 1.2, z: 1.5}
-  colorAviso: {r: 1, g: 0, b: 0, a: 1}
+  colorAviso: {r: 1, g: 0.52179044, b: 0, a: 1}
   inclinacionAviso: 20
   radioSpawn: 8
   distanciaBusquedaNavMesh: 4
+  alturaBusquedaPiso: 60
+  pasoRadioSpawn: 2
+  intentosSpawn: 5
   duracionMuerte: 0.5
