@@ -47,3 +47,6 @@ flowchart TD
     PR -->|RestoreMaxOnPhaseChange| EP[EnergyPool]
     AA -->|"AtaqueEjecutado (evento, servidor): Especial; detalle en minions.mermaid"| MSP["MinionSpawner (BossArek)"]
     HZ -->|"DanioRegistrado: cuenta para que reaparezcan"| MSP
+    CLI -->|"cada AvisoRpc inicia el parpadeo local, sin red"| AVP["AvisoParpadeo (local, MaterialPropertyBlock)"]
+    AA -->|"PerfilAviso: AvisoAtaqueProfile"| AVP
+    AVP -->|"_Progreso, _ColorBase, _Intensidad... sobre el área de aviso"| MAT["AvisoAtaque.mat (Shader Graph + AvisoAtaque.hlsl)"]

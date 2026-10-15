@@ -126,6 +126,7 @@ GameObject:
   - component: {fileID: 636086098062434644}
   - component: {fileID: 7012962012278990376}
   - component: {fileID: 3121128463444157490}
+  - component: {fileID: 1161372955216916719}
   m_Layer: 0
   m_Name: AtaqueMorteroArek
   m_TagString: Untagged
@@ -236,17 +237,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.AtaqueTentaculo
   ShowTopMostFoldoutHeaderGroup: 1
-  _aviso: 1
-  _caida: 0.3
-  _retirada: 0.2
-  _disparos: 3
-  _radioArea: 10
-  _radioArena: 25
-  _intentosPorPunto: 30
-  _alturaCaida: 15
-  _altoPiedra: 6
   _discoAviso: {fileID: 7501316461042887702}
   _piedra: {fileID: 8217281637037614231}
+  _avisoParpadeo: {fileID: 1161372955216916719}
+--- !u!114 &1161372955216916719
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5721917524803759468}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f737c0c18d6d1a54e9c9710214c0aa09, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.AvisoParpadeo
 --- !u!1 &7532121482075082826
 GameObject:
   m_ObjectHideFlags: 0
@@ -314,7 +319,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 7bf4819347595ac47b13d81f1efa74bc, type: 2}
+  - {fileID: 2100000, guid: f93ced6bdf87f4c47a05752226b0a5c3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

@@ -46,6 +46,10 @@ namespace TDOM.Unity
         [SerializeField]
         private AtaqueRayoProfile _perfilRayo;
 
+        // Parpadeo de las áreas de aviso, común a todos los ataques.
+        [SerializeField]
+        private AvisoAtaqueProfile _perfilAviso;
+
         [Header("Elección de objetivo")]
         [SerializeField]
         private BossTargetingProfile _perfilObjetivo;
@@ -54,6 +58,7 @@ namespace TDOM.Unity
         public AtaqueTentaculoProfile PerfilTentaculo => _perfilTentaculo;
         public AtaqueMorteroProfile PerfilMortero => _perfilMortero;
         public AtaqueRayoProfile PerfilRayo => _perfilRayo;
+        public AvisoAtaqueProfile PerfilAviso => _perfilAviso;
         public BossTargetingProfile PerfilObjetivo => _perfilObjetivo;
 
         /// <summary>Solo servidor: se lanzó un ataque (también desde los botones de debug). Lo usa MinionSpawner.</summary>

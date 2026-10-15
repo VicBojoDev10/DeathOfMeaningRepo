@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace TDOM.Unity.UI
 {
@@ -7,6 +9,11 @@ namespace TDOM.Unity.UI
     {
         [SerializeField]
         private List<UIWindow> windows = new List<UIWindow>();
+
+        [SerializeField]
+        private TransitionManager _transitionManager;
+
+        public TransitionManager TransitionManager => _transitionManager;
 
         protected override void Awake()
         {
@@ -82,6 +89,30 @@ namespace TDOM.Unity.UI
             {
                 Debug.Log($"No se encontro la ventana con ID {windowId}");
             }
+        }
+
+        public void SwitchWindow(string fromWindowId, string toWindowId)
+        {
+            if (_transitionManager == null)
+            {
+                CloseWindow(fromWindowId);
+                ShowWindow(toWindowId);
+                return;
+            }
+
+            _transitionManager.CambiarVentana(GetWindow(fromWindowId), GetWindow(toWindowId));
+        }
+
+        public void LoadScene(string sceneName, Action onScreenCovered = null)
+        {
+            if (_transitionManager == null)
+            {
+                onScreenCovered?.Invoke();
+                SceneManager.LoadScene(sceneName);
+                return;
+            }
+
+            _transitionManager.CargarEscena(sceneName, onScreenCovered);
         }
 
         public UIWindow GetWindow(string windowId)

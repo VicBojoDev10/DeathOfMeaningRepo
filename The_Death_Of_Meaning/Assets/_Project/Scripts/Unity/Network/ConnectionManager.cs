@@ -15,6 +15,8 @@ namespace TDOM.Unity
         private readonly SessionStatus _status = new();
         public event Action<EstadoSesion> OnEstadoCambiado;
         public event Action<int> OnJugadoresCambiado;
+        public event Action OnCargaEscenaIniciada;
+        public event Action OnCargaEscenaCompletada;
 
         private bool _isSubscribed;
 
@@ -47,6 +49,8 @@ namespace TDOM.Unity
             NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnected;
             NetworkManager.Singleton.OnServerStarted += HandleServerStarted;
             NetworkManager.Singleton.OnTransportFailure += HandleTransportFailure;
+            NetworkManager.Singleton.OnClientStarted += HandleClientStarted;
+            NetworkManager.Singleton.OnClientStopped += HandleClientStopped;
             _isSubscribed = true;
         }
 
@@ -59,6 +63,9 @@ namespace TDOM.Unity
             NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnected;
             NetworkManager.Singleton.OnServerStarted -= HandleServerStarted;
             NetworkManager.Singleton.OnTransportFailure -= HandleTransportFailure;
+            NetworkManager.Singleton.OnClientStarted -= HandleClientStarted;
+            NetworkManager.Singleton.OnClientStopped -= HandleClientStopped;
+            DesuscribirEventosEscena();
             _isSubscribed = false;
         }
 
@@ -146,6 +153,42 @@ namespace TDOM.Unity
             if (NetworkManager.Singleton.IsServer)
             {
                 OnJugadoresCambiado?.Invoke(NetworkManager.Singleton.ConnectedClientsList.Count);
+            }
+        }
+
+        private void HandleClientStarted()
+        {
+            var escenas = NetworkManager.Singleton.SceneManager;
+            if (escenas == null)
+                return;
+
+            escenas.OnSceneEvent -= HandleSceneEvent;
+            escenas.OnSceneEvent += HandleSceneEvent;
+        }
+
+        private void HandleClientStopped(bool eraHost)
+        {
+            DesuscribirEventosEscena();
+        }
+
+        private void DesuscribirEventosEscena()
+        {
+            var escenas = NetworkManager.Singleton.SceneManager;
+            if (escenas != null)
+                escenas.OnSceneEvent -= HandleSceneEvent;
+        }
+
+        private void HandleSceneEvent(SceneEvent evento)
+        {
+            switch (evento.SceneEventType)
+            {
+                case SceneEventType.Load
+                    when evento.ClientId == NetworkManager.Singleton.LocalClientId:
+                    OnCargaEscenaIniciada?.Invoke();
+                    break;
+                case SceneEventType.LoadEventCompleted:
+                    OnCargaEscenaCompletada?.Invoke();
+                    break;
             }
         }
 
