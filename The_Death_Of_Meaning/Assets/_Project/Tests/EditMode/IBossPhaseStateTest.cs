@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using TDOM.Contracts;
 using TDOM.Gameplay.Combat;
@@ -8,6 +9,11 @@ namespace TDOM.Tests.EditMode
 {
     public class IBossPhaseStateTest
     {
+        private const float DuracionTransicion = 3f;
+        private const float Cooldown = 3f;
+        private const float Telegraph = 1.25f;
+        private const float Dt60 = 1f / 60f;
+
         [Test]
         public void Transiciones_de_fase_ocurren_en_umbral_correcto()
         {
@@ -28,11 +34,12 @@ namespace TDOM.Tests.EditMode
 
                 boss.AplicarDaño(0.2001f);
                 Assert.AreEqual(2, boss.FaseActual);
+                TerminarTransicion(boss);
 
                 boss.AplicarDaño(0.1998f);
                 Assert.AreEqual(2, boss.FaseActual);
 
-                boss.AplicarDaño(0.0002f);
+                boss.AplicarDaño(0.0003f);
                 Assert.AreEqual(3, boss.FaseActual);
             }
 
@@ -43,12 +50,14 @@ namespace TDOM.Tests.EditMode
 
                     boss.AplicarDaño(0.2001f);
                     Assert.AreEqual(2, boss.FaseActual);
+                    TerminarTransicion(boss);
 
                     boss.AplicarDaño(0.001f);
                     Assert.AreEqual(2, boss.FaseActual);
 
                     boss.AplicarDaño(0.1991f);
                     Assert.AreEqual(3, boss.FaseActual);
+                    TerminarTransicion(boss);
 
                     boss.AplicarDaño(0.198f);
                     Assert.AreEqual(3, boss.FaseActual);
@@ -65,12 +74,15 @@ namespace TDOM.Tests.EditMode
                 // Llegar a fase 4 progresivamente
                 boss.AplicarDaño(0.2001f);
                 Assert.AreEqual(2, boss.FaseActual);
+                TerminarTransicion(boss);
 
                 boss.AplicarDaño(0.2001f);
                 Assert.AreEqual(3, boss.FaseActual);
+                TerminarTransicion(boss);
 
                 boss.AplicarDaño(0.2001f);
                 Assert.AreEqual(4, boss.FaseActual);
+                TerminarTransicion(boss);
 
                 // Quedarse justo arriba de 0.2
                 boss.AplicarDaño(0.1996f);
@@ -91,6 +103,82 @@ namespace TDOM.Tests.EditMode
             boss.AplicarDaño(0.9f);
 
             Assert.AreEqual(2, boss.FaseActual);
+
+            // El daño que sobró no arrastra: al terminar la transición un golpe chico
+            // no salta a la fase 3.
+            TerminarTransicion(boss);
+            boss.AplicarDaño(0.01f);
+
+            Assert.AreEqual(2, boss.FaseActual);
+            Assert.AreEqual(0.79f, boss.VidaActual, 1e-4f);
+        }
+
+        [Test]
+        public void El_daño_durante_la_transicion_no_cambia_vida_ni_fase()
+        {
+            var boss = new BossPhaseStateMachine(CrearFasesDePrueba());
+
+            boss.AplicarDaño(0.25f);
+            Assert.AreEqual(2, boss.FaseActual);
+            Assert.IsTrue(boss.EnTransicion);
+            float vidaAlEntrar = boss.VidaActual;
+
+            boss.AplicarDaño(0.5f);
+
+            Assert.AreEqual(2, boss.FaseActual);
+            Assert.AreEqual(vidaAlEntrar, boss.VidaActual, 1e-6f);
+        }
+
+        [Test]
+        public void La_transicion_dura_lo_que_dice_el_perfil_de_la_fase_nueva()
+        {
+            var fases = CrearFasesDePrueba();
+            fases[0].DuracionTransicion = 10f; // la que termina: no se usa
+            fases[1].DuracionTransicion = 2f;
+            var boss = new BossPhaseStateMachine(fases);
+            int terminadas = 0;
+            boss.TransicionTerminada += () => terminadas++;
+
+            boss.AplicarDaño(0.25f);
+            Assert.AreEqual(2f, boss.TiempoTransicionRestante, 1e-6f);
+
+            boss.Tick(1.9f);
+            Assert.IsTrue(boss.EnTransicion);
+            Assert.AreEqual(0, terminadas);
+
+            boss.Tick(0.2f);
+            Assert.IsFalse(boss.EnTransicion);
+            Assert.AreEqual(1, terminadas);
+
+            boss.Tick(1f);
+            Assert.AreEqual(1, terminadas);
+        }
+
+        [Test]
+        public void Al_terminar_la_transicion_el_patron_empieza_desde_el_primer_ataque_de_la_fase_nueva()
+        {
+            var boss = new BossPhaseStateMachine(CrearFasesDePrueba());
+            var scheduler = new BossAttackScheduler(boss, Cooldown, Telegraph);
+            boss.TransicionTerminada += scheduler.ReiniciarPorCambioDeFase;
+
+            // Avanzar el patrón de la fase 1 y quedar a mitad de un telegraph.
+            Correr(boss, scheduler, Cooldown + Telegraph + Cooldown + 0.5f);
+            Assert.IsTrue(scheduler.EnTelegraph);
+
+            boss.AplicarDaño(0.25f);
+            Assert.AreEqual(2, boss.FaseActual);
+
+            // Durante la transición el scheduler no avanza (como en BossController).
+            var durante = Correr(boss, scheduler, DuracionTransicion - 0.1f);
+            Assert.AreEqual(0, durante.Count);
+            Assert.IsTrue(boss.EnTransicion);
+
+            var despues = Correr(boss, scheduler, 0.1f + Cooldown + 0.1f);
+
+            Assert.IsFalse(boss.EnTransicion);
+            Assert.AreEqual(1, despues.Count);
+            Assert.AreEqual(EventoAtaque.Telegraph, despues[0].Evento);
+            Assert.AreEqual(BossAttackKind.Pesado, despues[0].Ataque);
         }
 
         [Test]
@@ -114,6 +202,7 @@ namespace TDOM.Tests.EditMode
             Assert.AreEqual(BossAttackKind.Pesado, boss.SiguienteAtaque().Tipo);
             Assert.AreEqual(BossAttackKind.Basico, boss.SiguienteAtaque().Tipo);
 
+            TerminarTransicion(boss);
             boss.AplicarDaño(0.205f);
             Assert.AreEqual(3, boss.FaseActual);
 
@@ -124,6 +213,7 @@ namespace TDOM.Tests.EditMode
             Assert.AreEqual(BossAttackKind.Basico, boss.SiguienteAtaque().Tipo);
             Assert.AreEqual(BossAttackKind.Especial, boss.SiguienteAtaque().Tipo);
 
+            TerminarTransicion(boss);
             boss.AplicarDaño(0.205f);
             Assert.AreEqual(4, boss.FaseActual);
 
@@ -136,6 +226,7 @@ namespace TDOM.Tests.EditMode
             Assert.AreEqual(BossAttackKind.Pesado, boss.SiguienteAtaque().Tipo);
             Assert.AreEqual(BossAttackKind.InstaKill, boss.SiguienteAtaque().Tipo);
 
+            TerminarTransicion(boss);
             boss.AplicarDaño(0.205f);
             Assert.AreEqual(5, boss.FaseActual);
 
@@ -176,6 +267,47 @@ namespace TDOM.Tests.EditMode
             Assert.AreEqual(bossA.FaseActual, bossB.FaseActual);
 
             Assert.AreEqual(bossA.AtaqueActual.Tipo, bossB.AtaqueActual.Tipo);
+        }
+
+        private static void TerminarTransicion(BossPhaseStateMachine boss)
+        {
+            boss.Tick(boss.TiempoTransicionRestante + 0.01f);
+            Assert.IsFalse(boss.EnTransicion);
+        }
+
+        private readonly struct Registro
+        {
+            public readonly EventoAtaque Evento;
+            public readonly BossAttackKind Ataque;
+
+            public Registro(EventoAtaque evento, BossAttackKind ataque)
+            {
+                Evento = evento;
+                Ataque = ataque;
+            }
+        }
+
+        // Igual que BossController.Update: la máquina siempre avanza; el scheduler solo
+        // fuera de la transición.
+        private static List<Registro> Correr(
+            BossPhaseStateMachine boss,
+            BossAttackScheduler scheduler,
+            float segundos
+        )
+        {
+            var registros = new List<Registro>();
+            int pasos = Mathf.RoundToInt(segundos / Dt60);
+            for (int i = 0; i < pasos; i++)
+            {
+                boss.Tick(Dt60);
+                if (boss.EnTransicion)
+                    continue;
+
+                var evento = scheduler.Tick(Dt60, out var ataque);
+                if (evento != EventoAtaque.Ninguno)
+                    registros.Add(new Registro(evento, ataque));
+            }
+            return registros;
         }
 
         private BossPhaseProfile[] CrearFasesDePrueba()
