@@ -37,6 +37,9 @@ namespace TDOM.Unity
         public static event Action Despawned;
         public event Action<CharacterIds> PersonajeRechazado;
         private readonly ConfirmedCharacterSelection _seleccion = new ConfirmedCharacterSelection();
+        private bool _partidaIniciada;
+
+        public bool PartidaIniciadaEnServidor => _partidaIniciada;
 
         private void Awake()
         {
@@ -147,8 +150,11 @@ namespace TDOM.Unity
 
         private void VerificarInicioPartida()
         {
-            if (!_seleccion.PuedeIniciar)
+            if (_partidaIniciada || !_seleccion.PuedeIniciar)
                 return;
+
+            // Marcar antes de crear objetos para evitar un doble spawn si llega otro RPC de listo.
+            _partidaIniciada = true;
 
             foreach (var jugador in Jugadores)
             {
