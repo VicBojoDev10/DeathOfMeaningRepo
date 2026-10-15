@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using TDOM.Gameplay.Core;
@@ -13,10 +14,12 @@ namespace TDOM.Unity
         [SerializeField]
         private GameObject gameFlowNetworkPrefab;
         private readonly SessionStatus _status = new();
+        private readonly HashSet<ulong> _clientesAprobadosPendientes = new();
         public event Action<EstadoSesion> OnEstadoCambiado;
         public event Action<int> OnJugadoresCambiado;
         public event Action OnCargaEscenaIniciada;
         public event Action OnCargaEscenaCompletada;
+        public event Action<string> OnConexionRechazada;
 
         private bool _isSubscribed;
 
@@ -51,6 +54,7 @@ namespace TDOM.Unity
             NetworkManager.Singleton.OnTransportFailure += HandleTransportFailure;
             NetworkManager.Singleton.OnClientStarted += HandleClientStarted;
             NetworkManager.Singleton.OnClientStopped += HandleClientStopped;
+            NetworkManager.Singleton.ConnectionApprovalCallback = HandleConnectionApproval;
             _isSubscribed = true;
         }
 
@@ -65,8 +69,40 @@ namespace TDOM.Unity
             NetworkManager.Singleton.OnTransportFailure -= HandleTransportFailure;
             NetworkManager.Singleton.OnClientStarted -= HandleClientStarted;
             NetworkManager.Singleton.OnClientStopped -= HandleClientStopped;
+            if (NetworkManager.Singleton.ConnectionApprovalCallback == HandleConnectionApproval)
+                NetworkManager.Singleton.ConnectionApprovalCallback = null;
             DesuscribirEventosEscena();
             _isSubscribed = false;
+        }
+
+        private void HandleConnectionApproval(
+            NetworkManager.ConnectionApprovalRequest request,
+            NetworkManager.ConnectionApprovalResponse response
+        )
+        {
+            var networkManager = NetworkManager.Singleton;
+            int conectados =
+                networkManager != null
+                    ? networkManager.ConnectedClientsList.Count + _clientesAprobadosPendientes.Count
+                    : 0;
+            bool partidaIniciada =
+                GameSessionManager.Instance != null
+                && GameSessionManager.Instance.PartidaIniciadaEnServidor;
+
+            response.Approved = TDOM.Gameplay.ConnectionAccepted.PuedeAceptarConexion(
+                conectados,
+                partidaIniciada
+            );
+            response.CreatePlayerObject = false;
+
+            if (!response.Approved)
+            {
+                response.Reason = partidaIniciada ? "Partida en curso" : "Partida llena";
+            }
+            else
+            {
+                _clientesAprobadosPendientes.Add(request.ClientNetworkId);
+            }
         }
 
         public void OnCrearPartida()
@@ -87,6 +123,8 @@ namespace TDOM.Unity
                 transport.ConnectionData.Port = 7777;
                 transport.ConnectionData.ServerListenAddress = "0.0.0.0";
             }
+            NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
+            NetworkManager.Singleton.ConnectionApprovalCallback = HandleConnectionApproval;
             CambiarEstado(EstadoSesion.Conectando);
             NetworkManager.Singleton.StartHost();
         }
@@ -116,6 +154,7 @@ namespace TDOM.Unity
                 transport.ConnectionData.Port = 7777;
             }
 
+            NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
             CambiarEstado(EstadoSesion.Conectando);
             NetworkManager.Singleton.StartClient();
         }
@@ -132,6 +171,7 @@ namespace TDOM.Unity
 
         private void HandleClientConnected(ulong clientId)
         {
+            _clientesAprobadosPendientes.Remove(clientId);
             if (clientId == NetworkManager.Singleton.LocalClientId)
             {
                 CambiarEstado(EstadoSesion.Listo);
@@ -145,9 +185,24 @@ namespace TDOM.Unity
 
         private void HandleClientDisconnected(ulong clientId)
         {
+            _clientesAprobadosPendientes.Remove(clientId);
             if (clientId == NetworkManager.Singleton.LocalClientId)
             {
                 CambiarEstado(EstadoSesion.Desconectado);
+                if (!NetworkManager.Singleton.IsServer)
+                {
+                    string motivo = NetworkManager.Singleton.DisconnectReason;
+                    if (!string.IsNullOrWhiteSpace(motivo))
+                    {
+                        if (motivo.Contains("Partida llena", StringComparison.OrdinalIgnoreCase))
+                            motivo = "Partida llena";
+                        else if (
+                            motivo.Contains("Partida en curso", StringComparison.OrdinalIgnoreCase)
+                        )
+                            motivo = "Partida en curso";
+                        OnConexionRechazada?.Invoke(motivo);
+                    }
+                }
             }
 
             if (NetworkManager.Singleton.IsServer)
