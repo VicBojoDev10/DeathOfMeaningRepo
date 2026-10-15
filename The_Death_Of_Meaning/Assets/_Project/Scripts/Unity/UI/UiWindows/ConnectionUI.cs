@@ -55,8 +55,12 @@ namespace TDOM.Unity
                 kbWindow.OnKeyboardClosed += HandleKeyboardClosed;
             }
 
-            ConnectionManager.OnEstadoCambiado += ActualizarTextoEstado;
-            ConnectionManager.OnJugadoresCambiado += ActualizarBotonComenzar;
+            if (ConnectionManager != null)
+            {
+                ConnectionManager.OnEstadoCambiado += ActualizarTextoEstado;
+                ConnectionManager.OnJugadoresCambiado += ActualizarBotonComenzar;
+            }
+
             GameFlowNetwork.Spawned += SuscribirseAGameFlow;
             if (GameFlowNetwork.Instance != null)
                 SuscribirseAGameFlow();
@@ -64,7 +68,8 @@ namespace TDOM.Unity
 
         private void JoinTestUi()
         {
-            ConnectionManager.OnUnirse("127.0.0.1");
+            if (ConnectionManager != null)
+                ConnectionManager.OnUnirse("127.0.0.1");
         }
 
         private void OnDisable()
@@ -88,8 +93,11 @@ namespace TDOM.Unity
                 kbWindow.OnKeyboardClosed -= HandleKeyboardClosed;
             }
 
-            ConnectionManager.OnEstadoCambiado -= ActualizarTextoEstado;
-            ConnectionManager.OnJugadoresCambiado -= ActualizarBotonComenzar;
+            if (ConnectionManager != null)
+            {
+                ConnectionManager.OnEstadoCambiado -= ActualizarTextoEstado;
+                ConnectionManager.OnJugadoresCambiado -= ActualizarBotonComenzar;
+            }
 
             GameFlowNetwork.Spawned -= SuscribirseAGameFlow;
             if (GameFlowNetwork.Instance != null)
@@ -106,7 +114,6 @@ namespace TDOM.Unity
         {
             if (Time.unscaledTime - _lastKeyboardCloseTime < 0.4f)
                 return;
-
             AbrirTecladoVirtual();
         }
 

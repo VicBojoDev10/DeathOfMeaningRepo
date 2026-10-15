@@ -8,6 +8,12 @@ namespace TDOM.Unity.UI
         [SerializeField]
         private List<UIWindow> windows = new List<UIWindow>();
 
+        protected override void Awake()
+        {
+            base.Awake();
+            FoundUIScene();
+        }
+
         void Start()
         {
             Initialize();
@@ -20,11 +26,10 @@ namespace TDOM.Unity.UI
 
         private void FoundUIScene()
         {
-            windows.Clear();
             var uiWindows = gameObject.GetComponentsInChildren<UIWindow>(true);
             foreach (var uiWindow in uiWindows)
             {
-                if (!windows.Contains(uiWindow))
+                if (uiWindow != null && !windows.Contains(uiWindow))
                 {
                     windows.Add(uiWindow);
                 }
@@ -33,10 +38,13 @@ namespace TDOM.Unity.UI
 
         public void ShowWindow(string windowId)
         {
+            if (windows == null || windows.Count == 0)
+                FoundUIScene();
+
             UIWindow windowToShow = null;
             foreach (UIWindow window in windows)
             {
-                if (window.WindowId == windowId)
+                if (window != null && window.WindowId == windowId)
                 {
                     windowToShow = window;
                     break;
@@ -54,12 +62,16 @@ namespace TDOM.Unity.UI
 
         public void CloseWindow(string windowId)
         {
+            if (windows == null || windows.Count == 0)
+                FoundUIScene();
+
             UIWindow windowToClose = null;
             foreach (UIWindow window in windows)
             {
-                if (window.WindowId == windowId)
+                if (window != null && window.WindowId == windowId)
                 {
                     windowToClose = window;
+                    break;
                 }
             }
             if (windowToClose != null)
@@ -68,20 +80,23 @@ namespace TDOM.Unity.UI
             }
             else
             {
-                Debug.Log($"No se encontro la ventana con ID");
+                Debug.Log($"No se encontro la ventana con ID {windowId}");
             }
         }
 
         public UIWindow GetWindow(string windowId)
         {
+            if (windows == null || windows.Count == 0)
+                FoundUIScene();
+
             foreach (UIWindow window in windows)
             {
-                if (window.WindowId == windowId)
+                if (window != null && window.WindowId == windowId)
                 {
                     return window;
                 }
             }
-            Debug.LogError($"No se encontro la ventana con ID");
+            Debug.LogError($"No se encontro la ventana con ID {windowId}");
             return null;
         }
     }
@@ -93,5 +108,10 @@ namespace TDOM.Unity.UI
         public const string KeyboardUI = "keyboardui";
         public const string MainMenuUI = "mainmenuui";
         public const string GamePlayUI = "gameplayui";
+        public const string CreditsUI = "creditsui";
+        public const string OptionsUI = "optionsui";
+        public const string VolumeUI = "volumeui";
+        public const string ControlEsquemaUI = "controlesquemaui";
+        public const string SplashUI = "splashui";
     }
 }
