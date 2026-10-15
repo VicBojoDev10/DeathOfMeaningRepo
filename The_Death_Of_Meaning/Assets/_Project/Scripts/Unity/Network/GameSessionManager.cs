@@ -1,4 +1,5 @@
 using System;
+using TDOM.Gameplay.Core;
 using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
@@ -32,6 +33,11 @@ namespace TDOM.Unity
         public event Action OnJugadorDesconectado;
         public event Action OnPartidaIniciada;
 
+        public static event Action Spawned;
+        public static event Action Despawned;
+        public event Action<CharacterIds> PersonajeRechazado;
+        private readonly ConfirmedCharacterSelection _seleccion = new ConfirmedCharacterSelection();
+
         private void Awake()
         {
             Jugadores = new NetworkList<PlayerSelectionState>();
@@ -40,6 +46,7 @@ namespace TDOM.Unity
         public override void OnNetworkSpawn()
         {
             Instance = this;
+            Spawned?.Invoke();
 
             if (IsServer)
             {
@@ -50,6 +57,7 @@ namespace TDOM.Unity
 
         public override void OnNetworkDespawn()
         {
+            Despawned?.Invoke();
             if (Instance == this)
                 Instance = null;
 
@@ -62,23 +70,9 @@ namespace TDOM.Unity
         private void HandleClientDisconnected(ulong clientId)
         {
             Debug.Log($"[SERVER] Cliente desconectado: {clientId}");
-            int idx = BuscarIndice(clientId);
-            if (idx < 0)
-            {
-                Debug.Log("[SERVER] No se encontró ese clientId en Jugadores");
-                return;
-            }
-            Jugadores.RemoveAt(idx);
+            _seleccion.Desconectar(clientId);
+            SincronizarJugadores();
             Debug.Log($"[SERVER] Jugador removido, quedan: {Jugadores.Count}");
-            for (int i = 0; i < Jugadores.Count; i++)
-            {
-                if (Jugadores[i].Ready)
-                {
-                    var estado = Jugadores[i];
-                    estado.Ready = false;
-                    Jugadores[i] = estado;
-                }
-            }
 
             NotificarDesconexionClientRpc();
         }
@@ -93,58 +87,68 @@ namespace TDOM.Unity
         public void ElegirPersonajeRpc(CharacterIds id, RpcParams rpcParams = default)
         {
             ulong clientId = rpcParams.Receive.SenderClientId;
-            for (int i = 0; i < Jugadores.Count; i++)
+            if (!_seleccion.Elegir(clientId, (ConfirmedCharacterSelection.Character)(int)id))
             {
-                if (Jugadores[i].Character == id && Jugadores[i].ClientId != clientId)
-                {
-                    PersonajeRechazadoRpc(RpcTarget.Single(clientId, RpcTargetUse.Temp));
-                    return;
-                }
+                PersonajeRechazadoRpc(id, RpcTarget.Single(clientId, RpcTargetUse.Temp));
+                return;
             }
-            int idx = BuscarIndice(clientId);
-            var estado = new PlayerSelectionState
-            {
-                ClientId = clientId,
-                Character = id,
-                Ready = false,
-            };
-            if (idx >= 0)
-                Jugadores[idx] = estado;
-            else
-                Jugadores.Add(estado);
+            SincronizarJugadores();
         }
 
         [Rpc(SendTo.Server)]
         public void MarcarListoRpc(RpcParams rpcParams = default)
         {
             ulong clientId = rpcParams.Receive.SenderClientId;
-            int idx = BuscarIndice(clientId);
-            if (idx < 0 || Jugadores[idx].Character == CharacterIds.None)
-                return;
-            var estado = Jugadores[idx];
-            estado.Ready = true;
-            Jugadores[idx] = estado;
+            _seleccion.MarcarListo(clientId);
+            SincronizarJugadores();
             VerificarInicioPartida();
         }
 
         [Rpc(SendTo.SpecifiedInParams)]
-        private void PersonajeRechazadoRpc(RpcParams rpcParams) { }
+        private void PersonajeRechazadoRpc(CharacterIds character, RpcParams rpcParams = default) =>
+            PersonajeRechazado?.Invoke(character);
 
-        private int BuscarIndice(ulong clientId)
+        private void SincronizarJugadores()
         {
-            for (int i = 0; i < Jugadores.Count; i++)
-                if (Jugadores[i].ClientId == clientId)
-                    return i;
-            return -1;
+            for (int i = Jugadores.Count - 1; i >= 0; i--)
+            {
+                bool stillConnected = false;
+                foreach (var player in _seleccion.Players)
+                    if (player.ClientId == Jugadores[i].ClientId)
+                    {
+                        stillConnected = true;
+                        break;
+                    }
+                if (!stillConnected)
+                    Jugadores.RemoveAt(i);
+            }
+
+            foreach (var jugador in _seleccion.Players)
+            {
+                var state = new PlayerSelectionState
+                {
+                    ClientId = jugador.ClientId,
+                    Character = (CharacterIds)(int)jugador.SelectedCharacter,
+                    Ready = jugador.Ready,
+                };
+                int index = -1;
+                for (int i = 0; i < Jugadores.Count; i++)
+                    if (Jugadores[i].ClientId == jugador.ClientId)
+                    {
+                        index = i;
+                        break;
+                    }
+                if (index < 0)
+                    Jugadores.Add(state);
+                else if (!Jugadores[index].Equals(state))
+                    Jugadores[index] = state;
+            }
         }
 
         private void VerificarInicioPartida()
         {
-            if (Jugadores.Count != 2)
+            if (!_seleccion.PuedeIniciar)
                 return;
-            foreach (var j in Jugadores)
-                if (!j.Ready)
-                    return;
 
             foreach (var jugador in Jugadores)
             {
@@ -207,8 +211,7 @@ namespace TDOM.Unity
 
             if (UiManager.Instance != null)
             {
-                UiManager.Instance.CloseWindow(WindowsIds.ChSelectionUI);
-                UiManager.Instance.ShowWindow(WindowsIds.GamePlayUI);
+                UiManager.Instance.SwitchWindow(WindowsIds.ChSelectionUI, WindowsIds.GamePlayUI);
             }
         }
     }

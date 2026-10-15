@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 221961229285668106}
   - component: {fileID: 2649878935638602016}
   - component: {fileID: 1670852328893955038}
+  - component: {fileID: -1494346246085195045}
   m_Layer: 0
   m_Name: AtaqueRayoArek
   m_TagString: Untagged
@@ -74,5 +75,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.AtaqueRayo
   ShowTopMostFoldoutHeaderGroup: 1
   _boca: {fileID: 0}
-  _materialAviso: {fileID: 2100000, guid: 7bf4819347595ac47b13d81f1efa74bc, type: 2}
+  _materialAviso: {fileID: 2100000, guid: f93ced6bdf87f4c47a05752226b0a5c3, type: 2}
+  _avisoParpadeo: {fileID: -1494346246085195045}
   _materialRayo: {fileID: 2100000, guid: d8e31a30e9b064b48bf9e51775132885, type: 2}
+--- !u!114 &-1494346246085195045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6513317133961753232}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f737c0c18d6d1a54e9c9710214c0aa09, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.AvisoParpadeo

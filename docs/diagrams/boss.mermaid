@@ -45,3 +45,6 @@ flowchart TD
     PR -->|OnCambioDeFase| FB["FeedbackDirector: Impacto de cámara"]
     BC -->|"RestaurarEnergiaPorCambioDeFase (servidor)"| PR
     PR -->|RestoreMaxOnPhaseChange| EP[EnergyPool]
+    CLI -->|"cada AvisoRpc inicia el parpadeo local, sin red"| AVP["AvisoParpadeo (local, MaterialPropertyBlock)"]
+    AA -->|"PerfilAviso: AvisoAtaqueProfile"| AVP
+    AVP -->|"_Progreso, _ColorBase, _Intensidad... sobre el área de aviso"| MAT["AvisoAtaque.mat (Shader Graph + AvisoAtaque.hlsl)"]

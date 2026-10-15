@@ -33,8 +33,7 @@ namespace TDOM.Unity
         {
             if (UiManager.Instance != null)
             {
-                UiManager.Instance.CloseWindow(WindowsIds.ControlEsquemaUI);
-                UiManager.Instance.ShowWindow(WindowsIds.OptionsUI);
+                UiManager.Instance.SwitchWindow(WindowsIds.ControlEsquemaUI, WindowsIds.OptionsUI);
             }
         }
     }
