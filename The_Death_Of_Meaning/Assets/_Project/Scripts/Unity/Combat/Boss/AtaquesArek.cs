@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TDOM.Contracts;
 using TDOM.Data;
@@ -54,6 +55,9 @@ namespace TDOM.Unity
         public AtaqueMorteroProfile PerfilMortero => _perfilMortero;
         public AtaqueRayoProfile PerfilRayo => _perfilRayo;
         public BossTargetingProfile PerfilObjetivo => _perfilObjetivo;
+
+        /// <summary>Solo servidor: se lanzó un ataque (también desde los botones de debug). Lo usa MinionSpawner.</summary>
+        public event Action<BossAttackKind> AtaqueEjecutado;
 
         /// <summary>Solo servidor: jugador elegido para el último ataque (null si nadie estaba en rango).</summary>
         public ulong? ObjetivoActual { get; private set; }
@@ -247,6 +251,8 @@ namespace TDOM.Unity
                     LanzarAtaqueMortero();
                     break;
             }
+
+            AtaqueEjecutado?.Invoke(tipo);
         }
 
         private void LanzarAtaqueMano()

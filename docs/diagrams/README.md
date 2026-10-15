@@ -18,6 +18,7 @@ Si el diagrama quedó desactualizado respecto al código del PR, el PR está mal
 | `network-flow.mermaid` | Conexión, spawn con ownership, autoridad dividida |
 | `player-prefab.mermaid` | Jerarquía del prefab de jugador y sus componentes |
 | `boss.mermaid` | `BossController`, fases, scheduler de ataques de Arek y sus RPCs |
+| `minions.mermaid` | `MinionSpawner`, `MinionSpawnRule`, `MinionController`, `MinionBrain` y sus RPCs |
 | `cinematic-flow.mermaid` | `CinematicDirector`, `GameFlowStateMachine` y la sincronización de cinemáticas en red |
 
 ## Nomenclatura
