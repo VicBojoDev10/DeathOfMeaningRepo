@@ -7,14 +7,20 @@ namespace TDOM.Unity
 {
     public class VolumeUI : UIWindow
     {
-        [SerializeField] private Slider generalVolumeSlider;
-        [SerializeField] private Slider musicVolumeSlider;
-        [SerializeField] private Slider sfxVolumeSlider;
-        [SerializeField] private Button backButton;
+        [SerializeField]
+        private Slider generalVolumeSlider;
+
+        [SerializeField]
+        private Slider musicVolumeSlider;
+
+        [SerializeField]
+        private Slider sfxVolumeSlider;
+
+        [SerializeField]
+        private Button backButton;
 
         private void Awake()
         {
-
             if (firstSelectedObject == null)
             {
                 if (generalVolumeSlider != null)
@@ -47,13 +53,19 @@ namespace TDOM.Unity
                 return;
 
             if (generalVolumeSlider != null)
-                generalVolumeSlider.SetValueWithoutNotify(AudioManager.Instance.GetVolume(AudioChannel.Master));
+                generalVolumeSlider.SetValueWithoutNotify(
+                    AudioManager.Instance.GetVolume(AudioChannel.Master)
+                );
 
             if (musicVolumeSlider != null)
-                musicVolumeSlider.SetValueWithoutNotify(AudioManager.Instance.GetVolume(AudioChannel.Music));
+                musicVolumeSlider.SetValueWithoutNotify(
+                    AudioManager.Instance.GetVolume(AudioChannel.Music)
+                );
 
             if (sfxVolumeSlider != null)
-                sfxVolumeSlider.SetValueWithoutNotify(AudioManager.Instance.GetVolume(AudioChannel.Sfx));
+                sfxVolumeSlider.SetValueWithoutNotify(
+                    AudioManager.Instance.GetVolume(AudioChannel.Sfx)
+                );
         }
 
         private void RegistrarListenersSliders()

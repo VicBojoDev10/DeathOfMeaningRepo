@@ -6,7 +6,8 @@ namespace TDOM.Unity
 {
     public class CreditsUI : UIWindow
     {
-        [SerializeField] private Button backCreditsButton;
+        [SerializeField]
+        private Button backCreditsButton;
 
         private void Awake()
         {

@@ -62,7 +62,10 @@ namespace TDOM.Unity
             {
                 foreach (var control in Gamepad.current.allControls)
                 {
-                    if (control is UnityEngine.InputSystem.Controls.ButtonControl button && button.wasPressedThisFrame)
+                    if (
+                        control is UnityEngine.InputSystem.Controls.ButtonControl button
+                        && button.wasPressedThisFrame
+                    )
                     {
                         AvanzarAMenuPrincipal();
                         return;
@@ -70,7 +73,13 @@ namespace TDOM.Unity
                 }
             }
 
-            if (Mouse.current != null && (Mouse.current.leftButton.wasPressedThisFrame || Mouse.current.rightButton.wasPressedThisFrame))
+            if (
+                Mouse.current != null
+                && (
+                    Mouse.current.leftButton.wasPressedThisFrame
+                    || Mouse.current.rightButton.wasPressedThisFrame
+                )
+            )
             {
                 AvanzarAMenuPrincipal();
                 return;

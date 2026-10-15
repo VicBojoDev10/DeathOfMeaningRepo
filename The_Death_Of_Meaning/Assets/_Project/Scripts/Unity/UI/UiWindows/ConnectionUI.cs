@@ -47,7 +47,9 @@ namespace TDOM.Unity
             }
 
             var kbWindow =
-                UiManager.Instance != null ? UiManager.Instance.GetWindow(WindowsIds.KeyboardUI) as KeyboardUI : null;
+                UiManager.Instance != null
+                    ? UiManager.Instance.GetWindow(WindowsIds.KeyboardUI) as KeyboardUI
+                    : null;
             if (kbWindow != null)
             {
                 kbWindow.OnKeyboardClosed += HandleKeyboardClosed;
@@ -110,7 +112,8 @@ namespace TDOM.Unity
 
         private void OnInputFieldSelect(string _)
         {
-            if (Time.unscaledTime - _lastKeyboardCloseTime < 0.4f) return;
+            if (Time.unscaledTime - _lastKeyboardCloseTime < 0.4f)
+                return;
             AbrirTecladoVirtual();
         }
 

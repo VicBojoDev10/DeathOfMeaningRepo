@@ -53,7 +53,9 @@ namespace TDOM.Unity
             }
             else
             {
-                Debug.LogWarning($"[Singleton] Instancia duplicada de {typeof(T).Name} destruida en {gameObject.name}");
+                Debug.LogWarning(
+                    $"[Singleton] Instancia duplicada de {typeof(T).Name} destruida en {gameObject.name}"
+                );
                 Destroy(gameObject);
                 return;
             }

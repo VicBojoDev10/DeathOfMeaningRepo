@@ -6,7 +6,8 @@ namespace TDOM.Unity
 {
     public class ControlEsquemaUI : UIWindow
     {
-        [SerializeField] private Button backControlButton;
+        [SerializeField]
+        private Button backControlButton;
 
         private void Awake()
         {

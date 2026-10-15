@@ -5,7 +5,7 @@ using UnityEngine.Audio;
 
 namespace TDOM.Unity.Audio
 {
-    public class AudioManager :  Singleton<AudioManager>
+    public class AudioManager : Singleton<AudioManager>
     {
         #region serialized fields
 
@@ -57,10 +57,14 @@ namespace TDOM.Unity.Audio
         private const float MinLinear = 0.0001f;
 
         private GameObject _soundsContainer;
-        private readonly Dictionary<string, AudioData> _dataByName =
-            new Dictionary<string, AudioData>(System.StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<string, AudioSource> _sourcesByName =
-            new Dictionary<string, AudioSource>(System.StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, AudioData> _dataByName = new Dictionary<
+            string,
+            AudioData
+        >(System.StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, AudioSource> _sourcesByName = new Dictionary<
+            string,
+            AudioSource
+        >(System.StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<AudioSource, Coroutine> _fades =
             new Dictionary<AudioSource, Coroutine>();
         private AudioSource _currentMusic;
@@ -234,6 +238,7 @@ namespace TDOM.Unity.Audio
         #region public methods
 
         public void Play(string soundName) => PlaySound(soundName);
+
         public void Stop(string soundName) => StopSound(soundName);
 
         public void PlaySound(string soundName)

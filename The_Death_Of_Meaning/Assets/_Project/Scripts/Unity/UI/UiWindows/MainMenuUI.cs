@@ -8,18 +8,27 @@ namespace TDOM.Unity
     public class MainMenuUI : UIWindow
     {
         [Header("Main Menu Buttons")]
-        [SerializeField] private Button playButton;
-        [SerializeField] private Button optionsButton;
-        [SerializeField] private Button exitButton;
+        [SerializeField]
+        private Button playButton;
+
+        [SerializeField]
+        private Button optionsButton;
+
+        [SerializeField]
+        private Button exitButton;
 
         [Header("Scene Settings")]
-        [SerializeField] private string networkSetupSceneName = "NetworkSetup";
+        [SerializeField]
+        private string networkSetupSceneName = "NetworkSetup";
 
         private void Awake()
         {
             FindButtonsIfMissing();
 
-            if (firstSelectedObject == null || firstSelectedObject.GetComponent<Selectable>() == null)
+            if (
+                firstSelectedObject == null
+                || firstSelectedObject.GetComponent<Selectable>() == null
+            )
             {
                 if (playButton != null)
                 {
@@ -85,23 +94,32 @@ namespace TDOM.Unity
         {
             if (playButton == null)
             {
-                Transform t = transform.Find("MainMenuCanvas/ConnectionMenuCanvasGroup/MainMenuContainer/PlayButton")
-                           ?? transform.Find("MainMenuCanvas/MainMenuContainer/PlayButton");
-                if (t != null) playButton = t.GetComponent<Button>();
+                Transform t =
+                    transform.Find(
+                        "MainMenuCanvas/ConnectionMenuCanvasGroup/MainMenuContainer/PlayButton"
+                    ) ?? transform.Find("MainMenuCanvas/MainMenuContainer/PlayButton");
+                if (t != null)
+                    playButton = t.GetComponent<Button>();
             }
 
             if (optionsButton == null)
             {
-                Transform t = transform.Find("MainMenuCanvas/ConnectionMenuCanvasGroup/MainMenuContainer/OptionsButton")
-                           ?? transform.Find("MainMenuCanvas/MainMenuContainer/OptionsButton");
-                if (t != null) optionsButton = t.GetComponent<Button>();
+                Transform t =
+                    transform.Find(
+                        "MainMenuCanvas/ConnectionMenuCanvasGroup/MainMenuContainer/OptionsButton"
+                    ) ?? transform.Find("MainMenuCanvas/MainMenuContainer/OptionsButton");
+                if (t != null)
+                    optionsButton = t.GetComponent<Button>();
             }
 
             if (exitButton == null)
             {
-                Transform t = transform.Find("MainMenuCanvas/ConnectionMenuCanvasGroup/MainMenuContainer/ExitGame")
-                           ?? transform.Find("MainMenuCanvas/MainMenuContainer/ExitGame");
-                if (t != null) exitButton = t.GetComponent<Button>();
+                Transform t =
+                    transform.Find(
+                        "MainMenuCanvas/ConnectionMenuCanvasGroup/MainMenuContainer/ExitGame"
+                    ) ?? transform.Find("MainMenuCanvas/MainMenuContainer/ExitGame");
+                if (t != null)
+                    exitButton = t.GetComponent<Button>();
             }
 
             if (playButton == null || optionsButton == null || exitButton == null)
@@ -109,11 +127,21 @@ namespace TDOM.Unity
                 Button[] allButtons = GetComponentsInChildren<Button>(true);
                 foreach (var btn in allButtons)
                 {
-                    if (playButton == null && btn.name.IndexOf("Play", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    if (
+                        playButton == null
+                        && btn.name.IndexOf("Play", System.StringComparison.OrdinalIgnoreCase) >= 0
+                    )
                         playButton = btn;
-                    else if (optionsButton == null && btn.name.IndexOf("Option", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    else if (
+                        optionsButton == null
+                        && btn.name.IndexOf("Option", System.StringComparison.OrdinalIgnoreCase)
+                            >= 0
+                    )
                         optionsButton = btn;
-                    else if (exitButton == null && btn.name.IndexOf("Exit", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    else if (
+                        exitButton == null
+                        && btn.name.IndexOf("Exit", System.StringComparison.OrdinalIgnoreCase) >= 0
+                    )
                         exitButton = btn;
                 }
             }

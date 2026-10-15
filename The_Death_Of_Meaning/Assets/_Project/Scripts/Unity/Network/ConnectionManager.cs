@@ -66,7 +66,9 @@ namespace TDOM.Unity
         {
             if (NetworkManager.Singleton == null)
             {
-                Debug.LogError("[ConnectionManager] NetworkManager.Singleton es null al intentar crear partida.");
+                Debug.LogError(
+                    "[ConnectionManager] NetworkManager.Singleton es null al intentar crear partida."
+                );
                 CambiarEstado(EstadoSesion.Error);
                 return;
             }
@@ -93,7 +95,9 @@ namespace TDOM.Unity
 
             if (NetworkManager.Singleton == null)
             {
-                Debug.LogError("[ConnectionManager] NetworkManager.Singleton es null al intentar unirse.");
+                Debug.LogError(
+                    "[ConnectionManager] NetworkManager.Singleton es null al intentar unirse."
+                );
                 CambiarEstado(EstadoSesion.Error);
                 return;
             }
