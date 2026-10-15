@@ -106,7 +106,7 @@ namespace TDOM.Unity
 
             if (UiManager.Instance != null)
             {
-                UiManager.Instance.CambiarVentana(WindowsIds.SplashUI, WindowsIds.MainMenuUI);
+                UiManager.Instance.SwitchWindow(WindowsIds.SplashUI, WindowsIds.MainMenuUI);
             }
         }
 

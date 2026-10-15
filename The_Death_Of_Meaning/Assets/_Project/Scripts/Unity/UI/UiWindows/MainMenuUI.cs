@@ -69,10 +69,10 @@ namespace TDOM.Unity
                 return;
             }
 
-            UiManager.Instance.CargarEscena(networkSetupSceneName, MostrarConexion);
+            UiManager.Instance.LoadScene(networkSetupSceneName, ShowConnectionWindow);
         }
 
-        private static void MostrarConexion()
+        private static void ShowConnectionWindow()
         {
             UiManager.Instance.CloseWindow(WindowsIds.MainMenuUI);
             UiManager.Instance.ShowWindow(WindowsIds.ConnectionMenuUI);
@@ -82,7 +82,7 @@ namespace TDOM.Unity
         {
             if (UiManager.Instance != null)
             {
-                UiManager.Instance.CambiarVentana(WindowsIds.MainMenuUI, WindowsIds.OptionsUI);
+                UiManager.Instance.SwitchWindow(WindowsIds.MainMenuUI, WindowsIds.OptionsUI);
             }
         }
 

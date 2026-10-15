@@ -33,10 +33,7 @@ namespace TDOM.Unity
         {
             if (UiManager.Instance != null)
             {
-                UiManager.Instance.CambiarVentana(
-                    WindowsIds.ControlEsquemaUI,
-                    WindowsIds.OptionsUI
-                );
+                UiManager.Instance.SwitchWindow(WindowsIds.ControlEsquemaUI, WindowsIds.OptionsUI);
             }
         }
     }

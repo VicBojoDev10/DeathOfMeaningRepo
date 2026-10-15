@@ -11,9 +11,9 @@ namespace TDOM.Unity.UI
         private List<UIWindow> windows = new List<UIWindow>();
 
         [SerializeField]
-        private TransitionManager _transiciones;
+        private TransitionManager _transitionManager;
 
-        public TransitionManager Transiciones => _transiciones;
+        public TransitionManager TransitionManager => _transitionManager;
 
         protected override void Awake()
         {
@@ -91,28 +91,28 @@ namespace TDOM.Unity.UI
             }
         }
 
-        public void CambiarVentana(string deWindowId, string aWindowId)
+        public void SwitchWindow(string fromWindowId, string toWindowId)
         {
-            if (_transiciones == null)
+            if (_transitionManager == null)
             {
-                CloseWindow(deWindowId);
-                ShowWindow(aWindowId);
+                CloseWindow(fromWindowId);
+                ShowWindow(toWindowId);
                 return;
             }
 
-            _transiciones.CambiarVentana(GetWindow(deWindowId), GetWindow(aWindowId));
+            _transitionManager.CambiarVentana(GetWindow(fromWindowId), GetWindow(toWindowId));
         }
 
-        public void CargarEscena(string nombreEscena, Action alCubrirPantalla = null)
+        public void LoadScene(string sceneName, Action onScreenCovered = null)
         {
-            if (_transiciones == null)
+            if (_transitionManager == null)
             {
-                alCubrirPantalla?.Invoke();
-                SceneManager.LoadScene(nombreEscena);
+                onScreenCovered?.Invoke();
+                SceneManager.LoadScene(sceneName);
                 return;
             }
 
-            _transiciones.CargarEscena(nombreEscena, alCubrirPantalla);
+            _transitionManager.CargarEscena(sceneName, onScreenCovered);
         }
 
         public UIWindow GetWindow(string windowId)

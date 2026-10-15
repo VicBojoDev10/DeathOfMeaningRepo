@@ -148,7 +148,7 @@ namespace TDOM.Unity
 
         private void IrASeleccionDePersonaje()
         {
-            UiManager.Instance.CambiarVentana(WindowId, WindowsIds.ChSelectionUI);
+            UiManager.Instance.SwitchWindow(WindowId, WindowsIds.ChSelectionUI);
         }
 
         private void SuscribirseAGameFlow()
