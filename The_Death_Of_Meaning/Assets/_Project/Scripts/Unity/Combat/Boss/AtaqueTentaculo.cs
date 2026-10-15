@@ -10,8 +10,9 @@ namespace TDOM.Unity
 {
     /// <summary>
     /// Ataque Tentáculo (Pesado) de AREK en greybox: como la Mano, pero vertical. El tentáculo se
-    /// levanta junto al jefe, todos ven una franja roja en el piso y después azota de arriba hacia
-    /// abajo sobre ella. Se esquiva saliéndose de la franja hacia un lado, no saltando.
+    /// levanta junto al jefe, todos ven una franja de aviso parpadeante en el piso y después azota
+    /// de arriba hacia abajo sobre ella. Se esquiva saliéndose de la franja hacia un lado, no
+    /// saltando.
     /// No resta vida: solo detecta y reporta (04. Daño en WIP).
     /// </summary>
     public class AtaqueTentaculo : AtaqueArekBase
@@ -22,6 +23,13 @@ namespace TDOM.Unity
 
         [SerializeField]
         private Renderer _tentaculoRenderer;
+
+        [Header("Aviso")]
+        [SerializeField]
+        private Material _materialAviso; // AvisoAtaque.mat
+
+        [SerializeField]
+        private AvisoParpadeo _avisoParpadeo;
 
         private enum FaseTentaculo
         {
@@ -51,6 +59,9 @@ namespace TDOM.Unity
 
             if (_tentaculoRenderer == null && _tentaculoVisual != null)
                 _tentaculoRenderer = _tentaculoVisual.GetComponent<Renderer>();
+
+            if (_avisoParpadeo == null)
+                _avisoParpadeo = GetComponent<AvisoParpadeo>();
 
             // Los visuales son solo decoración: sin colliders para no empujar jugadores.
             foreach (var colisionador in GetComponentsInChildren<Collider>(true))
@@ -273,9 +284,17 @@ namespace TDOM.Unity
                 _tentaculoRenderer.material.color = Color.red;
 
             CrearFranja(origen, direccion);
+
+            if (_avisoParpadeo != null && _perfil != null)
+                _avisoParpadeo.Iniciar(
+                    Lanzador.PerfilAviso,
+                    _perfil.aviso,
+                    new[] { _franja.GetComponent<Renderer>() },
+                    AvisoParpadeo.Forma.FranjaV
+                );
         }
 
-        // Franja roja semitransparente de largo × ancho en el piso, en la dirección del azote.
+        // Franja de aviso parpadeante de largo × ancho en el piso, en la dirección del azote.
         private void CrearFranja(Vector3 origen, Vector3 direccion)
         {
             if (_franja != null)
@@ -294,21 +313,12 @@ namespace TDOM.Unity
             linea.startWidth = _perfil.ancho;
             linea.endWidth = _perfil.ancho;
 
-            var color = new Color(1f, 0f, 0f, 0.35f);
-
-            var shader = Shader.Find("Universal Render Pipeline/Unlit");
-            if (shader == null)
-                shader = Shader.Find("Sprites/Default");
-
-            if (shader != null)
-            {
-                var material = new Material(shader);
-                material.color = color;
-                linea.material = material;
-            }
-
-            linea.startColor = color;
-            linea.endColor = color;
+            if (_materialAviso != null)
+                linea.sharedMaterial = _materialAviso;
+            else
+                Debug.LogWarning(
+                    "[AtaqueTentaculo] Falta asignar _materialAviso (AvisoAtaque.mat)."
+                );
         }
 
         // Mismo feedback que la Mano: impacto de cámara, flash de debug y flash rojo de pantalla.

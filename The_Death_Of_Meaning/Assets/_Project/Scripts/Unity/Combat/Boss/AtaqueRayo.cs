@@ -10,8 +10,8 @@ namespace TDOM.Unity
 {
     /// <summary>
     /// Ataque Rayo (Especial) de AREK en greybox. El servidor elige un patrón de líneas en
-    /// abanico frente al jefe, todos ven franjas rojas de aviso en el piso y después los rayos
-    /// (LineRenderer) desde la boca. El servidor detecta a los jugadores dentro de cada rayo.
+    /// abanico frente al jefe, todos ven franjas de aviso parpadeantes en el piso y después los
+    /// rayos (LineRenderer) desde la boca. El servidor detecta a los jugadores dentro de cada rayo.
     /// No resta vida: solo detecta y reporta (04. Daño en WIP).
     /// </summary>
     public class AtaqueRayo : AtaqueArekBase
@@ -22,7 +22,10 @@ namespace TDOM.Unity
 
         [Header("Visuales")]
         [SerializeField]
-        private Material _materialAviso;
+        private Material _materialAviso; // AvisoAtaque.mat
+
+        [SerializeField]
+        private AvisoParpadeo _avisoParpadeo;
 
         [SerializeField]
         private Material _materialRayo;
@@ -56,6 +59,12 @@ namespace TDOM.Unity
         public void AsignarBoca(Transform boca)
         {
             _boca = boca;
+        }
+
+        private void Awake()
+        {
+            if (_avisoParpadeo == null)
+                _avisoParpadeo = GetComponent<AvisoParpadeo>();
         }
 
         protected override void AlSpawnear()
@@ -243,6 +252,20 @@ namespace TDOM.Unity
                 _franjas.Add(CrearFranja(origen, final));
                 _rayos.Add(CrearRayo(origen, final));
             }
+
+            if (_avisoParpadeo != null && _perfil != null)
+            {
+                var renderers = new List<Renderer>(_franjas.Count);
+                foreach (var franja in _franjas)
+                    renderers.Add(franja.GetComponent<Renderer>());
+
+                _avisoParpadeo.Iniciar(
+                    Lanzador.PerfilAviso,
+                    _perfil.aviso,
+                    renderers,
+                    AvisoParpadeo.Forma.FranjaU
+                );
+            }
         }
 
         [Rpc(SendTo.ClientsAndHost)]
@@ -262,7 +285,7 @@ namespace TDOM.Unity
                 franja.SetActive(false);
         }
 
-        // Franja roja en el piso, desde debajo de la boca hasta el final del rayo.
+        // Franja de aviso en el piso, desde debajo de la boca hasta el final del rayo.
         private GameObject CrearFranja(Vector3 origen, Vector3 final)
         {
             Vector3 inicio = new Vector3(origen.x, final.y, origen.z);
@@ -282,7 +305,7 @@ namespace TDOM.Unity
             if (_materialAviso != null)
                 render.sharedMaterial = _materialAviso;
             else
-                render.material.color = new Color(1f, 0f, 0f, 0.4f);
+                Debug.LogWarning("[AtaqueRayo] Falta asignar _materialAviso (AvisoAtaque.mat).");
 
             return franja;
         }

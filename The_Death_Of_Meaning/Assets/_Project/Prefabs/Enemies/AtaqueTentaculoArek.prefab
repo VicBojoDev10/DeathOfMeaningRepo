@@ -126,6 +126,7 @@ GameObject:
   - component: {fileID: -192817395706045472}
   - component: {fileID: -2967837886258945591}
   - component: {fileID: -6316657333724480790}
+  - component: {fileID: -8330316430835782145}
   m_Layer: 0
   m_Name: AtaqueTentaculoArek
   m_TagString: Untagged
@@ -235,12 +236,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.AtaqueTentaculo
   ShowTopMostFoldoutHeaderGroup: 1
-  _aviso: 1.25
-  _azote: 0.35
-  _retirada: 0.4
-  _largo: 25
-  _ancho: 3
-  _alto: 1.5
-  _desvioMaximo: 15
   _tentaculoVisual: {fileID: 0}
   _tentaculoRenderer: {fileID: 0}
+  _materialAviso: {fileID: 2100000, guid: f93ced6bdf87f4c47a05752226b0a5c3, type: 2}
+  _avisoParpadeo: {fileID: -8330316430835782145}
+--- !u!114 &-8330316430835782145
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2593223613806077103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f737c0c18d6d1a54e9c9710214c0aa09, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.AvisoParpadeo
