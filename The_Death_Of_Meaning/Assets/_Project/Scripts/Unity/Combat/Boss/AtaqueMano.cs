@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TDOM.Data;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
@@ -7,28 +8,8 @@ using UnityEngine;
 
 namespace TDOM.Unity
 {
-    public class AtaqueMano : NetworkBehaviour
+    public class AtaqueMano : AtaqueArekBase
     {
-        [Header("Tiempos")]
-        [SerializeField]
-        private float _aviso = 1.25f;
-
-        [SerializeField]
-        private float _barrido = 1.0f;
-
-        [SerializeField]
-        private float _retirada = 0.3f;
-
-        [Header("Dimensiones de la Mano")]
-        [SerializeField]
-        private float _radio = 25f;
-
-        [SerializeField]
-        private float _alto = 1.2f;
-
-        [SerializeField]
-        private float _ancho = 2.0f;
-
         [Header("Visuales")]
         [SerializeField]
         private Renderer _manoRenderer;
@@ -43,6 +24,9 @@ namespace TDOM.Unity
             Retirada,
             Despawn,
         }
+
+        // Tuning: lo lee de AtaquesArek (BossArek.prefab) al spawnear.
+        private AtaqueManoProfile _perfil;
 
         private FaseMano _fase = FaseMano.Aviso;
         private float _tiempoEnFase = 0f;
@@ -60,24 +44,40 @@ namespace TDOM.Unity
 
             if (_manoVisual == null && _manoRenderer != null)
                 _manoVisual = _manoRenderer.transform;
-
-            ConfigurarGeometriaVisual();
-            CrearArcoTelegraph();
         }
 
         private void ConfigurarGeometriaVisual()
         {
             if (_manoVisual != null)
             {
-                _manoVisual.localScale = new Vector3(_ancho, _alto, _radio);
-                _manoVisual.localPosition = new Vector3(0f, _alto * 0.5f, _radio * 0.5f);
+                _manoVisual.localScale = new Vector3(_perfil.ancho, _perfil.alto, _perfil.radio);
+                _manoVisual.localPosition = new Vector3(
+                    0f,
+                    _perfil.alto * 0.5f,
+                    _perfil.radio * 0.5f
+                );
             }
         }
 
-        public override void OnNetworkSpawn()
+        protected override void AlSpawnear()
         {
+            _perfil = Lanzador != null ? Lanzador.PerfilMano : null;
+            if (_perfil == null)
+            {
+                Debug.LogError("[AtaqueMano] Falta el AtaqueManoProfile en AtaquesArek.");
+                return;
+            }
+
+            ConfigurarGeometriaVisual();
+            CrearArcoTelegraph();
+
             if (IsServer)
             {
+                // Sale a la altura del piso, no a la del pivote del jefe (que puede estar arriba).
+                Vector3 origen = transform.position;
+                origen.y = AlturaDelPiso(origen);
+                transform.position = origen;
+
                 _fase = FaseMano.Aviso;
                 _tiempoEnFase = 0f;
                 _rotacionBase = transform.rotation;
@@ -88,9 +88,30 @@ namespace TDOM.Unity
             }
         }
 
+        // Busca el piso debajo del punto; si hay varios golpes (jefe, jugadores), el más bajo es el piso.
+        private static float AlturaDelPiso(Vector3 punto)
+        {
+            var golpes = Physics.RaycastAll(
+                punto + Vector3.up * 30f,
+                Vector3.down,
+                100f,
+                Physics.AllLayers,
+                QueryTriggerInteraction.Ignore
+            );
+
+            if (golpes.Length == 0)
+                return punto.y;
+
+            float alturaMinima = float.MaxValue;
+            foreach (var golpe in golpes)
+                alturaMinima = Mathf.Min(alturaMinima, golpe.point.y);
+
+            return alturaMinima;
+        }
+
         private void Update()
         {
-            if (!IsServer)
+            if (!IsServer || _perfil == null)
                 return;
 
             float dt = Time.deltaTime;
@@ -100,7 +121,7 @@ namespace TDOM.Unity
             {
                 case FaseMano.Aviso:
                     transform.rotation = _rotacionBase * Quaternion.Euler(0f, -90f, 0f);
-                    if (_tiempoEnFase >= _aviso)
+                    if (_tiempoEnFase >= _perfil.aviso)
                     {
                         _fase = FaseMano.Barrido;
                         _tiempoEnFase = 0f;
@@ -108,13 +129,13 @@ namespace TDOM.Unity
                     break;
 
                 case FaseMano.Barrido:
-                    float t = Mathf.Clamp01(_tiempoEnFase / _barrido);
+                    float t = Mathf.Clamp01(_tiempoEnFase / _perfil.barrido);
                     float angulo = Mathf.Lerp(-90f, 90f, t);
                     transform.rotation = _rotacionBase * Quaternion.Euler(0f, angulo, 0f);
 
                     DetectarImpactos();
 
-                    if (_tiempoEnFase >= _barrido)
+                    if (_tiempoEnFase >= _perfil.barrido)
                     {
                         _fase = FaseMano.Retirada;
                         _tiempoEnFase = 0f;
@@ -122,7 +143,7 @@ namespace TDOM.Unity
                     break;
 
                 case FaseMano.Retirada:
-                    if (_tiempoEnFase >= _retirada)
+                    if (_tiempoEnFase >= _perfil.retirada)
                     {
                         _fase = FaseMano.Despawn;
                         var no = GetComponent<NetworkObject>();
@@ -137,10 +158,14 @@ namespace TDOM.Unity
 
         private void DetectarImpactos()
         {
-            Vector3 halfExtents = new Vector3(_ancho * 0.5f, _alto * 0.5f, _radio * 0.5f);
+            Vector3 halfExtents = new Vector3(
+                _perfil.ancho * 0.5f,
+                _perfil.alto * 0.5f,
+                _perfil.radio * 0.5f
+            );
             Vector3 center =
                 transform.position
-                + transform.rotation * new Vector3(0f, _alto * 0.5f, _radio * 0.5f);
+                + transform.rotation * new Vector3(0f, _perfil.alto * 0.5f, _perfil.radio * 0.5f);
             Quaternion orientation = transform.rotation;
 
             Collider[] hits = Physics.OverlapBox(
@@ -224,8 +249,8 @@ namespace TDOM.Unity
             for (int i = 0; i <= segmentos; i++)
             {
                 float anguloRad = Mathf.Deg2Rad * Mathf.Lerp(-90f, 90f, (float)i / segmentos);
-                float x = Mathf.Sin(anguloRad) * _radio;
-                float z = Mathf.Cos(anguloRad) * _radio;
+                float x = Mathf.Sin(anguloRad) * _perfil.radio;
+                float z = Mathf.Cos(anguloRad) * _perfil.radio;
                 posiciones[i + 1] = new Vector3(x, 0f, z);
             }
 
@@ -264,11 +289,18 @@ namespace TDOM.Unity
 
         private void OnDrawGizmosSelected()
         {
+            if (_perfil == null)
+                return;
+
             Gizmos.color = Color.red;
-            Vector3 halfExtents = new Vector3(_ancho * 0.5f, _alto * 0.5f, _radio * 0.5f);
+            Vector3 halfExtents = new Vector3(
+                _perfil.ancho * 0.5f,
+                _perfil.alto * 0.5f,
+                _perfil.radio * 0.5f
+            );
             Vector3 center =
                 transform.position
-                + transform.rotation * new Vector3(0f, _alto * 0.5f, _radio * 0.5f);
+                + transform.rotation * new Vector3(0f, _perfil.alto * 0.5f, _perfil.radio * 0.5f);
 
             Matrix4x4 prev = Gizmos.matrix;
             Gizmos.matrix = Matrix4x4.TRS(center, transform.rotation, Vector3.one);

@@ -19,6 +19,7 @@ namespace TDOM.Unity.Combat
 
         private Vector3 _direccion;
         private float _daño;
+        private ulong _atacanteId;
         private float _tiempoVida;
 
         public float Velocidad => _velocidad;
@@ -28,10 +29,11 @@ namespace TDOM.Unity.Combat
         public float Daño => _daño;
         public Vector3 Direccion => _direccion;
 
-        public void Inicializar(Vector3 dir, float daño)
+        public void Inicializar(Vector3 dir, float daño, ulong atacanteId)
         {
             _direccion = dir.sqrMagnitude > 0.0001f ? dir.normalized : transform.forward;
             _daño = daño;
+            _atacanteId = atacanteId;
             _tiempoVida = 0f;
         }
 
@@ -79,7 +81,7 @@ namespace TDOM.Unity.Combat
 
                 if (hz != null)
                 {
-                    hz.RegistrarDanio(_daño);
+                    hz.RegistrarDanio(_daño, _atacanteId);
                 }
 
                 Debug.Log(

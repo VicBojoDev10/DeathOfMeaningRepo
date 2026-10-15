@@ -397,7 +397,7 @@ namespace TDOM.Unity.Combat
             {
                 if (hitZoneRef.TryGet(out HitZone hitZone) && hitZone != null)
                 {
-                    hitZone.RegistrarDanio(evento.Damage);
+                    hitZone.RegistrarDanio(evento.Damage, OwnerClientId);
                 }
                 else
                 {
@@ -430,7 +430,7 @@ namespace TDOM.Unity.Combat
                 var hitZone = obj.GetComponentInChildren<HitZone>();
                 if (hitZone != null)
                 {
-                    hitZone.RegistrarDanio(evento.Damage);
+                    hitZone.RegistrarDanio(evento.Damage, OwnerClientId);
                 }
                 else
                 {
@@ -457,7 +457,7 @@ namespace TDOM.Unity.Combat
             Proyectil proyectil = go.GetComponent<Proyectil>();
             if (proyectil != null)
             {
-                proyectil.Inicializar(dir, evento.Damage);
+                proyectil.Inicializar(dir, evento.Damage, OwnerClientId);
             }
             NetworkObject networkObject = go.GetComponent<NetworkObject>();
             if (networkObject != null)

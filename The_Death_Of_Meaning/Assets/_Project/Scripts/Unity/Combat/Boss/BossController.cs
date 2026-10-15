@@ -25,6 +25,8 @@ namespace TDOM.Unity.Combat
 
         public void Pausar(bool pausado) => _pausado = pausado;
 
+        public bool Pausado => _pausado;
+
         [Header("Puntos Débiles (Ojos)")]
         [SerializeField]
         private HitZone[] _hitZones;

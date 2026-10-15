@@ -1,3 +1,4 @@
+using System;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -52,6 +53,19 @@ namespace TDOM.Unity.Combat
             Debug.Log(
                 $"[SERVER][HitZone {_zoneIndex:D2}] Recibió {cantidad:F1} de daño. Total acumulado: {DanioAcumulado.Value:F1}"
             );
+        }
+
+        /// <summary>Solo servidor: (id del jugador atacante, cantidad). Lo usa el agro del jefe.</summary>
+        public event Action<ulong, float> DanioRecibido;
+
+        /// <summary>Igual que RegistrarDanio, pero indica qué jugador hizo el daño.</summary>
+        public void RegistrarDanio(float cantidad, ulong atacanteId)
+        {
+            if (!IsServer)
+                return;
+
+            RegistrarDanio(cantidad);
+            DanioRecibido?.Invoke(atacanteId, cantidad);
         }
     }
 }
