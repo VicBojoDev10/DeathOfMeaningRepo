@@ -360,18 +360,7 @@ namespace TDOM.Unity
         private void JugadorGolpeadoRpc(RpcParams rpcParams = default)
         {
             _flashGolpe = 0.25f;
-
-            var propio = NetworkManager.Singleton?.LocalClient?.PlayerObject;
-            if (propio == null)
-                return;
-
-            var camaraJugador = propio.GetComponentInChildren<PlayerCameraRig>();
-            if (camaraJugador != null)
-                camaraJugador.Impacto(2.5f);
-
-            var flashDebug = propio.GetComponentInChildren<CombatDebugFeedback>();
-            if (flashDebug != null)
-                flashDebug.FlashActive(0.2f);
+            NotificarGolpeAlJugadorLocal();
         }
 
         private void OnGUI()

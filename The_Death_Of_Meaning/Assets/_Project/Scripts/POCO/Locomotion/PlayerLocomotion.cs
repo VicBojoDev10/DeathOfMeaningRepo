@@ -12,6 +12,9 @@ namespace TDOM.Gameplay.Locomotion
         private readonly SprintResolver _run;
         private readonly DashResolver _dash;
         private readonly GrappleResolver _grapple;
+        private readonly float _multiplicadorVelocidadPistola;
+
+        private const float VelocidadCompleta = 1f;
 
         public LocomotionState State { get; } = new();
 
@@ -33,7 +36,8 @@ namespace TDOM.Gameplay.Locomotion
             GroundControlResolver ground,
             SprintResolver run,
             DashResolver dash,
-            GrappleResolver grapple = null
+            GrappleResolver grapple = null,
+            float multiplicadorVelocidadPistola = VelocidadCompleta
         )
         {
             this._gravity = gravity;
@@ -42,6 +46,7 @@ namespace TDOM.Gameplay.Locomotion
             this._run = run;
             this._dash = dash;
             this._grapple = grapple;
+            this._multiplicadorVelocidadPistola = multiplicadorVelocidadPistola;
         }
 
         public PlayerLocomotion(CharacterDefinition definition)
@@ -59,6 +64,7 @@ namespace TDOM.Gameplay.Locomotion
             _run = new SprintResolver();
             _dash = new DashResolver(definition.Dash);
             _grapple = definition.Grapple != null ? new GrappleResolver(definition.Grapple) : null;
+            _multiplicadorVelocidadPistola = m.ShootingSpeedMultiplier;
         }
 
         private Vector3 DireccionDeDash(InputSnapshot input, Quaternion yaw)
@@ -90,7 +96,8 @@ namespace TDOM.Gameplay.Locomotion
             Quaternion yaw,
             float dt,
             bool blockMove = false,
-            Vector3 posicion = default
+            Vector3 posicion = default,
+            bool modoPistola = false
         )
         {
             DashIniciado = false;
@@ -102,7 +109,7 @@ namespace TDOM.Gameplay.Locomotion
                 Aterrizaje = true;
             }
 
-            var intent = TickInterno(input, yaw, dt, blockMove, posicion);
+            var intent = TickInterno(input, yaw, dt, blockMove, posicion, modoPistola);
 
             _groundedPrevio = State.IsGrounded;
             _velYPrevia = State.Velocity.y;
@@ -115,10 +122,11 @@ namespace TDOM.Gameplay.Locomotion
             Quaternion yaw,
             float dt,
             bool blockMove,
-            Vector3 posicion
+            Vector3 posicion,
+            bool modoPistola
         )
         {
-            _run.Tick(input);
+            ActualizarCarrera(input, modoPistola);
 
             if (_grapple != null && _grapple.Activo)
             {
@@ -139,7 +147,8 @@ namespace TDOM.Gameplay.Locomotion
                 _grapple?.Tick(State, posicion, dt);
             }
 
-            if (!blockMove && input.DashPressed)
+            bool puedeEmbestir = !blockMove && !modoPistola;
+            if (puedeEmbestir && input.DashPressed)
             {
                 Vector3 dir = DireccionDeDash(input, yaw);
                 if (_dash.TryIniciar(dir))
@@ -169,7 +178,14 @@ namespace TDOM.Gameplay.Locomotion
                 _jump.Tick(State, input, dt);
                 if (State.JumpsUsed > saltosAntes && State.JumpsUsed > 1)
                     SaltoAereo = true;
-                _ground.Tick(State, input.Move, yaw, _run.Corriendo, dt);
+                _ground.Tick(
+                    State,
+                    input.Move,
+                    yaw,
+                    _run.Corriendo,
+                    dt,
+                    MultiplicadorDeVelocidad(modoPistola)
+                );
             }
             else
             {
@@ -181,5 +197,19 @@ namespace TDOM.Gameplay.Locomotion
 
             return new MotionIntent(State.Velocity, ignoreGravity: false);
         }
+
+        private void ActualizarCarrera(InputSnapshot input, bool modoPistola)
+        {
+            if (modoPistola)
+            {
+                _run.Corriendo = false;
+                return;
+            }
+
+            _run.Tick(input);
+        }
+
+        private float MultiplicadorDeVelocidad(bool modoPistola) =>
+            modoPistola ? _multiplicadorVelocidadPistola : VelocidadCompleta;
     }
 }

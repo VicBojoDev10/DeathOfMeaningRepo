@@ -61,8 +61,10 @@ namespace TDOM.Unity.Player
         private bool _originResetLogged;
         private Vector3 _initialSpawnPosition;
         private Vector3 _lastObservedPosition;
-        public bool AtaqueActivo =>
-            (_combat != null && _combat.AtaqueActivo)
+        public bool AtaqueActivo => MovimientoBloqueado || ModoPistola;
+        private bool ModoPistola => _combat != null && _combat.DisparoActivo;
+        private bool MovimientoBloqueado =>
+            (_combat != null && _combat.BloqueaMovimiento)
             || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
 
         public CharacterIds CharacterId => _characterId;
@@ -189,6 +191,12 @@ namespace TDOM.Unity.Player
 
         public AimSolution ResolverApuntado(Vector3 origen, out Collider colliderImpactado) =>
             _camera.ResolverApuntado(origen, out colliderImpactado);
+
+        public void RecibirGolpe()
+        {
+            if (IsOwner && _feedback != null)
+                _feedback.OnGolpeRecibido();
+        }
 
         public void SetCamaraCedida(bool cedida)
         {
@@ -370,8 +378,9 @@ namespace TDOM.Unity.Player
                 input,
                 _look.YawRotation,
                 dt,
-                AtaqueActivo,
-                transform.position
+                MovimientoBloqueado,
+                transform.position,
+                ModoPistola
             );
             if (
                 _anchorLauncher != null
@@ -383,7 +392,7 @@ namespace TDOM.Unity.Player
                 intent = new MotionIntent(Vector3.zero, ignoreGravity: true);
             }
             _motor.Apply(intent, dt);
-            _facing.Tick(_locomocion.State.Velocity, _look.Yaw, input.AimHeld, dt);
+            _facing.Tick(_locomocion.State.Velocity, _look.Yaw, input.AimHeld || ModoPistola, dt);
             transform.rotation = _facing.Rotacion;
             AplicarMiradaACamara();
 

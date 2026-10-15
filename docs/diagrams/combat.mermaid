@@ -16,7 +16,7 @@
     GOLPE --> LOCAL["Local: PlayerCombatAnimator, CombatVfx, FeedbackDirector"]
     DISP --> LOCAL
     PC -.->|"ReproducirGolpeRpc, ReproducirDisparoRpc, CargaRpc (NotOwner)"| REM[Animator y VFX del otro cliente]
-    PC -->|AtaqueActivo bloquea la locomocion| ROOT[PlayerRoot]
+    PC -->|"BloqueaMovimiento (melee) frena la locomocion, DisparoActivo la limita (modo pistola)"| ROOT[PlayerRoot]
     INZ["InputSnapshot: AimHeld + GrappleHeld (Zendre)"] --> AL["AnchorLauncher + CooldownTimer"]
     AL -->|"LanzarAnclaRpc (Server)"| AN[Ancla spawneada en el servidor]
     AL -->|"SoltarAnclaRpc (Server)"| AN

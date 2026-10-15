@@ -16,7 +16,6 @@ GameObject:
   - component: {fileID: 6004960380333908489}
   - component: {fileID: 1000000000000006}
   - component: {fileID: 2051056658159739734}
-  - component: {fileID: 133378955916453962}
   - component: {fileID: -7899386268560657394}
   - component: {fileID: -4034170539557937550}
   m_Layer: 0
@@ -274,19 +273,6 @@ MonoBehaviour:
   _perfilRayo: {fileID: 11400000, guid: 942f0a6631046214d98877cc48f69c3d, type: 2}
   _perfilAviso: {fileID: 11400000, guid: 68576b3caca5b704888cc9a9afe513d3, type: 2}
   _perfilObjetivo: {fileID: 11400000, guid: 8a7bf36cbaa39754184172c0c060987d, type: 2}
---- !u!114 &133378955916453962
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000000000000000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8eb3f22f61e633342a612b77aaad1453, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.LockOnTarget
-  _puntoDeMira: {fileID: 3166704286360089097}
 --- !u!114 &-7899386268560657394
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -327,6 +313,7 @@ GameObject:
   - component: {fileID: 2000000000000003}
   - component: {fileID: 2000000000000004}
   - component: {fileID: 2000000000000005}
+  - component: {fileID: 3029285484007226880}
   m_Layer: 0
   m_Name: Eye_00
   m_TagString: Untagged
@@ -460,6 +447,7 @@ GameObject:
   - component: {fileID: 2000000000000013}
   - component: {fileID: 2000000000000014}
   - component: {fileID: 2000000000000015}
+  - component: {fileID: 4430709873992349184}
   m_Layer: 0
   m_Name: Eye_01
   m_TagString: Untagged
@@ -593,6 +581,7 @@ GameObject:
   - component: {fileID: 2000000000000023}
   - component: {fileID: 2000000000000024}
   - component: {fileID: 2000000000000025}
+  - component: {fileID: 2051211230946337536}
   m_Layer: 0
   m_Name: Eye_02
   m_TagString: Untagged
@@ -726,6 +715,7 @@ GameObject:
   - component: {fileID: 2000000000000033}
   - component: {fileID: 2000000000000034}
   - component: {fileID: 2000000000000035}
+  - component: {fileID: 3983654563773262848}
   m_Layer: 0
   m_Name: Eye_03
   m_TagString: Untagged
@@ -859,6 +849,7 @@ GameObject:
   - component: {fileID: 2000000000000043}
   - component: {fileID: 2000000000000044}
   - component: {fileID: 2000000000000045}
+  - component: {fileID: 2252864178853511936}
   m_Layer: 0
   m_Name: Eye_04
   m_TagString: Untagged
@@ -992,6 +983,7 @@ GameObject:
   - component: {fileID: 2000000000000053}
   - component: {fileID: 2000000000000054}
   - component: {fileID: 2000000000000055}
+  - component: {fileID: 5280709574129763328}
   m_Layer: 0
   m_Name: Eye_05
   m_TagString: Untagged
@@ -1125,6 +1117,7 @@ GameObject:
   - component: {fileID: 2000000000000063}
   - component: {fileID: 2000000000000064}
   - component: {fileID: 2000000000000065}
+  - component: {fileID: 4149449923610990080}
   m_Layer: 0
   m_Name: Eye_06
   m_TagString: Untagged
@@ -1258,6 +1251,7 @@ GameObject:
   - component: {fileID: 2000000000000073}
   - component: {fileID: 2000000000000074}
   - component: {fileID: 2000000000000075}
+  - component: {fileID: 2356578026598588416}
   m_Layer: 0
   m_Name: Eye_07
   m_TagString: Untagged
@@ -1391,6 +1385,7 @@ GameObject:
   - component: {fileID: 2000000000000083}
   - component: {fileID: 2000000000000084}
   - component: {fileID: 2000000000000085}
+  - component: {fileID: 6434434472319873024}
   m_Layer: 0
   m_Name: Eye_08
   m_TagString: Untagged
@@ -1524,6 +1519,7 @@ GameObject:
   - component: {fileID: 2000000000000093}
   - component: {fileID: 2000000000000094}
   - component: {fileID: 2000000000000095}
+  - component: {fileID: 1440821115132803584}
   m_Layer: 0
   m_Name: Eye_09
   m_TagString: Untagged
@@ -1657,6 +1653,7 @@ GameObject:
   - component: {fileID: 2000000000000103}
   - component: {fileID: 2000000000000104}
   - component: {fileID: 2000000000000105}
+  - component: {fileID: 7004220454955576320}
   m_Layer: 0
   m_Name: Eye_10
   m_TagString: Untagged
@@ -1790,6 +1787,7 @@ GameObject:
   - component: {fileID: 2000000000000113}
   - component: {fileID: 2000000000000114}
   - component: {fileID: 2000000000000115}
+  - component: {fileID: 7910118396817761280}
   m_Layer: 0
   m_Name: Eye_11
   m_TagString: Untagged
@@ -2034,3 +2032,159 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: b73b6dc646363664eb14acd50507d1e2, type: 3}
   m_PrefabInstance: {fileID: 1599209895082013464}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &3029285484007226880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8eb3f22f61e633342a612b77aaad1453, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.LockOnTarget
+  _puntoDeMira: {fileID: 0}
+--- !u!114 &4430709873992349184
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000000010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8eb3f22f61e633342a612b77aaad1453, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.LockOnTarget
+  _puntoDeMira: {fileID: 0}
+--- !u!114 &2051211230946337536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000000020}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8eb3f22f61e633342a612b77aaad1453, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.LockOnTarget
+  _puntoDeMira: {fileID: 0}
+--- !u!114 &3983654563773262848
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000000030}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8eb3f22f61e633342a612b77aaad1453, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.LockOnTarget
+  _puntoDeMira: {fileID: 0}
+--- !u!114 &2252864178853511936
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000000040}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8eb3f22f61e633342a612b77aaad1453, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.LockOnTarget
+  _puntoDeMira: {fileID: 0}
+--- !u!114 &5280709574129763328
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000000050}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8eb3f22f61e633342a612b77aaad1453, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.LockOnTarget
+  _puntoDeMira: {fileID: 0}
+--- !u!114 &4149449923610990080
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000000060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8eb3f22f61e633342a612b77aaad1453, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.LockOnTarget
+  _puntoDeMira: {fileID: 0}
+--- !u!114 &2356578026598588416
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000000070}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8eb3f22f61e633342a612b77aaad1453, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.LockOnTarget
+  _puntoDeMira: {fileID: 0}
+--- !u!114 &6434434472319873024
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000000080}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8eb3f22f61e633342a612b77aaad1453, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.LockOnTarget
+  _puntoDeMira: {fileID: 0}
+--- !u!114 &1440821115132803584
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000000090}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8eb3f22f61e633342a612b77aaad1453, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.LockOnTarget
+  _puntoDeMira: {fileID: 0}
+--- !u!114 &7004220454955576320
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000000100}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8eb3f22f61e633342a612b77aaad1453, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.LockOnTarget
+  _puntoDeMira: {fileID: 0}
+--- !u!114 &7910118396817761280
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000000110}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8eb3f22f61e633342a612b77aaad1453, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.LockOnTarget
+  _puntoDeMira: {fileID: 0}

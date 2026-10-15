@@ -13,7 +13,8 @@ namespace TDOM.Tests.EditMode
             Vector2 move = default,
             bool dashPressed = false,
             bool jumpHeld = false,
-            bool jumpPressed = false
+            bool jumpPressed = false,
+            bool sprintPressed = false
         )
         {
             return new InputSnapshot(
@@ -22,7 +23,7 @@ namespace TDOM.Tests.EditMode
                 jumpPressed,
                 jumpHeld,
                 dashPressed,
-                false,
+                sprintPressed,
                 false,
                 false,
                 false,
@@ -482,6 +483,176 @@ namespace TDOM.Tests.EditMode
 
             Assert.That(elapsed, Is.LessThanOrEqualTo(0.15f + dt));
             Assert.That(state.Velocity.sqrMagnitude, Is.LessThan(0.001f));
+        }
+
+        private const float VelocidadBase = 4.5f;
+        private const float VelocidadCorrer = 6.5f;
+        private const float MultiplicadorPistola = 0.3f;
+        private const float VelocidadMaximaPistola = VelocidadBase * MultiplicadorPistola;
+        private const float DtFijo = 1f / 60f;
+        private const int FramesParaVelocidadEstable = 120;
+        private const float Tolerancia = 0.001f;
+
+        private static PlayerLocomotion CrearLocomotionConPistola()
+        {
+            var gravity = new GravityModel(-9.81f, -20f, 1f);
+            var jump = new JumpResolver(1, 8f, 0.1f, 0.1f);
+            var ground = new GroundControlResolver(VelocidadBase, VelocidadCorrer, 25f, 30f, 0.3f);
+            var run = new SprintResolver();
+            var dash = new DashResolver(CrearDashProfile(6f, 0.2f));
+            var locomotion = new PlayerLocomotion(
+                gravity,
+                jump,
+                ground,
+                run,
+                dash,
+                multiplicadorVelocidadPistola: MultiplicadorPistola
+            );
+            locomotion.State.IsGrounded = true;
+            return locomotion;
+        }
+
+        private static float VelocidadHorizontal(PlayerLocomotion locomotion)
+        {
+            Vector3 velocidad = locomotion.State.Velocity;
+            return new Vector2(velocidad.x, velocidad.z).magnitude;
+        }
+
+        private static void Avanzar(
+            PlayerLocomotion locomotion,
+            InputSnapshot input,
+            int frames,
+            bool modoPistola
+        )
+        {
+            for (int i = 0; i < frames; i++)
+            {
+                locomotion.Tick(input, Quaternion.identity, DtFijo, modoPistola: modoPistola);
+            }
+        }
+
+        [Test]
+        public void En_modo_pistola_con_el_stick_al_maximo_la_velocidad_no_supera_la_configurada()
+        {
+            var locomotion = CrearLocomotionConPistola();
+            var input = CreateInput(move: Vector2.up);
+
+            for (int i = 0; i < FramesParaVelocidadEstable; i++)
+            {
+                locomotion.Tick(input, Quaternion.identity, DtFijo, modoPistola: true);
+                Assert.That(
+                    VelocidadHorizontal(locomotion),
+                    Is.LessThanOrEqualTo(VelocidadMaximaPistola + Tolerancia)
+                );
+            }
+
+            Assert.That(
+                VelocidadHorizontal(locomotion),
+                Is.EqualTo(VelocidadMaximaPistola).Within(Tolerancia)
+            );
+        }
+
+        [Test]
+        public void En_modo_pistola_el_personaje_se_mueve_y_no_queda_en_fase_Attacking()
+        {
+            var locomotion = CrearLocomotionConPistola();
+
+            Avanzar(locomotion, CreateInput(move: Vector2.up), 1, modoPistola: true);
+
+            Assert.That(VelocidadHorizontal(locomotion), Is.GreaterThan(0f));
+            Assert.That(locomotion.State.Phase, Is.Not.EqualTo(LocomotionPhase.Attacking));
+        }
+
+        [Test]
+        public void En_modo_pistola_no_se_puede_iniciar_sprint()
+        {
+            var locomotion = CrearLocomotionConPistola();
+            var input = CreateInput(move: Vector2.up, sprintPressed: true);
+
+            Avanzar(locomotion, input, FramesParaVelocidadEstable, modoPistola: true);
+
+            Assert.That(locomotion.Corriendo, Is.False);
+            Assert.That(
+                VelocidadHorizontal(locomotion),
+                Is.LessThanOrEqualTo(VelocidadMaximaPistola + Tolerancia)
+            );
+        }
+
+        [Test]
+        public void Entrar_en_modo_pistola_corta_el_sprint_en_curso()
+        {
+            var locomotion = CrearLocomotionConPistola();
+            Avanzar(
+                locomotion,
+                CreateInput(move: Vector2.up, sprintPressed: true),
+                1,
+                modoPistola: false
+            );
+            Assert.That(locomotion.Corriendo, Is.True);
+
+            Avanzar(locomotion, CreateInput(move: Vector2.up), 1, modoPistola: true);
+
+            Assert.That(locomotion.Corriendo, Is.False);
+        }
+
+        [Test]
+        public void En_modo_pistola_no_se_puede_iniciar_la_embestida()
+        {
+            var locomotion = CrearLocomotionConPistola();
+            var input = CreateInput(move: Vector2.up, dashPressed: true);
+
+            var intent = locomotion.Tick(input, Quaternion.identity, DtFijo, modoPistola: true);
+
+            Assert.That(locomotion.DashIniciado, Is.False);
+            Assert.That(intent.IgnoreGravity, Is.False);
+            Assert.That(locomotion.State.Phase, Is.Not.EqualTo(LocomotionPhase.Dashing));
+        }
+
+        [Test]
+        public void Al_salir_del_modo_pistola_la_velocidad_vuelve_a_la_normal()
+        {
+            var locomotion = CrearLocomotionConPistola();
+            var input = CreateInput(move: Vector2.up);
+
+            Avanzar(locomotion, input, FramesParaVelocidadEstable, modoPistola: true);
+            Avanzar(locomotion, input, FramesParaVelocidadEstable, modoPistola: false);
+
+            Assert.That(
+                VelocidadHorizontal(locomotion),
+                Is.EqualTo(VelocidadBase).Within(Tolerancia)
+            );
+        }
+
+        [Test]
+        public void Con_blockMove_el_personaje_no_avanza_aunque_el_stick_este_al_maximo()
+        {
+            var locomotion = CrearLocomotionConPistola();
+            var input = CreateInput(move: Vector2.up);
+
+            for (int i = 0; i < FramesParaVelocidadEstable; i++)
+            {
+                locomotion.Tick(input, Quaternion.identity, DtFijo, blockMove: true);
+            }
+
+            Assert.That(VelocidadHorizontal(locomotion), Is.EqualTo(0f).Within(Tolerancia));
+            Assert.That(locomotion.State.Phase, Is.EqualTo(LocomotionPhase.Attacking));
+        }
+
+        [Test]
+        public void El_modo_pistola_es_determinista_con_dt_fijo()
+        {
+            var primera = CrearLocomotionConPistola();
+            var segunda = CrearLocomotionConPistola();
+            var input = CreateInput(move: new Vector2(0.6f, 0.8f));
+
+            for (int i = 0; i < FramesParaVelocidadEstable; i++)
+            {
+                bool modoPistola = i % 2 == 0;
+                primera.Tick(input, Quaternion.identity, DtFijo, modoPistola: modoPistola);
+                segunda.Tick(input, Quaternion.identity, DtFijo, modoPistola: modoPistola);
+            }
+
+            Assert.That(primera.State.Velocity, Is.EqualTo(segunda.State.Velocity));
         }
 
         private static DashProfile CrearDashProfile(float distance, float duration)

@@ -3,7 +3,7 @@
     DEF["CharacterDefinition: MovementProfile, DashProfile, GrappleProfile"] -->|construye los resolvers| PL[PlayerLocomotion.Tick]
     ROOT -->|"ProbeGround: IsGrounded"| MOTOR[PlayerMotor]
     ROOT -->|"GrapplePressed + Raycast: IntentarGancho"| PL
-    ROOT -->|"input, yaw, dt, AtaqueActivo"| PL
+    ROOT -->|"input, yaw, dt, MovimientoBloqueado, ModoPistola"| PL
     PL --> SPR[SprintResolver]
     SPR --> GAN{"GrappleResolver activo?"}
     GAN -->|si| SINGRAV["MotionIntent sin gravedad"]
