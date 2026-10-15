@@ -1,57 +1,27 @@
 using System.Collections.Generic;
+using TDOM.Data;
+using TDOM.Gameplay.Combat;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace TDOM.Unity
 {
     /// <summary>
     /// Ataque Mortero (InstaKill) de AREK en greybox: tres disparos simultáneos. El servidor
-    /// elige 3 puntos aleatorios frente al jefe (separados al menos 2 × _radioArea), todos ven
+    /// coloca 3 puntos sobre el o los objetivos (separados al menos 2 × radioArea), todos ven
     /// un disco de aviso en cada punto, después cae una "piedra" en cada uno y el servidor
     /// detecta a los jugadores dentro. No resta vida: solo detecta y reporta (04. Daño en WIP).
     /// </summary>
-    public class AtaqueMortero : NetworkBehaviour
+    public class AtaqueMortero : AtaqueArekBase
     {
-        [Header("Tiempos")]
-        [SerializeField]
-        private float _aviso = 1.0f;
-
-        [SerializeField]
-        private float _caida = 0.15f;
-
-        [SerializeField]
-        private float _retirada = 0.5f;
-
-        [Header("Disparos")]
-        [SerializeField]
-        private int _disparos = 3;
-
-        [SerializeField]
-        private float _radioArea = 4f;
-
-        [SerializeField]
-        private float _radioArena = 25f;
-
-        [SerializeField]
-        private int _intentosPorPunto = 30;
-
-        [SerializeField]
-        private float _alturaCaida = 15f;
-
-        [SerializeField]
-        [FormerlySerializedAs("_altoTentaculo")]
-        private float _altoPiedra = 6f;
-
         [Header("Visuales (plantillas, se clonan una vez por disparo)")]
         [SerializeField]
         private Transform _discoAviso;
 
         [SerializeField]
-        [FormerlySerializedAs("_tentaculo")]
         private Transform _piedra;
 
         private enum FaseMortero
@@ -61,6 +31,9 @@ namespace TDOM.Unity
             Retirada,
             Terminado,
         }
+
+        // Tuning: lo lee de AtaquesArek (BossArek.prefab) al spawnear.
+        private AtaqueMorteroProfile _perfil;
 
         private FaseMortero _fase = FaseMortero.Aviso;
         private float _tiempoEnFase;
@@ -90,12 +63,19 @@ namespace TDOM.Unity
                 _piedra.gameObject.SetActive(false);
         }
 
-        public override void OnNetworkSpawn()
+        protected override void AlSpawnear()
         {
+            _perfil = Lanzador != null ? Lanzador.PerfilMortero : null;
+            if (_perfil == null)
+            {
+                Debug.LogError("[AtaqueMortero] Falta el AtaqueMorteroProfile en AtaquesArek.");
+                return;
+            }
+
             if (!IsServer)
                 return;
 
-            _puntosServidor = ElegirPuntos();
+            _puntosServidor = TryPuntosSobreObjetivos(out var puntos) ? puntos : ElegirPuntos();
             _fase = FaseMortero.Aviso;
             _tiempoEnFase = 0f;
             _golpeados.Clear();
@@ -103,7 +83,53 @@ namespace TDOM.Unity
             AvisoRpc(_puntosServidor);
         }
 
-        // Se spawnea en la posición y rotación del jefe; los puntos caen en su semicírculo frontal.
+        // Con objetivo elegido por AtaquesArek: el primer disparo cae sobre él, uno sobre cada otro
+        // jugador en rango y el resto pegados, sin solaparse (MorteroPlacement).
+        private bool TryPuntosSobreObjetivos(out Vector3[] puntos)
+        {
+            puntos = null;
+            if (Lanzador == null || !Lanzador.ObjetivoActual.HasValue)
+                return false;
+
+            ulong objetivoId = Lanzador.ObjetivoActual.Value;
+            if (!Lanzador.TryPosicionJugador(objetivoId, out Vector3 posicionObjetivo))
+                return false;
+
+            var otros = new List<Vector2>();
+            var jugadores = new List<PlayerRoot>();
+            Lanzador.ListarJugadores(jugadores);
+            foreach (var jugador in jugadores)
+            {
+                if (jugador.OwnerClientId == objetivoId)
+                    continue;
+
+                Vector3 posicion = jugador.transform.position;
+                Vector3 hacia = posicion - transform.position;
+                hacia.y = 0f;
+                if (hacia.magnitude <= _perfil.Rango)
+                    otros.Add(new Vector2(posicion.x, posicion.z));
+            }
+
+            var enPlano = MorteroPlacement.Colocar(
+                new Vector2(posicionObjetivo.x, posicionObjetivo.z),
+                otros,
+                _perfil.disparos,
+                _perfil.radioArea,
+                Random.Range(0f, 360f)
+            );
+
+            puntos = new Vector3[enPlano.Count];
+            for (int i = 0; i < enPlano.Count; i++)
+            {
+                var punto = new Vector3(enPlano[i].x, posicionObjetivo.y, enPlano[i].y);
+                punto.y = AlturaDelPiso(punto);
+                puntos[i] = punto;
+            }
+
+            return true;
+        }
+
+        // Sin objetivo (botón de debug): puntos al azar en el semicírculo frontal del jefe.
         private Vector3[] ElegirPuntos()
         {
             Vector3 adelante = transform.forward;
@@ -112,14 +138,14 @@ namespace TDOM.Unity
                 adelante = Vector3.forward;
             adelante.Normalize();
 
-            int cantidad = Mathf.Max(1, _disparos);
-            float separacionMinima = 2f * _radioArea;
+            int cantidad = Mathf.Max(1, _perfil.disparos);
+            float separacionMinima = 2f * _perfil.radioArea;
             var puntos = new List<Vector3>(cantidad);
 
             for (int i = 0; i < cantidad; i++)
             {
                 Vector3 candidato = PuntoAleatorio(adelante);
-                for (int intento = 1; intento < _intentosPorPunto; intento++)
+                for (int intento = 1; intento < _perfil.intentosPorPunto; intento++)
                 {
                     if (EstaSeparado(candidato, puntos, separacionMinima))
                         break;
@@ -136,7 +162,11 @@ namespace TDOM.Unity
         {
             float angulo = Random.Range(-90f, 90f);
             // Raíz cuadrada para repartir parejo por el área, y nunca debajo del jefe.
-            float distancia = Mathf.Lerp(_radioArea, _radioArena, Mathf.Sqrt(Random.value));
+            float distancia = Mathf.Lerp(
+                _perfil.radioArea,
+                _perfil.radioArena,
+                Mathf.Sqrt(Random.value)
+            );
 
             Vector3 punto =
                 transform.position + Quaternion.Euler(0f, angulo, 0f) * adelante * distancia;
@@ -179,6 +209,9 @@ namespace TDOM.Unity
 
         private void Update()
         {
+            if (_perfil == null)
+                return;
+
             float dt = Time.deltaTime;
 
             AnimarCaidaLocal(dt);
@@ -194,7 +227,7 @@ namespace TDOM.Unity
             switch (_fase)
             {
                 case FaseMortero.Aviso:
-                    if (_tiempoEnFase >= _aviso)
+                    if (_tiempoEnFase >= _perfil.aviso)
                     {
                         CambiarFase(FaseMortero.Caida);
                         CaidaRpc();
@@ -202,7 +235,7 @@ namespace TDOM.Unity
                     break;
 
                 case FaseMortero.Caida:
-                    if (_tiempoEnFase >= _caida)
+                    if (_tiempoEnFase >= _perfil.caida)
                     {
                         DetectarImpactos();
                         CambiarFase(FaseMortero.Retirada);
@@ -210,7 +243,7 @@ namespace TDOM.Unity
                     break;
 
                 case FaseMortero.Retirada:
-                    if (_tiempoEnFase >= _retirada)
+                    if (_tiempoEnFase >= _perfil.retirada)
                     {
                         CambiarFase(FaseMortero.Terminado);
                         NetworkObject.Despawn(true);
@@ -231,8 +264,8 @@ namespace TDOM.Unity
                 return;
 
             _tiempoCaidaLocal += dt;
-            float t = Mathf.Clamp01(_tiempoCaidaLocal / _caida);
-            float altura = Mathf.Lerp(_alturaCaida, 0f, t);
+            float t = Mathf.Clamp01(_tiempoCaidaLocal / _perfil.caida);
+            float altura = Mathf.Lerp(_perfil.alturaCaida, 0f, t);
 
             for (int i = 0; i < _piedras.Count; i++)
                 ColocarPiedra(_piedras[i], _puntosLocales[i], altura);
@@ -241,7 +274,7 @@ namespace TDOM.Unity
         // Coloca la base de la piedra a la altura indicada sobre su punto de impacto.
         private void ColocarPiedra(Transform piedra, Vector3 punto, float alturaBase)
         {
-            piedra.position = punto + Vector3.up * (alturaBase + _altoPiedra * 0.5f);
+            piedra.position = punto + Vector3.up * (alturaBase + _perfil.altoPiedra * 0.5f);
         }
 
         private void DetectarImpactos()
@@ -253,7 +286,7 @@ namespace TDOM.Unity
             {
                 Collider[] dentro = Physics.OverlapSphere(
                     punto,
-                    _radioArea,
+                    _perfil.radioArea,
                     Physics.AllLayers,
                     QueryTriggerInteraction.Collide
                 );
@@ -285,7 +318,11 @@ namespace TDOM.Unity
                 if (_discoAviso != null)
                 {
                     var disco = Instantiate(_discoAviso, transform);
-                    disco.localScale = new Vector3(_radioArea * 2f, 0.02f, _radioArea * 2f);
+                    disco.localScale = new Vector3(
+                        _perfil.radioArea * 2f,
+                        0.02f,
+                        _perfil.radioArea * 2f
+                    );
                     disco.position = punto + Vector3.up * 0.05f;
                     disco.gameObject.SetActive(true);
                     _discos.Add(disco);
@@ -295,8 +332,8 @@ namespace TDOM.Unity
                 {
                     var piedra = Instantiate(_piedra, transform);
                     // El cilindro primitivo de Unity mide 2 de alto con escala 1.
-                    piedra.localScale = new Vector3(1.5f, _altoPiedra * 0.5f, 1.5f);
-                    ColocarPiedra(piedra, punto, _alturaCaida);
+                    piedra.localScale = new Vector3(1.5f, _perfil.altoPiedra * 0.5f, 1.5f);
+                    ColocarPiedra(piedra, punto, _perfil.alturaCaida);
                     _piedras.Add(piedra);
                 }
             }
@@ -343,12 +380,12 @@ namespace TDOM.Unity
 
         private void OnDrawGizmosSelected()
         {
-            if (_puntosServidor == null)
+            if (_puntosServidor == null || _perfil == null)
                 return;
 
             Gizmos.color = Color.red;
             foreach (var punto in _puntosServidor)
-                Gizmos.DrawWireSphere(punto, _radioArea);
+                Gizmos.DrawWireSphere(punto, _perfil.radioArea);
         }
     }
 }
