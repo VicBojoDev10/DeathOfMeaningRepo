@@ -1,6 +1,7 @@
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace TDOM.Unity
@@ -18,6 +19,8 @@ namespace TDOM.Unity
 
         [Header("Colores de estado")]
         public Color colorDisponible = Color.white;
+        public Color colorHover = new Color(0.9608f, 0.9608f, 0.9608f, 1f);
+        public Color colorEnFoco = new Color(0.9451f, 0.8902f, 0.1569f, 1f);
         public Color colorElegidoPorMi = new Color(0.3f, 0.7f, 1f);
         public Color colorBloqueado = new Color(0.5f, 0.5f, 0.5f);
 
@@ -35,6 +38,7 @@ namespace TDOM.Unity
                 firstSelectedObject = zendreButton.gameObject;
             if (ready != null)
                 ready.interactable = false;
+            ConfigurarNavegacion();
         }
 
         private void OnEnable()
@@ -186,6 +190,78 @@ namespace TDOM.Unity
                     yaListo ? "Esperando al otro jugador..."
                     : miPersonaje == CharacterIds.None ? "Elige tu personaje"
                     : "Presiona Listo para confirmar";
+            ConfigurarNavegacion();
+            RecuperarFocoSiHaceFalta();
+        }
+
+        private void ConfigurarNavegacion()
+        {
+            bool zendreAvailable = zendreButton != null && zendreButton.interactable;
+            bool aylaAvailable = aylaButton != null && aylaButton.interactable;
+            bool readyAvailable = ready != null && ready.interactable;
+
+            ConfigurarBotonNavegacion(
+                zendreButton,
+                aylaAvailable ? aylaButton : null,
+                null,
+                readyAvailable ? ready : null,
+                null
+            );
+            ConfigurarBotonNavegacion(
+                aylaButton,
+                null,
+                zendreAvailable ? zendreButton : null,
+                readyAvailable ? ready : null,
+                null
+            );
+
+            Button personajeDisponible = zendreAvailable ? zendreButton : aylaAvailable ? aylaButton : null;
+            ConfigurarBotonNavegacion(
+                ready,
+                personajeDisponible,
+                personajeDisponible,
+                null,
+                personajeDisponible
+            );
+        }
+
+        private static void ConfigurarBotonNavegacion(
+            Button button,
+            Selectable right,
+            Selectable left,
+            Selectable down,
+            Selectable up
+        )
+        {
+            if (button == null)
+                return;
+            var navigation = button.navigation;
+            navigation.mode = Navigation.Mode.Explicit;
+            navigation.selectOnRight = right;
+            navigation.selectOnLeft = left;
+            navigation.selectOnDown = down;
+            navigation.selectOnUp = up;
+            button.navigation = navigation;
+        }
+
+        private void RecuperarFocoSiHaceFalta()
+        {
+            if (EventSystem.current == null)
+                return;
+            var selected = EventSystem.current.currentSelectedGameObject;
+            bool focusLost = selected == null
+                || (zendreButton != null && selected == zendreButton.gameObject && !zendreButton.interactable)
+                || (aylaButton != null && selected == aylaButton.gameObject && !aylaButton.interactable)
+                || (ready != null && selected == ready.gameObject && !ready.interactable);
+            if (!focusLost)
+                return;
+
+            Button target = ready != null && ready.interactable ? ready
+                : zendreButton != null && zendreButton.interactable ? zendreButton
+                : aylaButton != null && aylaButton.interactable ? aylaButton
+                : null;
+            if (target != null)
+                EventSystem.current.SetSelectedGameObject(target.gameObject);
         }
 
         private void PintarBoton(
@@ -211,9 +287,9 @@ namespace TDOM.Unity
 
             var colors = button.colors;
             colors.normalColor = colorDisponible;
-            colors.highlightedColor = blocked || mineSelected ? color : colorDisponible;
+            colors.highlightedColor = blocked || mineSelected ? color : colorHover;
             colors.pressedColor = blocked || mineSelected ? color : colorDisponible;
-            colors.selectedColor = blocked || mineSelected ? color : colorDisponible;
+            colors.selectedColor = blocked || mineSelected ? color : colorEnFoco;
             colors.disabledColor = color;
             button.colors = colors;
         }
