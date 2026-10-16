@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 1000000000000006}
   - component: {fileID: 2051056658159739734}
   - component: {fileID: -7899386268560657394}
+  - component: {fileID: -5263539372475750619}
   m_Layer: 0
   m_Name: BossArek
   m_TagString: Untagged
@@ -288,6 +289,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.BossGiroHaciaObjetivo
   ShowTopMostFoldoutHeaderGroup: 1
+  _ataques: {fileID: 2051056658159739734}
+  _jefe: {fileID: 1000000000000006}
+--- !u!114 &-5263539372475750619
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75fd6d37a754c7145aef5fe90d441eeb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.MinionSpawner
+  ShowTopMostFoldoutHeaderGroup: 1
+  _prefabMinion: {fileID: 8802607873738733211, guid: 55a772f58cfb239428115813fefa497f, type: 3}
+  _perfil: {fileID: 11400000, guid: 24c037420e325f44991ec67351899b58, type: 2}
   _ataques: {fileID: 2051056658159739734}
   _jefe: {fileID: 1000000000000006}
 --- !u!1 &2000000000000000

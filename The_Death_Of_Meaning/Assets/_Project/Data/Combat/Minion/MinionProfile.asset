@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67ff5a83ba08f5943912e8fdfc494464, type: 3}
+  m_Name: MinionProfile
+  m_EditorClassIdentifier: TDOM.Data::TDOM.Data.MinionProfile
+  vida: 100
+  danio: 15
+  golpesPorCombo: 2
+  velocidad: 3.5
+  rangoAtaque: 1.6
+  duracionAviso: 0.4
+  pausaEntreGolpes: 0.25
+  duracionRecuperar: 1
+  tamanioGolpe: {x: 1.2, y: 1.2, z: 1.5}
+  colorAviso: {r: 1, g: 0.52179044, b: 0, a: 1}
+  inclinacionAviso: 20
+  radioSpawn: 8
+  distanciaBusquedaNavMesh: 4
+  alturaBusquedaPiso: 60
+  pasoRadioSpawn: 2
+  intentosSpawn: 5
+  duracionMuerte: 0.5
