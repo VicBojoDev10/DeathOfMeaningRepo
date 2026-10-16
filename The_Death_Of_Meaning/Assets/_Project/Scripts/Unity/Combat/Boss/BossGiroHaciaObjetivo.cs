@@ -33,7 +33,7 @@ namespace TDOM.Unity.Combat
             if (!IsServer || !IsSpawned || _ataques == null)
                 return;
 
-            if (_jefe != null && _jefe.Pausado)
+            if (PauseManager.PausadoGlobal || (_jefe != null && _jefe.Pausado))
                 return;
 
             var perfil = _ataques.PerfilObjetivo;

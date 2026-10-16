@@ -587,7 +587,7 @@ namespace TDOM.Unity.Input
                 {
                     ""name"": """",
                     ""id"": ""74b30f6f-0da0-4adf-a45c-276a4a5193f5"",
-                    ""path"": ""<DualSenseGamepadHID>/start"",
+                    ""path"": ""<Gamepad>/start"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",

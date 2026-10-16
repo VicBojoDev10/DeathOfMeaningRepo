@@ -92,12 +92,26 @@ namespace TDOM.Unity.UI
             _rutinaVentana = StartCoroutine(RutinaCambiarVentana());
         }
 
-        public void CargarEscena(string nombreEscena, Action alCubrirPantalla = null)
+        public void CargarEscena(
+            string nombreEscena,
+            Action alCubrirPantalla = null,
+            Action alTerminarCarga = null
+        )
         {
             if (_rutinaCargaLocal != null)
                 return;
 
-            _rutinaCargaLocal = StartCoroutine(RutinaCargaLocal(nombreEscena, alCubrirPantalla));
+            _rutinaCargaLocal = StartCoroutine(
+                RutinaCargaLocal(nombreEscena, alCubrirPantalla, alTerminarCarga)
+            );
+        }
+
+        public void EjecutarAccionConCarga(Action accionAlCubrir, Action alTerminar = null)
+        {
+            if (_rutinaCargaLocal != null)
+                return;
+
+            _rutinaCargaLocal = StartCoroutine(RutinaAccionConCarga(accionAlCubrir, alTerminar));
         }
 
         private IEnumerator RutinaCambiarVentana()
@@ -133,7 +147,11 @@ namespace TDOM.Unity.UI
                 _ventanaDestinoPendiente.Show();
         }
 
-        private IEnumerator RutinaCargaLocal(string nombreEscena, Action alCubrirPantalla)
+        private IEnumerator RutinaCargaLocal(
+            string nombreEscena,
+            Action alCubrirPantalla,
+            Action alTerminarCarga
+        )
         {
             _estadoCarga.Mostrar();
             yield return _pantallaCarga
@@ -151,6 +169,28 @@ namespace TDOM.Unity.UI
             }
 
             _estadoCarga.CompletarCarga();
+            yield return null;
+            alTerminarCarga?.Invoke();
+            _rutinaCargaLocal = null;
+        }
+
+        private IEnumerator RutinaAccionConCarga(Action accionAlCubrir, Action alTerminar)
+        {
+            _estadoCarga.Mostrar();
+            yield return _pantallaCarga
+                .Mostrar(_config.duracionFadePantallaCarga)
+                .WaitForCompletion();
+
+            accionAlCubrir?.Invoke();
+            _estadoCarga.ReportarProgreso(1f);
+            _estadoCarga.CompletarCarga();
+            while (_estadoCarga.Visible)
+                yield return null;
+
+            if (_config.duracionFadePantallaCarga > 0f)
+                yield return new WaitForSecondsRealtime(_config.duracionFadePantallaCarga);
+
+            alTerminar?.Invoke();
             _rutinaCargaLocal = null;
         }
 

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using TDOM.Gameplay.Core;
+using TDOM.Unity.Combat;
 using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
@@ -37,6 +39,9 @@ namespace TDOM.Unity
         public static event Action Despawned;
         public event Action<CharacterIds> PersonajeRechazado;
         private readonly ConfirmedCharacterSelection _seleccion = new ConfirmedCharacterSelection();
+        private bool _inicioPartidaEnProceso;
+        private bool _inicioPartidaNotificado;
+        private bool _cerrandoSesionPorSalida;
         private bool _partidaIniciada;
 
         public bool PartidaIniciadaEnServidor => _partidaIniciada;
@@ -72,6 +77,9 @@ namespace TDOM.Unity
 
         private void HandleClientDisconnected(ulong clientId)
         {
+            if (_cerrandoSesionPorSalida)
+                return;
+
             Debug.Log($"[SERVER] Cliente desconectado: {clientId}");
             _seleccion.Desconectar(clientId);
             SincronizarJugadores();
@@ -150,14 +158,17 @@ namespace TDOM.Unity
 
         private void VerificarInicioPartida()
         {
-            if (_partidaIniciada || !_seleccion.PuedeIniciar)
+            if (!_seleccion.PuedeIniciar || _inicioPartidaEnProceso)
                 return;
 
-            // Marcar antes de crear objetos para evitar un doble spawn si llega otro RPC de listo.
-            _partidaIniciada = true;
+            _inicioPartidaEnProceso = true;
 
             foreach (var jugador in Jugadores)
             {
+                // Un RPC de listo repetido nunca debe crear un segundo PlayerRoot para el mismo cliente.
+                if (BuscarJugadorSpawneado(jugador.ClientId) != null)
+                    continue;
+
                 var (prefab, spawnPoint) = jugador.Character switch
                 {
                     CharacterIds.Zendre => (_prefabZendre, _spawnPointZendre),
@@ -170,6 +181,7 @@ namespace TDOM.Unity
                     Debug.LogError(
                         $"No se puede iniciar: falta prefab o punto de spawn para {jugador.Character}."
                     );
+                    _inicioPartidaEnProceso = false;
                     return;
                 }
 
@@ -183,6 +195,7 @@ namespace TDOM.Unity
                 {
                     Debug.LogError($"El prefab de {jugador.Character} no tiene PlayerRoot.");
                     Destroy(go);
+                    _inicioPartidaEnProceso = false;
                     return;
                 }
 
@@ -193,15 +206,73 @@ namespace TDOM.Unity
 
             if (_prefabArek != null)
             {
-                Vector3 posArek =
-                    _puntoSpawnArek != null ? _puntoSpawnArek.position : new Vector3(0f, 0f, 10f);
-                Quaternion rotArek =
-                    _puntoSpawnArek != null ? _puntoSpawnArek.rotation : Quaternion.identity;
-                var goArek = Instantiate(_prefabArek, posArek, rotArek);
-                goArek.GetComponent<NetworkObject>().Spawn();
+                if (FindAnyObjectByType<TDOM.Unity.Combat.BossController>() == null)
+                {
+                    Vector3 posArek =
+                        _puntoSpawnArek != null
+                            ? _puntoSpawnArek.position
+                            : new Vector3(0f, 0f, 10f);
+                    Quaternion rotArek =
+                        _puntoSpawnArek != null ? _puntoSpawnArek.rotation : Quaternion.identity;
+                    var goArek = Instantiate(_prefabArek, posArek, rotArek);
+                    goArek.GetComponent<NetworkObject>().Spawn();
+                }
             }
 
-            IniciarPartidaClientRpc();
+            _inicioPartidaEnProceso = false;
+            if (!_inicioPartidaNotificado)
+            {
+                _inicioPartidaNotificado = true;
+                IniciarPartidaClientRpc();
+            }
+        }
+
+        public void ReiniciarPartidaDesdePausa()
+        {
+            if (!IsServer || _inicioPartidaEnProceso || !_seleccion.PuedeIniciar)
+                return;
+
+            _inicioPartidaEnProceso = true;
+            var objetosSpawneados = new List<NetworkObject>(
+                NetworkManager.SpawnManager.SpawnedObjectsList
+            );
+            foreach (var objeto in objetosSpawneados)
+            {
+                if (objeto == null || !objeto.IsSpawned)
+                    continue;
+
+                bool esJugador = objeto.TryGetComponent(out TDOM.Unity.Player.PlayerRoot _);
+                bool esJefe = objeto.TryGetComponent(out BossController _);
+                bool esAtaque = objeto.TryGetComponent(out AtaqueArekBase _);
+                bool esAncla = objeto.TryGetComponent(out Ancla _);
+                bool esProyectil = objeto.TryGetComponent(out Proyectil _);
+                if (esJugador || esJefe || esAtaque || esAncla || esProyectil)
+                    objeto.Despawn(true);
+            }
+
+            _inicioPartidaEnProceso = false;
+            VerificarInicioPartida();
+        }
+
+        public void PrepararSalidaAlMenu() => _cerrandoSesionPorSalida = true;
+
+        private TDOM.Unity.Player.PlayerRoot BuscarJugadorSpawneado(ulong clientId)
+        {
+            if (NetworkManager == null || NetworkManager.SpawnManager == null)
+                return null;
+
+            foreach (var objeto in NetworkManager.SpawnManager.SpawnedObjectsList)
+            {
+                if (
+                    objeto != null
+                    && objeto.IsSpawned
+                    && objeto.OwnerClientId == clientId
+                    && objeto.TryGetComponent(out TDOM.Unity.Player.PlayerRoot player)
+                )
+                    return player;
+            }
+
+            return null;
         }
 
         [ClientRpc]
