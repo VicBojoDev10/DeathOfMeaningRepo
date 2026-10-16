@@ -44,7 +44,8 @@ namespace TDOM.Unity
         /// <summary>Reemplaza a OnNetworkSpawn en cada ataque; corre en servidor y clientes.</summary>
         protected abstract void AlSpawnear();
 
-        protected static void NotificarGolpeAlJugadorLocal()
+        // internal para que MinionController (TW-125) reporte sus golpes igual que el jefe.
+        internal static void NotificarGolpeAlJugadorLocal()
         {
             var jugador = BuscarJugadorLocal();
             if (jugador == null)

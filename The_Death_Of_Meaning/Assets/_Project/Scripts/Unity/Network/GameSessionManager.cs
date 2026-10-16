@@ -42,6 +42,9 @@ namespace TDOM.Unity
         private bool _inicioPartidaEnProceso;
         private bool _inicioPartidaNotificado;
         private bool _cerrandoSesionPorSalida;
+        private bool _partidaIniciada;
+
+        public bool PartidaIniciadaEnServidor => _partidaIniciada;
 
         private void Awake()
         {

@@ -1,0 +1,18 @@
+flowchart TD
+    AA["AtaquesArek (servidor)"] -->|"AtaqueEjecutado(Especial)"| MSP["MinionSpawner (BossArek.prefab, servidor)"]
+    BC[BossController] -->|"PerfilFaseActual.MinionsEnEspecial"| MSP
+    BC -->|"OnFaseChanged: LiberarPorCambioDeFase (los vivos se quedan)"| MSP
+    HZJ["HitZone x12: ojos del jefe"] -->|"DanioRegistrado (si no está Pausado)"| MSP
+    MSP -->|"CantidadASpawnear, RegistrarSpawn, RegistrarMuerte, RegistrarDanioAlJefe, LiberarPorCambioDeFase"| REG["MinionSpawnRule (POCO)"]
+    MSP -->|"puntos en círculo (radios crecientes), raycast al piso + NavMesh.SamplePosition; Instantiate + Spawn"| MC["MinionArek.prefab: MinionController"]
+    MC -->|"Murio (evento, servidor)"| MSP
+    MC --> PERF["MinionProfile (ScriptableObject)"]
+    MC -->|"Tick(dt, hayObjetivo, distancia)"| BR["MinionBrain (POCO): Perseguir → Atacar → Recuperar"]
+    BR -->|"TryElegirMasCercano (BossTargetCandidate)"| MC
+    MC -->|"SetDestination (solo servidor)"| NAV[NavMeshAgent]
+    MC -->|"posición"| NT["NetworkTransform (servidor)"]
+    PJ["PlayerCombat / Proyectil (servidor)"] -->|"RegistrarDanio"| HZM["HitZone del minion"]
+    HZM -->|"DanioRegistrado"| MC
+    MC -->|"Vida (NetworkVariable); a 0: Despawn tras duracionMuerte"| MC
+    MC -->|"AvisoRpc, MuerteRpc (ClientsAndHost)"| CLI[Clientes]
+    MC -->|"Golpe: OverlapBox; JugadorGolpeadoRpc (SpecifiedInParams)"| HIT["Jugador golpeado: AtaqueArekBase.NotificarGolpeAlJugadorLocal"]

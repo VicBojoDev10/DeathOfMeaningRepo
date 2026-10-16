@@ -1,9 +1,12 @@
 using System;
+using System.Collections;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.UI;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace TDOM.Unity
@@ -39,6 +42,8 @@ namespace TDOM.Unity
 
         private void OnEnable()
         {
+            SceneManager.sceneLoaded += AlCargarEscena;
+
             joinTest.onClick.AddListener(JoinTestUi);
             startHostButton.onClick.AddListener(StartHostButton_OnClick);
             startClientButton.onClick.AddListener(StartClientButton_OnClick);
@@ -63,6 +68,7 @@ namespace TDOM.Unity
             {
                 ConnectionManager.OnEstadoCambiado += ActualizarTextoEstado;
                 ConnectionManager.OnJugadoresCambiado += ActualizarBotonComenzar;
+                ConnectionManager.OnConexionRechazada += MostrarMotivoRechazo;
                 ActualizarBotonComenzar(
                     NetworkManager.Singleton != null
                         ? NetworkManager.Singleton.ConnectedClientsList.Count
@@ -83,6 +89,8 @@ namespace TDOM.Unity
 
         private void OnDisable()
         {
+            SceneManager.sceneLoaded -= AlCargarEscena;
+
             startHostButton.onClick.RemoveListener(StartHostButton_OnClick);
             startClientButton.onClick.RemoveListener(StartClientButton_OnClick);
             startMatchButton.onClick.RemoveListener(StartMatchButton_OnClick);
@@ -106,11 +114,73 @@ namespace TDOM.Unity
             {
                 ConnectionManager.OnEstadoCambiado -= ActualizarTextoEstado;
                 ConnectionManager.OnJugadoresCambiado -= ActualizarBotonComenzar;
+                ConnectionManager.OnConexionRechazada -= MostrarMotivoRechazo;
             }
 
             GameFlowNetwork.Spawned -= SuscribirseAGameFlow;
             if (GameFlowNetwork.Instance != null)
                 GameFlowNetwork.Instance.OnCharacterSelectionStarted -= IrASeleccionDePersonaje;
+        }
+
+        private void AlCargarEscena(Scene escena, LoadSceneMode modo)
+        {
+            if (escena.name == "NetworkSetup")
+                StartCoroutine(RestaurarFocoTrasCambioDeEscena());
+        }
+
+        private IEnumerator RestaurarFocoTrasCambioDeEscena()
+        {
+            yield return null;
+            yield return null;
+            RestaurarFocoControl();
+        }
+
+        private void Update()
+        {
+            if (!IsOpen || EventSystem.current == null)
+                return;
+
+            var seleccionado = EventSystem.current.currentSelectedGameObject;
+            var selectable = seleccionado != null ? seleccionado.GetComponent<Selectable>() : null;
+            if (selectable != null && selectable.IsInteractable())
+                return;
+
+            RestaurarFocoControl();
+        }
+
+        private void RestaurarFocoControl()
+        {
+            if (!IsOpen || EventSystem.current == null)
+                return;
+
+            Selectable objetivo = null;
+            if (
+                startMatchButton != null
+                && startMatchButton.gameObject.activeInHierarchy
+                && startMatchButton.IsInteractable()
+            )
+                objetivo = startMatchButton;
+            else if (startHostButton != null && startHostButton.IsInteractable())
+                objetivo = startHostButton;
+            else if (
+                NetworkManager.Singleton != null
+                && NetworkManager.Singleton.IsHost
+                && joinTest != null
+                && joinTest.IsInteractable()
+            )
+                objetivo = joinTest;
+            else if (ipInputField != null && ipInputField.IsInteractable())
+                objetivo = ipInputField;
+            else if (startClientButton != null && startClientButton.IsInteractable())
+                objetivo = startClientButton;
+            else if (joinTest != null && joinTest.IsInteractable())
+                objetivo = joinTest;
+
+            if (
+                objetivo != null
+                && EventSystem.current.currentSelectedGameObject != objetivo.gameObject
+            )
+                EventSystem.current.SetSelectedGameObject(objetivo.gameObject);
         }
 
         private void HandleKeyboardClosed()
@@ -174,6 +244,12 @@ namespace TDOM.Unity
 
             if (habilitado)
                 SetInteractable(true);
+        }
+
+        private void MostrarMotivoRechazo(string motivo)
+        {
+            if (statusText != null && !string.IsNullOrWhiteSpace(motivo))
+                statusText.text = motivo;
         }
 
         private void StartMatchButton_OnClick()

@@ -37,5 +37,8 @@ namespace TDOM.Data
 
         [Header("Aterrizaje fuerte")]
         public float aterrizajeImpulso = 0.4f;
+
+        [Header("Cambio de fase del jefe")]
+        public float cambioDeFaseImpulso = 3f;
     }
 }
