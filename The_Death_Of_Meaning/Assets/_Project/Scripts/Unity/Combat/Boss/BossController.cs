@@ -27,8 +27,7 @@ namespace TDOM.Unity.Combat
 
         public void Pausar(bool pausado) => _pausado = pausado;
 
-        // TW-116: la transición de fase también detiene al jefe (solo se sabe en el servidor).
-        public bool Pausado => _pausado || EnTransicion;
+        public bool Pausado => _pausado || PauseManager.PausadoGlobal;
 
         private bool EnTransicion => _maquina != null && _maquina.EnTransicion;
 
@@ -57,17 +56,11 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private float _duracionTelegraph = 1.25f;
 
-        // TW-96: lanzador de los ataques reales; si queda vacío se toma del mismo objeto.
         [SerializeField]
         private AtaquesArek _ataques;
-
-        // Solo existe en el servidor. Decide cuándo avisar (Telegraph) y cuándo golpear (Impacto).
         private BossAttackScheduler _scheduler;
-
-        // Posición dentro de la secuencia de la fase actual; solo para mostrar el siguiente ataque.
         private int _indiceEnFase;
 
-        // TW-116: color por fase y destello. Si queda vacío se buscan las mallas del cuerpo.
         [Header("Visual por fase")]
         [SerializeField]
         private Renderer[] _renderersCuerpo;
@@ -174,7 +167,6 @@ namespace TDOM.Unity.Combat
             if (_maquina == null)
                 return;
 
-            // TW-116: invulnerable durante la transición de fase y mientras está en pausa.
             if (Pausado)
                 return;
 
@@ -191,7 +183,6 @@ namespace TDOM.Unity.Combat
             }
         }
 
-        // Solo servidor. La máquina ya reinició el índice y está en transición.
         private void EntrarAFase(int nuevaFase)
         {
             CambiarFase(nuevaFase);
@@ -199,7 +190,6 @@ namespace TDOM.Unity.Combat
             RestaurarEnergiaJugadores();
             CambioDeFaseRpc(nuevaFase);
 
-            // Con DuracionTransicion en 0 no hay transición: el patrón se reinicia ya.
             if (!_maquina.EnTransicion)
                 AlTerminarTransicion();
         }
@@ -227,11 +217,9 @@ namespace TDOM.Unity.Combat
 
         private void Update()
         {
-            // Toda la lógica del jefe corre únicamente en el servidor.
-            if (!IsServer || _scheduler == null)
+            if (!IsServer || _scheduler == null || Pausado)
                 return;
 
-            // La transición corre aunque haya cinemática; el patrón no avanza en ninguna de las dos.
             _maquina.Tick(Time.deltaTime);
 
             if (Pausado)
@@ -243,7 +231,6 @@ namespace TDOM.Unity.Combat
             {
                 case EventoAtaque.Telegraph:
                     TelegraphAtaqueRpc(ataque);
-                    // TW-96: el ataque se lanza en el Telegraph; cada prefab trae su propio aviso.
                     if (_ataques != null)
                         _ataques.Lanzar(ataque);
                     break;
@@ -266,7 +253,6 @@ namespace TDOM.Unity.Combat
             Debug.Log($"[BossController][RPC Impacto] Golpe: {ataque}");
         }
 
-        // TW-116: solo efectos locales; la fase ya viaja en el NetworkVariable.
         [Rpc(SendTo.ClientsAndHost)]
         private void CambioDeFaseRpc(int fase)
         {
@@ -336,7 +322,6 @@ namespace TDOM.Unity.Combat
                 if (r == null)
                     continue;
 
-                // Copia del material para no teñir el asset compartido.
                 var material = r.material;
                 if (!material.HasProperty(IdColorBase))
                     Debug.LogWarning(
@@ -349,8 +334,6 @@ namespace TDOM.Unity.Combat
             _materialesCuerpo = materiales.ToArray();
         }
 
-        // El cuerpo visible es Modelo; se excluyen los ojos (HitZone), las partículas y
-        // los renderers apagados (la cápsula raíz).
         private Renderer[] BuscarRenderersCuerpo()
         {
             var encontrados = new List<Renderer>();
@@ -410,7 +393,6 @@ namespace TDOM.Unity.Combat
             return null;
         }
 
-        // Ataque que viene después del actual en la secuencia de la fase (solo para el debug UI).
         private string SiguienteAtaqueParaDebug()
         {
             if (_maquina == null)

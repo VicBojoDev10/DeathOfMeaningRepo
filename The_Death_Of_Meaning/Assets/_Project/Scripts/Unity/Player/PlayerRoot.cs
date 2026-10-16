@@ -68,6 +68,7 @@ namespace TDOM.Unity.Player
             || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
 
         public CharacterIds CharacterId => _characterId;
+        public bool SpawnInicialAplicado => _initialSpawnApplied;
         public Transform CameraTransform => _camera != null ? _camera.CamaraTransform : null;
         public PlayerInputReader InputReader => _inputReader;
         public float GrappleRange => _definition?.Grapple != null ? _definition.Grapple.Range : 30f;
@@ -353,6 +354,9 @@ namespace TDOM.Unity.Player
 
         private void Update()
         {
+            if (PauseManager.PausadoGlobal)
+                return;
+
             if (IsServer && _energyPool != null)
             {
                 _energyPool.Tick(Time.deltaTime, isDowned: false);
