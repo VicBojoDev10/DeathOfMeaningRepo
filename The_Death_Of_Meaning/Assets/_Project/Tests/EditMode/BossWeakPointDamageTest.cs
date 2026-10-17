@@ -222,7 +222,7 @@ namespace TDOM.Tests.EditMode
                     return ojo;
             }
 
-            Assert.Fail($"No hay ningÃºn ojo en estado {estado}.");
+            Assert.Fail($"No hay ningún ojo en estado {estado}.");
             return -1;
         }
 
