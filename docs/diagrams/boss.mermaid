@@ -6,11 +6,12 @@ flowchart TD
     AA -->|"jugadores: distancia y daño reciente"| SEL["BossTargetSelector (BossTargetingProfile)"]
     SEL -->|"objetivo en rango del ataque o ninguno: no ataca"| AA
     PJ["PlayerCombat / Proyectil (servidor)"] -->|"RegistrarImpacto(cantidad, atacanteId, Melee o Disparo)"| HZ
-    HZ -->|"IFiltroImpacto.Admite: solo ojo Abierto; el melee abre un ojo Brillando sin daño"| BC
-    BC --> BWD["BossWeakPointDamage"]
+    HZ -->|"IFiltroImpacto.Admite: solo ojo Abierto; el melee abre un ojo Brillando sin daño"| OJA["OjosArek (servidor)"]
+    BC -->|"Preparar, Tick, AplicarDanio"| OJA
+    OJA --> BWD["BossWeakPointDamage"]
     BWD --> WPS["WeakPointStateMachine (WeakPointProfile)"]
     BWD -->|"AplicarDanio: al cruzar VidaTransicion activa los ojos de la nueva fase"| PSM
-    BC -->|"estado de cada ojo: NetworkList a clientes"| OJV["OjosArekVisual: color y emisión por estado"]
+    OJA -->|"estado de cada ojo: NetworkList a clientes"| OJV["OjosArekVisual: color por estado (MaterialPropertyBlock)"]
     HZ -->|"DanioRecibido (evento, servidor)"| AGRO[BossAggroTracker]
     AGRO -->|"daño en los últimos X s"| AA
     AA -->|"perfil del ataque: AtaqueManoProfile, AtaqueTentaculoProfile, AtaqueMorteroProfile, AtaqueRayoProfile"| BASE["AtaqueArekBase (lanzador en NetworkVariable)"]
