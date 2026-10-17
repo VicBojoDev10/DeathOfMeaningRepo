@@ -425,6 +425,14 @@ namespace TDOM.Unity.Combat
 
             if (hitZoneRef.TryGet(out HitZone hitZone) && hitZone != null)
             {
+                if (hitZone.NetworkObject != obj)
+                {
+                    Debug.LogWarning(
+                        $"[SERVER] {tipo} rechazado: la zona {hitZone.name} no pertenece a {obj.name}"
+                    );
+                    return;
+                }
+
                 hitZone.RegistrarImpacto(evento.Damage, OwnerClientId, tipo);
                 return;
             }

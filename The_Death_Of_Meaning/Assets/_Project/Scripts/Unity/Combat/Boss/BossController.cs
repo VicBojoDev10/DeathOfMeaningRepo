@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace TDOM.Unity.Combat
 {
-    public class BossController : NetworkBehaviour, IFiltroImpacto
+    public class BossController : NetworkBehaviour
     {
         [Header("Fase de Combate")]
         public NetworkVariable<int> Fase = new NetworkVariable<int>(
@@ -38,18 +38,9 @@ namespace TDOM.Unity.Combat
         public HitZone[] HitZones => _hitZones;
 
         [SerializeField]
-        private WeakPointProfile _perfilOjos;
+        private OjosArek _ojos;
 
-        public WeakPointProfile PerfilOjos => _perfilOjos;
-
-        private readonly NetworkList<byte> _estadosOjos = new NetworkList<byte>();
-        private BossWeakPointDamage _danioOjos;
-
-        public event Action<int, EstadoOjo> EstadoOjoCambiado;
-
-        public int TotalOjos => _estadosOjos.Count;
-
-        public EstadoOjo EstadoDeOjo(int ojo) => (EstadoOjo)_estadosOjos[ojo];
+        private bool _ojosListos;
 
         [Header("Phase System")]
         [SerializeField]
@@ -107,9 +98,7 @@ namespace TDOM.Unity.Combat
         public override void OnNetworkSpawn()
         {
             Fase.OnValueChanged += HandleFaseChanged;
-            _estadosOjos.OnListChanged += AlCambiarListaOjos;
             AplicarColorFase(Fase.Value);
-            NotificarEstadosOjos();
             Spawned?.Invoke(this);
 
             Debug.Log(
@@ -128,7 +117,11 @@ namespace TDOM.Unity.Combat
             _maquina = new BossPhaseStateMachine(_fases);
             _maquina.TransicionTerminada += AlTerminarTransicion;
 
-            if (!PrepararOjos())
+            if (_ojos == null)
+                _ojos = GetComponent<OjosArek>();
+
+            _ojosListos = _ojos != null && _ojos.Preparar(_hitZones, _maquina);
+            if (!_ojosListos)
                 return;
 
             _scheduler = new BossAttackScheduler(
@@ -151,77 +144,12 @@ namespace TDOM.Unity.Combat
                     continue;
 
                 hz.DanioRegistrado += OnDanioZona;
-                hz.AsignarFiltro(this);
             }
-        }
-
-        private bool PrepararOjos()
-        {
-            if (_perfilOjos == null || _hitZones == null || _hitZones.Length == 0)
-            {
-                Debug.LogError("[BossController] Falta el WeakPointProfile o los ojos (HitZones).");
-                return false;
-            }
-
-            var ojos = new WeakPointStateMachine(
-                _hitZones.Length,
-                _perfilOjos.DuracionAbierto,
-                _perfilOjos.Cooldown,
-                _perfilOjos.Semilla
-            );
-            _danioOjos = new BossWeakPointDamage(ojos, _maquina);
-
-            _estadosOjos.Clear();
-            for (int ojo = 0; ojo < _danioOjos.TotalOjos; ojo++)
-                _estadosOjos.Add((byte)_danioOjos.Estado(ojo));
-
-            return true;
-        }
-
-        public bool Admite(HitZone zona, TipoImpactoOjo tipo)
-        {
-            if (_danioOjos == null || Pausado)
-                return false;
-
-            int ojo = Array.IndexOf(_hitZones, zona);
-            if (ojo < 0)
-                return false;
-
-            bool admitido = _danioOjos.AdmiteImpacto(ojo, tipo);
-            SincronizarOjos();
-            return admitido;
-        }
-
-        private void SincronizarOjos()
-        {
-            for (int ojo = 0; ojo < _danioOjos.TotalOjos; ojo++)
-            {
-                byte estado = (byte)_danioOjos.Estado(ojo);
-                if (_estadosOjos[ojo] != estado)
-                    _estadosOjos[ojo] = estado;
-            }
-        }
-
-        private void AlCambiarListaOjos(NetworkListEvent<byte> cambio)
-        {
-            bool cambioDeOjo =
-                cambio.Type == NetworkListEvent<byte>.EventType.Value
-                || cambio.Type == NetworkListEvent<byte>.EventType.Add;
-
-            if (cambioDeOjo)
-                EstadoOjoCambiado?.Invoke(cambio.Index, (EstadoOjo)cambio.Value);
-        }
-
-        private void NotificarEstadosOjos()
-        {
-            for (int ojo = 0; ojo < _estadosOjos.Count; ojo++)
-                EstadoOjoCambiado?.Invoke(ojo, EstadoDeOjo(ojo));
         }
 
         public override void OnNetworkDespawn()
         {
             Fase.OnValueChanged -= HandleFaseChanged;
-            _estadosOjos.OnListChanged -= AlCambiarListaOjos;
 
             if (_maquina != null)
                 _maquina.TransicionTerminada -= AlTerminarTransicion;
@@ -235,7 +163,6 @@ namespace TDOM.Unity.Combat
                     continue;
 
                 hz.DanioRegistrado -= OnDanioZona;
-                hz.AsignarFiltro(null);
             }
         }
 
@@ -254,7 +181,7 @@ namespace TDOM.Unity.Combat
             if (cantidad <= 0f)
                 return;
 
-            if (_danioOjos == null)
+            if (!_ojosListos)
                 return;
 
             if (Pausado)
@@ -264,12 +191,11 @@ namespace TDOM.Unity.Combat
 
             Debug.Log($"[BossController] Daño recibido: {cantidad:F1} ({porcentajeDanio:P2})");
 
-            if (!_danioOjos.AplicarDanio(porcentajeDanio))
+            if (!_ojos.AplicarDanio(porcentajeDanio))
                 return;
 
             Debug.Log($"[BossController] Cambio de fase detectado: {_maquina.FaseActual}");
             EntrarAFase(_maquina.FaseActual);
-            SincronizarOjos();
         }
 
         private void EntrarAFase(int nuevaFase)
@@ -310,8 +236,7 @@ namespace TDOM.Unity.Combat
                 return;
 
             _maquina.Tick(Time.deltaTime);
-            _danioOjos.Tick(Time.deltaTime);
-            SincronizarOjos();
+            _ojos.Tick(Time.deltaTime);
 
             if (Pausado)
                 return;
@@ -541,7 +466,8 @@ namespace TDOM.Unity.Combat
                         continue;
 
                     GUILayout.BeginHorizontal();
-                    string estado = i < TotalOjos ? EstadoDeOjo(i).ToString() : "-";
+                    string estado =
+                        _ojos != null && i < _ojos.TotalOjos ? _ojos.Estado(i).ToString() : "-";
                     GUILayout.Label(
                         $"[{hz.ZoneIndex:D2}] {estado}: {hz.DanioAcumulado.Value:F0} dmg",
                         GUILayout.Width(180)

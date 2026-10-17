@@ -22,8 +22,5 @@ namespace TDOM.POCO.ScriptableObjects
         public Color ColorAbierto = Color.red;
 
         public Color ColorEnfriando = Color.blue;
-
-        [Min(0f)]
-        public float IntensidadEmision = 2f;
     }
 }
