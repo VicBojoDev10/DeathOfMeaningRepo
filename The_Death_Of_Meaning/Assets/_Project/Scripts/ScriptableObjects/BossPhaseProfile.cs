@@ -39,11 +39,16 @@ namespace TDOM.POCO.ScriptableObjects
         {
             switch (tipo)
             {
-                case BossAttackKind.Basico: return DetenerseEnBasico;
-                case BossAttackKind.Pesado: return DetenerseEnPesado;
-                case BossAttackKind.Especial: return DetenerseEnEspecial;
-                case BossAttackKind.InstaKill: return DetenerseEnInstaKill;
-                default: return false;
+                case BossAttackKind.Basico:
+                    return DetenerseEnBasico;
+                case BossAttackKind.Pesado:
+                    return DetenerseEnPesado;
+                case BossAttackKind.Especial:
+                    return DetenerseEnEspecial;
+                case BossAttackKind.InstaKill:
+                    return DetenerseEnInstaKill;
+                default:
+                    return false;
             }
         }
 

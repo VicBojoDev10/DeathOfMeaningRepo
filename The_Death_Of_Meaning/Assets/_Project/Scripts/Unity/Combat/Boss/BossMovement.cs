@@ -38,13 +38,7 @@ namespace TDOM.Unity
 
         private void Mover(float dt, int fase, bool ataqueEnCurso, BossAttackKind tipoAtaque)
         {
-            if (
-                _jefe == null
-                || !_jefe.IsServer
-                || _jefe.Pausado
-                || _ataques == null
-                || fase <= 1
-            )
+            if (_jefe == null || !_jefe.IsServer || _jefe.Pausado || _ataques == null || fase <= 1)
                 return;
 
             BossPhaseProfile perfil = _jefe.PerfilFaseActual;

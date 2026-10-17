@@ -12,6 +12,7 @@ namespace TDOM.Unity
         private readonly NetworkVariable<ulong> _lanzadorId = new NetworkVariable<ulong>();
 
         protected AtaquesArek Lanzador { get; private set; }
+
         public void AsignarLanzador(AtaquesArek lanzador)
         {
             _lanzadorId.Value = lanzador.NetworkObjectId;
@@ -34,7 +35,9 @@ namespace TDOM.Unity
 
             AlSpawnear();
         }
+
         protected abstract void AlSpawnear();
+
         internal static void NotificarGolpeAlJugadorLocal()
         {
             var jugador = BuscarJugadorLocal();

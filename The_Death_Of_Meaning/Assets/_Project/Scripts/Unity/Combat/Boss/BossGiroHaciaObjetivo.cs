@@ -57,6 +57,7 @@ namespace TDOM.Unity.Combat
                 perfil.velocidadGiro * Time.deltaTime
             );
         }
+
         private void CambiarObjetivoMirado(ulong? objetivoId)
         {
             if (_objetivoMirado == objetivoId)
@@ -69,6 +70,7 @@ namespace TDOM.Unity.Combat
                     : "[BossGiro] Ningún jugador dentro del radio de detección."
             );
         }
+
         private void OnDrawGizmosSelected()
         {
             var ataques = _ataques != null ? _ataques : GetComponent<AtaquesArek>();

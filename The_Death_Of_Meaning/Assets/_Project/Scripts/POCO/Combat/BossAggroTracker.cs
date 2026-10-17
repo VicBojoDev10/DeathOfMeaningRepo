@@ -53,6 +53,7 @@ namespace TDOM.Gameplay.Combat
         {
             _golpes.Clear();
         }
+
         private void Purgar(float ahora)
         {
             float limite = ahora - Ventana;

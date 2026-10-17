@@ -9,6 +9,7 @@ namespace TDOM.Gameplay.Combat
         Telegraph,
         Impacto,
     }
+
     public sealed class BossAttackScheduler
     {
         private const float Tolerancia = 1e-4f;
@@ -86,6 +87,7 @@ namespace TDOM.Gameplay.Combat
             _maquina.SiguienteAtaque();
             return EventoAtaque.Impacto;
         }
+
         public void ReiniciarPorCambioDeFase()
         {
             _tiempo = 0f;

@@ -214,12 +214,7 @@ namespace TDOM.Unity
 
                 var launcher = jugador.GetComponentInChildren<AnchorLauncher>();
                 var ancla = launcher != null ? launcher.AnclaActual : null;
-                if (
-                    ancla == null
-                    || !ancla.IsSpawned
-                    || !ancla.Pegada.Value
-                    || !ancla.PegadaEnOjo
-                )
+                if (ancla == null || !ancla.IsSpawned || !ancla.Pegada.Value || !ancla.PegadaEnOjo)
                     continue;
 
                 objetivoId = jugador.OwnerClientId;
