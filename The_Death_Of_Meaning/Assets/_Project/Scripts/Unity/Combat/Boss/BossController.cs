@@ -479,6 +479,15 @@ namespace TDOM.Unity.Combat
                         {
                             hz.RegistrarDanio(10f);
                         }
+
+                        if (GUILayout.Button("Golpe", GUILayout.Width(60)))
+                        {
+                            hz.RegistrarImpacto(
+                                10f,
+                                NetworkManager.LocalClientId,
+                                TipoImpactoOjo.Melee
+                            );
+                        }
                     }
                     GUILayout.EndHorizontal();
                 }
