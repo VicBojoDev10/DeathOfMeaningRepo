@@ -9,10 +9,11 @@
     GOLPE --> HB[HitboxCaster.DetectarImpactos]
     HB -->|"ReportarGolpeRpc (Server)"| VAL[Servidor valida el rango]
     DISP -->|"con prefab: DispararRpc (Server)"| PROY[Proyectil spawneado en el servidor]
-    DISP -->|"sin prefab: DetectarDisparo + ReportarDisparoRpc (Server)"| VAL
-    VAL --> HZ[HitZone.RegistrarDanio]
-    PROY --> HZ
-    HZ -->|"DanioAcumulado (NetworkVariable)"| BOSS[BossController]
+    DISP -->|"sin prefab: DetectarDisparo (zona más cercana) + ReportarDisparoRpc (Server)"| VAL
+    VAL -->|"Melee o Disparo"| HZ[HitZone.RegistrarImpacto]
+    PROY -->|Disparo| HZ
+    HZ -->|"IFiltroImpacto: en los ojos de AREK solo pasa si el ojo está Abierto"| BOSS[BossController]
+    HZ -->|"DanioAcumulado (NetworkVariable)"| BOSS
     GOLPE --> LOCAL["Local: PlayerCombatAnimator, CombatVfx, FeedbackDirector"]
     DISP --> LOCAL
     PC -.->|"ReproducirGolpeRpc, ReproducirDisparoRpc, CargaRpc (NotOwner)"| REM[Animator y VFX del otro cliente]
