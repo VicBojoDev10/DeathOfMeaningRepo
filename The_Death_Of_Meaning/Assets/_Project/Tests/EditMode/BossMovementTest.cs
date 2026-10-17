@@ -47,15 +47,7 @@ namespace TDOM.Tests.EditMode
         [Test]
         public void limita_la_posicion_al_circulo_interior_de_la_arena()
         {
-            _movimiento.LimitarDentroDeCirculo(
-                0f,
-                12f,
-                0f,
-                0f,
-                10f,
-                out float x,
-                out float z
-            );
+            _movimiento.LimitarDentroDeCirculo(0f, 12f, 0f, 0f, 10f, out float x, out float z);
 
             Assert.AreEqual(0f, x, 0.00001f);
             Assert.AreEqual(10f, z, 0.00001f);

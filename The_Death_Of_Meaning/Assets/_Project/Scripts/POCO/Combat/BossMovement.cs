@@ -78,7 +78,11 @@ namespace TDOM.Gameplay.Combat
             nuevaZ = centroZ + dz * escala;
         }
 
-        public static float CalcularRadioSeguro(float radioArena, float margenBorde, float radioBoss)
+        public static float CalcularRadioSeguro(
+            float radioArena,
+            float margenBorde,
+            float radioBoss
+        )
         {
             return Math.Max(0f, radioArena - Math.Max(0f, margenBorde) - Math.Max(0f, radioBoss));
         }
