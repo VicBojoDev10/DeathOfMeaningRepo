@@ -69,6 +69,42 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
+        public void conserva_el_primer_objetivo_mientras_siga_en_el_radio()
+        {
+            var logica = new BossMovement();
+            var candidatos = new List<BossTargetCandidate>
+            {
+                new BossTargetCandidate(1, 4f, 0f),
+                new BossTargetCandidate(2, 6f, 0f),
+            };
+            Assert.IsTrue(logica.TryElegirObjetivo(candidatos, null, out ulong primero));
+            Assert.AreEqual(1UL, primero);
+
+            candidatos[0] = new BossTargetCandidate(1, 7f, 0f);
+            candidatos[1] = new BossTargetCandidate(2, 2f, 0f);
+            Assert.IsTrue(logica.TryElegirObjetivo(candidatos, null, out ulong fijado));
+            Assert.AreEqual(1UL, fijado);
+        }
+
+        [Test]
+        public void el_ancla_prioriza_a_zendre_temporalmente_y_luego_recupera_el_objetivo_fijado()
+        {
+            var logica = new BossMovement();
+            var candidatos = new List<BossTargetCandidate>
+            {
+                new BossTargetCandidate(1, 4f, 0f),
+                new BossTargetCandidate(2, 6f, 0f),
+            };
+
+            Assert.IsTrue(logica.TryElegirObjetivo(candidatos, null, out ulong primero));
+            Assert.AreEqual(1UL, primero);
+            Assert.IsTrue(logica.TryElegirObjetivo(candidatos, 2UL, out ulong anclado));
+            Assert.AreEqual(2UL, anclado);
+            Assert.IsTrue(logica.TryElegirObjetivo(candidatos, null, out ulong trasRomperAncla));
+            Assert.AreEqual(1UL, trasRomperAncla);
+        }
+
+        [Test]
         public void con_zendre_anclado_elige_a_zendre_y_se_detiene()
         {
             var candidatos = new List<BossTargetCandidate>

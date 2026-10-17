@@ -5,6 +5,8 @@ namespace TDOM.Gameplay.Combat
 {
     public sealed class BossMovement
     {
+        public ulong? ObjetivoFijado { get; private set; }
+
         public bool TryElegirObjetivo(
             IReadOnlyList<BossTargetCandidate> candidatos,
             ulong? zendreAnclado,
@@ -17,9 +19,24 @@ namespace TDOM.Gameplay.Combat
                 return true;
             }
 
-            objetivoId = 0;
             if (candidatos == null || candidatos.Count == 0)
+            {
+                ObjetivoFijado = null;
+                objetivoId = 0;
                 return false;
+            }
+
+            if (ObjetivoFijado.HasValue)
+            {
+                foreach (var candidato in candidatos)
+                {
+                    if (candidato.Id != ObjetivoFijado.Value)
+                        continue;
+
+                    objetivoId = candidato.Id;
+                    return true;
+                }
+            }
 
             BossTargetCandidate masCercano = candidatos[0];
             for (int i = 1; i < candidatos.Count; i++)
@@ -29,8 +46,11 @@ namespace TDOM.Gameplay.Combat
             }
 
             objetivoId = masCercano.Id;
+            ObjetivoFijado = objetivoId;
             return true;
         }
+
+        public void ResetearObjetivo() => ObjetivoFijado = null;
 
         public void Avanzar(
             int fase,
