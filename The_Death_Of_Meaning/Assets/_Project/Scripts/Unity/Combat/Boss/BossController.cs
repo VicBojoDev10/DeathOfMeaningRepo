@@ -23,6 +23,9 @@ namespace TDOM.Unity.Combat
 
         public event Action<int, int> OnFaseChanged;
 
+        /// <summary>Tick de movimiento emitido solo por el servidor para BossMovement.</summary>
+        public event Action<float, int, bool, BossAttackKind> ServerMovementTick;
+
         private bool _pausado;
 
         public void Pausar(bool pausado) => _pausado = pausado;
@@ -226,6 +229,12 @@ namespace TDOM.Unity.Combat
                 return;
 
             var evento = _scheduler.Tick(Time.deltaTime, out var ataque);
+            ServerMovementTick?.Invoke(
+                Time.deltaTime,
+                Fase.Value,
+                _scheduler.EnTelegraph,
+                _scheduler.AtaqueActual
+            );
 
             switch (evento)
             {
