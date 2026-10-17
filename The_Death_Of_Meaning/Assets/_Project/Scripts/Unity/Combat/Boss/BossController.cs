@@ -40,6 +40,11 @@ namespace TDOM.Unity.Combat
 
         public HitZone[] HitZones => _hitZones;
 
+        [SerializeField]
+        private OjosArek _ojos;
+
+        private bool _ojosListos;
+
         [Header("Phase System")]
         [SerializeField]
         private BossPhaseProfile[] _fases;
@@ -114,6 +119,14 @@ namespace TDOM.Unity.Combat
 
             _maquina = new BossPhaseStateMachine(_fases);
             _maquina.TransicionTerminada += AlTerminarTransicion;
+
+            if (_ojos == null)
+                _ojos = GetComponent<OjosArek>();
+
+            _ojosListos = _ojos != null && _ojos.Preparar(_hitZones, _maquina, _fases.Length);
+            if (!_ojosListos)
+                return;
+
             _scheduler = new BossAttackScheduler(
                 _maquina,
                 _cooldownEntreAtaques,
@@ -130,8 +143,10 @@ namespace TDOM.Unity.Combat
 
             foreach (var hz in _hitZones)
             {
-                if (hz != null)
-                    hz.DanioRegistrado += OnDanioZona;
+                if (hz == null)
+                    continue;
+
+                hz.DanioRegistrado += OnDanioZona;
             }
         }
 
@@ -147,8 +162,10 @@ namespace TDOM.Unity.Combat
 
             foreach (var hz in _hitZones)
             {
-                if (hz != null)
-                    hz.DanioRegistrado -= OnDanioZona;
+                if (hz == null)
+                    continue;
+
+                hz.DanioRegistrado -= OnDanioZona;
             }
         }
 
@@ -167,7 +184,7 @@ namespace TDOM.Unity.Combat
             if (cantidad <= 0f)
                 return;
 
-            if (_maquina == null)
+            if (!_ojosListos)
                 return;
 
             if (Pausado)
@@ -177,13 +194,11 @@ namespace TDOM.Unity.Combat
 
             Debug.Log($"[BossController] Daño recibido: {cantidad:F1} ({porcentajeDanio:P2})");
 
-            _maquina.AplicarDaño(porcentajeDanio);
+            if (!_ojos.AplicarDanio(porcentajeDanio))
+                return;
 
-            if (_maquina.FaseActual != Fase.Value)
-            {
-                Debug.Log($"[BossController] Cambio de fase detectado: {_maquina.FaseActual}");
-                EntrarAFase(_maquina.FaseActual);
-            }
+            Debug.Log($"[BossController] Cambio de fase detectado: {_maquina.FaseActual}");
+            EntrarAFase(_maquina.FaseActual);
         }
 
         private void EntrarAFase(int nuevaFase)
@@ -224,6 +239,7 @@ namespace TDOM.Unity.Combat
                 return;
 
             _maquina.Tick(Time.deltaTime);
+            _ojos.Tick(Time.deltaTime);
 
             if (Pausado)
                 return;
@@ -459,8 +475,10 @@ namespace TDOM.Unity.Combat
                         continue;
 
                     GUILayout.BeginHorizontal();
+                    string estado =
+                        _ojos != null && i < _ojos.TotalOjos ? _ojos.Estado(i).ToString() : "-";
                     GUILayout.Label(
-                        $"[{hz.ZoneIndex:D2}] {hz.ZoneName}: {hz.DanioAcumulado.Value:F0} dmg",
+                        $"[{hz.ZoneIndex:D2}] {estado}: {hz.DanioAcumulado.Value:F0} dmg",
                         GUILayout.Width(180)
                     );
 
@@ -469,6 +487,15 @@ namespace TDOM.Unity.Combat
                         if (GUILayout.Button("+10", GUILayout.Width(50)))
                         {
                             hz.RegistrarDanio(10f);
+                        }
+
+                        if (GUILayout.Button("Golpe", GUILayout.Width(60)))
+                        {
+                            hz.RegistrarImpacto(
+                                10f,
+                                NetworkManager.LocalClientId,
+                                TipoImpactoOjo.Melee
+                            );
                         }
                     }
                     GUILayout.EndHorizontal();
