@@ -19,6 +19,7 @@ GameObject:
   - component: {fileID: -7899386268560657394}
   - component: {fileID: -5263539372475750619}
   - component: {fileID: 214842757908221112}
+  - component: {fileID: 3743253964765751442}
   m_Layer: 0
   m_Name: BossArek
   m_TagString: Untagged
@@ -239,7 +240,7 @@ MonoBehaviour:
   - {fileID: 2000000000000095}
   - {fileID: 2000000000000105}
   - {fileID: 2000000000000115}
-  _perfilOjos: {fileID: 11400000, guid: a7cbe3bba59d0da4792bba4566da160b, type: 2}
+  _ojos: {fileID: 3743253964765751442}
   _fases:
   - {fileID: 11400000, guid: 03130509a2a664f40bb14771f28b4e79, type: 2}
   - {fileID: 11400000, guid: 7c80c9c3fe995054db4fc3b0f12f96ed, type: 2}
@@ -322,7 +323,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36c69360ce25eb54d9b198719f0f8412, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.OjosArekVisual
+  _ojos: {fileID: 3743253964765751442}
   _jefe: {fileID: 1000000000000006}
+--- !u!114 &3743253964765751442
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13c53a4eff48a0342b88b3dc602bb9a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.OjosArek
+  ShowTopMostFoldoutHeaderGroup: 1
+  _perfil: {fileID: 11400000, guid: a7cbe3bba59d0da4792bba4566da160b, type: 2}
 --- !u!1 &2000000000000000
 GameObject:
   m_ObjectHideFlags: 0
