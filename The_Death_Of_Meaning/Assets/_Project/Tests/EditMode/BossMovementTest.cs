@@ -45,6 +45,31 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
+        public void limita_la_posicion_al_circulo_interior_de_la_arena()
+        {
+            _movimiento.LimitarDentroDeCirculo(
+                0f,
+                12f,
+                0f,
+                0f,
+                10f,
+                out float x,
+                out float z
+            );
+
+            Assert.AreEqual(0f, x, 0.00001f);
+            Assert.AreEqual(10f, z, 0.00001f);
+        }
+
+        [Test]
+        public void el_radio_seguro_reserva_el_margen_y_el_tamano_del_boss()
+        {
+            float radioSeguro = BossMovement.CalcularRadioSeguro(50f, 3f, 2f);
+
+            Assert.AreEqual(45f, radioSeguro, 0.00001f);
+        }
+
+        [Test]
         public void conserva_el_primer_objetivo_mientras_siga_en_el_radio()
         {
             var logica = new BossMovement();

@@ -52,6 +52,37 @@ namespace TDOM.Gameplay.Combat
 
         public void ResetearObjetivo() => ObjetivoFijado = null;
 
+        public void LimitarDentroDeCirculo(
+            float x,
+            float z,
+            float centroX,
+            float centroZ,
+            float radio,
+            out float nuevaX,
+            out float nuevaZ
+        )
+        {
+            nuevaX = x;
+            nuevaZ = z;
+            if (radio <= 0f)
+                return;
+
+            float dx = x - centroX;
+            float dz = z - centroZ;
+            float distancia = (float)Math.Sqrt(dx * dx + dz * dz);
+            if (distancia <= radio || distancia <= 0.0001f)
+                return;
+
+            float escala = radio / distancia;
+            nuevaX = centroX + dx * escala;
+            nuevaZ = centroZ + dz * escala;
+        }
+
+        public static float CalcularRadioSeguro(float radioArena, float margenBorde, float radioBoss)
+        {
+            return Math.Max(0f, radioArena - Math.Max(0f, margenBorde) - Math.Max(0f, radioBoss));
+        }
+
         public void Avanzar(
             int fase,
             bool zendreAnclado,

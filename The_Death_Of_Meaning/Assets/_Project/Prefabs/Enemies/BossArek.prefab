@@ -147,7 +147,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3659053022
+  GlobalObjectIdHash: 2539856075
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -323,6 +323,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.BossMovement
   _jefe: {fileID: 1000000000000006}
   _ataques: {fileID: 2051056658159739734}
+  _margenBorde: 3
+  _radioArenaTotalManual: 0
+  _segmentosGizmo: 64
 --- !u!1 &2000000000000000
 GameObject:
   m_ObjectHideFlags: 0
