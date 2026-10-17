@@ -18,6 +18,12 @@ namespace TDOM.Gameplay.Combat
         Rebote,
     }
 
+    public enum TipoImpactoOjo
+    {
+        Melee,
+        Disparo,
+    }
+
     public sealed class WeakPointStateMachine
     {
         private const float Tolerancia = 1e-4f;
@@ -106,6 +112,16 @@ namespace TDOM.Gameplay.Combat
         {
             ValidarOjo(ojo);
             return _estados[ojo] == EstadoOjo.Abierto;
+        }
+
+        public bool RecibeDanio(int ojo, TipoImpactoOjo tipo)
+        {
+            bool estabaAbierto = Disparo(ojo);
+
+            if (tipo == TipoImpactoOjo.Melee)
+                GolpeMelee(ojo);
+
+            return estabaAbierto;
         }
 
         public void Tick(float dt)
