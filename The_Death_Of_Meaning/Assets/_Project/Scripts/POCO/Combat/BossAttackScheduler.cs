@@ -9,17 +9,8 @@ namespace TDOM.Gameplay.Combat
         Telegraph,
         Impacto,
     }
-
-    /// <summary>
-    /// Decide cuándo ataca AREK, en POCO puro (sin UnityEngine ni red).
-    /// Ciclo: esperar cooldown → Telegraph(AtaqueActual) → esperar duracionTelegraph →
-    /// Impacto(mismo ataque) → maquina.SiguienteAtaque() → repetir.
-    /// Qué ataque toca lo decide la máquina de fases; este scheduler solo lleva los tiempos.
-    /// </summary>
     public sealed class BossAttackScheduler
     {
-        // Margen para comparar tiempos acumulados con float, para que 1/60 y 1/30
-        // disparen los eventos en el mismo orden justo en los límites (3 s, 4.25 s...).
         private const float Tolerancia = 1e-4f;
 
         private readonly IBossPhaseState _maquina;
@@ -95,11 +86,6 @@ namespace TDOM.Gameplay.Combat
             _maquina.SiguienteAtaque();
             return EventoAtaque.Impacto;
         }
-
-        /// <summary>
-        /// Vuelve a empezar desde el cooldown. Si había un telegraph en curso, su impacto se
-        /// cancela. El índice del ataque ya lo reinicia la máquina al cambiar de fase.
-        /// </summary>
         public void ReiniciarPorCambioDeFase()
         {
             _tiempo = 0f;

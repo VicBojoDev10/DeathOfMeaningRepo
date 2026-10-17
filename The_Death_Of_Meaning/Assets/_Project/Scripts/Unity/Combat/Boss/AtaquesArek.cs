@@ -72,7 +72,11 @@ namespace TDOM.Unity
         private BossTargetSelector _selector;
         private HitZone[] _zonas;
         private readonly List<BossTargetCandidate> _candidatos = new List<BossTargetCandidate>();
+        private readonly List<BossTargetCandidate> _candidatosMovimiento =
+            new List<BossTargetCandidate>();
         private readonly List<PlayerRoot> _jugadores = new List<PlayerRoot>();
+        private readonly TDOM.Gameplay.Combat.BossMovement _logicaMovimiento =
+            new TDOM.Gameplay.Combat.BossMovement();
 
         public override void OnNetworkSpawn()
         {
@@ -127,6 +131,12 @@ namespace TDOM.Unity
 
             ActualizarAjustes();
             ArmarCandidatos();
+            if (TryObjetivoAnclado(out ulong objetivoAnclado))
+            {
+                ObjetivoActual = objetivoAnclado;
+                return true;
+            }
+
             var motivo = _selector.Elegir(_candidatos, perfil.Rango, out ulong objetivoId);
 
             if (motivo == MotivoObjetivo.Ninguno)
@@ -162,6 +172,64 @@ namespace TDOM.Unity
                 out objetivoId
             );
             return motivo != MotivoObjetivo.Ninguno;
+        }
+
+        public bool TryObjetivoMovimiento(out ulong objetivoId, out bool zendreAnclado)
+        {
+            objetivoId = 0;
+            zendreAnclado = false;
+            if (!IsServer || _selector == null || _perfilObjetivo == null)
+                return false;
+
+            ActualizarAjustes();
+            ArmarCandidatos();
+            _candidatosMovimiento.Clear();
+            foreach (var candidato in _candidatos)
+            {
+                if (candidato.Distancia <= _perfilObjetivo.radioDeteccion)
+                    _candidatosMovimiento.Add(
+                        new BossTargetCandidate(candidato.Id, candidato.Distancia, 0f)
+                    );
+            }
+
+            ulong? anclado = null;
+            if (TryObjetivoAnclado(out ulong idAnclado))
+            {
+                anclado = idAnclado;
+                zendreAnclado = true;
+            }
+
+            return _logicaMovimiento.TryElegirObjetivo(
+                _candidatosMovimiento,
+                anclado,
+                out objetivoId
+            );
+        }
+
+        private bool TryObjetivoAnclado(out ulong objetivoId)
+        {
+            objetivoId = 0;
+            ListarJugadores(_jugadores);
+            foreach (var jugador in _jugadores)
+            {
+                if (jugador.CharacterId != CharacterIds.Zendre)
+                    continue;
+
+                var launcher = jugador.GetComponentInChildren<AnchorLauncher>();
+                var ancla = launcher != null ? launcher.AnclaActual : null;
+                if (
+                    ancla == null
+                    || !ancla.IsSpawned
+                    || !ancla.Pegada.Value
+                    || !ancla.PegadaEnOjo
+                )
+                    continue;
+
+                objetivoId = jugador.OwnerClientId;
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>Solo servidor: posición del jugador de ese cliente, si sigue spawneado.</summary>

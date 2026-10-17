@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 namespace TDOM.Gameplay.Combat
 {
-    /// <summary>Reglas deterministas de desplazamiento de AREK sobre el plano XZ.</summary>
     public sealed class BossMovement
     {
         public bool TryElegirObjetivo(
@@ -41,6 +40,7 @@ namespace TDOM.Gameplay.Combat
             float objetivoX,
             float objetivoZ,
             float velocidad,
+            float distanciaMinima,
             float dt,
             out float nuevaX,
             out float nuevaZ
@@ -54,10 +54,12 @@ namespace TDOM.Gameplay.Combat
             float dx = objetivoX - x;
             float dz = objetivoZ - z;
             float distancia = (float)Math.Sqrt(dx * dx + dz * dz);
-            if (distancia <= 0.0001f)
+            distanciaMinima = Math.Max(0f, distanciaMinima);
+            float distanciaDisponible = distancia - distanciaMinima;
+            if (distanciaDisponible <= 0.0001f)
                 return;
 
-            float paso = Math.Min(velocidad * dt, distancia);
+            float paso = Math.Min(velocidad * dt, distanciaDisponible);
             nuevaX += dx / distancia * paso;
             nuevaZ += dz / distancia * paso;
         }

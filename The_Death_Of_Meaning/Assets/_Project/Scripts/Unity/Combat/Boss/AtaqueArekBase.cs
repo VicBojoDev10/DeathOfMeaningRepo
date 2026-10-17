@@ -5,10 +5,6 @@ using UnityEngine;
 
 namespace TDOM.Unity
 {
-    /// <summary>
-    /// Base de los ataques de AREK. AtaquesArek se asigna como lanzador antes de Spawn; al spawnear,
-    /// servidor y clientes lo buscan para leer el perfil de tuning que está en BossArek.prefab.
-    /// </summary>
     public abstract class AtaqueArekBase : NetworkBehaviour
     {
         private const float DuracionFlashDebugGolpe = 0.2f;
@@ -16,8 +12,6 @@ namespace TDOM.Unity
         private readonly NetworkVariable<ulong> _lanzadorId = new NetworkVariable<ulong>();
 
         protected AtaquesArek Lanzador { get; private set; }
-
-        /// <summary>Lo llama AtaquesArek antes de Spawn.</summary>
         public void AsignarLanzador(AtaquesArek lanzador)
         {
             _lanzadorId.Value = lanzador.NetworkObjectId;
@@ -40,11 +34,7 @@ namespace TDOM.Unity
 
             AlSpawnear();
         }
-
-        /// <summary>Reemplaza a OnNetworkSpawn en cada ataque; corre en servidor y clientes.</summary>
         protected abstract void AlSpawnear();
-
-        // internal para que MinionController (TW-125) reporte sus golpes igual que el jefe.
         internal static void NotificarGolpeAlJugadorLocal()
         {
             var jugador = BuscarJugadorLocal();

@@ -29,10 +29,43 @@ namespace TDOM.Tests.EditMode
             Assert.IsTrue(_movimiento.TryElegirObjetivo(candidatos, null, out ulong objetivoId));
             Assert.AreEqual(2UL, objetivoId);
 
-            _movimiento.Avanzar(2, false, 0f, 0f, 0f, 10f, 6f, Dt, out float x, out float z);
+            _movimiento.Avanzar(
+                2,
+                false,
+                0f,
+                0f,
+                0f,
+                10f,
+                6f,
+                5f,
+                Dt,
+                out float x,
+                out float z
+            );
 
             Assert.AreEqual(0f, x, 0.00001f);
             Assert.AreEqual(0.1f, z, 0.00001f);
+        }
+
+        [Test]
+        public void se_detiene_a_5f_del_objetivo_y_no_lo_sobrepasa()
+        {
+            _movimiento.Avanzar(
+                2,
+                false,
+                0f,
+                0f,
+                0f,
+                10f,
+                6f,
+                5f,
+                1f,
+                out float x,
+                out float z
+            );
+
+            Assert.AreEqual(0f, x, 0.00001f);
+            Assert.AreEqual(5f, z, 0.00001f);
         }
 
         [Test]
@@ -62,6 +95,7 @@ namespace TDOM.Tests.EditMode
                 0f,
                 10f,
                 velocidad,
+                5f,
                 Dt,
                 out x,
                 out z

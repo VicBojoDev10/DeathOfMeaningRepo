@@ -2,10 +2,6 @@ using System.Collections.Generic;
 
 namespace TDOM.Gameplay.Combat
 {
-    /// <summary>
-    /// Registra el daño que cada jugador le hace al jefe y responde cuánto hizo en los últimos
-    /// segundos (ventana). POCO puro: el tiempo lo pasa quien lo usa.
-    /// </summary>
     public sealed class BossAggroTracker
     {
         private readonly struct Golpe
@@ -57,8 +53,6 @@ namespace TDOM.Gameplay.Combat
         {
             _golpes.Clear();
         }
-
-        // Quita los golpes más viejos que la ventana.
         private void Purgar(float ahora)
         {
             float limite = ahora - Ventana;

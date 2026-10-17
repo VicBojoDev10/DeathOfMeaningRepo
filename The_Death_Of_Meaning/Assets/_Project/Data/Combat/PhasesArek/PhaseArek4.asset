@@ -41,6 +41,12 @@ MonoBehaviour:
   VidaTransicion: 0.2
   MinionsEnEspecial: 7
   DuracionTransicion: 3
+  VelocidadMovimiento: 3.5
+  DistanciaMinimaJugador: 5
+  DetenerseEnBasico: 1
+  DetenerseEnPesado: 1
+  DetenerseEnEspecial: 1
+  DetenerseEnInstaKill: 1
   ColorFase: {r: 1, g: 0, b: 0, a: 1}
   ColorDestello: {r: 1, g: 1, b: 1, a: 1}
   IntensidadDestello: 4
