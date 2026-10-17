@@ -3,12 +3,6 @@ using UnityEngine;
 
 namespace TDOM.Unity.Combat
 {
-    /// <summary>
-    /// Gira al jefe en Y hacia su objetivo mientras haya un jugador dentro del radio de detección
-    /// (por agro o el más cercano, igual que AtaquesArek). Solo corre en el servidor; los clientes
-    /// lo ven por el NetworkTransform de BossArek. Se detiene mientras el jefe está pausado
-    /// (cinemáticas). La velocidad está en BossTargetingProfile.
-    /// </summary>
     public class BossGiroHaciaObjetivo : NetworkBehaviour
     {
         [SerializeField]
@@ -64,7 +58,6 @@ namespace TDOM.Unity.Combat
             );
         }
 
-        // Solo para depurar: avisa en consola cuando el jefe empieza a mirar a alguien o lo pierde.
         private void CambiarObjetivoMirado(ulong? objetivoId)
         {
             if (_objetivoMirado == objetivoId)
@@ -78,7 +71,6 @@ namespace TDOM.Unity.Combat
             );
         }
 
-        // Radio de detección en el editor (seleccionar BossArek).
         private void OnDrawGizmosSelected()
         {
             var ataques = _ataques != null ? _ataques : GetComponent<AtaquesArek>();

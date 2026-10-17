@@ -2,10 +2,6 @@ using UnityEngine;
 
 namespace TDOM.Data
 {
-    /// <summary>
-    /// Cómo elige AREK a quién atacar. Solo considera jugadores dentro de radioDeteccion y
-    /// dentro del rango del ataque que toca en el patrón.
-    /// </summary>
     [CreateAssetMenu(fileName = "BossTargetingProfile", menuName = "TDOM/Boss/Targeting Profile")]
     public sealed class BossTargetingProfile : ScriptableObject
     {

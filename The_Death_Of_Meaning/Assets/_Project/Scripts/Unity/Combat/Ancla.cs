@@ -13,6 +13,7 @@ namespace TDOM.Unity.Combat
         private NetworkVariable<ulong> _duenoId = new NetworkVariable<ulong>();
 
         public NetworkVariable<bool> Pegada = new NetworkVariable<bool>();
+        public bool PegadaEnOjo { get; private set; }
 
         private Vector3 _direccion;
         private AnchorProfile _perfil;
@@ -86,6 +87,7 @@ namespace TDOM.Unity.Combat
                 float minDistance = float.MaxValue;
                 RaycastHit? closestValidHit = null;
                 bool tocandoInicialmente = false;
+                bool tocandoOjoInicialmente = false;
 
                 for (int i = 0; i < hitCount; i++)
                 {
@@ -97,6 +99,8 @@ namespace TDOM.Unity.Combat
                     if (hit.distance <= 0f)
                     {
                         tocandoInicialmente = true;
+                        if (hit.collider.GetComponentInParent<HitZone>() != null)
+                            tocandoOjoInicialmente = true;
                         continue;
                     }
 
@@ -110,11 +114,14 @@ namespace TDOM.Unity.Combat
                 if (closestValidHit.HasValue)
                 {
                     transform.position = closestValidHit.Value.point;
+                    PegadaEnOjo =
+                        closestValidHit.Value.collider.GetComponentInParent<HitZone>() != null;
                     Pegada.Value = true;
                     _tiempoPegada = 0f;
                 }
                 else if (tocandoInicialmente)
                 {
+                    PegadaEnOjo = tocandoOjoInicialmente;
                     Pegada.Value = true;
                     _tiempoPegada = 0f;
                 }
