@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
@@ -38,20 +39,24 @@ namespace TDOM.Unity.Combat
 
             var hits = Physics.OverlapSphere(centro, radio, _objetivos);
 
-            return hits.Select(h => new Impacto(
-                    h.GetComponentInParent<NetworkObject>(),
-                    h.GetComponentInParent<HitZone>()
-                ))
-                .Where(i => i.Objeto != null)
-                .Where(i => _owner == null || i.Objeto != _owner)
+            return ImpactosValidos(hits)
                 .GroupBy(i => new { i.Objeto, i.Zona })
                 .Select(g => g.First())
                 .ToArray();
         }
 
+        private IEnumerable<Impacto> ImpactosValidos(IEnumerable<Collider> colliders) =>
+            colliders
+                .Select(c => new Impacto(
+                    c.GetComponentInParent<NetworkObject>(),
+                    c.GetComponentInParent<HitZone>()
+                ))
+                .Where(i => i.Objeto != null)
+                .Where(i => _owner == null || i.Objeto != _owner);
+
         public Vector3 Centro(float alcance) => Origen.position + Origen.forward * alcance;
 
-        public NetworkObject[] DetectarDisparo(float radio, float alcanceMaximo)
+        public Impacto[] DetectarDisparo(float radio, float alcanceMaximo)
         {
             Transform orig = Origen;
             Debug.DrawRay(orig.position, orig.forward * alcanceMaximo, Color.yellow, 0.25f);
@@ -64,10 +69,10 @@ namespace TDOM.Unity.Combat
                 _objetivos
             );
 
-            return hits.Select(h => h.collider.GetComponentInParent<NetworkObject>())
-                .Where(n => n != null)
-                .Where(n => _owner == null || n != _owner)
-                .Distinct()
+            var masCercanos = hits.OrderBy(h => h.distance).Select(h => h.collider);
+            return ImpactosValidos(masCercanos)
+                .GroupBy(i => i.Objeto)
+                .Select(g => g.First())
                 .ToArray();
         }
 

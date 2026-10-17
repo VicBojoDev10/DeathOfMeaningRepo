@@ -1,4 +1,5 @@
 using System;
+using TDOM.Gameplay.Combat;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -70,6 +71,26 @@ namespace TDOM.Unity.Combat
 
             RegistrarDanio(cantidad);
             DanioRecibido?.Invoke(atacanteId, cantidad);
+        }
+
+        private IFiltroImpacto _filtro;
+
+        public void AsignarFiltro(IFiltroImpacto filtro) => _filtro = filtro;
+
+        public void RegistrarImpacto(float cantidad, ulong atacanteId, TipoImpactoOjo tipo)
+        {
+            if (!IsServer)
+                return;
+
+            if (_filtro != null && !_filtro.Admite(this, tipo))
+            {
+                Debug.Log(
+                    $"[SERVER][HitZone {_zoneIndex:D2}] Impacto {tipo} ignorado: el ojo no está abierto."
+                );
+                return;
+            }
+
+            RegistrarDanio(cantidad, atacanteId);
         }
     }
 }

@@ -1,3 +1,4 @@
+using TDOM.Gameplay.Combat;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -81,7 +82,7 @@ namespace TDOM.Unity.Combat
 
                 if (hz != null)
                 {
-                    hz.RegistrarDanio(_daño, _atacanteId);
+                    hz.RegistrarImpacto(_daño, _atacanteId, TipoImpactoOjo.Disparo);
                 }
 
                 Debug.Log(

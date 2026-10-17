@@ -221,12 +221,9 @@ namespace TDOM.Unity.Combat
             }
             else if (_hitbox != null)
             {
-                var objetivos = _hitbox.DetectarDisparo(_radioDisparo, _rangoDisparo);
-                foreach (var obj in objetivos)
-                {
-                    if (obj != null)
-                        ReportarDisparoRpc(evento, obj.NetworkObjectId);
-                }
+                var impactos = _hitbox.DetectarDisparo(_radioDisparo, _rangoDisparo);
+                foreach (var imp in impactos)
+                    ReportarDisparoRpc(evento, imp.Objeto.NetworkObjectId, ReferenciaZona(imp));
             }
 
             ReproducirDisparoRpc(evento.ComboIndex, cargado);
@@ -282,9 +279,7 @@ namespace TDOM.Unity.Combat
                     if (imp.Objeto != null)
                     {
                         huboImpacto = true;
-                        NetworkBehaviourReference zoneRef =
-                            imp.Zona != null ? new NetworkBehaviourReference(imp.Zona) : default;
-                        ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, zoneRef);
+                        ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, ReferenciaZona(imp));
                     }
                 }
             }
@@ -294,6 +289,9 @@ namespace TDOM.Unity.Combat
             }
             ReproducirGolpeRpc(evento.ComboIndex, cargado, evento.ChargeRatio);
         }
+
+        private static NetworkBehaviourReference ReferenciaZona(HitboxCaster.Impacto impacto) =>
+            impacto.Zona != null ? new NetworkBehaviourReference(impacto.Zona) : default;
 
         private bool EstaEnRango(
             ulong objetivoId,
@@ -388,29 +386,15 @@ namespace TDOM.Unity.Combat
                 return;
             }
 
-            if (
-                NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
-                    objetivoId,
-                    out var obj
-                )
-                && obj != null
-            )
-            {
-                if (hitZoneRef.TryGet(out HitZone hitZone) && hitZone != null)
-                {
-                    hitZone.RegistrarDanio(evento.Damage, OwnerClientId);
-                }
-                else
-                {
-                    Debug.Log(
-                        $"[SERVER] Golpe melee validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño"
-                    );
-                }
-            }
+            AplicarImpacto(evento, objetivoId, hitZoneRef, TipoImpactoOjo.Melee);
         }
 
         [Rpc(SendTo.Server)]
-        private void ReportarDisparoRpc(AttackEvent evento, ulong objetivoId)
+        private void ReportarDisparoRpc(
+            AttackEvent evento,
+            ulong objetivoId,
+            NetworkBehaviourReference hitZoneRef = default
+        )
         {
             if (!EstaEnRango(objetivoId, _rangoDisparo, tolerancia: 1.3f))
             {
@@ -420,26 +404,34 @@ namespace TDOM.Unity.Combat
                 return;
             }
 
+            AplicarImpacto(evento, objetivoId, hitZoneRef, TipoImpactoOjo.Disparo);
+        }
+
+        private void AplicarImpacto(
+            AttackEvent evento,
+            ulong objetivoId,
+            NetworkBehaviourReference hitZoneRef,
+            TipoImpactoOjo tipo
+        )
+        {
             if (
-                NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
+                !NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
                     objetivoId,
                     out var obj
                 )
-                && obj != null
+                || obj == null
             )
+                return;
+
+            if (hitZoneRef.TryGet(out HitZone hitZone) && hitZone != null)
             {
-                var hitZone = obj.GetComponentInChildren<HitZone>();
-                if (hitZone != null)
-                {
-                    hitZone.RegistrarDanio(evento.Damage, OwnerClientId);
-                }
-                else
-                {
-                    Debug.Log(
-                        $"[SERVER] Disparo validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño"
-                    );
-                }
+                hitZone.RegistrarImpacto(evento.Damage, OwnerClientId, tipo);
+                return;
             }
+
+            Debug.Log(
+                $"[SERVER] {tipo} validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño"
+            );
         }
 
         private Vector3 DireccionDeDisparo() =>
