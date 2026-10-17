@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 2051056658159739734}
   - component: {fileID: -7899386268560657394}
   - component: {fileID: -5263539372475750619}
+  - component: {fileID: 7370672464009637728}
   - component: {fileID: 214842757908221112}
   - component: {fileID: 3743253964765751442}
   m_Layer: 0
@@ -148,7 +149,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3659053022
+  GlobalObjectIdHash: 2539856075
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -311,6 +312,23 @@ MonoBehaviour:
   _perfil: {fileID: 11400000, guid: 24c037420e325f44991ec67351899b58, type: 2}
   _ataques: {fileID: 2051056658159739734}
   _jefe: {fileID: 1000000000000006}
+--- !u!114 &7370672464009637728
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3be24d1160f314849912b6a0b7a2ddab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.BossMovement
+  _jefe: {fileID: 1000000000000006}
+  _ataques: {fileID: 2051056658159739734}
+  _margenBorde: 3
+  _radioArenaTotalManual: 0
+  _segmentosGizmo: 64
 --- !u!114 &214842757908221112
 MonoBehaviour:
   m_ObjectHideFlags: 0
