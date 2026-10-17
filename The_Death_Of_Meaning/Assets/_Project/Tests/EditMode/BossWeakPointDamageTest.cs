@@ -29,6 +29,8 @@ namespace TDOM.Tests.EditMode
 
             Assert.IsFalse(danio.AdmiteImpacto(ojo, TipoImpactoOjo.Disparo));
             Assert.AreEqual(1f, fases.VidaActual);
+            Assert.AreEqual(EstadoOjo.Cerrado, danio.Estado(ojo));
+            Assert.AreEqual(1, fases.FaseActual);
         }
 
         [Test]
@@ -97,6 +99,16 @@ namespace TDOM.Tests.EditMode
 
             Assert.AreEqual(2, fases.FaseActual);
             Assert.AreEqual(Umbrales[0], fases.VidaActual, 1e-5f);
+        }
+
+        [Test]
+        public void Danio_que_deja_la_vida_justo_en_el_umbral_cambia_de_fase()
+        {
+            var fases = CrearFases();
+            var danio = new BossWeakPointDamage(CrearOjos(), fases);
+
+            Assert.IsTrue(danio.AplicarDanio(1f - Umbrales[0]));
+            Assert.AreEqual(2, fases.FaseActual);
         }
 
         [Test]
