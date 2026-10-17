@@ -120,7 +120,7 @@ namespace TDOM.Unity.Combat
             if (_ojos == null)
                 _ojos = GetComponent<OjosArek>();
 
-            _ojosListos = _ojos != null && _ojos.Preparar(_hitZones, _maquina);
+            _ojosListos = _ojos != null && _ojos.Preparar(_hitZones, _maquina, _fases.Length);
             if (!_ojosListos)
                 return;
 

@@ -64,7 +64,7 @@ namespace TDOM.Unity.Combat
         public event Action<ulong, float> DanioRecibido;
 
         /// <summary>Igual que RegistrarDanio, pero indica qué jugador hizo el daño.</summary>
-        public void RegistrarDanio(float cantidad, ulong atacanteId)
+        private void RegistrarDanio(float cantidad, ulong atacanteId)
         {
             if (!IsServer)
                 return;

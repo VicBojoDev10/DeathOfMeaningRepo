@@ -41,7 +41,7 @@ namespace TDOM.Unity.Combat
             }
         }
 
-        public bool Preparar(HitZone[] zonas, IBossPhaseState fases)
+        public bool Preparar(HitZone[] zonas, IBossPhaseState fases, int totalFases)
         {
             if (_perfil == null || zonas == null || zonas.Length == 0)
             {
@@ -49,11 +49,23 @@ namespace TDOM.Unity.Combat
                 return false;
             }
 
+            if (
+                _perfil.OjosActivosPorFase == null
+                || _perfil.OjosActivosPorFase.Length < totalFases
+            )
+            {
+                Debug.LogError(
+                    $"[OjosArek] WeakPointProfile necesita ojos activos para las {totalFases} fases."
+                );
+                return false;
+            }
+
             var ojos = new WeakPointStateMachine(
                 zonas.Length,
                 _perfil.DuracionAbierto,
                 _perfil.Cooldown,
-                _perfil.Semilla
+                _perfil.Semilla,
+                _perfil.OjosActivosPorFase
             );
             _danio = new BossWeakPointDamage(ojos, fases);
             _zonas = zonas;

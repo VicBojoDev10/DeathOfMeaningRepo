@@ -14,6 +14,9 @@ namespace TDOM.POCO.ScriptableObjects
 
         public int Semilla;
 
+        [Header("Ojos activos por fase (uno por BossPhaseProfile)")]
+        public int[] OjosActivosPorFase = { 2, 2, 2, 3, 3 };
+
         [Header("Visual placeholder por estado")]
         public Color ColorCerrado = Color.gray;
 
