@@ -73,8 +73,6 @@ namespace TDOM.Gameplay.Combat
 
         public int TotalOjos => _estados.Length;
 
-        public int FaseActual { get; private set; }
-
         public EstadoOjo Estado(int ojo)
         {
             ValidarOjo(ojo);
@@ -89,7 +87,6 @@ namespace TDOM.Gameplay.Combat
                     $"La fase debe estar entre 1 y {_ojosPorFase.Length}."
                 );
 
-            FaseActual = fase;
             _ojosActivosObjetivo = Math.Min(_ojosPorFase[fase - 1], TotalOjos);
 
             ApagarBrillantesSobrantes();
