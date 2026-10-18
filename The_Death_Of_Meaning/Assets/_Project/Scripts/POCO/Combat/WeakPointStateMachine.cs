@@ -110,6 +110,13 @@ namespace TDOM.Gameplay.Combat
             }
         }
 
+        public void AbrirOjoParaDebug(int ojo)
+        {
+            ValidarOjo(ojo);
+            _estados[ojo] = EstadoOjo.Abierto;
+            _timers[ojo] = 0f;
+        }
+
         public bool Disparo(int ojo)
         {
             ValidarOjo(ojo);

@@ -54,6 +54,18 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
+        public void Abrir_ojo_para_debug_permite_impacto_de_disparo()
+        {
+            var danio = new BossWeakPointDamage(CrearOjos(), CrearFases());
+            int ojo = Buscar(danio, EstadoOjo.Cerrado);
+
+            danio.AbrirOjoParaDebug(ojo);
+
+            Assert.AreEqual(EstadoOjo.Abierto, danio.Estado(ojo));
+            Assert.IsTrue(danio.AdmiteImpacto(ojo, TipoImpactoOjo.Disparo));
+        }
+
+        [Test]
         public void Disparo_a_un_ojo_brillando_no_es_admitido()
         {
             var danio = new BossWeakPointDamage(CrearOjos(), CrearFases());

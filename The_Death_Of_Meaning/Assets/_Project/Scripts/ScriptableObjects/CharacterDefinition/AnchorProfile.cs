@@ -8,6 +8,7 @@ namespace TDOM.Data
         public float Range;
         public float TravelSpeed;
         public float StuckDuration;
+        public float StuckDurationOnEye = 10f;
         public float Cooldown;
         public float ToleranciaOrigen = 6f;
     }
