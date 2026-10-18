@@ -5,7 +5,13 @@ flowchart TD
     SCH -->|Telegraph| AA[AtaquesArek.Lanzar]
     AA -->|"jugadores: distancia y daño reciente"| SEL["BossTargetSelector (BossTargetingProfile)"]
     SEL -->|"objetivo en rango del ataque o ninguno: no ataca"| AA
-    PJ["PlayerCombat / Proyectil (servidor)"] -->|"RegistrarDanio(cantidad, atacanteId)"| HZ
+    PJ["PlayerCombat / Proyectil (servidor)"] -->|"RegistrarImpacto(cantidad, atacanteId, Melee o Disparo)"| HZ
+    HZ -->|"IFiltroImpacto.Admite: solo ojo Abierto; el melee abre un ojo Brillando sin daño"| OJA["OjosArek (servidor)"]
+    BC -->|"Preparar, Tick, AplicarDanio"| OJA
+    OJA --> BWD["BossWeakPointDamage"]
+    BWD --> WPS["WeakPointStateMachine (WeakPointProfile)"]
+    BWD -->|"AplicarDanio: al cruzar VidaTransicion activa los ojos de la nueva fase"| PSM
+    OJA -->|"estado de cada ojo: NetworkList a clientes"| OJV["OjosArekVisual: color por estado (MaterialPropertyBlock)"]
     HZ -->|"DanioRecibido (evento, servidor)"| AGRO[BossAggroTracker]
     AGRO -->|"daño en los últimos X s"| AA
     AA -->|"perfil del ataque: AtaqueManoProfile, AtaqueTentaculoProfile, AtaqueMorteroProfile, AtaqueRayoProfile"| BASE["AtaqueArekBase (lanzador en NetworkVariable)"]
@@ -32,7 +38,7 @@ flowchart TD
     MORT -->|"JugadorGolpeadoRpc (SpecifiedInParams)"| HIT
     TENT -->|"JugadorGolpeadoRpc (SpecifiedInParams)"| HIT
     HZ["HitZone x12: ojos"] -->|"DanioRegistrado (evento, servidor)"| BC
-    BC -->|AplicarDano| PSM
+    BC -->|"AplicarDanio vía BossWeakPointDamage"| PSM
     PSM -->|"cambio de fase (uno por transición)"| FASE["Fase (NetworkVariable)"]
     PSM -->|"EnTransicion (DuracionTransicion): ignora daño, el scheduler no avanza"| BC
     PSM -->|"TransicionTerminada: ReiniciarPorCambioDeFase"| SCH

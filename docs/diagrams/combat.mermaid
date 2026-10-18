@@ -1,4 +1,4 @@
-﻿flowchart TD
+flowchart TD
     IN[InputSnapshot] --> PC["PlayerCombat.Tick (solo dueno)"]
     PC --> MEL["ComboStateMachine melee + InputBuffer"]
     PC --> RNG["ComboStateMachine disparo + InputBuffer"]
@@ -9,9 +9,10 @@
     GOLPE --> HB[HitboxCaster.DetectarImpactos]
     HB -->|"ReportarGolpeRpc (Server)"| VAL[Servidor valida el rango]
     DISP -->|"con prefab: DispararRpc (Server)"| PROY[Proyectil spawneado en el servidor]
-    DISP -->|"sin prefab: DetectarDisparo + ReportarDisparoRpc (Server)"| VAL
-    VAL --> HZ[HitZone.RegistrarDanio]
-    PROY --> HZ
+    DISP -->|"sin prefab: DetectarDisparo (zona más cercana) + ReportarDisparoRpc (Server)"| VAL
+    VAL -->|"Melee o Disparo"| HZ[HitZone.RegistrarImpacto]
+    PROY -->|Disparo| HZ
+    HZ -->|"IFiltroImpacto: en los ojos de AREK solo pasa si el ojo está Abierto"| OJA["OjosArek (BossArek)"]
     HZ -->|"DanioAcumulado (NetworkVariable)"| BOSS[BossController]
     GOLPE --> LOCAL["Local: PlayerCombatAnimator, CombatVfx, FeedbackDirector"]
     DISP --> LOCAL

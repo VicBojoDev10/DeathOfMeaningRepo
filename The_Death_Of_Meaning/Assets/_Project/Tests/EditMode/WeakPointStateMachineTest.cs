@@ -158,6 +158,30 @@ namespace TDOM.Tests.EditMode
             Assert.Throws<ArgumentOutOfRangeException>(() => maquina.ActivarFase(6));
         }
 
+        [Test]
+        public void Ojos_por_fase_configurados_definen_cuantos_ojos_brillan()
+        {
+            var maquina = new WeakPointStateMachine(semilla: Semilla, ojosPorFase: new[] { 4, 1 });
+
+            maquina.ActivarFase(1);
+            Assert.AreEqual(4, Contar(maquina, EstadoOjo.Brillando));
+
+            maquina.ActivarFase(2);
+            Assert.AreEqual(1, Contar(maquina, EstadoOjo.Brillando));
+            Assert.Throws<ArgumentOutOfRangeException>(() => maquina.ActivarFase(3));
+        }
+
+        [Test]
+        public void Ojos_por_fase_vacios_o_negativos_lanzan()
+        {
+            Assert.Throws<ArgumentException>(() =>
+                new WeakPointStateMachine(ojosPorFase: Array.Empty<int>())
+            );
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                new WeakPointStateMachine(ojosPorFase: new[] { 2, -1 })
+            );
+        }
+
         private static WeakPointStateMachine MaquinaEnFase1()
         {
             var maquina = new WeakPointStateMachine(semilla: Semilla);

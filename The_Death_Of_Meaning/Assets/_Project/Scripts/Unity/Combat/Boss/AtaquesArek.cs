@@ -69,10 +69,13 @@ namespace TDOM.Unity
 
         // Solo servidor.
         private BossAggroTracker _agro;
-        private BossTargetSelector _selector;
         private HitZone[] _zonas;
         private readonly List<BossTargetCandidate> _candidatos = new List<BossTargetCandidate>();
+        private readonly List<BossTargetCandidate> _candidatosMovimiento =
+            new List<BossTargetCandidate>();
         private readonly List<PlayerRoot> _jugadores = new List<PlayerRoot>();
+        private readonly TDOM.Gameplay.Combat.BossMovement _logicaMovimiento =
+            new TDOM.Gameplay.Combat.BossMovement();
 
         public override void OnNetworkSpawn()
         {
@@ -80,8 +83,6 @@ namespace TDOM.Unity
                 return;
 
             _agro = new BossAggroTracker(0f);
-            _selector = new BossTargetSelector(0f, 0f);
-
             _zonas = GetComponentsInChildren<HitZone>(true);
             foreach (var zona in _zonas)
                 zona.DanioRecibido += AlRecibirDanio;
@@ -89,6 +90,7 @@ namespace TDOM.Unity
 
         public override void OnNetworkDespawn()
         {
+            _logicaMovimiento.ResetearObjetivo();
             if (_zonas == null)
                 return;
 
@@ -125,13 +127,14 @@ namespace TDOM.Unity
                 return false;
             }
 
-            ActualizarAjustes();
-            ArmarCandidatos();
-            var motivo = _selector.Elegir(_candidatos, perfil.Rango, out ulong objetivoId);
-
-            if (motivo == MotivoObjetivo.Ninguno)
+            if (!TryActualizarObjetivoFijado(out ulong objetivoId, out bool zendreAnclado))
             {
-                // Más adelante: aquí el jefe spawnea minions en vez de atacar.
+                ObjetivoActual = null;
+                return false;
+            }
+
+            if (!zendreAnclado && !EstaEnRangoDeAtaque(objetivoId, perfil.Rango))
+            {
                 ObjetivoActual = null;
                 Debug.Log(
                     $"[AtaquesArek] {tipo}: ningún jugador en rango ({perfil.Rango:F0} m); no ataca."
@@ -140,28 +143,85 @@ namespace TDOM.Unity
             }
 
             ObjetivoActual = objetivoId;
-            Debug.Log($"[AtaquesArek] {tipo} contra cliente {objetivoId} ({motivo}).");
+            Debug.Log($"[AtaquesArek] {tipo} contra cliente {objetivoId} (objetivo fijado).");
             return true;
         }
 
         /// <summary>
-        /// Solo servidor: a quién mira el jefe ahora (dentro del radio de detección, por agro o
-        /// el más cercano). Lo usa BossGiroHaciaObjetivo.
+        /// Solo servidor: objetivo fijado por cercanía mientras siga en el radio de detección.
+        /// Si Zendre tiene un ojo anclado, se prioriza a Zendre. Lo usa BossGiroHaciaObjetivo.
         /// </summary>
         public bool TryObjetivoVisible(out ulong objetivoId)
         {
+            return TryActualizarObjetivoFijado(out objetivoId, out _);
+        }
+
+        public bool TryObjetivoMovimiento(out ulong objetivoId, out bool zendreAnclado)
+        {
+            return TryActualizarObjetivoFijado(out objetivoId, out zendreAnclado);
+        }
+
+        private bool TryActualizarObjetivoFijado(out ulong objetivoId, out bool zendreAnclado)
+        {
             objetivoId = 0;
-            if (!IsServer || _selector == null || _perfilObjetivo == null)
+            zendreAnclado = false;
+            if (!IsServer || _perfilObjetivo == null || _agro == null)
                 return false;
 
-            ActualizarAjustes();
             ArmarCandidatos();
-            var motivo = _selector.Elegir(
-                _candidatos,
-                _perfilObjetivo.radioDeteccion,
+            _candidatosMovimiento.Clear();
+            foreach (var candidato in _candidatos)
+            {
+                if (candidato.Distancia <= _perfilObjetivo.radioDeteccion)
+                    _candidatosMovimiento.Add(
+                        new BossTargetCandidate(candidato.Id, candidato.Distancia, 0f)
+                    );
+            }
+
+            ulong? anclado = null;
+            if (TryObjetivoAnclado(out ulong idAnclado))
+            {
+                anclado = idAnclado;
+                zendreAnclado = true;
+            }
+
+            return _logicaMovimiento.TryElegirObjetivo(
+                _candidatosMovimiento,
+                anclado,
                 out objetivoId
             );
-            return motivo != MotivoObjetivo.Ninguno;
+        }
+
+        private bool EstaEnRangoDeAtaque(ulong objetivoId, float rangoAtaque)
+        {
+            float alcance = Mathf.Min(rangoAtaque, _perfilObjetivo.radioDeteccion);
+            foreach (var candidato in _candidatosMovimiento)
+            {
+                if (candidato.Id == objetivoId && candidato.Distancia <= alcance)
+                    return true;
+            }
+            return false;
+        }
+
+        private bool TryObjetivoAnclado(out ulong objetivoId)
+        {
+            objetivoId = 0;
+            ListarJugadores(_jugadores);
+            foreach (var jugador in _jugadores)
+            {
+                if (jugador.CharacterId != CharacterIds.Zendre)
+                    continue;
+
+                var launcher = jugador.GetComponentInChildren<AnchorLauncher>();
+                var ancla = launcher != null ? launcher.AnclaActual : null;
+                if (ancla == null || !ancla.IsSpawned || !ancla.Pegada.Value || !ancla.PegadaEnOjo)
+                    continue;
+
+                objetivoId = jugador.OwnerClientId;
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>Solo servidor: posición del jugador de ese cliente, si sigue spawneado.</summary>
@@ -195,18 +255,12 @@ namespace TDOM.Unity
             }
         }
 
-        // Se leen cada vez para poder ajustar el perfil en Play.
-        private void ActualizarAjustes()
-        {
-            _agro.Ventana = _perfilObjetivo.ventanaAgro;
-            _selector.RadioDeteccion = _perfilObjetivo.radioDeteccion;
-            _selector.FactorAgroNotable = _perfilObjetivo.factorAgroNotable;
-        }
-
         // Distancia en XZ desde el jefe y daño reciente de cada jugador spawneado.
         private void ArmarCandidatos()
         {
             _candidatos.Clear();
+            if (_perfilObjetivo != null)
+                _agro.Ventana = _perfilObjetivo.ventanaAgro;
             float ahora = Time.time;
 
             ListarJugadores(_jugadores);
