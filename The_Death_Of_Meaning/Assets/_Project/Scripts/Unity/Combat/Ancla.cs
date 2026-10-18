@@ -21,6 +21,9 @@ namespace TDOM.Unity.Combat
         private float _distanciaRecorrida;
         private float _tiempoPegada;
         private float _radio = 0.2f;
+        private OjosArek _ojosAnclados;
+        private HitZone _ojoAnclado;
+        private BossController _jefeAnclado;
 
         private readonly RaycastHit[] _hitsBuffer = new RaycastHit[16];
 
@@ -68,7 +71,16 @@ namespace TDOM.Unity.Combat
 
             if (Pegada.Value)
             {
+                if (_ojoAnclado != null && !_ojosAnclados.EstaAbierto(_ojoAnclado))
+                {
+                    Despegar();
+                    return;
+                }
+
                 _tiempoPegada += dt;
+                float duracion = PegadaEnOjo ? _perfil.StuckDurationOnEye : _perfil.StuckDuration;
+                if (_tiempoPegada >= duracion && NetworkObject.IsSpawned)
+                    NetworkObject.Despawn();
             }
             else
             {
@@ -93,14 +105,18 @@ namespace TDOM.Unity.Combat
                 {
                     var hit = _hitsBuffer[i];
 
-                    if (hit.collider.GetComponentInParent<PlayerRoot>() != null)
+                    if (!PuedeAnclarse(hit.collider, out _, out _))
                         continue;
 
                     if (hit.distance <= 0f)
                     {
                         tocandoInicialmente = true;
-                        if (hit.collider.GetComponentInParent<HitZone>() != null)
-                            tocandoOjoInicialmente = true;
+                        if (PuedeAnclarse(hit.collider, out var ojos, out var zona))
+                        {
+                            tocandoOjoInicialmente = ojos != null && zona != null;
+                            if (tocandoOjoInicialmente)
+                                FijarOjo(ojos, zona);
+                        }
                         continue;
                     }
 
@@ -113,9 +129,10 @@ namespace TDOM.Unity.Combat
 
                 if (closestValidHit.HasValue)
                 {
-                    transform.position = closestValidHit.Value.point;
-                    PegadaEnOjo =
-                        closestValidHit.Value.collider.GetComponentInParent<HitZone>() != null;
+                    var hit = closestValidHit.Value;
+                    transform.position = hit.point;
+                    if (PuedeAnclarse(hit.collider, out var ojos, out var zona) && ojos != null)
+                        FijarOjo(ojos, zona);
                     Pegada.Value = true;
                     _tiempoPegada = 0f;
                 }
@@ -139,8 +156,46 @@ namespace TDOM.Unity.Combat
             }
         }
 
+        private bool PuedeAnclarse(Collider collider, out OjosArek ojos, out HitZone zona)
+        {
+            ojos = collider.GetComponentInParent<OjosArek>();
+            zona = collider.GetComponentInParent<HitZone>();
+
+            if (collider.GetComponentInParent<PlayerRoot>() != null)
+                return false;
+
+            var jefe = collider.GetComponentInParent<BossController>();
+            if (jefe != null)
+                return ojos != null && zona != null && ojos.EstaAbierto(zona);
+
+            return true;
+        }
+
+        private void FijarOjo(OjosArek ojos, HitZone zona)
+        {
+            _ojosAnclados = ojos;
+            _ojoAnclado = zona;
+            _jefeAnclado = ojos.GetComponent<BossController>();
+            PegadaEnOjo = true;
+            _jefeAnclado?.FijarAncladoEnOjo(true);
+        }
+
+        private void Despegar()
+        {
+            _jefeAnclado?.FijarAncladoEnOjo(false);
+            _jefeAnclado = null;
+            _ojosAnclados = null;
+            _ojoAnclado = null;
+            PegadaEnOjo = false;
+            Pegada.Value = false;
+            _tiempoPegada = 0f;
+            if (NetworkObject.IsSpawned)
+                NetworkObject.Despawn();
+        }
+
         public override void OnNetworkDespawn()
         {
+            _jefeAnclado?.FijarAncladoEnOjo(false);
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.SpawnManager != null)
             {
                 if (
@@ -153,7 +208,7 @@ namespace TDOM.Unity.Combat
                     var launcher = duenoObj.GetComponentInChildren<AnchorLauncher>();
                     if (launcher != null)
                     {
-                        launcher.AnclaActiva = false;
+                        launcher.NotificarDespawnAncla();
                     }
                 }
             }

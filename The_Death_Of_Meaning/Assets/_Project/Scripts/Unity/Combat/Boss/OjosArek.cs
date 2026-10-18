@@ -21,6 +21,12 @@ namespace TDOM.Unity.Combat
 
         public int TotalOjos => _estados.Count;
 
+        public bool EstaAbierto(HitZone zona)
+        {
+            int ojo = Array.IndexOf(_zonas, zona);
+            return ojo >= 0 && ojo < _estados.Count && Estado(ojo) == EstadoOjo.Abierto;
+        }
+
         public EstadoOjo Estado(int ojo) => (EstadoOjo)_estados[ojo];
 
         public override void OnNetworkSpawn()

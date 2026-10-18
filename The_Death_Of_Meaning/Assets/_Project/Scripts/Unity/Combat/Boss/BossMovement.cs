@@ -51,7 +51,7 @@ namespace TDOM.Unity
 
         private void Mover(float dt, int fase, bool ataqueEnCurso, BossAttackKind tipoAtaque)
         {
-            if (_jefe == null || !_jefe.IsServer || _jefe.Pausado)
+            if (_jefe == null || !_jefe.IsServer || _jefe.Pausado || _jefe.AncladoEnOjo)
                 return;
 
             Vector3 posicion = transform.position;

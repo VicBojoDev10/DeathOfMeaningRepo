@@ -27,6 +27,10 @@ namespace TDOM.Unity.Combat
         public event Action<float, int, bool, BossAttackKind> ServerMovementTick;
 
         private bool _pausado;
+        private bool _ancladoEnOjo;
+
+        public void FijarAncladoEnOjo(bool anclado) => _ancladoEnOjo = anclado;
+        public bool AncladoEnOjo => _ancladoEnOjo;
 
         public void Pausar(bool pausado) => _pausado = pausado;
 

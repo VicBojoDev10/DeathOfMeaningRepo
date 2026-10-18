@@ -26,10 +26,6 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private GameObject _anclaPrefab;
 
-        [SerializeField]
-        private float _tiempoMaximoColgado = 5f;
-
-        private float _tiempoColgado;
         private bool _esperandoSoltar;
 
         private CooldownTimer _cooldown;
@@ -42,6 +38,12 @@ namespace TDOM.Unity.Combat
         public void RegistrarAncla(Ancla ancla)
         {
             AnclaActual = ancla;
+        }
+
+        public void NotificarDespawnAncla()
+        {
+            AnclaActiva = false;
+            _esperandoSoltar = true;
         }
 
         public override void OnNetworkSpawn()
@@ -71,24 +73,10 @@ namespace TDOM.Unity.Combat
             {
                 _cooldown.Disparar();
                 AnclaActiva = true;
-                _tiempoColgado = 0f;
                 LanzarAnclaRpc(
                     _origen.position,
                     _root.ResolverApuntado(_origen.position).Direction
                 );
-            }
-            else if (AnclaActiva && holdingL2R1)
-            {
-                if (AnclaActual != null && AnclaActual.Pegada.Value)
-                {
-                    _tiempoColgado += dt;
-                    if (_tiempoColgado >= _tiempoMaximoColgado)
-                    {
-                        AnclaActiva = false;
-                        _esperandoSoltar = true;
-                        SoltarAnclaRpc();
-                    }
-                }
             }
             else if (AnclaActiva && !holdingL2R1)
             {
