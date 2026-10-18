@@ -1,6 +1,8 @@
 using TDOM.Unity.UI;
 using UnityEngine;
 using UnityEngine.UI;
+using Unity.Netcode;
+using UnityEngine.SceneManagement;
 
 namespace TDOM.Unity
 {
@@ -24,9 +26,9 @@ namespace TDOM.Unity
 
         private void OnEnable()
         {
-           
+            if (jugarDenuevoButton != null)
+                jugarDenuevoButton.onClick.AddListener(OnJugarDeNuevoClicked);
 
-           
 
             if (salirMenuButton != null)
                 salirMenuButton.onClick.AddListener(OnSalirMenuClicked);
@@ -34,9 +36,10 @@ namespace TDOM.Unity
 
         private void OnDisable()
         {
-            
 
-           
+            if (jugarDenuevoButton != null)
+                jugarDenuevoButton.onClick.RemoveListener(OnJugarDeNuevoClicked);
+
 
             if (salirMenuButton != null)
                 salirMenuButton.onClick.RemoveListener(OnSalirMenuClicked);
@@ -52,6 +55,11 @@ namespace TDOM.Unity
             {
                 UiManager.Instance.SwitchWindow(WindowsIds.OptionsUI, WindowsIds.MainMenuUI);
             }
+        }
+
+        private void OnJugarDeNuevoClicked()
+        {
+            Debug.Log("Jugar de nuevo");
         }
     }
 }
