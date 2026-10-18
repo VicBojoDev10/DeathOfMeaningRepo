@@ -27,6 +27,16 @@ namespace TDOM.Unity.Combat
             return ojo >= 0 && ojo < _estados.Count && Estado(ojo) == EstadoOjo.Abierto;
         }
 
+        public bool AbrirOjoParaDebug(int ojo)
+        {
+            if (!IsServer || _danio == null || ojo < 0 || ojo >= _danio.TotalOjos)
+                return false;
+
+            _danio.AbrirOjoParaDebug(ojo);
+            Sincronizar();
+            return true;
+        }
+
         public EstadoOjo Estado(int ojo) => (EstadoOjo)_estados[ojo];
 
         public override void OnNetworkSpawn()
