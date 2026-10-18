@@ -23,7 +23,6 @@ namespace TDOM.Unity.Combat
         private float _radio = 0.2f;
         private OjosArek _ojosAnclados;
         private HitZone _ojoAnclado;
-        private BossController _jefeAnclado;
 
         private readonly RaycastHit[] _hitsBuffer = new RaycastHit[16];
 
@@ -181,9 +180,7 @@ namespace TDOM.Unity.Combat
         {
             _ojosAnclados = ojos;
             _ojoAnclado = zona;
-            _jefeAnclado = ojos.GetComponent<BossController>();
             PegadaEnOjo = true;
-            _jefeAnclado?.FijarAncladoEnOjo(true);
         }
 
         private void Despegar()
@@ -195,13 +192,10 @@ namespace TDOM.Unity.Combat
             _tiempoPegada = 0f;
             if (NetworkObject.IsSpawned)
                 NetworkObject.Despawn();
-            else
-                LiberarJefeAnclado();
         }
 
         public override void OnNetworkDespawn()
         {
-            LiberarJefeAnclado();
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.SpawnManager != null)
             {
                 if (
@@ -218,15 +212,6 @@ namespace TDOM.Unity.Combat
                     }
                 }
             }
-        }
-
-        private void LiberarJefeAnclado()
-        {
-            if (_jefeAnclado == null)
-                return;
-
-            _jefeAnclado.FijarAncladoEnOjo(false);
-            _jefeAnclado = null;
         }
 
         private void UpdateClientVisuals()
