@@ -98,24 +98,26 @@ namespace TDOM.Unity.Combat
 
                 float minDistance = float.MaxValue;
                 RaycastHit? closestValidHit = null;
+                OjosArek ojosImpactados = null;
+                HitZone zonaImpactada = null;
                 bool tocandoInicialmente = false;
-                bool tocandoOjoInicialmente = false;
+                OjosArek ojosContactoInicial = null;
+                HitZone zonaContactoInicial = null;
 
                 for (int i = 0; i < hitCount; i++)
                 {
                     var hit = _hitsBuffer[i];
 
-                    if (!PuedeAnclarse(hit.collider, out _, out _))
+                    if (!PuedeAnclarse(hit.collider, out var ojos, out var zona))
                         continue;
 
                     if (hit.distance <= 0f)
                     {
                         tocandoInicialmente = true;
-                        if (PuedeAnclarse(hit.collider, out var ojos, out var zona))
+                        if (ojos != null && zona != null)
                         {
-                            tocandoOjoInicialmente = ojos != null && zona != null;
-                            if (tocandoOjoInicialmente)
-                                FijarOjo(ojos, zona);
+                            ojosContactoInicial = ojos;
+                            zonaContactoInicial = zona;
                         }
                         continue;
                     }
@@ -124,6 +126,8 @@ namespace TDOM.Unity.Combat
                     {
                         minDistance = hit.distance;
                         closestValidHit = hit;
+                        ojosImpactados = ojos;
+                        zonaImpactada = zona;
                     }
                 }
 
@@ -131,14 +135,16 @@ namespace TDOM.Unity.Combat
                 {
                     var hit = closestValidHit.Value;
                     transform.position = hit.point;
-                    if (PuedeAnclarse(hit.collider, out var ojos, out var zona) && ojos != null)
-                        FijarOjo(ojos, zona);
+                    if (ojosImpactados != null && zonaImpactada != null)
+                        FijarOjo(ojosImpactados, zonaImpactada);
                     Pegada.Value = true;
                     _tiempoPegada = 0f;
                 }
                 else if (tocandoInicialmente)
                 {
-                    PegadaEnOjo = tocandoOjoInicialmente;
+                    PegadaEnOjo = ojosContactoInicial != null && zonaContactoInicial != null;
+                    if (PegadaEnOjo)
+                        FijarOjo(ojosContactoInicial, zonaContactoInicial);
                     Pegada.Value = true;
                     _tiempoPegada = 0f;
                 }
@@ -182,8 +188,6 @@ namespace TDOM.Unity.Combat
 
         private void Despegar()
         {
-            _jefeAnclado?.FijarAncladoEnOjo(false);
-            _jefeAnclado = null;
             _ojosAnclados = null;
             _ojoAnclado = null;
             PegadaEnOjo = false;
@@ -191,11 +195,13 @@ namespace TDOM.Unity.Combat
             _tiempoPegada = 0f;
             if (NetworkObject.IsSpawned)
                 NetworkObject.Despawn();
+            else
+                LiberarJefeAnclado();
         }
 
         public override void OnNetworkDespawn()
         {
-            _jefeAnclado?.FijarAncladoEnOjo(false);
+            LiberarJefeAnclado();
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.SpawnManager != null)
             {
                 if (
@@ -212,6 +218,15 @@ namespace TDOM.Unity.Combat
                     }
                 }
             }
+        }
+
+        private void LiberarJefeAnclado()
+        {
+            if (_jefeAnclado == null)
+                return;
+
+            _jefeAnclado.FijarAncladoEnOjo(false);
+            _jefeAnclado = null;
         }
 
         private void UpdateClientVisuals()
