@@ -47,6 +47,21 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
+        public void Solo_se_puede_iniciar_una_cinematica_desde_gameplay_y_con_id()
+        {
+            var flujo = new GameFlowStateMachine(DuracionTransicion);
+
+            Assert.IsTrue(flujo.PuedeIniciarCinematica(IdCinematica));
+            Assert.IsFalse(flujo.PuedeIniciarCinematica(string.Empty));
+
+            flujo.IniciarCinematica(IdCinematica);
+            Assert.IsFalse(flujo.PuedeIniciarCinematica("otra"));
+
+            flujo.TerminarCinematica();
+            Assert.IsFalse(flujo.PuedeIniciarCinematica("otra"));
+        }
+
+        [Test]
         public void Una_transicion_retenida_no_vuelve_a_gameplay_aunque_pase_su_duracion()
         {
             var flujo = new GameFlowStateMachine(DuracionTransicion);

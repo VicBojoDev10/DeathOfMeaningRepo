@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using TDOM.Gameplay.Core;
 using Unity.Cinemachine;
+using UnityEngine;
 
 namespace TDOM.Unity.Flow
 {
@@ -9,16 +10,19 @@ namespace TDOM.Unity.Flow
     {
         private readonly CinemachineCamera _camara;
         private readonly ExitCameraPriority _prioridad;
+        private readonly float _margenEspera;
         private readonly Action _detenerDirector;
 
         public BlendCinematicExit(
             CinemachineCamera camara,
             int prioridadElevada,
+            float margenEspera,
             Action detenerDirector
         )
         {
             _camara = camara;
             _prioridad = new ExitCameraPriority(prioridadElevada);
+            _margenEspera = margenEspera;
             _detenerDirector = detenerDirector;
         }
 
@@ -33,8 +37,16 @@ namespace TDOM.Unity.Flow
             yield return null;
 
             var cerebro = CinemachineCore.FindPotentialTargetBrain(_camara);
-            while (cerebro != null && cerebro.IsBlending)
+            if (cerebro == null)
+                yield break;
+
+            float limite = cerebro.DefaultBlend.Time + _margenEspera;
+            float transcurrido = 0f;
+            while (cerebro.IsBlending && transcurrido < limite)
+            {
+                transcurrido += Time.deltaTime;
                 yield return null;
+            }
         }
 
         public void Cancelar() =>

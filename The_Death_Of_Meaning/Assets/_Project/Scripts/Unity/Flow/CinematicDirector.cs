@@ -43,6 +43,9 @@ namespace TDOM.Unity.Flow
         [SerializeField]
         private int _prioridadCamaraDeSalida = 100;
 
+        [SerializeField, Min(0f)]
+        private float _margenEsperaBlend = 0.5f;
+
         [Header("HUD")]
         [SerializeField]
         private GameplayUI _gameplayUI;
@@ -121,7 +124,7 @@ namespace TDOM.Unity.Flow
         [Rpc(SendTo.ClientsAndHost)]
         private void ReproducirRpc(string id)
         {
-            if (!_entradas.TryGetValue(id, out var entrada))
+            if (!_entradas.TryGetValue(id, out var entrada) || !_flujo.PuedeIniciarCinematica(id))
                 return;
 
             _salidaActual?.Cancelar();
@@ -173,15 +176,26 @@ namespace TDOM.Unity.Flow
         private IEnumerator RutinaSalida()
         {
             _flujo.RetenerTransicion();
-            if (_salidaActual != null)
-                yield return _salidaActual.Salir();
-            _salidaActual = null;
-            _flujo.LiberarTransicion();
+            try
+            {
+                if (_salidaActual != null)
+                    yield return _salidaActual.Salir();
+            }
+            finally
+            {
+                _salidaActual = null;
+                _flujo.LiberarTransicion();
+            }
         }
 
         private ICinematicExit CrearSalida(CinemachineCamera camaraDeSalida) =>
             camaraDeSalida != null
-                ? new BlendCinematicExit(camaraDeSalida, _prioridadCamaraDeSalida, DetenerDirector)
+                ? new BlendCinematicExit(
+                    camaraDeSalida,
+                    _prioridadCamaraDeSalida,
+                    _margenEsperaBlend,
+                    DetenerDirector
+                )
                 : new FadeCinematicExit(FundirA, DetenerDirector);
 
         private void DetenerDirector()

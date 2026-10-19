@@ -23,9 +23,12 @@ namespace TDOM.Gameplay.Core
 
         public event Action<EstadoFlujo> Cambio;
 
+        public bool PuedeIniciarCinematica(string id) =>
+            Estado == EstadoFlujo.Gameplay && !string.IsNullOrEmpty(id);
+
         public bool IniciarCinematica(string id)
         {
-            if (Estado != EstadoFlujo.Gameplay || string.IsNullOrEmpty(id))
+            if (!PuedeIniciarCinematica(id))
                 return false;
 
             IdActual = id;
