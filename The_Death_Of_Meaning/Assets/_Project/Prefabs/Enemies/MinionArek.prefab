@@ -105,6 +105,7 @@ GameObject:
   - component: {fileID: 68829085748316538}
   - component: {fileID: 8013070377561574418}
   - component: {fileID: 6513402276119838501}
+  - component: {fileID: 3443554195037143427}
   m_Layer: 6
   m_Name: MinionArek
   m_TagString: Untagged
@@ -285,3 +286,16 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &3443554195037143427
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8802607873738733211}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8eb3f22f61e633342a612b77aaad1453, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Camera.LockOnTarget
+  _puntoDeMira: {fileID: 0}
