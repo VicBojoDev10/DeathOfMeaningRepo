@@ -96,13 +96,13 @@ namespace TDOM.Unity.Combat
             return true;
         }
 
-        public bool Admite(HitZone zona, TipoImpactoOjo tipo)
+        public bool Admite(HitZone zona, TipoImpactoOjo tipo, bool atacanteEsAyla)
         {
             int ojo = Array.IndexOf(_zonas, zona);
             if (_danio == null || ojo < 0)
                 return false;
 
-            bool admitido = _danio.AdmiteImpacto(ojo, tipo);
+            bool admitido = _danio.AdmiteImpacto(ojo, tipo, atacanteEsAyla);
             Sincronizar();
             return admitido;
         }

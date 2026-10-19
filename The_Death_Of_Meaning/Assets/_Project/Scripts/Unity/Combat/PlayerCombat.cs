@@ -433,7 +433,8 @@ namespace TDOM.Unity.Combat
                     return;
                 }
 
-                hitZone.RegistrarImpacto(evento.Damage, OwnerClientId, tipo);
+                bool atacanteEsAyla = _definition != null && _definition.DisplayName == "Ayla";
+                hitZone.RegistrarImpacto(evento.Damage, OwnerClientId, tipo, atacanteEsAyla);
                 return;
             }
 
@@ -458,7 +459,8 @@ namespace TDOM.Unity.Combat
             Proyectil proyectil = go.GetComponent<Proyectil>();
             if (proyectil != null)
             {
-                proyectil.Inicializar(dir, evento.Damage, OwnerClientId);
+                bool atacanteEsAyla = _definition != null && _definition.DisplayName == "Ayla";
+                proyectil.Inicializar(dir, evento.Damage, OwnerClientId, atacanteEsAyla);
             }
             NetworkObject networkObject = go.GetComponent<NetworkObject>();
             if (networkObject != null)

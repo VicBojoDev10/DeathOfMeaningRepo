@@ -77,12 +77,17 @@ namespace TDOM.Unity.Combat
 
         public void AsignarFiltro(IFiltroImpacto filtro) => _filtro = filtro;
 
-        public void RegistrarImpacto(float cantidad, ulong atacanteId, TipoImpactoOjo tipo)
+        public void RegistrarImpacto(
+            float cantidad,
+            ulong atacanteId,
+            TipoImpactoOjo tipo,
+            bool atacanteEsAyla = false
+        )
         {
             if (!IsServer)
                 return;
 
-            if (_filtro != null && !_filtro.Admite(this, tipo))
+            if (_filtro != null && !_filtro.Admite(this, tipo, atacanteEsAyla))
             {
                 Debug.Log(
                     $"[SERVER][HitZone {_zoneIndex:D2}] Impacto {tipo} ignorado: el ojo no está abierto."
