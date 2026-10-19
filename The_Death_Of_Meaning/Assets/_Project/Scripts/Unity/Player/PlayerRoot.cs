@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TDOM.Contracts;
 using TDOM.Data;
@@ -16,6 +17,20 @@ namespace TDOM.Unity.Player
 {
     public class PlayerRoot : NetworkBehaviour
     {
+        public readonly struct CooldownValues
+        {
+            public float Dash { get; }
+            public float Gancho { get; }
+            public float Ancla { get; }
+
+            public CooldownValues(float dash, float gancho, float ancla)
+            {
+                Dash = dash;
+                Gancho = gancho;
+                Ancla = ancla;
+            }
+        }
+
         [SerializeField]
         private CharacterDefinition _definition;
 
@@ -70,6 +85,13 @@ namespace TDOM.Unity.Player
             || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
 
         public CharacterIds CharacterId => _characterId;
+        public event Action DashEmbestidaIniciada;
+        public CooldownValues Cooldowns =>
+            new CooldownValues(
+                _locomocion != null ? _locomocion.CooldownDashNormalizado : 0f,
+                _locomocion != null ? _locomocion.CooldownGanchoNormalizado : 0f,
+                _anchorLauncher != null ? _anchorLauncher.CooldownNormalizado : 0f
+            );
         public bool SpawnInicialAplicado => _initialSpawnApplied;
         public Transform CameraTransform => _camera != null ? _camera.CamaraTransform : null;
         public PlayerInputReader InputReader => _inputReader;
@@ -448,6 +470,8 @@ namespace TDOM.Unity.Player
             AplicarMiradaACamara();
 
             DispararFeedbackDeLocomocion();
+            if (_locomocion.DashIniciado)
+                DashEmbestidaIniciada?.Invoke();
             RegistrarDesplazamientoLateralEnCamara(input.Move);
 
             bool ganchoActivoActual = _locomocion != null && _locomocion.GanchoActivo;

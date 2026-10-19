@@ -32,6 +32,7 @@ namespace TDOM.Unity.Combat
         private NetworkObject _anclaSpawnada;
 
         public AnchorProfile Perfil => _perfil;
+        public float CooldownNormalizado => _cooldown != null ? _cooldown.Normalizado : 0f;
 
         public Ancla AnclaActual { get; private set; }
 
