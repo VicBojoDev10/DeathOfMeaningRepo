@@ -90,7 +90,7 @@ namespace TDOM.Unity.Combat
             if (_filtro != null && !_filtro.Admite(this, tipo, atacanteEsAyla))
             {
                 Debug.Log(
-                    $"[SERVER][HitZone {_zoneIndex:D2}] Impacto {tipo} ignorado: el ojo no está abierto."
+                    $"[SERVER][HitZone {_zoneIndex:D2}] Impacto {tipo} ignorado: el ojo no cumple las condiciones para recibir daño."
                 );
                 return;
             }

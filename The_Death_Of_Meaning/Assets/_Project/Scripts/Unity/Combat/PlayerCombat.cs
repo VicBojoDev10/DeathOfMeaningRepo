@@ -3,6 +3,7 @@ using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Camera;
+using TDOM.Unity;
 using TDOM.Unity.Player;
 using Unity.Netcode;
 using UnityEngine;
@@ -433,10 +434,15 @@ namespace TDOM.Unity.Combat
                     return;
                 }
 
+                var ataquesArek = obj.GetComponent<AtaquesArek>();
+                ataquesArek?.RegistrarImpacto(OwnerClientId);
+
                 bool atacanteEsAyla = _definition != null && _definition.DisplayName == "Ayla";
                 hitZone.RegistrarImpacto(evento.Damage, OwnerClientId, tipo, atacanteEsAyla);
                 return;
             }
+
+            obj.GetComponent<AtaquesArek>()?.RegistrarImpacto(OwnerClientId);
 
             Debug.Log(
                 $"[SERVER] {tipo} validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño"

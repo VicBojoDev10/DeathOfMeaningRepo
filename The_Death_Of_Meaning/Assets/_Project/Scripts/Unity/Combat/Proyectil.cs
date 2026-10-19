@@ -1,4 +1,5 @@
 using TDOM.Gameplay.Combat;
+using TDOM.Unity;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -84,12 +85,17 @@ namespace TDOM.Unity.Combat
 
                 if (hz != null)
                 {
+                    hit.collider.GetComponentInParent<AtaquesArek>()?.RegistrarImpacto(_atacanteId);
                     hz.RegistrarImpacto(
                         _daño,
                         _atacanteId,
                         TipoImpactoOjo.Disparo,
                         _atacanteEsAyla
                     );
+                }
+                else
+                {
+                    hit.collider.GetComponentInParent<AtaquesArek>()?.RegistrarImpacto(_atacanteId);
                 }
 
                 Debug.Log(
