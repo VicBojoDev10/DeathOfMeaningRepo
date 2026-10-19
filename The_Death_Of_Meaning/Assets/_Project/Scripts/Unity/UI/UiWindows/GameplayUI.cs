@@ -1,5 +1,6 @@
 using TDOM.Contracts;
 using TDOM.Gameplay.Camera;
+using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
 using UnityEngine;
 using UnityEngine.UI;
@@ -28,6 +29,11 @@ namespace TDOM.Unity
         [SerializeField]
         private float multiplicadorEscalaEnRango = 1.15f;
 
+        [Header("Vida del Jefe")]
+        [SerializeField]
+        private Slider _sliderVidaJefe;
+
+        private BossController _jefe;
         private PlayerRoot _localPlayer;
         private RectTransform _crosshairRect;
         private Vector3 _escalaBase;
@@ -58,15 +64,57 @@ namespace TDOM.Unity
             {
                 crosshairDefaultImage.gameObject.SetActive(false);
             }
+
+            MostrarSliderVidaJefe(_jefe != null);
+        }
+
+        private void OnEnable()
+        {
+            BossController.Spawned += AlSpawnearJefe;
         }
 
         private void OnDisable()
         {
+            BossController.Spawned -= AlSpawnearJefe;
+            DesuscribirJefe();
+
             _localPlayer = null;
             if (crosshairImage != null)
                 crosshairImage.gameObject.SetActive(false);
             if (crosshairDefaultImage != null)
                 crosshairDefaultImage.gameObject.SetActive(false);
+        }
+
+        private void AlSpawnearJefe(BossController jefe)
+        {
+            DesuscribirJefe();
+            _jefe = jefe;
+            _jefe.Vida.OnValueChanged += AlCambiarVidaJefe;
+            MostrarSliderVidaJefe(true);
+            ActualizarVidaJefe(_jefe.Vida.Value);
+        }
+
+        private void AlCambiarVidaJefe(float anterior, float actual) => ActualizarVidaJefe(actual);
+
+        private void ActualizarVidaJefe(float vida)
+        {
+            if (_sliderVidaJefe != null)
+                _sliderVidaJefe.value = vida;
+        }
+
+        private void DesuscribirJefe()
+        {
+            if (_jefe != null)
+                _jefe.Vida.OnValueChanged -= AlCambiarVidaJefe;
+
+            _jefe = null;
+            MostrarSliderVidaJefe(false);
+        }
+
+        private void MostrarSliderVidaJefe(bool visible)
+        {
+            if (_sliderVidaJefe != null)
+                _sliderVidaJefe.gameObject.SetActive(visible);
         }
 
         private void LateUpdate()

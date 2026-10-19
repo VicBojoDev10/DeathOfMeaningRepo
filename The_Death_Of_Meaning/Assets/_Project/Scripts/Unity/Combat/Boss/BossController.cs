@@ -19,6 +19,12 @@ namespace TDOM.Unity.Combat
             NetworkVariableWritePermission.Server
         );
 
+        public NetworkVariable<float> Vida = new NetworkVariable<float>(
+            1f,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
         public static event Action<BossController> Spawned;
 
         public event Action<int, int> OnFaseChanged;
@@ -121,6 +127,8 @@ namespace TDOM.Unity.Combat
 
             _maquina = new BossPhaseStateMachine(_fases);
             _maquina.TransicionTerminada += AlTerminarTransicion;
+            _maquina.VidaCambiada += AlCambiarVida;
+            Vida.Value = _maquina.VidaActual;
 
             if (_ojos == null)
                 _ojos = GetComponent<OjosArek>();
@@ -157,7 +165,10 @@ namespace TDOM.Unity.Combat
             Fase.OnValueChanged -= HandleFaseChanged;
 
             if (_maquina != null)
+            {
                 _maquina.TransicionTerminada -= AlTerminarTransicion;
+                _maquina.VidaCambiada -= AlCambiarVida;
+            }
 
             if (_hitZones == null)
                 return;
@@ -213,6 +224,8 @@ namespace TDOM.Unity.Combat
             if (!_maquina.EnTransicion)
                 AlTerminarTransicion();
         }
+
+        private void AlCambiarVida(float vida) => Vida.Value = vida;
 
         private void AlTerminarTransicion()
         {
