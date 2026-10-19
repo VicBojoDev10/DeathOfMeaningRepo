@@ -2,6 +2,7 @@ using DG.Tweening;
 using TDOM.Data;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Combat;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,6 +19,9 @@ namespace TDOM.Unity
         private CanvasGroup _grupoNombre;
 
         [SerializeField]
+        private TMP_Text _textoNombre;
+
+        [SerializeField]
         private BossHealthBarRevealProfile _perfil;
 
         private readonly BossHealthBarReveal _revelacion = new BossHealthBarReveal(true);
@@ -26,9 +30,9 @@ namespace TDOM.Unity
 
         private void Awake()
         {
-            _revelacion.Revelar += AlRevelar;
-            _revelacion.Ocultar += AlOcultar;
-            AlOcultar();
+            _revelacion.Mostrada += AlMostrarseBarra;
+            _revelacion.Ocultada += AlOcultarseBarra;
+            AlOcultarseBarra();
         }
 
         private void OnEnable()
@@ -44,8 +48,8 @@ namespace TDOM.Unity
 
         private void OnDestroy()
         {
-            _revelacion.Revelar -= AlRevelar;
-            _revelacion.Ocultar -= AlOcultar;
+            _revelacion.Mostrada -= AlMostrarseBarra;
+            _revelacion.Ocultada -= AlOcultarseBarra;
             _animacion?.Kill();
         }
 
@@ -58,6 +62,7 @@ namespace TDOM.Unity
             _jefe = jefe;
             _jefe.Vida.OnValueChanged += AlCambiarVida;
             ActualizarVida(_jefe.Vida.Value);
+            MostrarNombre(_jefe.Nombre);
             _revelacion.RegistrarJefe();
         }
 
@@ -78,7 +83,13 @@ namespace TDOM.Unity
                 _slider.value = vida;
         }
 
-        private void AlRevelar()
+        private void MostrarNombre(string nombre)
+        {
+            if (_textoNombre != null)
+                _textoNombre.text = nombre;
+        }
+
+        private void AlMostrarseBarra()
         {
             if (_slider == null || _perfil == null)
                 return;
@@ -98,7 +109,7 @@ namespace TDOM.Unity
                 _animacion.Append(DOTween.To(FijarAlphaNombre, 0f, 1f, _perfil.DuracionNombre));
         }
 
-        private void AlOcultar()
+        private void AlOcultarseBarra()
         {
             _animacion?.Kill();
             FijarAlphaNombre(0f);

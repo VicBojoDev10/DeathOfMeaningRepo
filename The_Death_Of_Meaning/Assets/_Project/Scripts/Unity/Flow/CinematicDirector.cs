@@ -61,8 +61,7 @@ namespace TDOM.Unity.Flow
         private readonly Dictionary<string, EntradaCatalogo> _entradas = new();
         private GameFlowStateMachine _flujo;
         private PlayableDirector _directorActual;
-        private CinemachineCamera _camaraDeSalidaActual;
-        private int _prioridadOriginalCamaraDeSalida;
+        private ICinematicExit _salidaActual;
         private BossController _jefe;
         private Coroutine _secuencia;
         private bool _reproduciendo;
@@ -126,7 +125,7 @@ namespace TDOM.Unity.Flow
                 return;
 
             _directorActual = entrada.Director;
-            _camaraDeSalidaActual = entrada.CamaraDeSalida;
+            _salidaActual = CrearSalida(entrada.CamaraDeSalida);
             _flujo.IniciarCinematica(id);
         }
 
@@ -162,7 +161,7 @@ namespace TDOM.Unity.Flow
             yield return FundirA(AlphaNegro);
 
             JugadorLocal()?.SetCamaraCedida(true);
-            ElevarCamaraDeSalida();
+            _salidaActual.Preparar();
             _directorActual.extrapolationMode = DirectorWrapMode.Hold;
             _directorActual.Play();
             _reproduciendo = true;
@@ -172,38 +171,21 @@ namespace TDOM.Unity.Flow
 
         private IEnumerator RutinaSalida()
         {
-            if (_camaraDeSalidaActual != null)
-            {
-                SalidaConBlend(_camaraDeSalidaActual);
-                yield break;
-            }
-
-            yield return FundirA(AlphaNegro);
-            DetenerDirector();
-            yield return FundirA(AlphaTransparente);
+            if (_salidaActual != null)
+                yield return _salidaActual.Salir();
+            _salidaActual = null;
         }
 
-        private void ElevarCamaraDeSalida()
-        {
-            if (_camaraDeSalidaActual == null)
-                return;
-
-            _prioridadOriginalCamaraDeSalida = _camaraDeSalidaActual.Priority.Value;
-            _camaraDeSalidaActual.Priority.Value = _prioridadCamaraDeSalida;
-        }
-
-        private void SalidaConBlend(CinemachineCamera camara)
-        {
-            DetenerDirector();
-            camara.Priority.Value = _prioridadOriginalCamaraDeSalida;
-        }
+        private ICinematicExit CrearSalida(CinemachineCamera camaraDeSalida) =>
+            camaraDeSalida != null
+                ? new BlendCinematicExit(camaraDeSalida, _prioridadCamaraDeSalida, DetenerDirector)
+                : new FadeCinematicExit(FundirA, DetenerDirector);
 
         private void DetenerDirector()
         {
             if (_directorActual != null)
                 _directorActual.Stop();
             _directorActual = null;
-            _camaraDeSalidaActual = null;
             JugadorLocal()?.SetCamaraCedida(false);
         }
 

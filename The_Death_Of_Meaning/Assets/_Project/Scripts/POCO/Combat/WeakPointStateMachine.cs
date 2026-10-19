@@ -126,11 +126,7 @@ namespace TDOM.Gameplay.Combat
         public bool ResolverImpacto(int ojo, TipoImpactoOjo tipo, bool atacanteEsAyla)
         {
             if (tipo == TipoImpactoOjo.Melee)
-            {
-                if (atacanteEsAyla)
-                    GolpeMelee(ojo);
-                return false;
-            }
+                return atacanteEsAyla && GolpeMelee(ojo) == ResultadoGolpe.Rebote;
 
             return !atacanteEsAyla && Disparo(ojo);
         }

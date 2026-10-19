@@ -63,6 +63,7 @@ namespace TDOM.Unity.Player
         private Vector3 _lastObservedPosition;
         public bool AtaqueActivo => MovimientoBloqueado || ModoPistola;
         private bool ModoPistola => _combat != null && _combat.DisparoActivo;
+        private bool PuedeApuntar => _definition != null && _definition.Ranged != null;
         private bool MovimientoBloqueado =>
             (_combat != null && _combat.BloqueaMovimiento)
             || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
@@ -312,10 +313,10 @@ namespace TDOM.Unity.Player
             );
         }
 
-        private void AlinearConCamaraAlAtacar(InputSnapshot input)
+        private void AlinearConCamaraAlAtacar(InputSnapshot input, bool apuntando)
         {
             bool iniciaAtaque = input.AttackPressed || input.FirePressed;
-            if (!_definition.Movement.SnapToCameraOnAttack || input.AimHeld || !iniciaAtaque)
+            if (!_definition.Movement.SnapToCameraOnAttack || apuntando || !iniciaAtaque)
                 return;
 
             float yawObjetivo = _fijacion.Activo
@@ -368,12 +369,13 @@ namespace TDOM.Unity.Player
 
             float dt = Time.deltaTime;
             var input = _inputReader.Read();
+            bool apuntando = input.AimHeld && PuedeApuntar;
 
             ActualizarMirada(input, dt);
 
             if (_camera != null)
                 _camera.ActualizarEncuadre(
-                    input.AimHeld,
+                    apuntando,
                     AtaqueActivo || _fijacion.Activo,
                     _locomocion.Corriendo,
                     dt
@@ -381,7 +383,7 @@ namespace TDOM.Unity.Player
 
             _motor.ProbeGround(_locomocion.State);
 
-            AlinearConCamaraAlAtacar(input);
+            AlinearConCamaraAlAtacar(input, apuntando);
 
             if (_combat != null)
                 _combat.Tick(input, dt);
@@ -413,7 +415,7 @@ namespace TDOM.Unity.Player
                 intent = new MotionIntent(Vector3.zero, ignoreGravity: true);
             }
             _motor.Apply(intent, dt);
-            _facing.Tick(_locomocion.State.Velocity, _look.Yaw, input.AimHeld || ModoPistola, dt);
+            _facing.Tick(_locomocion.State.Velocity, _look.Yaw, apuntando || ModoPistola, dt);
             transform.rotation = _facing.Rotacion;
             AplicarMiradaACamara();
 

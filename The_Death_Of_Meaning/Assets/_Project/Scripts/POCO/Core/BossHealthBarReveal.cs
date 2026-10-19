@@ -9,10 +9,10 @@ namespace TDOM.Gameplay.Core
 
         public BossHealthBarReveal(bool hudVisibleInicial) => _hudVisible = hudVisibleInicial;
 
-        public bool Revelada { get; private set; }
+        public bool Visible { get; private set; }
 
-        public event Action Revelar;
-        public event Action Ocultar;
+        public event Action Mostrada;
+        public event Action Ocultada;
 
         public void RegistrarJefe()
         {
@@ -23,11 +23,11 @@ namespace TDOM.Gameplay.Core
         public void RetirarJefe()
         {
             _jefePresente = false;
-            if (!Revelada)
+            if (!Visible)
                 return;
 
-            Revelada = false;
-            Ocultar?.Invoke();
+            Visible = false;
+            Ocultada?.Invoke();
         }
 
         public void CambiarVisibilidadHud(bool visible)
@@ -38,11 +38,11 @@ namespace TDOM.Gameplay.Core
 
         private void IntentarRevelar()
         {
-            if (Revelada || !_jefePresente || !_hudVisible)
+            if (Visible || !_jefePresente || !_hudVisible)
                 return;
 
-            Revelada = true;
-            Revelar?.Invoke();
+            Visible = true;
+            Mostrada?.Invoke();
         }
     }
 }

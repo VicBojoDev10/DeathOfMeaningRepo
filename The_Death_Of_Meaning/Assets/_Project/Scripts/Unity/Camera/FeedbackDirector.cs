@@ -53,12 +53,7 @@ namespace TDOM.Unity.Camera
             );
         }
 
-        public void OnGolpeConectado()
-        {
-            IniciarHitstop(_config.golpeHitstopFrames);
-        }
-
-        public void OnDisparo()
+        public void OnAtaquePropio()
         {
             IniciarHitstop(_config.golpeHitstopFrames);
         }

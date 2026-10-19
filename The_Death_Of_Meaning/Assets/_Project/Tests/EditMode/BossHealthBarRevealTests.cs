@@ -10,12 +10,12 @@ namespace TDOM.Tests.EditMode
         {
             var barra = new BossHealthBarReveal(true);
             int revelaciones = 0;
-            barra.Revelar += () => revelaciones++;
+            barra.Mostrada += () => revelaciones++;
 
             barra.CambiarVisibilidadHud(true);
 
             Assert.AreEqual(0, revelaciones);
-            Assert.IsFalse(barra.Revelada);
+            Assert.IsFalse(barra.Visible);
         }
 
         [Test]
@@ -23,12 +23,12 @@ namespace TDOM.Tests.EditMode
         {
             var barra = new BossHealthBarReveal(true);
             int revelaciones = 0;
-            barra.Revelar += () => revelaciones++;
+            barra.Mostrada += () => revelaciones++;
 
             barra.RegistrarJefe();
 
             Assert.AreEqual(1, revelaciones);
-            Assert.IsTrue(barra.Revelada);
+            Assert.IsTrue(barra.Visible);
         }
 
         [Test]
@@ -36,7 +36,7 @@ namespace TDOM.Tests.EditMode
         {
             var barra = new BossHealthBarReveal(true);
             int revelaciones = 0;
-            barra.Revelar += () => revelaciones++;
+            barra.Mostrada += () => revelaciones++;
 
             barra.CambiarVisibilidadHud(false);
             barra.RegistrarJefe();
@@ -51,7 +51,7 @@ namespace TDOM.Tests.EditMode
         {
             var barra = new BossHealthBarReveal(true);
             int revelaciones = 0;
-            barra.Revelar += () => revelaciones++;
+            barra.Mostrada += () => revelaciones++;
 
             barra.RegistrarJefe();
             barra.CambiarVisibilidadHud(false);
@@ -66,8 +66,8 @@ namespace TDOM.Tests.EditMode
             var barra = new BossHealthBarReveal(true);
             int revelaciones = 0;
             int ocultaciones = 0;
-            barra.Revelar += () => revelaciones++;
-            barra.Ocultar += () => ocultaciones++;
+            barra.Mostrada += () => revelaciones++;
+            barra.Ocultada += () => ocultaciones++;
 
             barra.RegistrarJefe();
             barra.RetirarJefe();
@@ -78,11 +78,11 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
-        public void Retirar_el_jefe_sin_barra_revelada_no_emite_ocultar()
+        public void Retirar_el_jefe_sin_barra_revelada_no_emite_ocultada()
         {
             var barra = new BossHealthBarReveal(false);
             int ocultaciones = 0;
-            barra.Ocultar += () => ocultaciones++;
+            barra.Ocultada += () => ocultaciones++;
 
             barra.RegistrarJefe();
             barra.RetirarJefe();

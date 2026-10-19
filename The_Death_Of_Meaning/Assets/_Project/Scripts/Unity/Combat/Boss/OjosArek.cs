@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using TDOM.Gameplay.Combat;
 using TDOM.POCO.ScriptableObjects;
 using Unity.Netcode;
@@ -15,7 +14,6 @@ namespace TDOM.Unity.Combat
         private readonly NetworkList<byte> _estados = new NetworkList<byte>();
         private BossWeakPointDamage _danio;
         private HitZone[] _zonas = Array.Empty<HitZone>();
-        private readonly HashSet<HitZone> _ojosAnclados = new HashSet<HitZone>();
 
         public event Action<int, EstadoOjo> EstadoOjoCambiado;
 
@@ -40,19 +38,6 @@ namespace TDOM.Unity.Combat
         {
             int ojo = Array.IndexOf(_zonas, zona);
             return ojo >= 0 && ojo < _estados.Count && Estado(ojo) == EstadoOjo.Abierto;
-        }
-
-        public bool EstaAnclado(HitZone zona) => zona != null && _ojosAnclados.Contains(zona);
-
-        public void RegistrarAncla(HitZone zona, bool anclada)
-        {
-            if (!IsServer || zona == null)
-                return;
-
-            if (anclada)
-                _ojosAnclados.Add(zona);
-            else
-                _ojosAnclados.Remove(zona);
         }
 
         public bool AbrirOjoParaDebug(int ojo)
@@ -83,7 +68,6 @@ namespace TDOM.Unity.Combat
                 if (zona != null)
                     zona.AsignarFiltro(null);
             }
-            _ojosAnclados.Clear();
         }
 
         public bool Preparar(HitZone[] zonas, IBossPhaseState fases, int totalFases)
@@ -129,9 +113,6 @@ namespace TDOM.Unity.Combat
         {
             int ojo = Array.IndexOf(_zonas, zona);
             if (_danio == null || ojo < 0)
-                return false;
-
-            if (tipo == TipoImpactoOjo.Disparo && !atacanteEsAyla && !EstaAnclado(zona))
                 return false;
 
             bool admitido = _danio.AdmiteImpacto(ojo, tipo, atacanteEsAyla);

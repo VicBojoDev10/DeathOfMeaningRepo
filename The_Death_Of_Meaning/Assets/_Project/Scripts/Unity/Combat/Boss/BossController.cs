@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TDOM.Contracts;
+using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.POCO.ScriptableObjects;
 using TDOM.Unity.Player;
@@ -24,6 +25,12 @@ namespace TDOM.Unity.Combat
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server
         );
+
+        [Header("Identidad")]
+        [SerializeField]
+        private BossIdentity _identidad;
+
+        public string Nombre => _identidad != null ? _identidad.Nombre : string.Empty;
 
         public static event Action<BossController> Spawned;
 

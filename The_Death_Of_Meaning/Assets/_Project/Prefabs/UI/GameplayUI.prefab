@@ -400,6 +400,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.BossHealthBar
   _slider: {fileID: 4812705461471592989}
   _grupoNombre: {fileID: 7578726491776353341}
+  _textoNombre: {fileID: 8656325555480148678}
   _perfil: {fileID: 11400000, guid: 4128e8a198e798a419fea0260825d524, type: 2}
 --- !u!1 &4324071819346978120
 GameObject:
@@ -828,7 +829,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'JIKOTSU: STRANDED SOUL, THE UNMADE'
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
