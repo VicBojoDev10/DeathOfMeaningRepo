@@ -32,7 +32,12 @@ namespace TDOM.Unity.Combat
         public float Daño => _daño;
         public Vector3 Direccion => _direccion;
 
-        public void Inicializar(Vector3 dir, float daño, ulong atacanteId, bool atacanteEsAyla = false)
+        public void Inicializar(
+            Vector3 dir,
+            float daño,
+            ulong atacanteId,
+            bool atacanteEsAyla = false
+        )
         {
             _direccion = dir.sqrMagnitude > 0.0001f ? dir.normalized : transform.forward;
             _daño = daño;
