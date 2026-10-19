@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using TDOM.Gameplay.Combat;
 using TDOM.POCO.ScriptableObjects;
 using Unity.Netcode;
@@ -14,6 +15,7 @@ namespace TDOM.Unity.Combat
         private readonly NetworkList<byte> _estados = new NetworkList<byte>();
         private BossWeakPointDamage _danio;
         private HitZone[] _zonas = Array.Empty<HitZone>();
+        private readonly HashSet<HitZone> _ojosAnclados = new HashSet<HitZone>();
 
         public event Action<int, EstadoOjo> EstadoOjoCambiado;
 
@@ -21,10 +23,36 @@ namespace TDOM.Unity.Combat
 
         public int TotalOjos => _estados.Count;
 
+        public bool HayOjoAbierto
+        {
+            get
+            {
+                for (int i = 0; i < _estados.Count; i++)
+                {
+                    if (Estado(i) == EstadoOjo.Abierto)
+                        return true;
+                }
+                return false;
+            }
+        }
+
         public bool EstaAbierto(HitZone zona)
         {
             int ojo = Array.IndexOf(_zonas, zona);
             return ojo >= 0 && ojo < _estados.Count && Estado(ojo) == EstadoOjo.Abierto;
+        }
+
+        public bool EstaAnclado(HitZone zona) => zona != null && _ojosAnclados.Contains(zona);
+
+        public void RegistrarAncla(HitZone zona, bool anclada)
+        {
+            if (!IsServer || zona == null)
+                return;
+
+            if (anclada)
+                _ojosAnclados.Add(zona);
+            else
+                _ojosAnclados.Remove(zona);
         }
 
         public bool AbrirOjoParaDebug(int ojo)
@@ -55,6 +83,7 @@ namespace TDOM.Unity.Combat
                 if (zona != null)
                     zona.AsignarFiltro(null);
             }
+            _ojosAnclados.Clear();
         }
 
         public bool Preparar(HitZone[] zonas, IBossPhaseState fases, int totalFases)
@@ -96,13 +125,16 @@ namespace TDOM.Unity.Combat
             return true;
         }
 
-        public bool Admite(HitZone zona, TipoImpactoOjo tipo)
+        public bool Admite(HitZone zona, TipoImpactoOjo tipo, bool atacanteEsAyla)
         {
             int ojo = Array.IndexOf(_zonas, zona);
             if (_danio == null || ojo < 0)
                 return false;
 
-            bool admitido = _danio.AdmiteImpacto(ojo, tipo);
+            if (tipo == TipoImpactoOjo.Disparo && !atacanteEsAyla && !EstaAnclado(zona))
+                return false;
+
+            bool admitido = _danio.AdmiteImpacto(ojo, tipo, atacanteEsAyla);
             Sincronizar();
             return admitido;
         }

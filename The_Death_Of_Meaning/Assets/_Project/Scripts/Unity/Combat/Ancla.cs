@@ -181,10 +181,12 @@ namespace TDOM.Unity.Combat
             _ojosAnclados = ojos;
             _ojoAnclado = zona;
             PegadaEnOjo = true;
+            _ojosAnclados.RegistrarAncla(_ojoAnclado, true);
         }
 
         private void Despegar()
         {
+            _ojosAnclados?.RegistrarAncla(_ojoAnclado, false);
             _ojosAnclados = null;
             _ojoAnclado = null;
             PegadaEnOjo = false;
@@ -196,6 +198,7 @@ namespace TDOM.Unity.Combat
 
         public override void OnNetworkDespawn()
         {
+            _ojosAnclados?.RegistrarAncla(_ojoAnclado, false);
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.SpawnManager != null)
             {
                 if (

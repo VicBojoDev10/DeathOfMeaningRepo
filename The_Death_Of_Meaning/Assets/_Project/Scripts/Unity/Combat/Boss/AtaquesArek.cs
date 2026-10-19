@@ -67,6 +67,17 @@ namespace TDOM.Unity
         /// <summary>Solo servidor: jugador elegido para el último ataque (null si nadie estaba en rango).</summary>
         public ulong? ObjetivoActual { get; private set; }
 
+        /// <summary>Un impacto válido cambia el tracking al jugador que lo conectó.</summary>
+        public void RegistrarImpacto(ulong atacanteId)
+        {
+            if (!IsServer)
+                return;
+
+            _logicaMovimiento.FijarObjetivo(atacanteId);
+            _agro?.Registrar(atacanteId, 1f, Time.time);
+            Debug.Log($"[AtaquesArek] Tracking cambiado al cliente {atacanteId} por impacto.");
+        }
+
         // Solo servidor.
         private BossAggroTracker _agro;
         private HitZone[] _zonas;

@@ -123,13 +123,23 @@ namespace TDOM.Gameplay.Combat
             return _estados[ojo] == EstadoOjo.Abierto;
         }
 
+        public bool ResolverImpacto(int ojo, TipoImpactoOjo tipo, bool atacanteEsAyla)
+        {
+            if (tipo == TipoImpactoOjo.Melee)
+            {
+                if (atacanteEsAyla)
+                    GolpeMelee(ojo);
+                return false;
+            }
+
+            return !atacanteEsAyla && Disparo(ojo);
+        }
+
         public bool ResolverImpacto(int ojo, TipoImpactoOjo tipo)
         {
             bool estabaAbierto = Disparo(ojo);
-
             if (tipo == TipoImpactoOjo.Melee)
                 GolpeMelee(ojo);
-
             return estabaAbierto;
         }
 

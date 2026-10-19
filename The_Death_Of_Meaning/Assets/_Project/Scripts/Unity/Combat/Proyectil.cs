@@ -1,4 +1,5 @@
 using TDOM.Gameplay.Combat;
+using TDOM.Unity;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -21,6 +22,7 @@ namespace TDOM.Unity.Combat
         private Vector3 _direccion;
         private float _daño;
         private ulong _atacanteId;
+        private bool _atacanteEsAyla;
         private float _tiempoVida;
 
         public float Velocidad => _velocidad;
@@ -30,11 +32,17 @@ namespace TDOM.Unity.Combat
         public float Daño => _daño;
         public Vector3 Direccion => _direccion;
 
-        public void Inicializar(Vector3 dir, float daño, ulong atacanteId)
+        public void Inicializar(
+            Vector3 dir,
+            float daño,
+            ulong atacanteId,
+            bool atacanteEsAyla = false
+        )
         {
             _direccion = dir.sqrMagnitude > 0.0001f ? dir.normalized : transform.forward;
             _daño = daño;
             _atacanteId = atacanteId;
+            _atacanteEsAyla = atacanteEsAyla;
             _tiempoVida = 0f;
         }
 
@@ -82,7 +90,17 @@ namespace TDOM.Unity.Combat
 
                 if (hz != null)
                 {
-                    hz.RegistrarImpacto(_daño, _atacanteId, TipoImpactoOjo.Disparo);
+                    hit.collider.GetComponentInParent<AtaquesArek>()?.RegistrarImpacto(_atacanteId);
+                    hz.RegistrarImpacto(
+                        _daño,
+                        _atacanteId,
+                        TipoImpactoOjo.Disparo,
+                        _atacanteEsAyla
+                    );
+                }
+                else
+                {
+                    hit.collider.GetComponentInParent<AtaquesArek>()?.RegistrarImpacto(_atacanteId);
                 }
 
                 Debug.Log(

@@ -52,6 +52,8 @@ namespace TDOM.Unity.Combat
         /// <summary>Perfil de la fase actual (null si no está configurado). Lo usa MinionSpawner.</summary>
         public BossPhaseProfile PerfilFaseActual => PerfilDeFase(Fase.Value);
 
+        public bool HayOjoAbierto => _ojos != null && _ojos.HayOjoAbierto;
+
         [SerializeField]
         private float _vidaMaxima = 1000f;
 
