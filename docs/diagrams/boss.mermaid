@@ -44,7 +44,8 @@ flowchart TD
     PSM -->|"TransicionTerminada: ReiniciarPorCambioDeFase"| SCH
     PSM -->|"VidaCambiada (evento, servidor)"| VIDA["Vida normalizada (NetworkVariable)"]
     PSM -.->|"Muerto: vida 0 en la última fase, una sola vez"| MUERTE["Victoria (pendiente, TW-153 / TW-157)"]
-    BC -->|"Spawned (evento estatico)"| GUI["GameplayUI"]
+    BC -->|"Spawned (evento estatico)"| GUI["BossHealthBar (GameplayUI)"]
+    CD -->|"SetHudVisible: revela la barra al volver el HUD (BossHealthBarReveal)"| GUI
     VIDA -->|"OnValueChanged: Slider de vida del jefe"| GUI
     FASE -->|OnFaseChanged| CD[CinematicDirector]
     FASE -->|"OnValueChanged: ColorFase en el cuerpo"| BC
