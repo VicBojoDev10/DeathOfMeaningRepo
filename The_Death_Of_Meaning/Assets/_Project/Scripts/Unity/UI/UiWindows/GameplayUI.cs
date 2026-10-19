@@ -28,6 +28,10 @@ namespace TDOM.Unity
         [SerializeField]
         private float multiplicadorEscalaEnRango = 1.15f;
 
+        [Header("Vida del Jefe")]
+        [SerializeField]
+        private BossHealthBar _barraVidaJefe;
+
         private PlayerRoot _localPlayer;
         private RectTransform _crosshairRect;
         private Vector3 _escalaBase;
@@ -38,6 +42,9 @@ namespace TDOM.Unity
             _hudVisible = visible;
             if (canvasGroup != null)
                 canvasGroup.alpha = visible ? 1f : 0f;
+
+            if (_barraVidaJefe != null)
+                _barraVidaJefe.CambiarVisibilidadHud(visible);
         }
 
         public override void Initialize()

@@ -214,7 +214,7 @@ namespace TDOM.Unity.Combat
                 _vfx.Disparo(cargado);
             _debugFeedback?.FlashActive(0.1f);
             if (_feedback != null)
-                _feedback.OnDisparo();
+                _feedback.OnAtaquePropio();
 
             if (_proyectilPrefab != null && _origenDisparo != null)
             {
@@ -286,7 +286,7 @@ namespace TDOM.Unity.Combat
             }
             if (huboImpacto && _feedback != null)
             {
-                _feedback.OnGolpeConectado();
+                _feedback.OnAtaquePropio();
             }
             ReproducirGolpeRpc(evento.ComboIndex, cargado, evento.ChargeRatio);
         }

@@ -1,13 +1,14 @@
 flowchart TD
     BTN["Boton debug: Probar cinematica (host)"] --> REP
-    FASE["BossController.OnFaseChanged con _reproducirEnCambioDeFase"] -->|"id fase_n"| REP
+    FASE["BossController.OnFaseChanged con _reproducirEnCambioDeFase"] -->|"id fase_n (fase_2: primer plano, rugido y alejamiento)"| REP
     REP["CinematicDirector.Reproducir (solo servidor, desde Gameplay)"] -->|"ReproducirRpc (ClientsAndHost)"| INI
     subgraph CADA["En el host y en cada cliente"]
         INI[GameFlowStateMachine.IniciarCinematica] --> CIN[Estado Cinematica]
         CIN --> CTRL["Sin input ni HUD: PlayerRoot.SetControlCinematica, GameplayUI.SetHudVisible"]
         CIN --> ENT["Fade a negro, PlayerCameraRig.CederPrioridad, PlayableDirector.Play, fade de vuelta"]
-        TRA[Estado Transicion] --> SAL["Fade a negro, PlayableDirector.Stop, recupera camara, fade de vuelta"]
-        TRA -->|"Tick: dura 2 x duracion del fade"| GP[Estado Gameplay]
+        TRA[Estado Transicion] --> SAL["FadeCinematicExit (sin CamaraDeSalida): fade a negro, PlayableDirector.Stop, recupera camara, fade de vuelta"]
+        TRA --> BLEND["BlendCinematicExit (con CamaraDeSalida, fase_2): sube su prioridad al entrar (ExitCameraPriority), PlayableDirector.Stop, recupera camara y blend a la camara real del jugador"]
+        TRA -->|"Tick: dura al menos 2 x duracion del fade y queda retenida hasta que termina la salida (fundido o blend)"| GP[Estado Gameplay]
         GP --> VUELTA[Regresan input y HUD]
     end
     ENT -->|"servidor: el Timeline llega al final"| FIN["TerminarRpc (ClientsAndHost)"]

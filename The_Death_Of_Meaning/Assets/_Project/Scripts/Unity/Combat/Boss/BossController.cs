@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TDOM.Contracts;
+using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.POCO.ScriptableObjects;
 using TDOM.Unity.Player;
@@ -19,7 +20,44 @@ namespace TDOM.Unity.Combat
             NetworkVariableWritePermission.Server
         );
 
+        public NetworkVariable<float> Vida = new NetworkVariable<float>(
+            1f,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
+        [Header("Identidad")]
+        [SerializeField]
+        private BossIdentity _identidad;
+
+        public string Nombre => _identidad != null ? _identidad.Nombre : string.Empty;
+
         public static event Action<BossController> Spawned;
+
+        public static void ObservarJefe(NetworkManager red, Action<BossController> alAparecer)
+        {
+            Spawned += alAparecer;
+            if (TryEncontrarSpawneado(red, out BossController jefe))
+                alAparecer(jefe);
+        }
+
+        public static void DejarDeObservarJefe(Action<BossController> alAparecer) =>
+            Spawned -= alAparecer;
+
+        private static bool TryEncontrarSpawneado(NetworkManager red, out BossController jefe)
+        {
+            jefe = null;
+            if (red == null || red.SpawnManager == null)
+                return false;
+
+            foreach (var objeto in red.SpawnManager.SpawnedObjectsList)
+            {
+                if (objeto != null && objeto.TryGetComponent(out jefe))
+                    return true;
+            }
+
+            return false;
+        }
 
         public event Action<int, int> OnFaseChanged;
 
@@ -121,6 +159,8 @@ namespace TDOM.Unity.Combat
 
             _maquina = new BossPhaseStateMachine(_fases);
             _maquina.TransicionTerminada += AlTerminarTransicion;
+            _maquina.VidaCambiada += AlCambiarVida;
+            Vida.Value = _maquina.VidaActual;
 
             if (_ojos == null)
                 _ojos = GetComponent<OjosArek>();
@@ -157,7 +197,10 @@ namespace TDOM.Unity.Combat
             Fase.OnValueChanged -= HandleFaseChanged;
 
             if (_maquina != null)
+            {
                 _maquina.TransicionTerminada -= AlTerminarTransicion;
+                _maquina.VidaCambiada -= AlCambiarVida;
+            }
 
             if (_hitZones == null)
                 return;
@@ -213,6 +256,8 @@ namespace TDOM.Unity.Combat
             if (!_maquina.EnTransicion)
                 AlTerminarTransicion();
         }
+
+        private void AlCambiarVida(float vida) => Vida.Value = vida;
 
         private void AlTerminarTransicion()
         {
@@ -438,7 +483,7 @@ namespace TDOM.Unity.Combat
             if (!_mostrarDebugUI || !IsSpawned)
                 return;
 
-            GUILayout.BeginArea(new Rect(10, 200, 430, 480), "Boss AREK Debug", GUI.skin.window);
+            GUILayout.BeginArea(new Rect(10, 200, 490, 480), "Boss AREK Debug", GUI.skin.window);
 
             string rol = IsServer
                 ? (IsHost ? "Host (Server + Client)" : "Dedicated Server")
@@ -486,6 +531,9 @@ namespace TDOM.Unity.Combat
 
                     if (IsServer)
                     {
+                        if (GUILayout.Button("Brillar", GUILayout.Width(55)))
+                            _ojos?.BrillarOjoParaDebug(i);
+
                         if (GUILayout.Button("Abrir", GUILayout.Width(55)))
                             _ojos?.AbrirOjoParaDebug(i);
 
