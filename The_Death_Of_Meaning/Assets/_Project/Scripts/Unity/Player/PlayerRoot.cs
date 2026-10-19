@@ -107,10 +107,11 @@ namespace TDOM.Unity.Player
                 Energia.Value = _energyPool.Current;
             }
 
+            _characterId = GetCharacterId();
+
             if (IsOwner)
             {
-                _characterId = GetCharacterId();
-                _inputReader.ActivarPersonaje(GetCharacterId());
+                _inputReader.ActivarPersonaje(_characterId);
                 if (_hudEnergiaPrefab != null)
                 {
                     _hudInstance = Instantiate(_hudEnergiaPrefab);

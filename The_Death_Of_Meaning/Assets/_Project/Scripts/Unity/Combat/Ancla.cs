@@ -7,6 +7,13 @@ namespace TDOM.Unity.Combat
 {
     public sealed class Ancla : NetworkBehaviour
     {
+        private enum ContactoAncla
+        {
+            Ignorar,
+            Anclable,
+            OjoEquivocado,
+        }
+
         [SerializeField]
         private LineRenderer _lineRenderer;
 
@@ -99,7 +106,9 @@ namespace TDOM.Unity.Combat
                 RaycastHit? closestValidHit = null;
                 OjosArek ojosImpactados = null;
                 HitZone zonaImpactada = null;
+                bool impactoEnOjoEquivocado = false;
                 bool tocandoInicialmente = false;
+                bool tocandoOjoEquivocado = false;
                 OjosArek ojosContactoInicial = null;
                 HitZone zonaContactoInicial = null;
 
@@ -107,11 +116,20 @@ namespace TDOM.Unity.Combat
                 {
                     var hit = _hitsBuffer[i];
 
-                    if (!PuedeAnclarse(hit.collider, out var ojos, out var zona))
+                    var contacto = Clasificar(hit.collider, out var ojos, out var zona);
+                    if (contacto == ContactoAncla.Ignorar)
                         continue;
+
+                    bool ojoEquivocado = contacto == ContactoAncla.OjoEquivocado;
 
                     if (hit.distance <= 0f)
                     {
+                        if (ojoEquivocado)
+                        {
+                            tocandoOjoEquivocado = true;
+                            continue;
+                        }
+
                         tocandoInicialmente = true;
                         if (ojos != null && zona != null)
                         {
@@ -125,12 +143,17 @@ namespace TDOM.Unity.Combat
                     {
                         minDistance = hit.distance;
                         closestValidHit = hit;
+                        impactoEnOjoEquivocado = ojoEquivocado;
                         ojosImpactados = ojos;
                         zonaImpactada = zona;
                     }
                 }
 
-                if (closestValidHit.HasValue)
+                if (impactoEnOjoEquivocado || (!closestValidHit.HasValue && tocandoOjoEquivocado))
+                {
+                    Retraer();
+                }
+                else if (closestValidHit.HasValue)
                 {
                     var hit = closestValidHit.Value;
                     transform.position = hit.point;
@@ -153,27 +176,36 @@ namespace TDOM.Unity.Combat
                     _distanciaRecorrida += step;
 
                     if (_distanciaRecorrida >= _perfil.Range)
-                    {
-                        if (NetworkObject.IsSpawned)
-                            NetworkObject.Despawn();
-                    }
+                        Retraer();
                 }
             }
         }
 
-        private bool PuedeAnclarse(Collider collider, out OjosArek ojos, out HitZone zona)
+        private void Retraer()
+        {
+            if (NetworkObject.IsSpawned)
+                NetworkObject.Despawn();
+        }
+
+        private static ContactoAncla Clasificar(
+            Collider collider,
+            out OjosArek ojos,
+            out HitZone zona
+        )
         {
             ojos = collider.GetComponentInParent<OjosArek>();
             zona = collider.GetComponentInParent<HitZone>();
 
             if (collider.GetComponentInParent<PlayerRoot>() != null)
-                return false;
+                return ContactoAncla.Ignorar;
 
-            var jefe = collider.GetComponentInParent<BossController>();
-            if (jefe != null)
-                return ojos != null && zona != null && ojos.AdmiteAncla(zona);
+            if (collider.GetComponentInParent<BossController>() == null)
+                return ContactoAncla.Anclable;
 
-            return true;
+            if (ojos == null || zona == null)
+                return ContactoAncla.Ignorar;
+
+            return ojos.AdmiteAncla(zona) ? ContactoAncla.Anclable : ContactoAncla.OjoEquivocado;
         }
 
         private void FijarOjo(OjosArek ojos, HitZone zona)
