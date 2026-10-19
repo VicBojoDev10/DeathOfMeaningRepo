@@ -4,6 +4,6 @@ namespace TDOM.Unity.Combat
 {
     public interface IFiltroImpacto
     {
-        bool Admite(HitZone zona, TipoImpactoOjo tipo);
+        bool Admite(HitZone zona, TipoImpactoOjo tipo, bool atacanteEsAyla);
     }
 }

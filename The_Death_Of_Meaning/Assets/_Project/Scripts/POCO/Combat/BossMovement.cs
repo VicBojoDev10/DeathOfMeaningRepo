@@ -7,6 +7,8 @@ namespace TDOM.Gameplay.Combat
     {
         public ulong? ObjetivoFijado { get; private set; }
 
+        public void FijarObjetivo(ulong objetivoId) => ObjetivoFijado = objetivoId;
+
         public bool TryElegirObjetivo(
             IReadOnlyList<BossTargetCandidate> candidatos,
             ulong? zendreAnclado,

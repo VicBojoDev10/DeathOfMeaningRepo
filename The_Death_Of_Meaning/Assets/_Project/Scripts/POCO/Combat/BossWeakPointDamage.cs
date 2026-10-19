@@ -18,6 +18,11 @@ namespace TDOM.Gameplay.Combat
 
         public EstadoOjo Estado(int ojo) => _ojos.Estado(ojo);
 
+        public void AbrirOjoParaDebug(int ojo) => _ojos.AbrirOjoParaDebug(ojo);
+
+        public bool AdmiteImpacto(int ojo, TipoImpactoOjo tipo, bool atacanteEsAyla) =>
+            _ojos.ResolverImpacto(ojo, tipo, atacanteEsAyla);
+
         public bool AdmiteImpacto(int ojo, TipoImpactoOjo tipo) => _ojos.ResolverImpacto(ojo, tipo);
 
         public bool AplicarDanio(float porcentaje)

@@ -37,9 +37,19 @@ namespace TDOM.Unity.Combat
 
             Debug.DrawRay(orig.position, orig.forward * alcance, Color.red, 0.25f);
 
+            // El mask del prefab de Ayla apunta a la capa HurtBox (6), mientras que
+            // las HitZone de los ojos de AREK están en Default (0). Busca los ojos
+            // explícitamente por sus componentes para que el ataque melee también
+            // los encuentre sin depender de tags o de que compartan capa.
             var hits = Physics.OverlapSphere(centro, radio, _objetivos);
+            var ojos = Physics
+                .OverlapSphere(centro, radio, Physics.AllLayers, QueryTriggerInteraction.Collide)
+                .Where(c =>
+                    c.GetComponentInParent<OjosArek>() != null
+                    && c.GetComponentInParent<HitZone>() != null
+                );
 
-            return ImpactosValidos(hits)
+            return ImpactosValidos(hits.Concat(ojos))
                 .GroupBy(i => new { i.Objeto, i.Zona })
                 .Select(g => g.First())
                 .ToArray();

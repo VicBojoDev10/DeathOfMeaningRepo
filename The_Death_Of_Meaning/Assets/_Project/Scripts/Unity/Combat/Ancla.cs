@@ -21,6 +21,8 @@ namespace TDOM.Unity.Combat
         private float _distanciaRecorrida;
         private float _tiempoPegada;
         private float _radio = 0.2f;
+        private OjosArek _ojosAnclados;
+        private HitZone _ojoAnclado;
 
         private readonly RaycastHit[] _hitsBuffer = new RaycastHit[16];
 
@@ -68,7 +70,16 @@ namespace TDOM.Unity.Combat
 
             if (Pegada.Value)
             {
+                if (_ojoAnclado != null && !_ojosAnclados.EstaAbierto(_ojoAnclado))
+                {
+                    Despegar();
+                    return;
+                }
+
                 _tiempoPegada += dt;
+                float duracion = PegadaEnOjo ? _perfil.StuckDurationOnEye : _perfil.StuckDuration;
+                if (_tiempoPegada >= duracion && NetworkObject.IsSpawned)
+                    NetworkObject.Despawn();
             }
             else
             {
@@ -86,21 +97,27 @@ namespace TDOM.Unity.Combat
 
                 float minDistance = float.MaxValue;
                 RaycastHit? closestValidHit = null;
+                OjosArek ojosImpactados = null;
+                HitZone zonaImpactada = null;
                 bool tocandoInicialmente = false;
-                bool tocandoOjoInicialmente = false;
+                OjosArek ojosContactoInicial = null;
+                HitZone zonaContactoInicial = null;
 
                 for (int i = 0; i < hitCount; i++)
                 {
                     var hit = _hitsBuffer[i];
 
-                    if (hit.collider.GetComponentInParent<PlayerRoot>() != null)
+                    if (!PuedeAnclarse(hit.collider, out var ojos, out var zona))
                         continue;
 
                     if (hit.distance <= 0f)
                     {
                         tocandoInicialmente = true;
-                        if (hit.collider.GetComponentInParent<HitZone>() != null)
-                            tocandoOjoInicialmente = true;
+                        if (ojos != null && zona != null)
+                        {
+                            ojosContactoInicial = ojos;
+                            zonaContactoInicial = zona;
+                        }
                         continue;
                     }
 
@@ -108,20 +125,25 @@ namespace TDOM.Unity.Combat
                     {
                         minDistance = hit.distance;
                         closestValidHit = hit;
+                        ojosImpactados = ojos;
+                        zonaImpactada = zona;
                     }
                 }
 
                 if (closestValidHit.HasValue)
                 {
-                    transform.position = closestValidHit.Value.point;
-                    PegadaEnOjo =
-                        closestValidHit.Value.collider.GetComponentInParent<HitZone>() != null;
+                    var hit = closestValidHit.Value;
+                    transform.position = hit.point;
+                    if (ojosImpactados != null && zonaImpactada != null)
+                        FijarOjo(ojosImpactados, zonaImpactada);
                     Pegada.Value = true;
                     _tiempoPegada = 0f;
                 }
                 else if (tocandoInicialmente)
                 {
-                    PegadaEnOjo = tocandoOjoInicialmente;
+                    PegadaEnOjo = ojosContactoInicial != null && zonaContactoInicial != null;
+                    if (PegadaEnOjo)
+                        FijarOjo(ojosContactoInicial, zonaContactoInicial);
                     Pegada.Value = true;
                     _tiempoPegada = 0f;
                 }
@@ -139,8 +161,44 @@ namespace TDOM.Unity.Combat
             }
         }
 
+        private bool PuedeAnclarse(Collider collider, out OjosArek ojos, out HitZone zona)
+        {
+            ojos = collider.GetComponentInParent<OjosArek>();
+            zona = collider.GetComponentInParent<HitZone>();
+
+            if (collider.GetComponentInParent<PlayerRoot>() != null)
+                return false;
+
+            var jefe = collider.GetComponentInParent<BossController>();
+            if (jefe != null)
+                return ojos != null && zona != null && ojos.EstaAbierto(zona);
+
+            return true;
+        }
+
+        private void FijarOjo(OjosArek ojos, HitZone zona)
+        {
+            _ojosAnclados = ojos;
+            _ojoAnclado = zona;
+            PegadaEnOjo = true;
+            _ojosAnclados.RegistrarAncla(_ojoAnclado, true);
+        }
+
+        private void Despegar()
+        {
+            _ojosAnclados?.RegistrarAncla(_ojoAnclado, false);
+            _ojosAnclados = null;
+            _ojoAnclado = null;
+            PegadaEnOjo = false;
+            Pegada.Value = false;
+            _tiempoPegada = 0f;
+            if (NetworkObject.IsSpawned)
+                NetworkObject.Despawn();
+        }
+
         public override void OnNetworkDespawn()
         {
+            _ojosAnclados?.RegistrarAncla(_ojoAnclado, false);
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.SpawnManager != null)
             {
                 if (
@@ -153,7 +211,7 @@ namespace TDOM.Unity.Combat
                     var launcher = duenoObj.GetComponentInChildren<AnchorLauncher>();
                     if (launcher != null)
                     {
-                        launcher.AnclaActiva = false;
+                        launcher.NotificarDespawnAncla();
                     }
                 }
             }
