@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
+using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Playables;
@@ -17,6 +18,7 @@ namespace TDOM.Unity.Flow
         {
             public string Id;
             public PlayableDirector Director;
+            public CinemachineCamera CamaraDeSalida;
         }
 
         private const string PrefijoCinematicaDeFase = "fase_";
@@ -37,6 +39,10 @@ namespace TDOM.Unity.Flow
         [SerializeField]
         private float _duracionFade = 0.4f;
 
+        [Header("Salida con blend")]
+        [SerializeField]
+        private int _prioridadCamaraDeSalida = 100;
+
         [Header("HUD")]
         [SerializeField]
         private GameplayUI _gameplayUI;
@@ -52,9 +58,10 @@ namespace TDOM.Unity.Flow
         [SerializeField]
         private string _idPrueba = "prueba";
 
-        private readonly Dictionary<string, PlayableDirector> _directores = new();
+        private readonly Dictionary<string, EntradaCatalogo> _entradas = new();
         private GameFlowStateMachine _flujo;
         private PlayableDirector _directorActual;
+        private CinemachineCamera _camaraDeSalidaActual;
         private BossController _jefe;
         private Coroutine _secuencia;
         private bool _reproduciendo;
@@ -65,7 +72,7 @@ namespace TDOM.Unity.Flow
         private void Awake()
         {
             foreach (var entrada in _catalogo)
-                _directores[entrada.Id] = entrada.Director;
+                _entradas[entrada.Id] = entrada;
 
             _flujo = new GameFlowStateMachine(_duracionFade * 2f);
             _flujo.Cambio += AlCambiarEstado;
@@ -102,7 +109,7 @@ namespace TDOM.Unity.Flow
             if (!IsServer || !EnGameplay)
                 return;
 
-            if (!_directores.ContainsKey(id))
+            if (!_entradas.ContainsKey(id))
             {
                 Debug.LogWarning($"[CinematicDirector] No hay cinemática con id '{id}'");
                 return;
@@ -114,10 +121,11 @@ namespace TDOM.Unity.Flow
         [Rpc(SendTo.ClientsAndHost)]
         private void ReproducirRpc(string id)
         {
-            if (!_directores.TryGetValue(id, out var director))
+            if (!_entradas.TryGetValue(id, out var entrada))
                 return;
 
-            _directorActual = director;
+            _directorActual = entrada.Director;
+            _camaraDeSalidaActual = entrada.CamaraDeSalida;
             _flujo.IniciarCinematica(id);
         }
 
@@ -162,14 +170,35 @@ namespace TDOM.Unity.Flow
 
         private IEnumerator RutinaSalida()
         {
-            yield return FundirA(AlphaNegro);
+            if (_camaraDeSalidaActual != null)
+            {
+                yield return SalidaConBlend(_camaraDeSalidaActual);
+                yield break;
+            }
 
+            yield return FundirA(AlphaNegro);
+            DetenerDirector();
+            yield return FundirA(AlphaTransparente);
+        }
+
+        private IEnumerator SalidaConBlend(CinemachineCamera camara)
+        {
+            int prioridadOriginal = camara.Priority.Value;
+            camara.Priority.Value = _prioridadCamaraDeSalida;
+            DetenerDirector();
+
+            yield return null;
+
+            camara.Priority.Value = prioridadOriginal;
+        }
+
+        private void DetenerDirector()
+        {
             if (_directorActual != null)
                 _directorActual.Stop();
             _directorActual = null;
+            _camaraDeSalidaActual = null;
             JugadorLocal()?.SetCamaraCedida(false);
-
-            yield return FundirA(AlphaTransparente);
         }
 
         private IEnumerator FundirA(float objetivo)
@@ -252,7 +281,7 @@ namespace TDOM.Unity.Flow
         private void AlCambiarFase(int anterior, int actual)
         {
             string id = PrefijoCinematicaDeFase + actual;
-            if (_directores.ContainsKey(id))
+            if (_entradas.ContainsKey(id))
                 Reproducir(id);
         }
 
