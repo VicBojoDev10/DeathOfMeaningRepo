@@ -25,15 +25,11 @@ namespace TDOM.Data
         public float dobleSaltoRumbleAlto = 0.15f;
         public float dobleSaltoRumbleDuracion = 0.05f;
 
-        [Header("Golpe conectado")]
-        public float golpeImpulso = 0.5f;
+        [Header("Golpe conectado y disparo")]
         public int golpeHitstopFrames = 3;
 
-        [Header("Disparo de Zendre")]
-        public float disparoImpulso = 0.15f;
-
         [Header("Golpe recibido de un enemigo")]
-        public float golpeRecibidoImpulso = 2.5f;
+        public float golpeRecibidoImpulso = 1f;
 
         [Header("Aterrizaje fuerte")]
         public float aterrizajeImpulso = 0.4f;
