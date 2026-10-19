@@ -23,9 +23,14 @@ namespace TDOM.Gameplay.Combat
         private int _indiceAtaque;
         private float _vidaActual = 1f;
         private float _tiempoTransicion;
+        private bool _muerto;
 
         /// <summary>Se dispara en Tick cuando termina la transición de fase.</summary>
         public event Action TransicionTerminada;
+
+        public event Action<float> VidaCambiada;
+
+        public event Action Muerto;
 
         public BossPhaseStateMachine(BossPhaseProfile[] fases, float cooldownSegundos = 0f)
         {
@@ -53,6 +58,10 @@ namespace TDOM.Gameplay.Combat
 
         /// <summary>Vida normalizada (1 = llena).</summary>
         public float VidaActual => _vidaActual;
+
+        public bool EstaMuerto => _muerto;
+
+        private bool EnUltimaFase => _faseActual + 1 >= _fases.Length;
 
         public void Tick(float dt)
         {
@@ -93,13 +102,13 @@ namespace TDOM.Gameplay.Combat
 
         public void AplicarDaño(float daño)
         {
-            if (EnTransicion)
+            if (EnTransicion || _muerto || daño <= 0f)
                 return;
 
-            _vidaActual -= daño;
+            _vidaActual = Math.Max(0f, _vidaActual - daño);
 
             float umbral = _fases[_faseActual].VidaTransicion;
-            if (_faseActual + 1 < _fases.Length && _vidaActual <= umbral)
+            if (!EnUltimaFase && _vidaActual <= umbral)
             {
                 // El daño que sobra no arrastra a la siguiente fase.
                 _vidaActual = umbral;
@@ -107,6 +116,18 @@ namespace TDOM.Gameplay.Combat
                 _indiceAtaque = 0;
                 _tiempoTransicion = Math.Max(0f, _fases[_faseActual].DuracionTransicion);
             }
+
+            VidaCambiada?.Invoke(_vidaActual);
+            ComprobarMuerte();
+        }
+
+        private void ComprobarMuerte()
+        {
+            if (!EnUltimaFase || _vidaActual > 0f)
+                return;
+
+            _muerto = true;
+            Muerto?.Invoke();
         }
     }
 }
