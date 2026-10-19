@@ -337,6 +337,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3302684591821321247}
   - component: {fileID: 7534492179137533098}
+  - component: {fileID: 8180577285823233776}
   m_Layer: 0
   m_Name: GameplayUI
   m_TagString: Untagged
@@ -384,7 +385,22 @@ MonoBehaviour:
   colorFueraDeRango: {r: 1, g: 1, b: 1, a: 0.7}
   colorEnRango: {r: 0.2, g: 1, b: 0.2, a: 1}
   multiplicadorEscalaEnRango: 1.15
-  _sliderVidaJefe: {fileID: 4812705461471592989}
+  _barraVidaJefe: {fileID: 8180577285823233776}
+--- !u!114 &8180577285823233776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3792074753675354687}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56d568b87e1a88a47a34a2cb7d5d4a71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.BossHealthBar
+  _slider: {fileID: 4812705461471592989}
+  _grupoNombre: {fileID: 7578726491776353341}
+  _perfil: {fileID: 11400000, guid: 4128e8a198e798a419fea0260825d524, type: 2}
 --- !u!1 &4324071819346978120
 GameObject:
   m_ObjectHideFlags: 0
@@ -757,6 +773,7 @@ GameObject:
   - component: {fileID: 8105487209873920947}
   - component: {fileID: 8446662593699108847}
   - component: {fileID: 8656325555480148678}
+  - component: {fileID: 7578726491776353341}
   m_Layer: 0
   m_Name: BossNameText
   m_TagString: Untagged
@@ -811,7 +828,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: AREK
+  m_text: 'JIKOTSU: STRANDED SOUL, THE UNMADE'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -883,3 +900,15 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!225 &7578726491776353341
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8901188657966440134}
+  m_Enabled: 1
+  m_Alpha: 0
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
