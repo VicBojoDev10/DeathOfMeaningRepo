@@ -9,7 +9,6 @@ using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Input;
 using TDOM.Unity.Locomotion;
-using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -68,9 +67,6 @@ namespace TDOM.Unity.Player
         );
         private EnergyPool _energyPool;
 
-        [SerializeField]
-        private GameObject _hudEnergiaPrefab;
-        private GameObject _hudInstance;
         private FeedbackDirector _feedback;
         private CharacterIds _characterId = CharacterIds.None;
         private bool _initialSpawnApplied;
@@ -85,6 +81,7 @@ namespace TDOM.Unity.Player
             || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
 
         public CharacterIds CharacterId => _characterId;
+        public float EnergiaMaxima => _definition?.Energy != null ? _definition.Energy.Max : 0f;
         public event Action DashEmbestidaIniciada;
         public CooldownValues Cooldowns =>
             new CooldownValues(
@@ -136,21 +133,6 @@ namespace TDOM.Unity.Player
             if (IsOwner)
             {
                 _inputReader.ActivarPersonaje(_characterId);
-                if (_hudEnergiaPrefab != null)
-                {
-                    _hudInstance = Instantiate(_hudEnergiaPrefab);
-                    var hudComp = _hudInstance.GetComponent<PlayerEnergyHud>();
-                    if (hudComp != null)
-                    {
-                        string etiqueta = _characterId switch
-                        {
-                            CharacterIds.Ayla => "Stamina",
-                            CharacterIds.Zendre => "Maná",
-                            _ => "Energy",
-                        };
-                        hudComp.Initialize(this, etiqueta, _definition?.Energy?.Max ?? 100f);
-                    }
-                }
                 if (_camera != null)
                     _feedback = _camera.GetComponent<FeedbackDirector>();
             }
@@ -209,8 +191,6 @@ namespace TDOM.Unity.Player
                 return;
 
             _inputReader.SetEntradaHabilitada(!activa);
-            if (_hudInstance != null)
-                _hudInstance.SetActive(!activa);
         }
 
         public AimSolution ResolverApuntado(Vector3 origen) =>
@@ -392,15 +372,6 @@ namespace TDOM.Unity.Player
 
             if (_locomocion.IntentarGancho(transform.position, apuntado.TargetPoint))
                 _camera.PunchFov(8f, 0.2f);
-        }
-
-        public override void OnNetworkDespawn()
-        {
-            if (_hudInstance != null)
-            {
-                Destroy(_hudInstance);
-                _hudInstance = null;
-            }
         }
 
         private void Update()

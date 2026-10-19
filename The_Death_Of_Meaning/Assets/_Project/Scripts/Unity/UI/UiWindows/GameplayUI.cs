@@ -1,6 +1,7 @@
 using TDOM.Contracts;
 using TDOM.Gameplay.Camera;
 using TDOM.Unity.Player;
+using TDOM.Unity.UI;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -53,6 +54,36 @@ namespace TDOM.Unity
         private RectTransform _crosshairRect;
         private Vector3 _escalaBase;
         private bool _hudVisible = true;
+        private PlayerEnergyHud _barraEnergiaJugador;
+        private PlayerRoot _jugadorConEnergiaInicializado;
+
+        private void Update()
+        {
+            if (_barraEnergiaJugador == null)
+                _barraEnergiaJugador = GetComponentInChildren<PlayerEnergyHud>(true);
+
+            if (_barraEnergiaJugador == null || _localPlayer == null)
+                return;
+
+            _barraEnergiaJugador.ActualizarEnergia(_localPlayer.Energia.Value);
+
+            if (_jugadorConEnergiaInicializado == _localPlayer)
+                return;
+
+            string etiquetaEnergia = _localPlayer.CharacterId switch
+            {
+                CharacterIds.Ayla => "Stamina",
+                CharacterIds.Zendre => "Maná",
+                _ => "Energy",
+            };
+
+            _barraEnergiaJugador.Reinitialize(
+                _localPlayer,
+                etiquetaEnergia,
+                _localPlayer.EnergiaMaxima
+            );
+            _jugadorConEnergiaInicializado = _localPlayer;
+        }
 
         public void SetHudVisible(bool visible)
         {
