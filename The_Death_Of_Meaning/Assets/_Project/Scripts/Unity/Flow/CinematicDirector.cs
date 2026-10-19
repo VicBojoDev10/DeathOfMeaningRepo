@@ -62,6 +62,7 @@ namespace TDOM.Unity.Flow
         private GameFlowStateMachine _flujo;
         private PlayableDirector _directorActual;
         private CinemachineCamera _camaraDeSalidaActual;
+        private int _prioridadOriginalCamaraDeSalida;
         private BossController _jefe;
         private Coroutine _secuencia;
         private bool _reproduciendo;
@@ -161,6 +162,7 @@ namespace TDOM.Unity.Flow
             yield return FundirA(AlphaNegro);
 
             JugadorLocal()?.SetCamaraCedida(true);
+            ElevarCamaraDeSalida();
             _directorActual.extrapolationMode = DirectorWrapMode.Hold;
             _directorActual.Play();
             _reproduciendo = true;
@@ -172,7 +174,7 @@ namespace TDOM.Unity.Flow
         {
             if (_camaraDeSalidaActual != null)
             {
-                yield return SalidaConBlend(_camaraDeSalidaActual);
+                SalidaConBlend(_camaraDeSalidaActual);
                 yield break;
             }
 
@@ -181,15 +183,19 @@ namespace TDOM.Unity.Flow
             yield return FundirA(AlphaTransparente);
         }
 
-        private IEnumerator SalidaConBlend(CinemachineCamera camara)
+        private void ElevarCamaraDeSalida()
         {
-            int prioridadOriginal = camara.Priority.Value;
-            camara.Priority.Value = _prioridadCamaraDeSalida;
+            if (_camaraDeSalidaActual == null)
+                return;
+
+            _prioridadOriginalCamaraDeSalida = _camaraDeSalidaActual.Priority.Value;
+            _camaraDeSalidaActual.Priority.Value = _prioridadCamaraDeSalida;
+        }
+
+        private void SalidaConBlend(CinemachineCamera camara)
+        {
             DetenerDirector();
-
-            yield return null;
-
-            camara.Priority.Value = prioridadOriginal;
+            camara.Priority.Value = _prioridadOriginalCamaraDeSalida;
         }
 
         private void DetenerDirector()
