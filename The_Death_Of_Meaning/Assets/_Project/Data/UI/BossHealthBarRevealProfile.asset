@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa2ac4b099ad04a4db6026735eb739e2, type: 3}
   m_Name: BossHealthBarRevealProfile
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.BossHealthBarRevealProfile
-  DuracionBarrido: 1.2
+  DuracionBarrido: 1.7
   CurvaBarrido:
     serializedVersion: 2
     m_Curve:
@@ -38,4 +38,4 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   RetrasoNombre: 0.15
-  DuracionNombre: 0.8
+  DuracionNombre: 1.3
