@@ -53,15 +53,8 @@ namespace TDOM.Unity.Camera
             );
         }
 
-        public void OnGolpeConectado()
+        public void OnAtaquePropio()
         {
-            _cameraRig.Impacto(_config.golpeImpulso);
-            IniciarHitstop(_config.golpeHitstopFrames);
-        }
-
-        public void OnDisparo()
-        {
-            _cameraRig.Impacto(_config.disparoImpulso);
             IniciarHitstop(_config.golpeHitstopFrames);
         }
 

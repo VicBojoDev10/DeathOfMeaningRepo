@@ -38,6 +38,15 @@ namespace TDOM.Data
         public float LockOnPitchMin = -60f;
         public float LockOnPitchMax = 60f;
 
+        [Range(0f, 1f)]
+        public float LockOnSwitchThreshold = 0.7f;
+
+        [Range(0f, 1f)]
+        public float LockOnSwitchResetThreshold = 0.3f;
+
+        [Range(0f, 180f)]
+        public float LockOnSwitchMaxAngle = 60f;
+
         [Header("Pitch")]
         public float PitchMin = -40f;
         public float PitchMax = 70f;

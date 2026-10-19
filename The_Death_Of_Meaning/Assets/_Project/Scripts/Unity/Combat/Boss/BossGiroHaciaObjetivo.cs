@@ -40,13 +40,16 @@ namespace TDOM.Unity.Combat
             if (perfil == null)
                 return;
 
-            if (!_ataques.TryObjetivoVisible(out ulong objetivoId))
+            if (!_ataques.TryObjetivoMovimiento(out ulong objetivoId, out bool zendreAnclado))
             {
                 CambiarObjetivoMirado(null);
                 return;
             }
 
             CambiarObjetivoMirado(objetivoId);
+
+            if (zendreAnclado)
+                return;
 
             if (!_ataques.TryPosicionJugador(objetivoId, out Vector3 posicion))
                 return;

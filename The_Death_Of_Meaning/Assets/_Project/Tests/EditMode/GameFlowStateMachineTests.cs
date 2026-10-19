@@ -47,6 +47,69 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
+        public void Solo_se_puede_iniciar_una_cinematica_desde_gameplay_y_con_id()
+        {
+            var flujo = new GameFlowStateMachine(DuracionTransicion);
+
+            Assert.IsTrue(flujo.PuedeIniciarCinematica(IdCinematica));
+            Assert.IsFalse(flujo.PuedeIniciarCinematica(string.Empty));
+
+            flujo.IniciarCinematica(IdCinematica);
+            Assert.IsFalse(flujo.PuedeIniciarCinematica("otra"));
+
+            flujo.TerminarCinematica();
+            Assert.IsFalse(flujo.PuedeIniciarCinematica("otra"));
+        }
+
+        [Test]
+        public void Una_transicion_retenida_no_vuelve_a_gameplay_aunque_pase_su_duracion()
+        {
+            var flujo = new GameFlowStateMachine(DuracionTransicion);
+            flujo.IniciarCinematica(IdCinematica);
+            flujo.TerminarCinematica();
+            flujo.RetenerTransicion();
+
+            for (int i = 0; i < TicksCompletos; i++)
+                flujo.Tick(Dt60);
+
+            Assert.AreEqual(EstadoFlujo.Transicion, flujo.Estado);
+        }
+
+        [Test]
+        public void Al_liberar_la_transicion_vuelve_a_gameplay_en_el_siguiente_tick()
+        {
+            var flujo = new GameFlowStateMachine(DuracionTransicion);
+            flujo.IniciarCinematica(IdCinematica);
+            flujo.TerminarCinematica();
+            flujo.RetenerTransicion();
+            for (int i = 0; i < TicksCompletos; i++)
+                flujo.Tick(Dt60);
+
+            flujo.LiberarTransicion();
+            flujo.Tick(Dt60);
+
+            Assert.AreEqual(EstadoFlujo.Gameplay, flujo.Estado);
+        }
+
+        [Test]
+        public void Liberar_antes_de_cumplir_la_duracion_respeta_la_duracion_minima()
+        {
+            var flujo = new GameFlowStateMachine(DuracionTransicion);
+            flujo.IniciarCinematica(IdCinematica);
+            flujo.TerminarCinematica();
+            flujo.RetenerTransicion();
+            flujo.LiberarTransicion();
+
+            for (int i = 0; i < TicksSinCompletar; i++)
+                flujo.Tick(Dt60);
+            Assert.AreEqual(EstadoFlujo.Transicion, flujo.Estado);
+
+            for (int i = TicksSinCompletar; i < TicksCompletos; i++)
+                flujo.Tick(Dt60);
+            Assert.AreEqual(EstadoFlujo.Gameplay, flujo.Estado);
+        }
+
+        [Test]
         public void Iniciar_cinematica_durante_la_transicion_devuelve_false()
         {
             var flujo = new GameFlowStateMachine(DuracionTransicion);

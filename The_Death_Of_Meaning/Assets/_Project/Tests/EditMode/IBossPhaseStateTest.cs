@@ -269,6 +269,151 @@ namespace TDOM.Tests.EditMode
             Assert.AreEqual(bossA.AtaqueActual.Tipo, bossB.AtaqueActual.Tipo);
         }
 
+        [Test]
+        public void Aplicar_daño_emite_vida_cambiada_con_la_vida_resultante()
+        {
+            var boss = new BossPhaseStateMachine(CrearFasesDePrueba());
+            var vidas = new List<float>();
+            boss.VidaCambiada += vidas.Add;
+
+            boss.AplicarDaño(0.1f);
+
+            Assert.AreEqual(1, vidas.Count);
+            Assert.AreEqual(0.9f, vidas[0], 1e-6f);
+            Assert.AreEqual(boss.VidaActual, vidas[0], 1e-6f);
+        }
+
+        [Test]
+        public void Al_cruzar_un_umbral_vida_cambiada_emite_el_umbral_de_la_fase()
+        {
+            var boss = new BossPhaseStateMachine(CrearFasesDePrueba());
+            var vidas = new List<float>();
+            boss.VidaCambiada += vidas.Add;
+
+            boss.AplicarDaño(0.5f);
+
+            Assert.AreEqual(1, vidas.Count);
+            Assert.AreEqual(0.8f, vidas[0], 1e-6f);
+        }
+
+        [Test]
+        public void El_daño_durante_la_transicion_se_ignora_y_no_emite_vida_cambiada()
+        {
+            var boss = new BossPhaseStateMachine(CrearFasesDePrueba());
+            boss.AplicarDaño(0.25f);
+            Assert.IsTrue(boss.EnTransicion);
+            int emisiones = 0;
+            boss.VidaCambiada += _ => emisiones++;
+
+            boss.AplicarDaño(0.1f);
+
+            Assert.AreEqual(0, emisiones);
+        }
+
+        [Test]
+        public void El_daño_nulo_o_negativo_no_cambia_la_vida_ni_emite_vida_cambiada()
+        {
+            var boss = new BossPhaseStateMachine(CrearFasesDePrueba());
+            int emisiones = 0;
+            boss.VidaCambiada += _ => emisiones++;
+
+            boss.AplicarDaño(0f);
+            boss.AplicarDaño(-0.3f);
+
+            Assert.AreEqual(0, emisiones);
+            Assert.AreEqual(1f, boss.VidaActual, 1e-6f);
+        }
+
+        [Test]
+        public void La_vida_no_baja_de_cero_y_emite_muerto_una_sola_vez()
+        {
+            var boss = new BossPhaseStateMachine(CrearFasesDePrueba());
+            LlevarAUltimaFase(boss);
+            int muertes = 0;
+            int emisiones = 0;
+            boss.Muerto += () => muertes++;
+            boss.VidaCambiada += _ => emisiones++;
+
+            boss.AplicarDaño(0.5f);
+            boss.AplicarDaño(0.5f);
+
+            Assert.AreEqual(0f, boss.VidaActual, 1e-6f);
+            Assert.IsTrue(boss.EstaMuerto);
+            Assert.AreEqual(1, muertes);
+            Assert.AreEqual(1, emisiones);
+        }
+
+        [Test]
+        public void Muerto_no_se_emite_si_la_vida_queda_justo_encima_de_cero()
+        {
+            var boss = new BossPhaseStateMachine(CrearFasesDePrueba());
+            LlevarAUltimaFase(boss);
+            int muertes = 0;
+            boss.Muerto += () => muertes++;
+
+            boss.AplicarDaño(boss.VidaActual - 0.001f);
+
+            Assert.AreEqual(0, muertes);
+            Assert.IsFalse(boss.EstaMuerto);
+        }
+
+        [Test]
+        public void Muerto_no_se_emite_antes_de_la_ultima_fase()
+        {
+            var fases = CrearFasesDePrueba();
+            fases[0].VidaTransicion = 0f;
+            var boss = new BossPhaseStateMachine(fases);
+            int muertes = 0;
+            boss.Muerto += () => muertes++;
+
+            boss.AplicarDaño(1.5f);
+
+            Assert.AreEqual(2, boss.FaseActual);
+            Assert.AreEqual(0, muertes);
+            Assert.IsFalse(boss.EstaMuerto);
+        }
+
+        [Test]
+        public void La_vida_emitida_es_determinista_con_dt_fijo()
+        {
+            var vidasA = SimularGolpesConDtFijo();
+            var vidasB = SimularGolpesConDtFijo();
+
+            CollectionAssert.AreEqual(vidasA, vidasB);
+            Assert.AreEqual(0f, vidasA[vidasA.Count - 1], 1e-6f);
+        }
+
+        private List<float> SimularGolpesConDtFijo()
+        {
+            const int TicksEntreGolpes = 30;
+            const int TicksTotales = 60 * 60;
+            const float DanioPorGolpe = 0.05f;
+
+            var boss = new BossPhaseStateMachine(CrearFasesDePrueba());
+            var vidas = new List<float>();
+            boss.VidaCambiada += vidas.Add;
+
+            for (int tick = 1; tick <= TicksTotales && !boss.EstaMuerto; tick++)
+            {
+                boss.Tick(Dt60);
+                if (tick % TicksEntreGolpes == 0)
+                    boss.AplicarDaño(DanioPorGolpe);
+            }
+
+            return vidas;
+        }
+
+        private static void LlevarAUltimaFase(BossPhaseStateMachine boss)
+        {
+            const int FasesPorAvanzar = 4;
+            for (int i = 0; i < FasesPorAvanzar; i++)
+            {
+                boss.AplicarDaño(0.2001f);
+                TerminarTransicion(boss);
+            }
+            Assert.AreEqual(5, boss.FaseActual);
+        }
+
         private static void TerminarTransicion(BossPhaseStateMachine boss)
         {
             boss.Tick(boss.TiempoTransicionRestante + 0.01f);
