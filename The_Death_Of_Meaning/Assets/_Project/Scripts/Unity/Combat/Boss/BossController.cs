@@ -458,7 +458,7 @@ namespace TDOM.Unity.Combat
             if (!_mostrarDebugUI || !IsSpawned)
                 return;
 
-            GUILayout.BeginArea(new Rect(10, 200, 430, 480), "Boss AREK Debug", GUI.skin.window);
+            GUILayout.BeginArea(new Rect(10, 200, 490, 480), "Boss AREK Debug", GUI.skin.window);
 
             string rol = IsServer
                 ? (IsHost ? "Host (Server + Client)" : "Dedicated Server")
@@ -506,6 +506,9 @@ namespace TDOM.Unity.Combat
 
                     if (IsServer)
                     {
+                        if (GUILayout.Button("Brillar", GUILayout.Width(55)))
+                            _ojos?.BrillarOjoParaDebug(i);
+
                         if (GUILayout.Button("Abrir", GUILayout.Width(55)))
                             _ojos?.AbrirOjoParaDebug(i);
 

@@ -20,6 +20,8 @@ namespace TDOM.Gameplay.Combat
 
         public void AbrirOjoParaDebug(int ojo) => _ojos.AbrirOjoParaDebug(ojo);
 
+        public void BrillarOjoParaDebug(int ojo) => _ojos.BrillarOjoParaDebug(ojo);
+
         public bool AdmiteImpacto(int ojo, TipoImpactoOjo tipo, bool atacanteEsAyla) =>
             _ojos.ResolverImpacto(ojo, tipo, atacanteEsAyla);
 

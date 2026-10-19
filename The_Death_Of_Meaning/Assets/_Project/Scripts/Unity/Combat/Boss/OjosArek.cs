@@ -50,6 +50,16 @@ namespace TDOM.Unity.Combat
             return true;
         }
 
+        public bool BrillarOjoParaDebug(int ojo)
+        {
+            if (!IsServer || _danio == null || ojo < 0 || ojo >= _danio.TotalOjos)
+                return false;
+
+            _danio.BrillarOjoParaDebug(ojo);
+            Sincronizar();
+            return true;
+        }
+
         public EstadoOjo Estado(int ojo) => (EstadoOjo)_estados[ojo];
 
         public override void OnNetworkSpawn()

@@ -117,6 +117,13 @@ namespace TDOM.Gameplay.Combat
             _timers[ojo] = 0f;
         }
 
+        public void BrillarOjoParaDebug(int ojo)
+        {
+            ValidarOjo(ojo);
+            _estados[ojo] = EstadoOjo.Brillando;
+            _timers[ojo] = 0f;
+        }
+
         public bool Disparo(int ojo)
         {
             ValidarOjo(ojo);

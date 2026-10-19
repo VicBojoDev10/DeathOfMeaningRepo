@@ -64,6 +64,29 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
+        public void Brillar_ojo_para_debug_deja_un_ojo_cerrado_listo_para_abrirse()
+        {
+            var maquina = MaquinaEnFase1();
+            int ojoCerrado = Buscar(maquina, EstadoOjo.Cerrado);
+
+            maquina.BrillarOjoParaDebug(ojoCerrado);
+
+            Assert.AreEqual(EstadoOjo.Brillando, maquina.Estado(ojoCerrado));
+            Assert.AreEqual(ResultadoGolpe.Abrio, maquina.GolpeMelee(ojoCerrado));
+        }
+
+        [Test]
+        public void Brillar_ojo_para_debug_valida_el_indice()
+        {
+            var maquina = MaquinaEnFase1();
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => maquina.BrillarOjoParaDebug(-1));
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                maquina.BrillarOjoParaDebug(maquina.TotalOjos)
+            );
+        }
+
+        [Test]
         public void AbrirOjoParaDebug_ValidaElIndice()
         {
             var maquina = MaquinaEnFase1();
