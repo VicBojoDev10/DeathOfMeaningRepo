@@ -20,7 +20,8 @@ flowchart TD
     Root -->|"ApplyLook, ActualizarEncuadre"| Pivot
     Root --> Facing["FacingResolver: giro del root hacia el movimiento"]
     Root -->|"LockOnPressed (R3)"| LockOn["LockOnResolver: fija yaw y pitch hacia el objetivo"]
-    LockOn -.->|"LockOnTarget.Activos"| Objetivo["LockOnTarget en BossArek y MinionArek (al morir el minion se libera al despawnear)"]
+    LockOn -.->|"LockOnTarget.Activos"| Objetivo["LockOnTarget en los 12 ojos de BossArek y en MinionArek (al morir el minion se libera al despawnear)"]
+    Root -->|"Stick derecho con objetivo fijado"| Cambio["LockOnSwitcher: cambia al objetivo en esa dirección (LockOnResolver.FijarA)"]
     Pivot --> Config["ThirdPersonCameraConfig (valores por stance)"]
     Pivot --> Stances["CameraStanceResolver: Exploracion, Sprint, Combate, Apuntado"]
     Root -->|"RegistrarDesplazamientoLateral (dash o carga lateral en combate)"| Pivot

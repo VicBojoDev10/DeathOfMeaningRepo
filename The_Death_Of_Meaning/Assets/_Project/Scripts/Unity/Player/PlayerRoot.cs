@@ -28,6 +28,7 @@ namespace TDOM.Unity.Player
         private LookResolver _look;
         private FacingResolver _facing;
         private LockOnResolver _fijacion;
+        private LockOnSwitcher _cambioDeFijacion;
         private readonly List<LockOnCandidate> _candidatosFijacion = new List<LockOnCandidate>();
 
         [SerializeField]
@@ -91,6 +92,7 @@ namespace TDOM.Unity.Player
             _locomocion = new PlayerLocomotion(_definition);
             _facing = new FacingResolver(_definition.Movement.TurnSpeed, transform.eulerAngles.y);
             _fijacion = new LockOnResolver(CrearAjustesFijacion(_camera.Config));
+            _cambioDeFijacion = new LockOnSwitcher(CrearAjustesCambioDeFijacion(_camera.Config));
             _camera.gameObject.SetActive(IsOwner);
             _inputReader.enabled = false;
 
@@ -276,7 +278,7 @@ namespace TDOM.Unity.Player
 
         private void ActualizarMirada(InputSnapshot input, float dt)
         {
-            ActualizarFijacion(input.LockOnPressed, dt);
+            ActualizarFijacion(input.LockOnPressed, input.Look, dt);
 
             if (_fijacion.Activo)
             {
@@ -287,11 +289,24 @@ namespace TDOM.Unity.Player
             _look.Tick(input.Look, dt);
         }
 
-        private void ActualizarFijacion(bool alternar, float dt)
+        private void ActualizarFijacion(bool alternar, Vector2 stick, float dt)
         {
             _candidatosFijacion.Clear();
             foreach (var objetivo in LockOnTarget.Activos)
                 _candidatosFijacion.Add(new LockOnCandidate(objetivo.Id, objetivo.PuntoDeMira));
+
+            if (
+                _fijacion.Activo
+                && _cambioDeFijacion.TryCambiar(
+                    stick,
+                    _camera.transform.position,
+                    _fijacion.PuntoObjetivo,
+                    _fijacion.ObjetivoId,
+                    _candidatosFijacion,
+                    out LockOnCandidate siguiente
+                )
+            )
+                _fijacion.FijarA(siguiente);
 
             _fijacion.Tick(
                 alternar,
@@ -311,6 +326,18 @@ namespace TDOM.Unity.Player
                 config.LockOnSmoothTime,
                 config.LockOnPitchMin,
                 config.LockOnPitchMax
+            );
+        }
+
+        private static LockOnSwitchSettings CrearAjustesCambioDeFijacion(
+            ThirdPersonCameraConfig config
+        )
+        {
+            return new LockOnSwitchSettings(
+                config.LockOnRange,
+                config.LockOnSwitchThreshold,
+                config.LockOnSwitchResetThreshold,
+                config.LockOnSwitchMaxAngle
             );
         }
 

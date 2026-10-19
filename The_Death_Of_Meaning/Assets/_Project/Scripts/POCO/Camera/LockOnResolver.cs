@@ -55,6 +55,15 @@ namespace TDOM.Gameplay.Camera
             return Mathf.Atan2(direccion.x, direccion.z) * Mathf.Rad2Deg;
         }
 
+        public void FijarA(LockOnCandidate candidato)
+        {
+            if (!Activo)
+                return;
+
+            ObjetivoId = candidato.Id;
+            PuntoObjetivo = candidato.Position;
+        }
+
         public void Liberar()
         {
             ObjetivoId = SinObjetivo;
