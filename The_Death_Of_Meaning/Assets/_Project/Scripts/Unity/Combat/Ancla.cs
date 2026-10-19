@@ -1,4 +1,6 @@
+using System;
 using TDOM.Data;
+using TDOM.Gameplay.Combat;
 using TDOM.Unity.Player;
 using Unity.Netcode;
 using UnityEngine;
@@ -7,12 +9,7 @@ namespace TDOM.Unity.Combat
 {
     public sealed class Ancla : NetworkBehaviour
     {
-        private enum ContactoAncla
-        {
-            Ignorar,
-            Anclable,
-            OjoEquivocado,
-        }
+        private const int MaximoContactos = 16;
 
         [SerializeField]
         private LineRenderer _lineRenderer;
@@ -31,7 +28,10 @@ namespace TDOM.Unity.Combat
         private OjosArek _ojosAnclados;
         private HitZone _ojoAnclado;
 
-        private readonly RaycastHit[] _hitsBuffer = new RaycastHit[16];
+        private readonly RaycastHit[] _hitsBuffer = new RaycastHit[MaximoContactos];
+        private readonly ContactoAncla[] _contactos = new ContactoAncla[MaximoContactos];
+        private readonly OjosArek[] _ojosPorContacto = new OjosArek[MaximoContactos];
+        private readonly HitZone[] _zonasPorContacto = new HitZone[MaximoContactos];
 
         public override void OnNetworkSpawn()
         {
@@ -90,95 +90,71 @@ namespace TDOM.Unity.Combat
             }
             else
             {
-                float step = _perfil.TravelSpeed * dt;
-
-                int hitCount = Physics.SphereCastNonAlloc(
-                    transform.position,
-                    _radio,
-                    _direccion,
-                    _hitsBuffer,
-                    step,
-                    Physics.DefaultRaycastLayers,
-                    QueryTriggerInteraction.Ignore
-                );
-
-                float minDistance = float.MaxValue;
-                RaycastHit? closestValidHit = null;
-                OjosArek ojosImpactados = null;
-                HitZone zonaImpactada = null;
-                bool impactoEnOjoEquivocado = false;
-                bool tocandoInicialmente = false;
-                bool tocandoOjoEquivocado = false;
-                OjosArek ojosContactoInicial = null;
-                HitZone zonaContactoInicial = null;
-
-                for (int i = 0; i < hitCount; i++)
-                {
-                    var hit = _hitsBuffer[i];
-
-                    var contacto = Clasificar(hit.collider, out var ojos, out var zona);
-                    if (contacto == ContactoAncla.Ignorar)
-                        continue;
-
-                    bool ojoEquivocado = contacto == ContactoAncla.OjoEquivocado;
-
-                    if (hit.distance <= 0f)
-                    {
-                        if (ojoEquivocado)
-                        {
-                            tocandoOjoEquivocado = true;
-                            continue;
-                        }
-
-                        tocandoInicialmente = true;
-                        if (ojos != null && zona != null)
-                        {
-                            ojosContactoInicial = ojos;
-                            zonaContactoInicial = zona;
-                        }
-                        continue;
-                    }
-
-                    if (hit.distance < minDistance)
-                    {
-                        minDistance = hit.distance;
-                        closestValidHit = hit;
-                        impactoEnOjoEquivocado = ojoEquivocado;
-                        ojosImpactados = ojos;
-                        zonaImpactada = zona;
-                    }
-                }
-
-                if (impactoEnOjoEquivocado || (!closestValidHit.HasValue && tocandoOjoEquivocado))
-                {
-                    Retraer();
-                }
-                else if (closestValidHit.HasValue)
-                {
-                    var hit = closestValidHit.Value;
-                    transform.position = hit.point;
-                    if (ojosImpactados != null && zonaImpactada != null)
-                        FijarOjo(ojosImpactados, zonaImpactada);
-                    Pegada.Value = true;
-                    _tiempoPegada = 0f;
-                }
-                else if (tocandoInicialmente)
-                {
-                    PegadaEnOjo = ojosContactoInicial != null && zonaContactoInicial != null;
-                    if (PegadaEnOjo)
-                        FijarOjo(ojosContactoInicial, zonaContactoInicial);
-                    Pegada.Value = true;
-                    _tiempoPegada = 0f;
-                }
-                else
-                {
-                    transform.position += _direccion * step;
-                    _distanciaRecorrida += step;
-
-                    if (_distanciaRecorrida >= _perfil.Range)
-                        Retraer();
-                }
+                Avanzar(_perfil.TravelSpeed * dt);
             }
+        }
+
+        private void Avanzar(float paso)
+        {
+            int total = Physics.SphereCastNonAlloc(
+                transform.position,
+                _radio,
+                _direccion,
+                _hitsBuffer,
+                paso,
+                Physics.DefaultRaycastLayers,
+                QueryTriggerInteraction.Ignore
+            );
+
+            for (int i = 0; i < total; i++)
+            {
+                var hit = _hitsBuffer[i];
+                var tipo = Clasificar(
+                    hit.collider,
+                    out _ojosPorContacto[i],
+                    out _zonasPorContacto[i]
+                );
+                _contactos[i] = new ContactoAncla(tipo, hit.distance);
+            }
+
+            var decision = AnchorContactResolver.Resolver(
+                new ArraySegment<ContactoAncla>(_contactos, 0, total)
+            );
+
+            switch (decision.Accion)
+            {
+                case AccionAncla.Anclar:
+                    Anclar(decision);
+                    break;
+                case AccionAncla.Retraer:
+                    Retraer();
+                    break;
+                default:
+                    Volar(paso);
+                    break;
+            }
+        }
+
+        private void Anclar(DecisionAncla decision)
+        {
+            int indice = decision.Indice;
+            if (decision.MoverAlPunto)
+                transform.position = _hitsBuffer[indice].point;
+
+            if (_contactos[indice].Tipo == TipoContactoAncla.OjoValido)
+                FijarOjo(_ojosPorContacto[indice], _zonasPorContacto[indice]);
+
+            Pegada.Value = true;
+            _tiempoPegada = 0f;
+        }
+
+        private void Volar(float paso)
+        {
+            transform.position += _direccion * paso;
+            _distanciaRecorrida += paso;
+
+            if (_distanciaRecorrida >= _perfil.Range)
+                Retraer();
         }
 
         private void Retraer()
@@ -187,7 +163,7 @@ namespace TDOM.Unity.Combat
                 NetworkObject.Despawn();
         }
 
-        private static ContactoAncla Clasificar(
+        private static TipoContactoAncla Clasificar(
             Collider collider,
             out OjosArek ojos,
             out HitZone zona
@@ -197,15 +173,17 @@ namespace TDOM.Unity.Combat
             zona = collider.GetComponentInParent<HitZone>();
 
             if (collider.GetComponentInParent<PlayerRoot>() != null)
-                return ContactoAncla.Ignorar;
+                return TipoContactoAncla.Ignorar;
 
             if (collider.GetComponentInParent<BossController>() == null)
-                return ContactoAncla.Anclable;
+                return TipoContactoAncla.Superficie;
 
             if (ojos == null || zona == null)
-                return ContactoAncla.Ignorar;
+                return TipoContactoAncla.Ignorar;
 
-            return ojos.AdmiteAncla(zona) ? ContactoAncla.Anclable : ContactoAncla.OjoEquivocado;
+            return ojos.AdmiteAncla(zona)
+                ? TipoContactoAncla.OjoValido
+                : TipoContactoAncla.OjoEquivocado;
         }
 
         private void FijarOjo(OjosArek ojos, HitZone zona)
