@@ -34,6 +34,31 @@ namespace TDOM.Unity.Combat
 
         public static event Action<BossController> Spawned;
 
+        public static void ObservarJefe(NetworkManager red, Action<BossController> alAparecer)
+        {
+            Spawned += alAparecer;
+            if (TryEncontrarSpawneado(red, out BossController jefe))
+                alAparecer(jefe);
+        }
+
+        public static void DejarDeObservarJefe(Action<BossController> alAparecer) =>
+            Spawned -= alAparecer;
+
+        private static bool TryEncontrarSpawneado(NetworkManager red, out BossController jefe)
+        {
+            jefe = null;
+            if (red == null || red.SpawnManager == null)
+                return false;
+
+            foreach (var objeto in red.SpawnManager.SpawnedObjectsList)
+            {
+                if (objeto != null && objeto.TryGetComponent(out jefe))
+                    return true;
+            }
+
+            return false;
+        }
+
         public event Action<int, int> OnFaseChanged;
 
         /// <summary>Tick de movimiento emitido solo por el servidor para BossMovement.</summary>

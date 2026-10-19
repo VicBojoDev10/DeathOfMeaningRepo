@@ -6,5 +6,6 @@ namespace TDOM.Unity.Flow
     {
         void Preparar();
         IEnumerator Salir();
+        void Cancelar();
     }
 }

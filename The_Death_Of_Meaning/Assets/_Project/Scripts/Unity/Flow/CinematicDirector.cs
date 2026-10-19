@@ -84,12 +84,12 @@ namespace TDOM.Unity.Flow
             if (!IsServer)
                 return;
 
-            BossController.Spawned += AlSpawnearJefe;
+            BossController.ObservarJefe(NetworkManager, AlSpawnearJefe);
         }
 
         public override void OnNetworkDespawn()
         {
-            BossController.Spawned -= AlSpawnearJefe;
+            BossController.DejarDeObservarJefe(AlSpawnearJefe);
             DesuscribirJefe();
         }
 
@@ -124,6 +124,7 @@ namespace TDOM.Unity.Flow
             if (!_entradas.TryGetValue(id, out var entrada))
                 return;
 
+            _salidaActual?.Cancelar();
             _directorActual = entrada.Director;
             _salidaActual = CrearSalida(entrada.CamaraDeSalida);
             _flujo.IniciarCinematica(id);
@@ -171,9 +172,11 @@ namespace TDOM.Unity.Flow
 
         private IEnumerator RutinaSalida()
         {
+            _flujo.RetenerTransicion();
             if (_salidaActual != null)
                 yield return _salidaActual.Salir();
             _salidaActual = null;
+            _flujo.LiberarTransicion();
         }
 
         private ICinematicExit CrearSalida(CinemachineCamera camaraDeSalida) =>

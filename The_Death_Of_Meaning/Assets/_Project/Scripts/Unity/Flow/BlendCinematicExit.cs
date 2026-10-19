@@ -28,8 +28,16 @@ namespace TDOM.Unity.Flow
         public IEnumerator Salir()
         {
             _detenerDirector();
-            _camara.Priority.Value = _prioridad.Restaurar(_camara.Priority.Value);
-            yield break;
+            Cancelar();
+
+            yield return null;
+
+            var cerebro = CinemachineCore.FindPotentialTargetBrain(_camara);
+            while (cerebro != null && cerebro.IsBlending)
+                yield return null;
         }
+
+        public void Cancelar() =>
+            _camara.Priority.Value = _prioridad.Restaurar(_camara.Priority.Value);
     }
 }

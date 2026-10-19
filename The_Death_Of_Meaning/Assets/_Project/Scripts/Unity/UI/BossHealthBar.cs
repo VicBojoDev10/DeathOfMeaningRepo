@@ -3,6 +3,7 @@ using TDOM.Data;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Combat;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -37,12 +38,12 @@ namespace TDOM.Unity
 
         private void OnEnable()
         {
-            BossController.Spawned += AlSpawnearJefe;
+            BossController.ObservarJefe(NetworkManager.Singleton, AlSpawnearJefe);
         }
 
         private void OnDisable()
         {
-            BossController.Spawned -= AlSpawnearJefe;
+            BossController.DejarDeObservarJefe(AlSpawnearJefe);
             DesuscribirJefe();
         }
 
@@ -58,6 +59,9 @@ namespace TDOM.Unity
 
         private void AlSpawnearJefe(BossController jefe)
         {
+            if (jefe == _jefe)
+                return;
+
             DesuscribirJefe();
             _jefe = jefe;
             _jefe.Vida.OnValueChanged += AlCambiarVida;

@@ -19,6 +19,8 @@ namespace TDOM.Unity.Flow
 
         public void Preparar() { }
 
+        public void Cancelar() { }
+
         public IEnumerator Salir()
         {
             yield return _fundirA(AlphaNegro);

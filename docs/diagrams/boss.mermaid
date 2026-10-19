@@ -44,12 +44,12 @@ flowchart TD
     PSM -->|"TransicionTerminada: ReiniciarPorCambioDeFase"| SCH
     PSM -->|"VidaCambiada (evento, servidor)"| VIDA["Vida normalizada (NetworkVariable)"]
     PSM -.->|"Muerto: vida 0 en la última fase, una sola vez"| MUERTE["Victoria (pendiente, TW-153 / TW-157)"]
-    BC -->|"Spawned (evento estatico): Nombre desde BossIdentity"| GUI["BossHealthBar (GameplayUI)"]
+    BC -->|"ObservarJefe (jefe ya spawneado o evento Spawned): Nombre desde BossIdentity"| GUI["BossHealthBar (GameplayUI)"]
     CD -->|"SetHudVisible: revela la barra al volver el HUD (BossHealthBarReveal)"| GUI
     VIDA -->|"OnValueChanged: Slider de vida del jefe"| GUI
     FASE -->|OnFaseChanged| CD[CinematicDirector]
     FASE -->|"OnValueChanged: ColorFase en el cuerpo"| BC
-    BC -->|"Spawned (evento estatico)"| CD
+    BC -->|"ObservarJefe (jefe ya spawneado o evento Spawned)"| CD
     CD -->|"Pausar: detiene el scheduler"| BC
     BC -->|"CambioDeFaseRpc (ClientsAndHost): partículas y destello"| CLI
     CLI -->|"SacudidaCambioDeFase (jugador local)"| PR["PlayerRoot"]
