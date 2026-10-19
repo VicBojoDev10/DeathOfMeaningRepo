@@ -70,7 +70,7 @@ namespace TDOM.Unity.Combat
 
             if (Pegada.Value)
             {
-                if (_ojoAnclado != null && !_ojosAnclados.EstaAbierto(_ojoAnclado))
+                if (_ojoAnclado != null && !_ojosAnclados.AdmiteAncla(_ojoAnclado))
                 {
                     Despegar();
                     return;
@@ -171,7 +171,7 @@ namespace TDOM.Unity.Combat
 
             var jefe = collider.GetComponentInParent<BossController>();
             if (jefe != null)
-                return ojos != null && zona != null && ojos.EstaAbierto(zona);
+                return ojos != null && zona != null && ojos.AdmiteAncla(zona);
 
             return true;
         }

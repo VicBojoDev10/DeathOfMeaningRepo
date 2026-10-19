@@ -75,6 +75,30 @@ namespace TDOM.Tests.EditMode
             Assert.AreEqual(ResultadoGolpe.Abrio, maquina.GolpeMelee(ojoCerrado));
         }
 
+        [TestCase(EstadoOjo.Brillando, true)]
+        [TestCase(EstadoOjo.Abierto, true)]
+        [TestCase(EstadoOjo.Cerrado, false)]
+        [TestCase(EstadoOjo.Enfriando, false)]
+        public void El_ancla_solo_se_engancha_a_ojos_brillando_o_abiertos(
+            EstadoOjo estado,
+            bool esperado
+        )
+        {
+            Assert.AreEqual(esperado, WeakPointStateMachine.AdmiteAncla(estado));
+        }
+
+        [Test]
+        public void Un_ojo_anclado_mientras_brilla_sigue_admitiendo_el_ancla_al_abrirse()
+        {
+            var maquina = MaquinaEnFase1();
+            int ojo = Buscar(maquina, EstadoOjo.Brillando);
+            Assert.IsTrue(WeakPointStateMachine.AdmiteAncla(maquina.Estado(ojo)));
+
+            maquina.GolpeMelee(ojo);
+
+            Assert.IsTrue(WeakPointStateMachine.AdmiteAncla(maquina.Estado(ojo)));
+        }
+
         [Test]
         public void Brillar_ojo_para_debug_valida_el_indice()
         {

@@ -117,6 +117,9 @@ namespace TDOM.Gameplay.Combat
             _timers[ojo] = 0f;
         }
 
+        public static bool AdmiteAncla(EstadoOjo estado) =>
+            estado == EstadoOjo.Brillando || estado == EstadoOjo.Abierto;
+
         public void BrillarOjoParaDebug(int ojo)
         {
             ValidarOjo(ojo);

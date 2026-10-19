@@ -34,10 +34,12 @@ namespace TDOM.Unity.Combat
             }
         }
 
-        public bool EstaAbierto(HitZone zona)
+        public bool AdmiteAncla(HitZone zona)
         {
             int ojo = Array.IndexOf(_zonas, zona);
-            return ojo >= 0 && ojo < _estados.Count && Estado(ojo) == EstadoOjo.Abierto;
+            return ojo >= 0
+                && ojo < _estados.Count
+                && WeakPointStateMachine.AdmiteAncla(Estado(ojo));
         }
 
         public bool AbrirOjoParaDebug(int ojo)
