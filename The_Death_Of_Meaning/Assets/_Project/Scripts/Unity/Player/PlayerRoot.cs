@@ -9,6 +9,7 @@ using TDOM.Unity.Combat;
 using TDOM.Unity.Input;
 using TDOM.Unity.Locomotion;
 using TDOM.Unity.UI;
+using TDOM.Unity;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -460,6 +461,20 @@ namespace TDOM.Unity.Player
             }
 
             _lastObservedPosition = currentPosition;
+        }
+
+        public void SolicitarReinicioDePartida()
+        {
+            SolicitarReinicioDePartidaRpc();
+        }
+
+        [Rpc(SendTo.Server)]
+        private void SolicitarReinicioDePartidaRpc(RpcParams rpcParams = default)
+        {
+            if (!IsServer || rpcParams.Receive.SenderClientId != OwnerClientId)
+                return;
+
+            GameSessionManager.Instance?.SolicitarReinicioDePartidaDesdeServidor();
         }
     }
 }

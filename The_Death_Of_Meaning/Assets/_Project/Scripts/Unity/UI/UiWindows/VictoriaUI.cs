@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Unity.Netcode;
 using UnityEngine.SceneManagement;
+using TDOM.Unity.Player;
 
 namespace TDOM.Unity
 {
@@ -30,8 +31,8 @@ namespace TDOM.Unity
                 jugarDenuevoButton.onClick.AddListener(OnJugarDeNuevoClicked);
 
 
-            if (salirMenuButton != null)
-                salirMenuButton.onClick.AddListener(OnSalirMenuClicked);
+           // if (salirMenuButton != null)
+             //   salirMenuButton.onClick.AddListener(OnSalirMenuClicked);
         }
 
         private void OnDisable()
@@ -41,25 +42,29 @@ namespace TDOM.Unity
                 jugarDenuevoButton.onClick.RemoveListener(OnJugarDeNuevoClicked);
 
 
-            if (salirMenuButton != null)
-                salirMenuButton.onClick.RemoveListener(OnSalirMenuClicked);
+            //if (salirMenuButton != null)
+              //  salirMenuButton.onClick.RemoveListener(OnSalirMenuClicked);
         }
 
-        
 
-       
 
-        private void OnSalirMenuClicked()
-        {
-            if (UiManager.Instance != null)
-            {
-                UiManager.Instance.SwitchWindow(WindowsIds.OptionsUI, WindowsIds.MainMenuUI);
-            }
-        }
+
 
         private void OnJugarDeNuevoClicked()
         {
-            Debug.Log("Jugar de nuevo");
+            var gameFlow = GameFlowNetwork.Instance;
+
+            if (gameFlow == null || !gameFlow.IsSpawned)
+            {
+                Debug.LogError(
+                    "No hay un GameFlowNetwork activo para solicitar el reinicio."
+                );
+                return;
+            }
+
+            Debug.Log("[VictoriaUI] Solicitando reinicio al servidor.");
+            gameFlow.SolicitarReinicioDePartida();
         }
     }
+    
 }

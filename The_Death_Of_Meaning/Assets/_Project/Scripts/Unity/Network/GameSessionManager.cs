@@ -46,6 +46,8 @@ namespace TDOM.Unity
 
         public bool PartidaIniciadaEnServidor => _partidaIniciada;
 
+        private bool _reinicioVictoriaEnCurso;
+
         private void Awake()
         {
             Jugadores = new NetworkList<PlayerSelectionState>();
@@ -53,6 +55,10 @@ namespace TDOM.Unity
 
         public override void OnNetworkSpawn()
         {
+            Debug.Log(
+    $"[NetSpawn GameSessionManager] server={IsServer}, client={IsClient}, "
+    + $"id={NetworkObjectId}, escena={gameObject.scene.name}"
+);
             Instance = this;
             Spawned?.Invoke();
 
@@ -65,6 +71,10 @@ namespace TDOM.Unity
 
         public override void OnNetworkDespawn()
         {
+            Debug.Log(
+    $"[NetDespawn GameSessionManager] server={IsServer}, client={IsClient}, "
+    + $"id={NetworkObjectId}, escena={gameObject.scene.name}"
+);
             Despawned?.Invoke();
             if (Instance == this)
                 Instance = null;
@@ -227,6 +237,66 @@ namespace TDOM.Unity
             }
         }
 
+        public void SolicitarReinicioDePartida()
+        {
+            SolicitarReinicioDesdeVictoriaRpc();
+        }
+
+        public void SolicitarReinicioDePartidaDesdeServidor()
+        {
+            if (
+                !IsServer
+                || _reinicioVictoriaEnCurso
+                || _inicioPartidaEnProceso
+                || !_seleccion.PuedeIniciar
+            )
+                return;
+
+            _reinicioVictoriaEnCurso = true;
+            ReiniciarConCargaVictoriaRpc();
+        }
+
+        [Rpc(SendTo.Server)]
+        private void SolicitarReinicioDesdeVictoriaRpc(RpcParams rpcParams = default)
+        {
+            SolicitarReinicioDePartidaDesdeServidor();
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void ReiniciarConCargaVictoriaRpc()
+        {
+            var transicion = UiManager.Instance?.TransitionManager;
+
+            if (transicion == null)
+            {
+                if (IsServer)
+                {
+                    ReiniciarPartidaDesdePausa();
+                    _reinicioVictoriaEnCurso = false;
+                }
+
+                return;
+            }
+
+            transicion.EjecutarAccionConCarga(
+                () =>
+                {
+                    if (IsServer)
+                        ReiniciarPartidaDesdePausa();
+
+                    // La carga ya cubre la pantalla; podemos cambiar la ventana debajo.
+                    UiManager.Instance?.CloseWindow("victoriaui");
+                    UiManager.Instance?.ShowWindow(WindowsIds.GamePlayUI);
+                },
+                () =>
+                {
+                    if (IsServer)
+                        _reinicioVictoriaEnCurso = false;
+                }
+            );
+        }
+
+
         public void ReiniciarPartidaDesdePausa()
         {
             if (!IsServer || _inicioPartidaEnProceso || !_seleccion.PuedeIniciar)
@@ -291,5 +361,44 @@ namespace TDOM.Unity
                 UiManager.Instance.SwitchWindow(WindowsIds.ChSelectionUI, WindowsIds.GamePlayUI);
             }
         }
+
+#if UNITY_EDITOR
+private void OnGUI()
+{
+    if (!IsSpawned || !IsServer || !IsHost || !_inicioPartidaNotificado)
+        return;
+
+    if (GUI.Button(new Rect(20, 20, 220, 40), "DEBUG: Mostrar victoria"))
+        ForzarVictoriaDebugRpc();
+}
+
+[Rpc(SendTo.Server)]
+private void ForzarVictoriaDebugRpc(RpcParams rpcParams = default)
+{
+    if (!IsServer || !_inicioPartidaNotificado)
+        return;
+
+    MostrarVictoriaDebugClientRpc();
+}
+
+[Rpc(SendTo.ClientsAndHost)]
+private void MostrarVictoriaDebugClientRpc()
+{
+    var ui = UiManager.Instance;
+
+    void MostrarVictoria()
+    {
+        ui?.CloseWindow(WindowsIds.GamePlayUI);
+        ui?.ShowWindow("victoriaui");
+    }
+
+    var transicion = ui?.TransitionManager;
+
+    if (transicion != null)
+        transicion.EjecutarAccionConCarga(MostrarVictoria);
+    else
+        MostrarVictoria();
+}
+#endif
     }
 }
