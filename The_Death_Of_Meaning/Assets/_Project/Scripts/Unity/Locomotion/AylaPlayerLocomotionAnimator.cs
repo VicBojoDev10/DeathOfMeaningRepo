@@ -5,7 +5,10 @@ namespace TDOM.Unity
 {
     public class AylaPlayerLocomotionAnimator : NetworkBehaviour
     {
-        // 1. Hashes correspondientes a los nombres exactos en tu Animator Controller
+        private static readonly int SpeedHash = Animator.StringToHash("Speed");
+        private static readonly int MoveXHash = Animator.StringToHash("MoveX");
+        private static readonly int MoveYHash = Animator.StringToHash("MoveY");
+        private static readonly int AimStateHash = Animator.StringToHash("AimState");
         private static readonly int WalkHash = Animator.StringToHash("walk");
         private static readonly int RunHash = Animator.StringToHash("run");
         private static readonly int JumpHash = Animator.StringToHash("jump");
@@ -23,11 +26,15 @@ namespace TDOM.Unity
 
         [SerializeField]
         private float _runThreshold = 14.0f; // Punto medio seguro: caminar es 10 m/s y sprint es 20 m/s
+
+        [SerializeField]
+        private float _runBlendMaxSpeed = 20.0f;
         private Vector3 _ultimaPos;
         private float _rawSpeed;
         private float _smoothSpeed;
         private float _tiempoEnAire;
         private bool _isJumpingPrevio;
+        private bool _aimState;
 
         private void Awake()
         {
@@ -37,11 +44,30 @@ namespace TDOM.Unity
                 _characterController = GetComponent<CharacterController>();
         }
 
+        /// <summary>Actualiza el blend tree de apuntado desde el input del jugador dueño.</summary>
+        public void SetAimState(bool aiming)
+        {
+            if (!IsSpawned || !IsOwner || aiming == _aimState)
+                return;
+
+            _aimState = aiming;
+            ApplyAimState(aiming);
+            SyncAimStateRpc(aiming);
+        }
+
+        private void ApplyAimState(bool aiming)
+        {
+            if (_animator != null)
+                _animator.SetBool(AimStateHash, aiming);
+        }
+
         public override void OnNetworkSpawn()
         {
             _ultimaPos = transform.position;
             _smoothSpeed = 0f;
             _tiempoEnAire = 0f;
+            _aimState = false;
+            ApplyAimState(false);
         }
 
         private void Update()
@@ -89,16 +115,39 @@ namespace TDOM.Unity
             // 3. Aplicar al Animator
             if (_animator != null)
             {
+                Vector3 localVelocity = transform.InverseTransformDirection(v);
+                _animator.SetFloat(SpeedHash, CalculateLocomotionBlendSpeed(_smoothSpeed));
+                _animator.SetFloat(MoveXHash, localVelocity.x);
+                _animator.SetFloat(MoveYHash, localVelocity.z);
                 _animator.SetBool(JumpHash, isJumping);
                 _animator.SetBool(WalkHash, isWalking);
                 _animator.SetBool(RunHash, isRunning);
             }
         }
 
+        private float CalculateLocomotionBlendSpeed(float speed)
+        {
+            if (speed <= _walkThreshold)
+                return 0f;
+
+            if (speed < _runThreshold)
+                return Mathf.Lerp(0f, 1f, Mathf.InverseLerp(_walkThreshold, _runThreshold, speed));
+
+            float maxRunSpeed = Mathf.Max(_runBlendMaxSpeed, _runThreshold);
+            return Mathf.Lerp(1f, 2f, Mathf.InverseLerp(_runThreshold, maxRunSpeed, speed));
+        }
+
         [Rpc(SendTo.NotOwner)]
         private void SyncJumpStateRpc(bool isJumping)
         {
             _isJumpingPrevio = isJumping;
+        }
+
+        [Rpc(SendTo.NotOwner)]
+        private void SyncAimStateRpc(bool aiming)
+        {
+            _aimState = aiming;
+            ApplyAimState(aiming);
         }
     }
 }

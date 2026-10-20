@@ -52,6 +52,8 @@ namespace TDOM.Unity.Player
 
         private PlayerCombat _combat;
 
+        private AylaPlayerLocomotionAnimator _aylaAnimator;
+
         [SerializeField]
         private GrappleVisual _grappleVisual;
 
@@ -102,6 +104,7 @@ namespace TDOM.Unity.Player
         {
             _anchorLauncher = GetComponentInChildren<AnchorLauncher>();
             _combat = GetComponentInChildren<PlayerCombat>();
+            _aylaAnimator = GetComponentInChildren<AylaPlayerLocomotionAnimator>();
             _look = new LookResolver(
                 _sensitivity,
                 _camera.Config.PitchMin,
@@ -391,6 +394,8 @@ namespace TDOM.Unity.Player
             float dt = Time.deltaTime;
             var input = _inputReader.Read();
             bool apuntando = input.AimHeld && PuedeApuntar;
+            if (_aylaAnimator != null)
+                _aylaAnimator.SetAimState(apuntando);
 
             ActualizarMirada(input, dt);
 
