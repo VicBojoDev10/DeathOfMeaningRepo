@@ -286,6 +286,8 @@ namespace TDOM.Unity
 
                     // La carga ya cubre la pantalla; podemos cambiar la ventana debajo.
                     UiManager.Instance?.CloseWindow("victoriaui");
+                    UiManager.Instance?.CloseWindow(WindowsIds.RetryPopUpUI);
+                    (UiManager.Instance?.GetWindow(WindowsIds.PausaUI) as PausaUI)?.SetPopupActivo(false);
                     UiManager.Instance?.ShowWindow(WindowsIds.GamePlayUI);
                 },
                 () =>

@@ -6,6 +6,7 @@ using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.POCO.ScriptableObjects;
 using TDOM.Unity.Player;
+using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -158,6 +159,7 @@ namespace TDOM.Unity.Combat
             }
 
             _maquina = new BossPhaseStateMachine(_fases);
+            _maquina.Muerto += AlMorir;
             _maquina.TransicionTerminada += AlTerminarTransicion;
             _maquina.VidaCambiada += AlCambiarVida;
             Vida.Value = _maquina.VidaActual;
@@ -199,6 +201,7 @@ namespace TDOM.Unity.Combat
             if (_maquina != null)
             {
                 _maquina.TransicionTerminada -= AlTerminarTransicion;
+                _maquina.Muerto -= AlMorir;
                 _maquina.VidaCambiada -= AlCambiarVida;
             }
 
@@ -259,6 +262,33 @@ namespace TDOM.Unity.Combat
 
         private void AlCambiarVida(float vida) => Vida.Value = vida;
 
+        private void AlMorir()
+        {
+            if (!IsServer)
+                return;
+
+            Debug.Log("[BossController] Vida del jefe en cero; mostrando pantalla de victoria.");
+            MostrarVictoriaClientRpc();
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void MostrarVictoriaClientRpc()
+        {
+            var ui = UiManager.Instance;
+
+            void MostrarVictoria()
+            {
+                ui?.CloseWindow(WindowsIds.GamePlayUI);
+                ui?.ShowWindow("victoriaui");
+            }
+
+            var transicion = ui?.TransitionManager;
+            if (transicion != null)
+                transicion.EjecutarAccionConCarga(MostrarVictoria);
+            else
+                MostrarVictoria();
+        }
+
         private void AlTerminarTransicion()
         {
             _scheduler?.ReiniciarPorCambioDeFase();
@@ -286,6 +316,9 @@ namespace TDOM.Unity.Combat
                 return;
 
             _maquina.Tick(Time.deltaTime);
+            if (_maquina.EstaMuerto)
+                return;
+
             _ojos.Tick(Time.deltaTime);
 
             if (Pausado)
