@@ -30,21 +30,36 @@ namespace TDOM.Unity
         private float multiplicadorEscalaEnRango = 1.15f;
 
         [Header("Cooldowns")]
-        [SerializeField] private Image dashandembestidaslider;
-        [SerializeField] private Image hookandgraplerslider;
-        [SerializeField] private Color cooldownDisponible = Color.white;
-        [SerializeField] private Color cooldownEnUso = new Color(0.35f, 0.35f, 0.35f, 1f);
+        [SerializeField]
+        private Image dashandembestidaslider;
 
+        [SerializeField]
+        private Image hookandgraplerslider;
+
+        [SerializeField]
+        private Color cooldownDisponible = Color.white;
+
+        [SerializeField]
+        private Color cooldownEnUso = new Color(0.35f, 0.35f, 0.35f, 1f);
 
         [Header("PlayerHealth")]
-        [SerializeField] private Image mainPlayerIcon;
-        [SerializeField] private Image secondaryPlayerIcon;
-        [SerializeField] private Slider mainPlayerHealthSlider;
-        [SerializeField] private Slider secondaryPlayerHealthSlider;
+        [SerializeField]
+        private Image mainPlayerIcon;
 
-        [SerializeField] private Sprite zendreIcon;
-        [SerializeField] private Sprite aylaIcon;
+        [SerializeField]
+        private Image secondaryPlayerIcon;
 
+        [SerializeField]
+        private Slider mainPlayerHealthSlider;
+
+        [SerializeField]
+        private Slider secondaryPlayerHealthSlider;
+
+        [SerializeField]
+        private Sprite zendreIcon;
+
+        [SerializeField]
+        private Sprite aylaIcon;
 
         [Header("Vida del Jefe")]
         [SerializeField]
@@ -256,9 +271,10 @@ namespace TDOM.Unity
             var cooldowns = _localPlayer.Cooldowns;
             ActualizarIconoCooldown(dashandembestidaslider, cooldowns.Dash);
 
-            float cooldownSecundario = _localPlayer.CharacterId == CharacterIds.Zendre
-                ? cooldowns.Ancla
-                : cooldowns.Gancho;
+            float cooldownSecundario =
+                _localPlayer.CharacterId == CharacterIds.Zendre
+                    ? cooldowns.Ancla
+                    : cooldowns.Gancho;
             ActualizarIconoCooldown(hookandgraplerslider, cooldownSecundario);
         }
 

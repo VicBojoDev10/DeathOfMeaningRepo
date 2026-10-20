@@ -7,7 +7,8 @@ namespace TDOM.Unity.UI
 {
     public class PlayerEnergyHud : MonoBehaviour
     {
-        [SerializeField] private Slider _energiaJugador;
+        [SerializeField]
+        private Slider _energiaJugador;
         public TextMeshProUGUI LabelText;
 
         private PlayerRoot _targetRoot;
@@ -68,9 +69,7 @@ namespace TDOM.Unity.UI
         {
             if (_energiaJugador != null && _maxEnergy > 0f)
             {
-                _energiaJugador.SetValueWithoutNotify(
-                    Mathf.Clamp(currentEnergy, 0f, _maxEnergy)
-                );
+                _energiaJugador.SetValueWithoutNotify(Mathf.Clamp(currentEnergy, 0f, _maxEnergy));
             }
         }
     }
