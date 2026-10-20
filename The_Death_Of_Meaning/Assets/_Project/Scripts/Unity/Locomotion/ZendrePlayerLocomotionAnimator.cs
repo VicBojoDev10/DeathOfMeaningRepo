@@ -5,44 +5,40 @@ namespace TDOM.Unity
 {
     public class ZendrePlayerLocomotionAnimator : NetworkBehaviour
     {
-        private static readonly int RunHash = Animator.StringToHash("run");
+        private static readonly int SpeedHash = Animator.StringToHash("Speed");
+        private const float SpeedDampTime = 0.1f;
 
         [Header("Referencias")]
         [SerializeField]
         private Animator _animator;
-        private static readonly int WalkHash = Animator.StringToHash("walk");
 
-        [Header("Umbrales de Velocidad (m/s)")]
-        [SerializeField]
-        private float _walkThreshold = 0.5f;
-
-        [SerializeField]
-        private float _runThreshold = 8.5f;
         private Vector3 _ultimaPos;
-        private float _rawSpeed;
+
+        private void Awake()
+        {
+            if (_animator == null)
+                _animator = GetComponentInChildren<Animator>();
+        }
 
         public override void OnNetworkSpawn()
         {
             _ultimaPos = transform.position;
+            if (_animator != null)
+                _animator.SetFloat(SpeedHash, 0f);
         }
 
         private void Update()
         {
             float dt = Time.deltaTime;
-            if (dt <= 0f)
+            if (dt <= 0f || _animator == null)
                 return;
-            Vector3 pos = transform.position;
-            Vector3 velocidad = (pos - _ultimaPos) / dt;
+
+            Vector3 posicionActual = transform.position;
+            Vector3 velocidad = (posicionActual - _ultimaPos) / dt;
             velocidad.y = 0f;
-            _rawSpeed = velocidad.magnitude;
-            _ultimaPos = pos;
-            bool isRunning = _rawSpeed >= _runThreshold;
-            bool isWalking = _rawSpeed >= _walkThreshold && !isRunning;
-            if (_animator != null)
-            {
-                _animator.SetBool(WalkHash, isWalking);
-                _animator.SetBool(RunHash, isRunning);
-            }
+            _ultimaPos = posicionActual;
+
+            _animator.SetFloat(SpeedHash, velocidad.magnitude, SpeedDampTime, dt);
         }
     }
 }
