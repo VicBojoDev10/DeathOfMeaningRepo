@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TDOM.Contracts;
 using TDOM.Data;
@@ -8,7 +9,6 @@ using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Input;
 using TDOM.Unity.Locomotion;
-using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -16,6 +16,20 @@ namespace TDOM.Unity.Player
 {
     public class PlayerRoot : NetworkBehaviour
     {
+        public readonly struct CooldownValues
+        {
+            public float Dash { get; }
+            public float Gancho { get; }
+            public float Ancla { get; }
+
+            public CooldownValues(float dash, float gancho, float ancla)
+            {
+                Dash = dash;
+                Gancho = gancho;
+                Ancla = ancla;
+            }
+        }
+
         [SerializeField]
         private CharacterDefinition _definition;
 
@@ -53,9 +67,6 @@ namespace TDOM.Unity.Player
         );
         private EnergyPool _energyPool;
 
-        [SerializeField]
-        private GameObject _hudEnergiaPrefab;
-        private GameObject _hudInstance;
         private FeedbackDirector _feedback;
         private CharacterIds _characterId = CharacterIds.None;
         private bool _initialSpawnApplied;
@@ -70,6 +81,14 @@ namespace TDOM.Unity.Player
             || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
 
         public CharacterIds CharacterId => _characterId;
+        public float EnergiaMaxima => _definition?.Energy != null ? _definition.Energy.Max : 0f;
+        public event Action DashEmbestidaIniciada;
+        public CooldownValues Cooldowns =>
+            new CooldownValues(
+                _locomocion != null ? _locomocion.CooldownDashNormalizado : 0f,
+                _locomocion != null ? _locomocion.CooldownGanchoNormalizado : 0f,
+                _anchorLauncher != null ? _anchorLauncher.CooldownNormalizado : 0f
+            );
         public bool SpawnInicialAplicado => _initialSpawnApplied;
         public Transform CameraTransform => _camera != null ? _camera.CamaraTransform : null;
         public PlayerInputReader InputReader => _inputReader;
@@ -114,21 +133,6 @@ namespace TDOM.Unity.Player
             if (IsOwner)
             {
                 _inputReader.ActivarPersonaje(_characterId);
-                if (_hudEnergiaPrefab != null)
-                {
-                    _hudInstance = Instantiate(_hudEnergiaPrefab);
-                    var hudComp = _hudInstance.GetComponent<PlayerEnergyHud>();
-                    if (hudComp != null)
-                    {
-                        string etiqueta = _characterId switch
-                        {
-                            CharacterIds.Ayla => "Stamina",
-                            CharacterIds.Zendre => "Maná",
-                            _ => "Energy",
-                        };
-                        hudComp.Initialize(this, etiqueta, _definition?.Energy?.Max ?? 100f);
-                    }
-                }
                 if (_camera != null)
                     _feedback = _camera.GetComponent<FeedbackDirector>();
             }
@@ -187,8 +191,6 @@ namespace TDOM.Unity.Player
                 return;
 
             _inputReader.SetEntradaHabilitada(!activa);
-            if (_hudInstance != null)
-                _hudInstance.SetActive(!activa);
         }
 
         public AimSolution ResolverApuntado(Vector3 origen) =>
@@ -372,15 +374,6 @@ namespace TDOM.Unity.Player
                 _camera.PunchFov(8f, 0.2f);
         }
 
-        public override void OnNetworkDespawn()
-        {
-            if (_hudInstance != null)
-            {
-                Destroy(_hudInstance);
-                _hudInstance = null;
-            }
-        }
-
         private void Update()
         {
             if (PauseManager.PausadoGlobal)
@@ -448,6 +441,8 @@ namespace TDOM.Unity.Player
             AplicarMiradaACamara();
 
             DispararFeedbackDeLocomocion();
+            if (_locomocion.DashIniciado)
+                DashEmbestidaIniciada?.Invoke();
             RegistrarDesplazamientoLateralEnCamara(input.Move);
 
             bool ganchoActivoActual = _locomocion != null && _locomocion.GanchoActivo;
