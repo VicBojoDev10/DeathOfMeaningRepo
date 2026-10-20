@@ -54,6 +54,11 @@ namespace TDOM.Unity
         [SerializeField]
         private BossTargetingProfile _perfilObjetivo;
 
+        // TW-126: cada piedra del Mortero deja una columna; aquí viven porque el ataque se despawnea.
+        [Header("Columnas del Mortero")]
+        [SerializeField]
+        private GameObject _prefabColumnaMortero;
+
         public AtaqueManoProfile PerfilMano => _perfilMano;
         public AtaqueTentaculoProfile PerfilTentaculo => _perfilTentaculo;
         public AtaqueMorteroProfile PerfilMortero => _perfilMortero;
@@ -88,6 +93,17 @@ namespace TDOM.Unity
         private readonly TDOM.Gameplay.Combat.BossMovement _logicaMovimiento =
             new TDOM.Gameplay.Combat.BossMovement();
 
+        // Solo servidor: columnas vivas, de la más vieja a la más nueva.
+        private struct ColumnaViva
+        {
+            public ColumnaMortero Columna;
+            public int AtaqueDeNacimiento;
+        }
+
+        private readonly List<ColumnaViva> _columnas = new List<ColumnaViva>();
+        private int _ataquesLanzados;
+        private BossController _jefe;
+
         public override void OnNetworkSpawn()
         {
             if (!IsServer)
@@ -97,11 +113,18 @@ namespace TDOM.Unity
             _zonas = GetComponentsInChildren<HitZone>(true);
             foreach (var zona in _zonas)
                 zona.DanioRecibido += AlRecibirDanio;
+
+            _jefe = GetComponent<BossController>();
+            if (_jefe != null)
+                _jefe.OnFaseChanged += AlCambiarFase;
         }
 
         public override void OnNetworkDespawn()
         {
             _logicaMovimiento.ResetearObjetivo();
+            if (_jefe != null)
+                _jefe.OnFaseChanged -= AlCambiarFase;
+
             if (_zonas == null)
                 return;
 
@@ -306,6 +329,9 @@ namespace TDOM.Unity
 
         private void Ejecutar(BossAttackKind tipo)
         {
+            _ataquesLanzados++;
+            HundirColumnasVencidas();
+
             switch (tipo)
             {
                 case BossAttackKind.Basico:
@@ -411,6 +437,84 @@ namespace TDOM.Unity
             var no = go.GetComponent<NetworkObject>();
             if (no != null)
                 no.Spawn();
+        }
+
+        /// <summary>
+        /// Solo servidor: spawnea una columna con la base en el punto de impacto. Si se pasa del
+        /// máximo, la más vieja se hunde.
+        /// </summary>
+        public void SpawnearColumna(Vector3 punto)
+        {
+            if (!IsServer)
+                return;
+
+            if (_prefabColumnaMortero == null || _perfilMortero == null)
+            {
+                Debug.LogError(
+                    "[AtaquesArek] _prefabColumnaMortero o _perfilMortero no está asignado en el Inspector."
+                );
+                return;
+            }
+
+            GameObject go = Instantiate(_prefabColumnaMortero, punto, Quaternion.identity);
+            var columna = go.GetComponent<ColumnaMortero>();
+            var no = go.GetComponent<NetworkObject>();
+            if (columna == null || no == null)
+            {
+                Debug.LogError(
+                    "[AtaquesArek] _prefabColumnaMortero necesita ColumnaMortero y NetworkObject."
+                );
+                Destroy(go);
+                return;
+            }
+
+            columna.AsignarAltura(
+                UnityEngine.Random.Range(
+                    _perfilMortero.alturaColumnaMin,
+                    _perfilMortero.alturaColumnaMax
+                )
+            );
+            no.Spawn();
+
+            _columnas.Add(
+                new ColumnaViva { Columna = columna, AtaqueDeNacimiento = _ataquesLanzados }
+            );
+
+            int maximo = Mathf.Max(1, _perfilMortero.maxColumnas);
+            while (_columnas.Count > maximo)
+                HundirColumna(0);
+        }
+
+        // Se quitan al empezar el ataque número ataquesDeVidaColumna después del Mortero que las creó.
+        private void HundirColumnasVencidas()
+        {
+            if (_perfilMortero == null)
+                return;
+
+            for (int i = _columnas.Count - 1; i >= 0; i--)
+            {
+                int edad = _ataquesLanzados - _columnas[i].AtaqueDeNacimiento;
+                if (edad >= _perfilMortero.ataquesDeVidaColumna)
+                    HundirColumna(i);
+            }
+        }
+
+        private void HundirColumna(int indice)
+        {
+            ColumnaMortero columna = _columnas[indice].Columna;
+            _columnas.RemoveAt(indice);
+            if (columna != null)
+                columna.Hundir();
+        }
+
+        // TW-116: opcional, detrás de limpiarColumnasAlCambiarFase.
+        private void AlCambiarFase(int anterior, int actual)
+        {
+            if (!IsServer || _perfilMortero == null || !_perfilMortero.limpiarColumnasAlCambiarFase)
+                return;
+
+            for (int i = _columnas.Count - 1; i >= 0; i--)
+                HundirColumna(i);
         }
 
         // Los botones de debug no revisan el rango del ataque, pero sí apuntan a quien el jefe
