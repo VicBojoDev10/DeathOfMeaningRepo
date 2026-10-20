@@ -431,6 +431,8 @@ namespace TDOM.Unity.Player
                 transform.position,
                 ModoPistola
             );
+            if (_aylaAnimator != null)
+                _aylaAnimator.SetSprintState(_locomocion.Corriendo);
             if (
                 _anchorLauncher != null
                 && _anchorLauncher.AnclaActiva

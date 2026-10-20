@@ -8,7 +8,7 @@ namespace TDOM.Unity
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
         private static readonly int MoveXHash = Animator.StringToHash("MoveX");
         private static readonly int MoveYHash = Animator.StringToHash("MoveY");
-        private static readonly int AimStateHash = Animator.StringToHash("AimState");
+        private static readonly int IsAimingHash = Animator.StringToHash("IsAiming");
         private static readonly int WalkHash = Animator.StringToHash("walk");
         private static readonly int RunHash = Animator.StringToHash("run");
         private static readonly int JumpHash = Animator.StringToHash("jump");
@@ -25,7 +25,7 @@ namespace TDOM.Unity
         private float _walkThreshold = 0.5f;
 
         [SerializeField]
-        private float _runThreshold = 14.0f; // Punto medio seguro: caminar es 10 m/s y sprint es 20 m/s
+        private float _walkBlendMaxSpeed = 10.0f;
 
         [SerializeField]
         private float _runBlendMaxSpeed = 20.0f;
@@ -35,6 +35,7 @@ namespace TDOM.Unity
         private float _tiempoEnAire;
         private bool _isJumpingPrevio;
         private bool _aimState;
+        private bool _isSprinting;
 
         private void Awake()
         {
@@ -55,10 +56,20 @@ namespace TDOM.Unity
             SyncAimStateRpc(aiming);
         }
 
+        /// <summary>El estado de carrera lo decide PlayerLocomotion al activar L3.</summary>
+        public void SetSprintState(bool sprinting)
+        {
+            if (!IsSpawned || !IsOwner || sprinting == _isSprinting)
+                return;
+
+            _isSprinting = sprinting;
+            SyncSprintStateRpc(sprinting);
+        }
+
         private void ApplyAimState(bool aiming)
         {
             if (_animator != null)
-                _animator.SetBool(AimStateHash, aiming);
+                _animator.SetBool(IsAimingHash, aiming);
         }
 
         public override void OnNetworkSpawn()
@@ -67,6 +78,7 @@ namespace TDOM.Unity
             _smoothSpeed = 0f;
             _tiempoEnAire = 0f;
             _aimState = false;
+            _isSprinting = false;
             ApplyAimState(false);
         }
 
@@ -110,18 +122,21 @@ namespace TDOM.Unity
                 }
             }
             // 2. Detección de suelo: caminar, correr o idle
-            bool isRunning = !isJumping && _smoothSpeed >= _runThreshold;
+            bool isRunning = !isJumping && _isSprinting;
             bool isWalking = !isJumping && _smoothSpeed >= _walkThreshold && !isRunning;
             // 3. Aplicar al Animator
             if (_animator != null)
             {
                 Vector3 localVelocity = transform.InverseTransformDirection(v);
                 _animator.SetFloat(SpeedHash, CalculateLocomotionBlendSpeed(_smoothSpeed));
-                _animator.SetFloat(MoveXHash, localVelocity.x);
-                _animator.SetFloat(MoveYHash, localVelocity.z);
+                Vector3 localDirection = localVelocity.sqrMagnitude > 0.01f
+                    ? localVelocity.normalized
+                    : Vector3.zero;
+                _animator.SetFloat(MoveXHash, localDirection.x);
+                _animator.SetFloat(MoveYHash, localDirection.z);
                 _animator.SetBool(JumpHash, isJumping);
                 _animator.SetBool(WalkHash, isWalking);
-                _animator.SetBool(RunHash, isRunning);
+                _animator.SetBool(RunHash, _isSprinting && !isJumping);
             }
         }
 
@@ -130,11 +145,15 @@ namespace TDOM.Unity
             if (speed <= _walkThreshold)
                 return 0f;
 
-            if (speed < _runThreshold)
-                return Mathf.Lerp(0f, 1f, Mathf.InverseLerp(_walkThreshold, _runThreshold, speed));
+            if (!_isSprinting)
+                return Mathf.InverseLerp(
+                    _walkThreshold,
+                    Mathf.Max(_walkBlendMaxSpeed, _walkThreshold),
+                    speed
+                );
 
-            float maxRunSpeed = Mathf.Max(_runBlendMaxSpeed, _runThreshold);
-            return Mathf.Lerp(1f, 2f, Mathf.InverseLerp(_runThreshold, maxRunSpeed, speed));
+            float maxRunSpeed = Mathf.Max(_runBlendMaxSpeed, _walkBlendMaxSpeed);
+            return Mathf.Lerp(0f, 2f, Mathf.InverseLerp(0f, maxRunSpeed, speed));
         }
 
         [Rpc(SendTo.NotOwner)]
@@ -148,6 +167,12 @@ namespace TDOM.Unity
         {
             _aimState = aiming;
             ApplyAimState(aiming);
+        }
+
+        [Rpc(SendTo.NotOwner)]
+        private void SyncSprintStateRpc(bool sprinting)
+        {
+            _isSprinting = sprinting;
         }
     }
 }
