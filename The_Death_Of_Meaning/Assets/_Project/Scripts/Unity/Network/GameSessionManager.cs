@@ -445,6 +445,9 @@ private void OnGUI()
 
     if (GUI.Button(new Rect(20, 20, 220, 40), "DEBUG: Mostrar victoria"))
         ForzarVictoriaDebugRpc();
+
+    if (GUI.Button(new Rect(20, 65, 220, 40), "DEBUG: Mostrar derrota"))
+        ForzarDerrotaDebugRpc();
 }
 
 [Rpc(SendTo.Server)]
@@ -456,6 +459,35 @@ private void ForzarVictoriaDebugRpc(RpcParams rpcParams = default)
     MostrarVictoriaDebugClientRpc();
 }
 
+[Rpc(SendTo.Server)]
+private void ForzarDerrotaDebugRpc(RpcParams rpcParams = default)
+{
+    if (!IsServer || !_inicioPartidaNotificado)
+        return;
+
+    var jefe = FindAnyObjectByType<BossController>();
+    int fase = jefe != null ? jefe.Fase.Value : 1;
+    MostrarDerrotaDebugClientRpc(fase);
+}
+
+[Rpc(SendTo.ClientsAndHost)]
+private void MostrarDerrotaDebugClientRpc(int fase)
+{
+    var ui = UiManager.Instance;
+
+    void MostrarDerrota()
+    {
+        ui?.CloseWindow(WindowsIds.GamePlayUI);
+        ui?.ShowWindow(WindowsIds.DerrotaUI);
+        (ui?.GetWindow(WindowsIds.DerrotaUI) as DerrotaUI)?.MostrarFaseJefe(fase);
+    }
+
+    var transicion = ui?.TransitionManager;
+    if (transicion != null)
+        transicion.EjecutarAccionConCarga(MostrarDerrota);
+    else
+        MostrarDerrota();
+}
 [Rpc(SendTo.ClientsAndHost)]
 private void MostrarVictoriaDebugClientRpc()
 {

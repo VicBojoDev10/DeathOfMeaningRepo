@@ -21,7 +21,8 @@ namespace TDOM.Unity
         );
         private ulong _solicitante;
         private bool _salir;
-        private bool _confirmacionDesdeVictoriaPendiente;
+        private bool _confirmacionDesdePantallaFinalPendiente;
+        private string _ventanaFinalPendiente;
 
         private void Update()
         {
@@ -100,19 +101,36 @@ namespace TDOM.Unity
             Pausado.Value = pausa;
         }
 
-        public void PedirConfirmacionReinicioVictoria() => PedirConfirmacionDesdeVictoriaRpc(false);
+        public void PedirConfirmacionReinicioVictoria() =>
+            PedirConfirmacionDesdePantallaFinalRpc(false, "victoriaui");
 
-        public void PedirConfirmacionSalirVictoria() => PedirConfirmacionDesdeVictoriaRpc(true);
+        public void PedirConfirmacionSalirVictoria() =>
+            PedirConfirmacionDesdePantallaFinalRpc(true, "victoriaui");
+
+        public void PedirConfirmacionReinicioDerrota() =>
+            PedirConfirmacionDesdePantallaFinalRpc(false, WindowsIds.DerrotaUI);
+
+        public void PedirConfirmacionSalirDerrota() =>
+            PedirConfirmacionDesdePantallaFinalRpc(true, WindowsIds.DerrotaUI);
 
         [Rpc(SendTo.Server)]
-        private void PedirConfirmacionDesdeVictoriaRpc(bool salir, RpcParams rpc = default)
+        private void PedirConfirmacionDesdePantallaFinalRpc(
+            bool salir,
+            string ventanaFinal,
+            RpcParams rpc = default
+        )
         {
-            if (!IsServer || _confirmacionDesdeVictoriaPendiente)
+            if (
+                !IsServer
+                || _confirmacionDesdePantallaFinalPendiente
+                || (ventanaFinal != "victoriaui" && ventanaFinal != WindowsIds.DerrotaUI)
+            )
                 return;
 
             _solicitante = rpc.Receive.SenderClientId;
             _salir = salir;
-            _confirmacionDesdeVictoriaPendiente = true;
+            _ventanaFinalPendiente = ventanaFinal;
+            _confirmacionDesdePantallaFinalPendiente = true;
 
             bool hayOtroJugador = false;
             foreach (var cliente in NetworkManager.ConnectedClientsIds)
@@ -126,11 +144,11 @@ namespace TDOM.Unity
 
             if (!hayOtroJugador)
             {
-                _confirmacionDesdeVictoriaPendiente = false;
-                Debug.LogWarning("No hay otro jugador conectado para confirmar la acción desde Victoria.");
+                _confirmacionDesdePantallaFinalPendiente = false;
+                _ventanaFinalPendiente = null;
+                Debug.LogWarning("No hay otro jugador conectado para confirmar la acción desde la pantalla final.");
             }
         }
-
         public void PedirConfirmacion(bool salir) => PedirConfirmacionRpc(salir);
 
         [Rpc(SendTo.Server)]
@@ -156,8 +174,8 @@ namespace TDOM.Unity
         [Rpc(SendTo.Server)]
         private void ResponderConfirmacionRpc(bool aceptar, RpcParams rpc = default)
         {
-            bool esConfirmacionVictoria = _confirmacionDesdeVictoriaPendiente;
-            if (!IsServer || (!Pausado.Value && !esConfirmacionVictoria))
+            bool desdePantallaFinal = _confirmacionDesdePantallaFinalPendiente;
+            if (!IsServer || (!Pausado.Value && !desdePantallaFinal))
                 return;
 
             ulong quienResponde = rpc.Receive.SenderClientId;
@@ -166,14 +184,16 @@ namespace TDOM.Unity
 
             if (aceptar)
             {
-                if (esConfirmacionVictoria)
+                if (desdePantallaFinal)
                 {
-                    bool salirDesdeVictoria = _salir;
-                    _confirmacionDesdeVictoriaPendiente = false;
-                    if (salirDesdeVictoria)
+                    bool salirDesdePantallaFinal = _salir;
+                    string ventanaFinal = _ventanaFinalPendiente;
+                    _confirmacionDesdePantallaFinalPendiente = false;
+                    _ventanaFinalPendiente = null;
+                    if (salirDesdePantallaFinal)
                         SalirAlMenu();
                     else
-                        ReiniciarConCargaClientRpc(true);
+                        ReiniciarConCargaClientRpc(true, ventanaFinal);
                 }
                 else if (_salir)
                     SalirAlMenu();
@@ -182,35 +202,37 @@ namespace TDOM.Unity
             }
             else
             {
-                if (esConfirmacionVictoria)
-                    _confirmacionDesdeVictoriaPendiente = false;
+                if (desdePantallaFinal)
+                    _confirmacionDesdePantallaFinalPendiente = false;
                 RespuestaClientRpc(
                     _salir,
-                    esConfirmacionVictoria,
+                    desdePantallaFinal,
+                    _ventanaFinalPendiente,
                     RpcTarget.Single(quienResponde, RpcTargetUse.Temp)
                 );
+                if (desdePantallaFinal)
+                    _ventanaFinalPendiente = null;
             }
         }
-
         [Rpc(SendTo.SpecifiedInParams)]
         private void RespuestaClientRpc(
             bool salir,
-            bool esConfirmacionVictoria,
+            bool desdePantallaFinal,
+            string ventanaFinal,
             RpcParams rpc = default
         )
         {
-            if (esConfirmacionVictoria)
+            if (desdePantallaFinal)
             {
                 var ui = UiManager.Instance;
                 ui?.CloseWindow(salir ? WindowsIds.ExitPopUpUI : WindowsIds.RetryPopUpUI);
                 (ui?.GetWindow(WindowsIds.PausaUI) as PausaUI)?.SetPopupActivo(false);
-                ui?.ActivarInteraccionSolo("victoriaui");
+                ui?.ActivarInteraccionSolo(ventanaFinal);
                 return;
             }
 
             CerrarPopupLocal(salir);
         }
-
         private static void MostrarPopupLocal(bool salir)
         {
             var ui = UiManager.Instance;
@@ -235,25 +257,25 @@ namespace TDOM.Unity
 
         private void RecargarNivel()
         {
-            ReiniciarConCargaClientRpc(false);
+            ReiniciarConCargaClientRpc(false, string.Empty);
         }
 
         [Rpc(SendTo.ClientsAndHost)]
-        private void ReiniciarConCargaClientRpc(bool desdeVictoria)
+        private void ReiniciarConCargaClientRpc(bool desdePantallaFinal, string ventanaFinal)
         {
             var transicion = UiManager.Instance?.TransitionManager;
             if (transicion == null)
             {
                 if (IsServer)
                 {
-                    if (!desdeVictoria)
+                    if (!desdePantallaFinal)
                         Pausado.Value = false;
 
                     GameSessionManager.Instance?.ReiniciarPartidaDesdePausa();
                 }
 
-                if (desdeVictoria)
-                    MostrarGameplayDespuesDeVictoria();
+                if (desdePantallaFinal)
+                    MostrarGameplayDespuesDePantallaFinal(ventanaFinal);
 
                 return;
             }
@@ -266,31 +288,31 @@ namespace TDOM.Unity
                         if (GameSessionManager.Instance != null)
                             GameSessionManager.Instance.ReiniciarPartidaDesdePausa();
                         else
-                            Debug.LogError(
-                                "No se encontró GameSessionManager para reiniciar la partida."
-                            );
+                            Debug.LogError("No se encontró GameSessionManager para reiniciar la partida.");
                     }
 
-                    if (desdeVictoria)
-                        MostrarGameplayDespuesDeVictoria();
+                    if (desdePantallaFinal)
+                        MostrarGameplayDespuesDePantallaFinal(ventanaFinal);
                 },
                 () =>
                 {
-                    if (IsServer && !desdeVictoria)
+                    if (IsServer && !desdePantallaFinal)
                         Pausado.Value = false;
                 }
             );
         }
 
-        private static void MostrarGameplayDespuesDeVictoria()
+        private static void MostrarGameplayDespuesDePantallaFinal(string ventanaFinal)
         {
             var ui = UiManager.Instance;
             ui?.CloseWindow(WindowsIds.RetryPopUpUI);
             (ui?.GetWindow(WindowsIds.PausaUI) as PausaUI)?.SetPopupActivo(false);
+            if (!string.IsNullOrEmpty(ventanaFinal))
+                ui?.CloseWindow(ventanaFinal);
             ui?.CloseWindow("victoriaui");
+            ui?.CloseWindow(WindowsIds.DerrotaUI);
             ui?.ShowWindow(WindowsIds.GamePlayUI);
         }
-
         private void SalirAlMenu()
         {
             GameSessionManager.Instance?.PrepararSalidaAlMenu();
@@ -306,6 +328,7 @@ namespace TDOM.Unity
             ui?.CloseWindow(WindowsIds.ExitPopUpUI);
             ui?.CloseWindow(WindowsIds.GamePlayUI);
             ui?.CloseWindow("victoriaui");
+            ui?.CloseWindow(WindowsIds.DerrotaUI);
 
             var red = NetworkManager;
             if (red != null && red.IsListening)
