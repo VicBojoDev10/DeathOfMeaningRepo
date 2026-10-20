@@ -9,7 +9,13 @@ namespace TDOM.Unity
     {
         public static PauseManager Instance { get; private set; }
         public static bool PausadoGlobal { get; private set; }
+        public static bool ResultadoFinalGlobal { get; private set; }
         public readonly NetworkVariable<bool> Pausado = new(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+        public readonly NetworkVariable<bool> ResultadoFinal = new(
             false,
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server
@@ -27,7 +33,7 @@ namespace TDOM.Unity
         private void Update()
         {
             var clienteLocal = NetworkManager?.LocalClient;
-            if (clienteLocal == null)
+            if (clienteLocal == null || ResultadoFinalGlobal)
                 return;
 
             foreach (var objeto in clienteLocal.OwnedObjects)
@@ -55,15 +61,36 @@ namespace TDOM.Unity
         {
             Instance = this;
             Pausado.OnValueChanged += AlCambiarPausa;
+            ResultadoFinal.OnValueChanged += AlCambiarResultadoFinal;
             AlCambiarPausa(false, Pausado.Value);
+            AlCambiarResultadoFinal(false, ResultadoFinal.Value);
         }
 
         public override void OnNetworkDespawn()
         {
             Pausado.OnValueChanged -= AlCambiarPausa;
+            ResultadoFinal.OnValueChanged -= AlCambiarResultadoFinal;
             if (Instance == this)
                 Instance = null;
             PausadoGlobal = false;
+            ResultadoFinalGlobal = false;
+        }
+
+        private void AlCambiarResultadoFinal(bool anterior, bool actual)
+        {
+            ResultadoFinalGlobal = actual;
+        }
+
+        public void MarcarResultadoFinalDesdeServidor()
+        {
+            if (IsServer)
+                ResultadoFinal.Value = true;
+        }
+
+        public void RestablecerResultadoFinalDesdeServidor()
+        {
+            if (IsServer)
+                ResultadoFinal.Value = false;
         }
 
         private void AlCambiarPausa(bool anterior, bool actual)

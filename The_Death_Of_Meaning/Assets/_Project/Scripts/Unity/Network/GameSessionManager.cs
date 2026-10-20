@@ -63,6 +63,7 @@ namespace TDOM.Unity
                 return;
 
             float tiempoFinal = Mathf.Max(0f, Time.time - _inicioCronometro);
+            PauseManager.Instance?.MarcarResultadoFinalDesdeServidor();
             _cronometroActivo = false;
             Debug.Log($"[GameSessionManager] Partida terminada en {tiempoFinal:F1} segundos.");
             MostrarVictoriaClientRpc(tiempoFinal);
@@ -381,6 +382,7 @@ namespace TDOM.Unity
             if (!IsServer || _inicioPartidaEnProceso || !_seleccion.PuedeIniciar)
                 return;
 
+            PauseManager.Instance?.RestablecerResultadoFinalDesdeServidor();
             _inicioPartidaEnProceso = true;
             var objetosSpawneados = new List<NetworkObject>(
                 NetworkManager.SpawnManager.SpawnedObjectsList
@@ -442,6 +444,36 @@ namespace TDOM.Unity
             }
         }
 
+        public void FinalizarPartidaPorDerrotaDesdeServidor(int fase)
+        {
+            if (!IsServer || !_cronometroActivo)
+                return;
+
+            _cronometroActivo = false;
+            PauseManager.Instance?.MarcarResultadoFinalDesdeServidor();
+            Debug.Log($"[GameSessionManager] Derrota registrada en la fase {fase}.");
+            MostrarDerrotaClientRpc(fase);
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void MostrarDerrotaClientRpc(int fase)
+        {
+            var ui = UiManager.Instance;
+
+            void MostrarDerrota()
+            {
+                ui?.CloseWindow(WindowsIds.GamePlayUI);
+                ui?.ShowWindow(WindowsIds.DerrotaUI);
+                (ui?.GetWindow(WindowsIds.DerrotaUI) as DerrotaUI)?.MostrarFaseJefe(fase);
+            }
+
+            var transicion = ui?.TransitionManager;
+            if (transicion != null)
+                transicion.EjecutarAccionConCarga(MostrarDerrota);
+            else
+                MostrarDerrota();
+        }
+
 #if UNITY_EDITOR
         private void OnGUI()
         {
@@ -461,6 +493,7 @@ namespace TDOM.Unity
             if (!IsServer || !_inicioPartidaNotificado)
                 return;
 
+            PauseManager.Instance?.MarcarResultadoFinalDesdeServidor();
             MostrarVictoriaDebugClientRpc();
         }
 
@@ -472,26 +505,7 @@ namespace TDOM.Unity
 
             var jefe = FindAnyObjectByType<BossController>();
             int fase = jefe != null ? jefe.Fase.Value : 1;
-            MostrarDerrotaDebugClientRpc(fase);
-        }
-
-        [Rpc(SendTo.ClientsAndHost)]
-        private void MostrarDerrotaDebugClientRpc(int fase)
-        {
-            var ui = UiManager.Instance;
-
-            void MostrarDerrota()
-            {
-                ui?.CloseWindow(WindowsIds.GamePlayUI);
-                ui?.ShowWindow(WindowsIds.DerrotaUI);
-                (ui?.GetWindow(WindowsIds.DerrotaUI) as DerrotaUI)?.MostrarFaseJefe(fase);
-            }
-
-            var transicion = ui?.TransitionManager;
-            if (transicion != null)
-                transicion.EjecutarAccionConCarga(MostrarDerrota);
-            else
-                MostrarDerrota();
+            FinalizarPartidaPorDerrotaDesdeServidor(fase);
         }
 
         [Rpc(SendTo.ClientsAndHost)]

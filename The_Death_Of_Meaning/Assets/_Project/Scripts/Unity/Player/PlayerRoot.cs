@@ -378,7 +378,7 @@ namespace TDOM.Unity.Player
 
         private void Update()
         {
-            if (PauseManager.PausadoGlobal)
+            if (PauseManager.PausadoGlobal || PauseManager.ResultadoFinalGlobal)
                 return;
 
             if (IsServer && _energyPool != null)

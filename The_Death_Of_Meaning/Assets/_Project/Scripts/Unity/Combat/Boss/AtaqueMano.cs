@@ -121,7 +121,7 @@ namespace TDOM.Unity
 
         private void Update()
         {
-            if (PauseManager.PausadoGlobal)
+            if (PauseManager.PausadoGlobal || PauseManager.ResultadoFinalGlobal)
                 return;
             if (!IsServer || _perfil == null)
                 return;
