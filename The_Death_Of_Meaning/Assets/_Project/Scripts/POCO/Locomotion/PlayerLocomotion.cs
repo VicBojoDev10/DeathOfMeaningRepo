@@ -29,6 +29,9 @@ namespace TDOM.Gameplay.Locomotion
         public bool Corriendo => _run != null && _run.Corriendo;
         public bool GanchoActivo => _grapple != null && _grapple.Activo;
         public Vector3 PuntoGancho => _grapple != null ? _grapple.Punto : Vector3.zero;
+        public float CooldownDashNormalizado => _dash != null ? _dash.CooldownNormalizado : 0f;
+        public float CooldownGanchoNormalizado =>
+            _grapple != null ? _grapple.CooldownNormalizado : 0f;
 
         public PlayerLocomotion(
             GravityModel gravity,

@@ -16,6 +16,7 @@ namespace TDOM.Gameplay
         private float _transcurrido;
         private Vector3 _direccion;
         public bool Activo { get; private set; }
+        public float CooldownNormalizado => _cooldown.Normalizado;
 
         public DashResolver(DashProfile profile)
         {
