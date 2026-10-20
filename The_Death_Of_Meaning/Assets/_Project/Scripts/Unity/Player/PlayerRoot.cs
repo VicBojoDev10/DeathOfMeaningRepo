@@ -5,6 +5,7 @@ using TDOM.Data;
 using TDOM.Gameplay.Camera;
 using TDOM.Gameplay.Core;
 using TDOM.Gameplay.Locomotion;
+using TDOM.Unity;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Input;
@@ -36,6 +37,7 @@ namespace TDOM.Unity.Player
         [SerializeField]
         private PlayerMotor _motor;
         private PlayerLocomotion _locomocion;
+        private ZendrePlayerLocomotionAnimator _zendreLocomotionAnimator;
 
         [SerializeField]
         private PlayerCameraRig _camera;
@@ -100,6 +102,7 @@ namespace TDOM.Unity.Player
 
         public override void OnNetworkSpawn()
         {
+            _zendreLocomotionAnimator = GetComponent<ZendrePlayerLocomotionAnimator>();
             _anchorLauncher = GetComponentInChildren<AnchorLauncher>();
             _combat = GetComponentInChildren<PlayerCombat>();
             _look = new LookResolver(
@@ -391,6 +394,7 @@ namespace TDOM.Unity.Player
             float dt = Time.deltaTime;
             var input = _inputReader.Read();
             bool apuntando = input.AimHeld && PuedeApuntar;
+            _zendreLocomotionAnimator?.ActualizarApuntado(apuntando, input.Move);
 
             ActualizarMirada(input, dt);
 
