@@ -86,6 +86,7 @@ namespace TDOM.Unity
             else
                 MostrarVictoria();
         }
+
         private void Awake()
         {
             Jugadores = new NetworkList<PlayerSelectionState>();
@@ -94,9 +95,9 @@ namespace TDOM.Unity
         public override void OnNetworkSpawn()
         {
             Debug.Log(
-    $"[NetSpawn GameSessionManager] server={IsServer}, client={IsClient}, "
-    + $"id={NetworkObjectId}, escena={gameObject.scene.name}"
-);
+                $"[NetSpawn GameSessionManager] server={IsServer}, client={IsClient}, "
+                    + $"id={NetworkObjectId}, escena={gameObject.scene.name}"
+            );
             Instance = this;
             Spawned?.Invoke();
 
@@ -110,9 +111,9 @@ namespace TDOM.Unity
         public override void OnNetworkDespawn()
         {
             Debug.Log(
-    $"[NetDespawn GameSessionManager] server={IsServer}, client={IsClient}, "
-    + $"id={NetworkObjectId}, escena={gameObject.scene.name}"
-);
+                $"[NetDespawn GameSessionManager] server={IsServer}, client={IsClient}, "
+                    + $"id={NetworkObjectId}, escena={gameObject.scene.name}"
+            );
             Despawned?.Invoke();
             if (Instance == this)
                 Instance = null;
@@ -254,14 +255,14 @@ namespace TDOM.Unity
 
             if (_prefabArek == null)
             {
-                Debug.LogError("No se puede iniciar: falta asignar el prefab de Arek en GameSessionManager.");
+                Debug.LogError(
+                    "No se puede iniciar: falta asignar el prefab de Arek en GameSessionManager."
+                );
             }
             else if (!HayJefeSpawneadoEnRed())
             {
                 Vector3 posArek =
-                    _puntoSpawnArek != null
-                        ? _puntoSpawnArek.position
-                        : new Vector3(0f, 0f, 10f);
+                    _puntoSpawnArek != null ? _puntoSpawnArek.position : new Vector3(0f, 0f, 10f);
                 Quaternion rotArek =
                     _puntoSpawnArek != null ? _puntoSpawnArek.rotation : Quaternion.identity;
                 var goArek = Instantiate(_prefabArek, posArek, rotArek);
@@ -274,7 +275,9 @@ namespace TDOM.Unity
                 else
                 {
                     networkObjectArek.Spawn();
-                    Debug.Log($"[SPAWN][SERVER] Arek creado. id={networkObjectArek.NetworkObjectId}, posición={posArek}");
+                    Debug.Log(
+                        $"[SPAWN][SERVER] Arek creado. id={networkObjectArek.NetworkObjectId}, posición={posArek}"
+                    );
                 }
             }
             _inicioPartidaEnProceso = false;
@@ -341,7 +344,9 @@ namespace TDOM.Unity
                     // La carga ya cubre la pantalla; podemos cambiar la ventana debajo.
                     UiManager.Instance?.CloseWindow("victoriaui");
                     UiManager.Instance?.CloseWindow(WindowsIds.RetryPopUpUI);
-                    (UiManager.Instance?.GetWindow(WindowsIds.PausaUI) as PausaUI)?.SetPopupActivo(false);
+                    (UiManager.Instance?.GetWindow(WindowsIds.PausaUI) as PausaUI)?.SetPopupActivo(
+                        false
+                    );
                     UiManager.Instance?.ShowWindow(WindowsIds.GamePlayUI);
                 },
                 () =>
@@ -351,7 +356,6 @@ namespace TDOM.Unity
                 }
             );
         }
-
 
         private bool HayJefeSpawneadoEnRed()
         {
@@ -371,6 +375,7 @@ namespace TDOM.Unity
 
             return false;
         }
+
         public void ReiniciarPartidaDesdePausa()
         {
             if (!IsServer || _inicioPartidaEnProceso || !_seleccion.PuedeIniciar)
@@ -438,74 +443,75 @@ namespace TDOM.Unity
         }
 
 #if UNITY_EDITOR
-private void OnGUI()
-{
-    if (!IsSpawned || !IsServer || !IsHost || !_inicioPartidaNotificado)
-        return;
+        private void OnGUI()
+        {
+            if (!IsSpawned || !IsServer || !IsHost || !_inicioPartidaNotificado)
+                return;
 
-    if (GUI.Button(new Rect(20, 20, 220, 40), "DEBUG: Mostrar victoria"))
-        ForzarVictoriaDebugRpc();
+            if (GUI.Button(new Rect(20, 20, 220, 40), "DEBUG: Mostrar victoria"))
+                ForzarVictoriaDebugRpc();
 
-    if (GUI.Button(new Rect(20, 65, 220, 40), "DEBUG: Mostrar derrota"))
-        ForzarDerrotaDebugRpc();
-}
+            if (GUI.Button(new Rect(20, 65, 220, 40), "DEBUG: Mostrar derrota"))
+                ForzarDerrotaDebugRpc();
+        }
 
-[Rpc(SendTo.Server)]
-private void ForzarVictoriaDebugRpc(RpcParams rpcParams = default)
-{
-    if (!IsServer || !_inicioPartidaNotificado)
-        return;
+        [Rpc(SendTo.Server)]
+        private void ForzarVictoriaDebugRpc(RpcParams rpcParams = default)
+        {
+            if (!IsServer || !_inicioPartidaNotificado)
+                return;
 
-    MostrarVictoriaDebugClientRpc();
-}
+            MostrarVictoriaDebugClientRpc();
+        }
 
-[Rpc(SendTo.Server)]
-private void ForzarDerrotaDebugRpc(RpcParams rpcParams = default)
-{
-    if (!IsServer || !_inicioPartidaNotificado)
-        return;
+        [Rpc(SendTo.Server)]
+        private void ForzarDerrotaDebugRpc(RpcParams rpcParams = default)
+        {
+            if (!IsServer || !_inicioPartidaNotificado)
+                return;
 
-    var jefe = FindAnyObjectByType<BossController>();
-    int fase = jefe != null ? jefe.Fase.Value : 1;
-    MostrarDerrotaDebugClientRpc(fase);
-}
+            var jefe = FindAnyObjectByType<BossController>();
+            int fase = jefe != null ? jefe.Fase.Value : 1;
+            MostrarDerrotaDebugClientRpc(fase);
+        }
 
-[Rpc(SendTo.ClientsAndHost)]
-private void MostrarDerrotaDebugClientRpc(int fase)
-{
-    var ui = UiManager.Instance;
+        [Rpc(SendTo.ClientsAndHost)]
+        private void MostrarDerrotaDebugClientRpc(int fase)
+        {
+            var ui = UiManager.Instance;
 
-    void MostrarDerrota()
-    {
-        ui?.CloseWindow(WindowsIds.GamePlayUI);
-        ui?.ShowWindow(WindowsIds.DerrotaUI);
-        (ui?.GetWindow(WindowsIds.DerrotaUI) as DerrotaUI)?.MostrarFaseJefe(fase);
-    }
+            void MostrarDerrota()
+            {
+                ui?.CloseWindow(WindowsIds.GamePlayUI);
+                ui?.ShowWindow(WindowsIds.DerrotaUI);
+                (ui?.GetWindow(WindowsIds.DerrotaUI) as DerrotaUI)?.MostrarFaseJefe(fase);
+            }
 
-    var transicion = ui?.TransitionManager;
-    if (transicion != null)
-        transicion.EjecutarAccionConCarga(MostrarDerrota);
-    else
-        MostrarDerrota();
-}
-[Rpc(SendTo.ClientsAndHost)]
-private void MostrarVictoriaDebugClientRpc()
-{
-    var ui = UiManager.Instance;
+            var transicion = ui?.TransitionManager;
+            if (transicion != null)
+                transicion.EjecutarAccionConCarga(MostrarDerrota);
+            else
+                MostrarDerrota();
+        }
 
-    void MostrarVictoria()
-    {
-        ui?.CloseWindow(WindowsIds.GamePlayUI);
-        ui?.ShowWindow("victoriaui");
-    }
+        [Rpc(SendTo.ClientsAndHost)]
+        private void MostrarVictoriaDebugClientRpc()
+        {
+            var ui = UiManager.Instance;
 
-    var transicion = ui?.TransitionManager;
+            void MostrarVictoria()
+            {
+                ui?.CloseWindow(WindowsIds.GamePlayUI);
+                ui?.ShowWindow("victoriaui");
+            }
 
-    if (transicion != null)
-        transicion.EjecutarAccionConCarga(MostrarVictoria);
-    else
-        MostrarVictoria();
-}
+            var transicion = ui?.TransitionManager;
+
+            if (transicion != null)
+                transicion.EjecutarAccionConCarga(MostrarVictoria);
+            else
+                MostrarVictoria();
+        }
 #endif
     }
 }

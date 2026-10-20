@@ -15,7 +15,7 @@ namespace TDOM.Unity
         {
             Debug.Log(
                 $"[NetSpawn GameFlowNetwork] server={IsServer}, client={IsClient}, "
-                + $"id={NetworkObjectId}, escena={gameObject.scene.name}"
+                    + $"id={NetworkObjectId}, escena={gameObject.scene.name}"
             );
 
             Instance = this;
@@ -26,7 +26,7 @@ namespace TDOM.Unity
         {
             Debug.Log(
                 $"[NetDespawn GameFlowNetwork] server={IsServer}, client={IsClient}, "
-                + $"id={NetworkObjectId}, escena={gameObject.scene.name}"
+                    + $"id={NetworkObjectId}, escena={gameObject.scene.name}"
             );
 
             if (Instance == this)
@@ -64,7 +64,7 @@ namespace TDOM.Unity
         {
             Debug.Log(
                 $"[Restart RPC server] recibido; sender={rpcParams.Receive.SenderClientId}, "
-                + $"GameSessionManager={GameSessionManager.Instance != null}"
+                    + $"GameSessionManager={GameSessionManager.Instance != null}"
             );
 
             if (!IsServer)

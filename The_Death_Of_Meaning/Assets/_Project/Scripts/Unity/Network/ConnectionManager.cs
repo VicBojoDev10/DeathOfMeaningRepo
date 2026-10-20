@@ -237,8 +237,8 @@ namespace TDOM.Unity
         private void HandleSceneEvent(SceneEvent evento)
         {
             Debug.Log(
-    $"[Network Scene Event] tipo={evento.SceneEventType}, cliente={evento.ClientId}"
-);
+                $"[Network Scene Event] tipo={evento.SceneEventType}, cliente={evento.ClientId}"
+            );
             switch (evento.SceneEventType)
             {
                 case SceneEventType.Load

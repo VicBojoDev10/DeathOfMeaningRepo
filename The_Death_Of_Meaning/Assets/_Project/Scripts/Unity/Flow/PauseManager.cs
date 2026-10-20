@@ -146,9 +146,12 @@ namespace TDOM.Unity
             {
                 _confirmacionDesdePantallaFinalPendiente = false;
                 _ventanaFinalPendiente = null;
-                Debug.LogWarning("No hay otro jugador conectado para confirmar la acción desde la pantalla final.");
+                Debug.LogWarning(
+                    "No hay otro jugador conectado para confirmar la acción desde la pantalla final."
+                );
             }
         }
+
         public void PedirConfirmacion(bool salir) => PedirConfirmacionRpc(salir);
 
         [Rpc(SendTo.Server)]
@@ -214,6 +217,7 @@ namespace TDOM.Unity
                     _ventanaFinalPendiente = null;
             }
         }
+
         [Rpc(SendTo.SpecifiedInParams)]
         private void RespuestaClientRpc(
             bool salir,
@@ -233,6 +237,7 @@ namespace TDOM.Unity
 
             CerrarPopupLocal(salir);
         }
+
         private static void MostrarPopupLocal(bool salir)
         {
             var ui = UiManager.Instance;
@@ -288,7 +293,9 @@ namespace TDOM.Unity
                         if (GameSessionManager.Instance != null)
                             GameSessionManager.Instance.ReiniciarPartidaDesdePausa();
                         else
-                            Debug.LogError("No se encontró GameSessionManager para reiniciar la partida.");
+                            Debug.LogError(
+                                "No se encontró GameSessionManager para reiniciar la partida."
+                            );
                     }
 
                     if (desdePantallaFinal)
@@ -313,6 +320,7 @@ namespace TDOM.Unity
             ui?.CloseWindow(WindowsIds.DerrotaUI);
             ui?.ShowWindow(WindowsIds.GamePlayUI);
         }
+
         private void SalirAlMenu()
         {
             GameSessionManager.Instance?.PrepararSalidaAlMenu();

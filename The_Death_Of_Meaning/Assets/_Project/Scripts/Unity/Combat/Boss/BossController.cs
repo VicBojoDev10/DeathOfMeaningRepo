@@ -275,6 +275,7 @@ namespace TDOM.Unity.Combat
 
             GameSessionManager.Instance.FinalizarPartidaDesdeServidor();
         }
+
         private void AlTerminarTransicion()
         {
             _scheduler?.ReiniciarPorCambioDeFase();

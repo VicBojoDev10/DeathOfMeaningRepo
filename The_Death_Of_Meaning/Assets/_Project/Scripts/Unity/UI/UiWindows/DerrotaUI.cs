@@ -68,7 +68,9 @@ namespace TDOM.Unity
             var pauseManager = PauseManager.Instance;
             if (pauseManager == null || !pauseManager.IsSpawned)
             {
-                Debug.LogError("No hay un PauseManager activo para solicitar la confirmación de salida.");
+                Debug.LogError(
+                    "No hay un PauseManager activo para solicitar la confirmación de salida."
+                );
                 return;
             }
 

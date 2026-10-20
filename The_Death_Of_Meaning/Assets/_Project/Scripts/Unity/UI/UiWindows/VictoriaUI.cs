@@ -52,10 +52,12 @@ namespace TDOM.Unity
             int horas = segundosTotales / 3600;
             int minutos = (segundosTotales % 3600) / 60;
             int segundos = segundosTotales % 60;
-            tiempoFinalText.text = horas > 0
-                ? $"Tiempo: {horas:00}:{minutos:00}:{segundos:00}"
-                : $"Tiempo: {minutos:00}:{segundos:00}";
+            tiempoFinalText.text =
+                horas > 0
+                    ? $"Tiempo: {horas:00}:{minutos:00}:{segundos:00}"
+                    : $"Tiempo: {minutos:00}:{segundos:00}";
         }
+
         private void OnJugarDeNuevoClicked()
         {
             var pauseManager = PauseManager.Instance;
@@ -73,7 +75,9 @@ namespace TDOM.Unity
             var pauseManager = PauseManager.Instance;
             if (pauseManager == null || !pauseManager.IsSpawned)
             {
-                Debug.LogError("No hay un PauseManager activo para solicitar la confirmación de salida.");
+                Debug.LogError(
+                    "No hay un PauseManager activo para solicitar la confirmación de salida."
+                );
                 return;
             }
 
