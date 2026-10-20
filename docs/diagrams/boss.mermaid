@@ -6,7 +6,7 @@ flowchart TD
     AA -->|"jugadores: distancia y daño reciente"| SEL["BossTargetSelector (BossTargetingProfile)"]
     SEL -->|"objetivo en rango del ataque o ninguno: no ataca"| AA
     PJ["PlayerCombat / Proyectil (servidor)"] -->|"RegistrarImpacto(cantidad, atacanteId, Melee o Disparo)"| HZ
-    HZ -->|"IFiltroImpacto.Admite: solo ojo Abierto; el melee abre un ojo Brillando sin daño"| OJA["OjosArek (servidor)"]
+    HZ -->|"IFiltroImpacto.Admite: el melee de Ayla abre un ojo Brillando sin daño y daña uno Abierto; el disparo de Zendre daña cualquier ojo Abierto"| OJA["OjosArek (servidor)"]
     BC -->|"Preparar, Tick, AplicarDanio"| OJA
     OJA --> BWD["BossWeakPointDamage"]
     BWD --> WPS["WeakPointStateMachine (WeakPointProfile)"]
@@ -42,9 +42,14 @@ flowchart TD
     PSM -->|"cambio de fase (uno por transición)"| FASE["Fase (NetworkVariable)"]
     PSM -->|"EnTransicion (DuracionTransicion): ignora daño, el scheduler no avanza"| BC
     PSM -->|"TransicionTerminada: ReiniciarPorCambioDeFase"| SCH
+    PSM -->|"VidaCambiada (evento, servidor)"| VIDA["Vida normalizada (NetworkVariable)"]
+    PSM -.->|"Muerto: vida 0 en la última fase, una sola vez"| MUERTE["Victoria (pendiente, TW-153 / TW-157)"]
+    BC -->|"ObservarJefe (jefe ya spawneado o evento Spawned): Nombre desde BossIdentity"| GUI["BossHealthBar (GameplayUI)"]
+    CD -->|"SetHudVisible: revela la barra al volver el HUD (BossHealthBarReveal)"| GUI
+    VIDA -->|"OnValueChanged: Slider de vida del jefe"| GUI
     FASE -->|OnFaseChanged| CD[CinematicDirector]
     FASE -->|"OnValueChanged: ColorFase en el cuerpo"| BC
-    BC -->|"Spawned (evento estatico)"| CD
+    BC -->|"ObservarJefe (jefe ya spawneado o evento Spawned)"| CD
     CD -->|"Pausar: detiene el scheduler"| BC
     BC -->|"CambioDeFaseRpc (ClientsAndHost): partículas y destello"| CLI
     CLI -->|"SacudidaCambioDeFase (jugador local)"| PR["PlayerRoot"]

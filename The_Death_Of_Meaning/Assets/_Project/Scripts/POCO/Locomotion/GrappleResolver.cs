@@ -17,6 +17,7 @@ namespace TDOM.Gameplay
 
         public bool Activo { get; private set; }
         public Vector3 Punto => _punto;
+        public float CooldownNormalizado => _cooldown.Normalizado;
 
         public GrappleResolver(
             float alcance,

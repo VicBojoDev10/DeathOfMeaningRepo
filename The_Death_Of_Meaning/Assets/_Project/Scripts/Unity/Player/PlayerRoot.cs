@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TDOM.Contracts;
 using TDOM.Data;
@@ -8,7 +9,6 @@ using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Input;
 using TDOM.Unity.Locomotion;
-using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -16,6 +16,20 @@ namespace TDOM.Unity.Player
 {
     public class PlayerRoot : NetworkBehaviour
     {
+        public readonly struct CooldownValues
+        {
+            public float Dash { get; }
+            public float Gancho { get; }
+            public float Ancla { get; }
+
+            public CooldownValues(float dash, float gancho, float ancla)
+            {
+                Dash = dash;
+                Gancho = gancho;
+                Ancla = ancla;
+            }
+        }
+
         [SerializeField]
         private CharacterDefinition _definition;
 
@@ -28,6 +42,7 @@ namespace TDOM.Unity.Player
         private LookResolver _look;
         private FacingResolver _facing;
         private LockOnResolver _fijacion;
+        private LockOnSwitcher _cambioDeFijacion;
         private readonly List<LockOnCandidate> _candidatosFijacion = new List<LockOnCandidate>();
 
         [SerializeField]
@@ -55,9 +70,6 @@ namespace TDOM.Unity.Player
         );
         private EnergyPool _energyPool;
 
-        [SerializeField]
-        private GameObject _hudEnergiaPrefab;
-        private GameObject _hudInstance;
         private FeedbackDirector _feedback;
         private CharacterIds _characterId = CharacterIds.None;
         private bool _initialSpawnApplied;
@@ -68,11 +80,20 @@ namespace TDOM.Unity.Player
         private Vector3 _lastObservedPosition;
         public bool AtaqueActivo => MovimientoBloqueado || ModoPistola;
         private bool ModoPistola => _combat != null && _combat.DisparoActivo;
+        private bool PuedeApuntar => _definition != null && _definition.Ranged != null;
         private bool MovimientoBloqueado =>
             (_combat != null && _combat.BloqueaMovimiento)
             || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
 
         public CharacterIds CharacterId => _characterId;
+        public float EnergiaMaxima => _definition?.Energy != null ? _definition.Energy.Max : 0f;
+        public event Action DashEmbestidaIniciada;
+        public CooldownValues Cooldowns =>
+            new CooldownValues(
+                _locomocion != null ? _locomocion.CooldownDashNormalizado : 0f,
+                _locomocion != null ? _locomocion.CooldownGanchoNormalizado : 0f,
+                _anchorLauncher != null ? _anchorLauncher.CooldownNormalizado : 0f
+            );
         public bool SpawnInicialAplicado => _initialSpawnApplied;
         public Transform CameraTransform => _camera != null ? _camera.CamaraTransform : null;
         public PlayerInputReader InputReader => _inputReader;
@@ -95,6 +116,7 @@ namespace TDOM.Unity.Player
             _locomocion = new PlayerLocomotion(_definition);
             _facing = new FacingResolver(_definition.Movement.TurnSpeed, transform.eulerAngles.y);
             _fijacion = new LockOnResolver(CrearAjustesFijacion(_camera.Config));
+            _cambioDeFijacion = new LockOnSwitcher(CrearAjustesCambioDeFijacion(_camera.Config));
             _camera.gameObject.SetActive(IsOwner);
             _inputReader.enabled = false;
 
@@ -111,25 +133,11 @@ namespace TDOM.Unity.Player
                 Energia.Value = _energyPool.Current;
             }
 
+            _characterId = GetCharacterId();
+
             if (IsOwner)
             {
-                _characterId = GetCharacterId();
-                _inputReader.ActivarPersonaje(GetCharacterId());
-                if (_hudEnergiaPrefab != null)
-                {
-                    _hudInstance = Instantiate(_hudEnergiaPrefab);
-                    var hudComp = _hudInstance.GetComponent<PlayerEnergyHud>();
-                    if (hudComp != null)
-                    {
-                        string etiqueta = _characterId switch
-                        {
-                            CharacterIds.Ayla => "Stamina",
-                            CharacterIds.Zendre => "Maná",
-                            _ => "Energy",
-                        };
-                        hudComp.Initialize(this, etiqueta, _definition?.Energy?.Max ?? 100f);
-                    }
-                }
+                _inputReader.ActivarPersonaje(_characterId);
                 if (_camera != null)
                     _feedback = _camera.GetComponent<FeedbackDirector>();
             }
@@ -190,8 +198,6 @@ namespace TDOM.Unity.Player
                 return;
 
             _inputReader.SetEntradaHabilitada(!activa);
-            if (_hudInstance != null)
-                _hudInstance.SetActive(!activa);
         }
 
         public AimSolution ResolverApuntado(Vector3 origen) =>
@@ -327,7 +333,7 @@ namespace TDOM.Unity.Player
 
         private void ActualizarMirada(InputSnapshot input, float dt)
         {
-            ActualizarFijacion(input.LockOnPressed, dt);
+            ActualizarFijacion(input.LockOnPressed, input.Look, dt);
 
             if (_fijacion.Activo)
             {
@@ -338,11 +344,24 @@ namespace TDOM.Unity.Player
             _look.Tick(input.Look, dt);
         }
 
-        private void ActualizarFijacion(bool alternar, float dt)
+        private void ActualizarFijacion(bool alternar, Vector2 stick, float dt)
         {
             _candidatosFijacion.Clear();
             foreach (var objetivo in LockOnTarget.Activos)
                 _candidatosFijacion.Add(new LockOnCandidate(objetivo.Id, objetivo.PuntoDeMira));
+
+            if (
+                _fijacion.Activo
+                && _cambioDeFijacion.TryCambiar(
+                    stick,
+                    _camera.transform.position,
+                    _fijacion.PuntoObjetivo,
+                    _fijacion.ObjetivoId,
+                    _candidatosFijacion,
+                    out LockOnCandidate siguiente
+                )
+            )
+                _fijacion.FijarA(siguiente);
 
             _fijacion.Tick(
                 alternar,
@@ -365,10 +384,22 @@ namespace TDOM.Unity.Player
             );
         }
 
-        private void AlinearConCamaraAlAtacar(InputSnapshot input)
+        private static LockOnSwitchSettings CrearAjustesCambioDeFijacion(
+            ThirdPersonCameraConfig config
+        )
+        {
+            return new LockOnSwitchSettings(
+                config.LockOnRange,
+                config.LockOnSwitchThreshold,
+                config.LockOnSwitchResetThreshold,
+                config.LockOnSwitchMaxAngle
+            );
+        }
+
+        private void AlinearConCamaraAlAtacar(InputSnapshot input, bool apuntando)
         {
             bool iniciaAtaque = input.AttackPressed || input.FirePressed;
-            if (!_definition.Movement.SnapToCameraOnAttack || input.AimHeld || !iniciaAtaque)
+            if (!_definition.Movement.SnapToCameraOnAttack || apuntando || !iniciaAtaque)
                 return;
 
             float yawObjetivo = _fijacion.Activo
@@ -396,15 +427,6 @@ namespace TDOM.Unity.Player
                 _camera.PunchFov(8f, 0.2f);
         }
 
-        public override void OnNetworkDespawn()
-        {
-            if (_hudInstance != null)
-            {
-                Destroy(_hudInstance);
-                _hudInstance = null;
-            }
-        }
-
         private void Update()
         {
             if (PauseManager.PausadoGlobal)
@@ -421,12 +443,13 @@ namespace TDOM.Unity.Player
 
             float dt = Time.deltaTime;
             var input = _inputReader.Read();
+            bool apuntando = input.AimHeld && PuedeApuntar;
 
             ActualizarMirada(input, dt);
 
             if (_camera != null)
                 _camera.ActualizarEncuadre(
-                    input.AimHeld,
+                    apuntando,
                     AtaqueActivo || _fijacion.Activo,
                     _locomocion.Corriendo,
                     dt
@@ -434,7 +457,7 @@ namespace TDOM.Unity.Player
 
             _motor.ProbeGround(_locomocion.State);
 
-            AlinearConCamaraAlAtacar(input);
+            AlinearConCamaraAlAtacar(input, apuntando);
 
             if (_combat != null)
                 _combat.Tick(input, dt);
@@ -466,11 +489,13 @@ namespace TDOM.Unity.Player
                 intent = new MotionIntent(Vector3.zero, ignoreGravity: true);
             }
             _motor.Apply(intent, dt);
-            _facing.Tick(_locomocion.State.Velocity, _look.Yaw, input.AimHeld || ModoPistola, dt);
+            _facing.Tick(_locomocion.State.Velocity, _look.Yaw, apuntando || ModoPistola, dt);
             transform.rotation = _facing.Rotacion;
             AplicarMiradaACamara();
 
             DispararFeedbackDeLocomocion();
+            if (_locomocion.DashIniciado)
+                DashEmbestidaIniciada?.Invoke();
             RegistrarDesplazamientoLateralEnCamara(input.Move);
 
             bool ganchoActivoActual = _locomocion != null && _locomocion.GanchoActivo;

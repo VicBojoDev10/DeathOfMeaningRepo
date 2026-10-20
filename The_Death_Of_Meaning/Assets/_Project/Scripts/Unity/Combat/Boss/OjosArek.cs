@@ -21,6 +21,47 @@ namespace TDOM.Unity.Combat
 
         public int TotalOjos => _estados.Count;
 
+        public bool HayOjoAbierto
+        {
+            get
+            {
+                for (int i = 0; i < _estados.Count; i++)
+                {
+                    if (Estado(i) == EstadoOjo.Abierto)
+                        return true;
+                }
+                return false;
+            }
+        }
+
+        public bool AdmiteAncla(HitZone zona)
+        {
+            int ojo = Array.IndexOf(_zonas, zona);
+            return ojo >= 0
+                && ojo < _estados.Count
+                && WeakPointStateMachine.AdmiteAncla(Estado(ojo));
+        }
+
+        public bool AbrirOjoParaDebug(int ojo)
+        {
+            if (!IsServer || _danio == null || ojo < 0 || ojo >= _danio.TotalOjos)
+                return false;
+
+            _danio.AbrirOjoParaDebug(ojo);
+            Sincronizar();
+            return true;
+        }
+
+        public bool BrillarOjoParaDebug(int ojo)
+        {
+            if (!IsServer || _danio == null || ojo < 0 || ojo >= _danio.TotalOjos)
+                return false;
+
+            _danio.BrillarOjoParaDebug(ojo);
+            Sincronizar();
+            return true;
+        }
+
         public EstadoOjo Estado(int ojo) => (EstadoOjo)_estados[ojo];
 
         public override void OnNetworkSpawn()
@@ -80,13 +121,13 @@ namespace TDOM.Unity.Combat
             return true;
         }
 
-        public bool Admite(HitZone zona, TipoImpactoOjo tipo)
+        public bool Admite(HitZone zona, TipoImpactoOjo tipo, bool atacanteEsAyla)
         {
             int ojo = Array.IndexOf(_zonas, zona);
             if (_danio == null || ojo < 0)
                 return false;
 
-            bool admitido = _danio.AdmiteImpacto(ojo, tipo);
+            bool admitido = _danio.AdmiteImpacto(ojo, tipo, atacanteEsAyla);
             Sincronizar();
             return admitido;
         }

@@ -54,6 +54,9 @@ namespace TDOM.Unity
             if (_jefe == null || !_jefe.IsServer || _jefe.Pausado)
                 return;
 
+            if (_jefe.HayOjoAbierto)
+                return;
+
             Vector3 posicion = transform.position;
             BossPhaseProfile perfil = _jefe.PerfilFaseActual;
             bool detenersePorAtaque =

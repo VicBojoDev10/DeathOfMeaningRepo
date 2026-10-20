@@ -110,19 +110,42 @@ namespace TDOM.Gameplay.Combat
             }
         }
 
+        public void AbrirOjoParaDebug(int ojo)
+        {
+            ValidarOjo(ojo);
+            _estados[ojo] = EstadoOjo.Abierto;
+            _timers[ojo] = 0f;
+        }
+
+        public static bool AdmiteAncla(EstadoOjo estado) =>
+            estado == EstadoOjo.Brillando || estado == EstadoOjo.Abierto;
+
+        public void BrillarOjoParaDebug(int ojo)
+        {
+            ValidarOjo(ojo);
+            _estados[ojo] = EstadoOjo.Brillando;
+            _timers[ojo] = 0f;
+        }
+
         public bool Disparo(int ojo)
         {
             ValidarOjo(ojo);
             return _estados[ojo] == EstadoOjo.Abierto;
         }
 
+        public bool ResolverImpacto(int ojo, TipoImpactoOjo tipo, bool atacanteEsAyla)
+        {
+            if (tipo == TipoImpactoOjo.Melee)
+                return atacanteEsAyla && GolpeMelee(ojo) == ResultadoGolpe.Rebote;
+
+            return !atacanteEsAyla && Disparo(ojo);
+        }
+
         public bool ResolverImpacto(int ojo, TipoImpactoOjo tipo)
         {
             bool estabaAbierto = Disparo(ojo);
-
             if (tipo == TipoImpactoOjo.Melee)
                 GolpeMelee(ojo);
-
             return estabaAbierto;
         }
 
