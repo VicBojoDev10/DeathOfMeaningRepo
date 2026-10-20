@@ -267,28 +267,14 @@ namespace TDOM.Unity.Combat
             if (!IsServer)
                 return;
 
-            Debug.Log("[BossController] Vida del jefe en cero; mostrando pantalla de victoria.");
-            MostrarVictoriaClientRpc();
-        }
-
-        [Rpc(SendTo.ClientsAndHost)]
-        private void MostrarVictoriaClientRpc()
-        {
-            var ui = UiManager.Instance;
-
-            void MostrarVictoria()
+            if (GameSessionManager.Instance == null)
             {
-                ui?.CloseWindow(WindowsIds.GamePlayUI);
-                ui?.ShowWindow("victoriaui");
+                Debug.LogError("No se encontró GameSessionManager para registrar la victoria.");
+                return;
             }
 
-            var transicion = ui?.TransitionManager;
-            if (transicion != null)
-                transicion.EjecutarAccionConCarga(MostrarVictoria);
-            else
-                MostrarVictoria();
+            GameSessionManager.Instance.FinalizarPartidaDesdeServidor();
         }
-
         private void AlTerminarTransicion()
         {
             _scheduler?.ReiniciarPorCambioDeFase();

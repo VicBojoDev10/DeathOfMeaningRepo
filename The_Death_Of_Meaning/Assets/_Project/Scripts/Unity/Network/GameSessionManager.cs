@@ -43,11 +43,49 @@ namespace TDOM.Unity
         private bool _inicioPartidaNotificado;
         private bool _cerrandoSesionPorSalida;
         private bool _partidaIniciada;
+        private bool _cronometroActivo;
+        private float _inicioCronometro;
 
         public bool PartidaIniciadaEnServidor => _partidaIniciada;
 
         private bool _reinicioVictoriaEnCurso;
 
+        private void IniciarCronometro()
+        {
+            _inicioCronometro = Time.time;
+            _cronometroActivo = true;
+            Debug.Log("[GameSessionManager] Cronómetro de partida iniciado.");
+        }
+
+        public void FinalizarPartidaDesdeServidor()
+        {
+            if (!IsServer || !_cronometroActivo)
+                return;
+
+            float tiempoFinal = Mathf.Max(0f, Time.time - _inicioCronometro);
+            _cronometroActivo = false;
+            Debug.Log($"[GameSessionManager] Partida terminada en {tiempoFinal:F1} segundos.");
+            MostrarVictoriaClientRpc(tiempoFinal);
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void MostrarVictoriaClientRpc(float tiempoFinal)
+        {
+            var ui = UiManager.Instance;
+
+            void MostrarVictoria()
+            {
+                ui?.CloseWindow(WindowsIds.GamePlayUI);
+                ui?.ShowWindow("victoriaui");
+                (ui?.GetWindow("victoriaui") as VictoriaUI)?.MostrarTiempoFinal(tiempoFinal);
+            }
+
+            var transicion = ui?.TransitionManager;
+            if (transicion != null)
+                transicion.EjecutarAccionConCarga(MostrarVictoria);
+            else
+                MostrarVictoria();
+        }
         private void Awake()
         {
             Jugadores = new NetworkList<PlayerSelectionState>();
@@ -214,22 +252,38 @@ namespace TDOM.Unity
                 player.EnviarSpawnInicial(spawnPoint.position, spawnPoint.rotation);
             }
 
-            if (_prefabArek != null)
+            if (_prefabArek == null)
             {
-                if (FindAnyObjectByType<TDOM.Unity.Combat.BossController>() == null)
+                Debug.LogError("No se puede iniciar: falta asignar el prefab de Arek en GameSessionManager.");
+            }
+            else if (!HayJefeSpawneadoEnRed())
+            {
+                Vector3 posArek =
+                    _puntoSpawnArek != null
+                        ? _puntoSpawnArek.position
+                        : new Vector3(0f, 0f, 10f);
+                Quaternion rotArek =
+                    _puntoSpawnArek != null ? _puntoSpawnArek.rotation : Quaternion.identity;
+                var goArek = Instantiate(_prefabArek, posArek, rotArek);
+                var networkObjectArek = goArek.GetComponent<NetworkObject>();
+                if (networkObjectArek == null)
                 {
-                    Vector3 posArek =
-                        _puntoSpawnArek != null
-                            ? _puntoSpawnArek.position
-                            : new Vector3(0f, 0f, 10f);
-                    Quaternion rotArek =
-                        _puntoSpawnArek != null ? _puntoSpawnArek.rotation : Quaternion.identity;
-                    var goArek = Instantiate(_prefabArek, posArek, rotArek);
-                    goArek.GetComponent<NetworkObject>().Spawn();
+                    Debug.LogError("El prefab de Arek no tiene NetworkObject.");
+                    Destroy(goArek);
+                }
+                else
+                {
+                    networkObjectArek.Spawn();
+                    Debug.Log($"[SPAWN][SERVER] Arek creado. id={networkObjectArek.NetworkObjectId}, posición={posArek}");
                 }
             }
-
             _inicioPartidaEnProceso = false;
+            if (!_partidaIniciada)
+            {
+                _partidaIniciada = true;
+                IniciarCronometro();
+            }
+
             if (!_inicioPartidaNotificado)
             {
                 _inicioPartidaNotificado = true;
@@ -299,6 +353,24 @@ namespace TDOM.Unity
         }
 
 
+        private bool HayJefeSpawneadoEnRed()
+        {
+            var spawnManager = NetworkManager?.SpawnManager;
+            if (spawnManager == null)
+                return false;
+
+            foreach (var objeto in spawnManager.SpawnedObjectsList)
+            {
+                if (
+                    objeto != null
+                    && objeto.IsSpawned
+                    && objeto.TryGetComponent(out BossController _)
+                )
+                    return true;
+            }
+
+            return false;
+        }
         public void ReiniciarPartidaDesdePausa()
         {
             if (!IsServer || _inicioPartidaEnProceso || !_seleccion.PuedeIniciar)
@@ -324,6 +396,7 @@ namespace TDOM.Unity
 
             _inicioPartidaEnProceso = false;
             VerificarInicioPartida();
+            IniciarCronometro();
         }
 
         public void PrepararSalidaAlMenu() => _cerrandoSesionPorSalida = true;
