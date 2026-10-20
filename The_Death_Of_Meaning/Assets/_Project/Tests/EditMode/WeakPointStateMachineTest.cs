@@ -64,6 +64,53 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
+        public void Brillar_ojo_para_debug_deja_un_ojo_cerrado_listo_para_abrirse()
+        {
+            var maquina = MaquinaEnFase1();
+            int ojoCerrado = Buscar(maquina, EstadoOjo.Cerrado);
+
+            maquina.BrillarOjoParaDebug(ojoCerrado);
+
+            Assert.AreEqual(EstadoOjo.Brillando, maquina.Estado(ojoCerrado));
+            Assert.AreEqual(ResultadoGolpe.Abrio, maquina.GolpeMelee(ojoCerrado));
+        }
+
+        [TestCase(EstadoOjo.Brillando, true)]
+        [TestCase(EstadoOjo.Abierto, true)]
+        [TestCase(EstadoOjo.Cerrado, false)]
+        [TestCase(EstadoOjo.Enfriando, false)]
+        public void El_ancla_solo_se_engancha_a_ojos_brillando_o_abiertos(
+            EstadoOjo estado,
+            bool esperado
+        )
+        {
+            Assert.AreEqual(esperado, WeakPointStateMachine.AdmiteAncla(estado));
+        }
+
+        [Test]
+        public void Un_ojo_anclado_mientras_brilla_sigue_admitiendo_el_ancla_al_abrirse()
+        {
+            var maquina = MaquinaEnFase1();
+            int ojo = Buscar(maquina, EstadoOjo.Brillando);
+            Assert.IsTrue(WeakPointStateMachine.AdmiteAncla(maquina.Estado(ojo)));
+
+            maquina.GolpeMelee(ojo);
+
+            Assert.IsTrue(WeakPointStateMachine.AdmiteAncla(maquina.Estado(ojo)));
+        }
+
+        [Test]
+        public void Brillar_ojo_para_debug_valida_el_indice()
+        {
+            var maquina = MaquinaEnFase1();
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => maquina.BrillarOjoParaDebug(-1));
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                maquina.BrillarOjoParaDebug(maquina.TotalOjos)
+            );
+        }
+
+        [Test]
         public void AbrirOjoParaDebug_ValidaElIndice()
         {
             var maquina = MaquinaEnFase1();
@@ -82,6 +129,38 @@ namespace TDOM.Tests.EditMode
 
             Assert.AreEqual(ResultadoGolpe.Rebote, maquina.GolpeMelee(ojo));
             Assert.AreEqual(EstadoOjo.Abierto, maquina.Estado(ojo));
+        }
+
+        [Test]
+        public void El_golpe_de_ayla_a_un_ojo_brillando_lo_abre_sin_hacer_danio()
+        {
+            var maquina = MaquinaEnFase1();
+            int ojo = Buscar(maquina, EstadoOjo.Brillando);
+
+            Assert.IsFalse(maquina.ResolverImpacto(ojo, TipoImpactoOjo.Melee, true));
+            Assert.AreEqual(EstadoOjo.Abierto, maquina.Estado(ojo));
+        }
+
+        [Test]
+        public void El_golpe_de_ayla_a_un_ojo_abierto_hace_danio()
+        {
+            var maquina = MaquinaEnFase1();
+            int ojo = AbrirUnOjo(maquina);
+
+            Assert.IsTrue(maquina.ResolverImpacto(ojo, TipoImpactoOjo.Melee, true));
+            Assert.AreEqual(EstadoOjo.Abierto, maquina.Estado(ojo));
+        }
+
+        [Test]
+        public void El_golpe_de_zendre_a_un_ojo_no_lo_abre_ni_hace_danio()
+        {
+            var maquina = MaquinaEnFase1();
+            int abierto = AbrirUnOjo(maquina);
+            int brillando = Buscar(maquina, EstadoOjo.Brillando);
+
+            Assert.IsFalse(maquina.ResolverImpacto(brillando, TipoImpactoOjo.Melee, false));
+            Assert.IsFalse(maquina.ResolverImpacto(abierto, TipoImpactoOjo.Melee, false));
+            Assert.AreEqual(EstadoOjo.Brillando, maquina.Estado(brillando));
         }
 
         [Test]

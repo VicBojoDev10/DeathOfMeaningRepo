@@ -60,6 +60,31 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
+        public void fijar_a_otro_objetivo_cambia_el_objetivo_sin_soltar_la_fijacion()
+        {
+            var resolver = CrearResolver();
+            var otro = new LockOnCandidate(8, new Vector3(5f, 0f, 20f));
+            var candidatos = Candidatos(new LockOnCandidate(7, new Vector3(0f, 0f, 20f)), otro);
+            Pulsar(resolver, candidatos);
+
+            resolver.FijarA(otro);
+            Simular(resolver, candidatos, 1f, Dt60);
+
+            Assert.IsTrue(resolver.Activo);
+            Assert.AreEqual(8, resolver.ObjetivoId);
+        }
+
+        [Test]
+        public void fijar_a_un_objetivo_sin_fijacion_activa_no_hace_nada()
+        {
+            var resolver = CrearResolver();
+
+            resolver.FijarA(new LockOnCandidate(8, new Vector3(5f, 0f, 20f)));
+
+            Assert.IsFalse(resolver.Activo);
+        }
+
+        [Test]
         public void r3_de_nuevo_libera_el_objetivo()
         {
             var resolver = CrearResolver();
