@@ -36,6 +36,7 @@ flowchart TD
     AA -->|"Instantiate + Spawn, altura al azar (NetworkVariable)"| COL["ColumnaMortero (NetworkObject, NavMeshObstacle con carve)"]
     AA -->|"Hundir: pasa el máximo, ataquesDeVidaColumna o cambio de fase opcional"| COL
     COL -->|"HundirRpc (ClientsAndHost): se hunde y el servidor la despawnea"| CLI
+    COL -->|"al aparecer: SacarJugadorRpc (SpecifiedInParams) al dueño atrapado, teleport al borde"| HIT
     CLI -->|"ImpactoRpc: polvo por punto y Impacto de cámara según distancia"| RIG["PlayerCameraRig (jugador local)"]
     TENT -->|"AvisoRpc (ClientsAndHost)"| CLI
     MANO -->|"JugadorGolpeadoRpc (SpecifiedInParams)"| HIT[Jugador golpeado]

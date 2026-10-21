@@ -36,6 +36,9 @@ namespace TDOM.Data
         public float duracionHundimiento = 0.5f;
         public bool limpiarColumnasAlCambiarFase = false;
 
+        [Tooltip("Distancia extra al borde al sacar a un jugador atrapado en la columna.")]
+        public float margenSacarJugador = 0.3f;
+
         [Header("Efectos de impacto")]
         public float sacudidaMaxima = 1f;
         public float radioSacudida = 30f;

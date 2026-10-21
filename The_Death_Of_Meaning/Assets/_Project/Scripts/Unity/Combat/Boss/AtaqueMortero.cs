@@ -418,10 +418,9 @@ namespace TDOM.Unity
 
             ParticleSystem polvo = Instantiate(_polvo, punto, _polvo.transform.rotation);
             polvo.gameObject.SetActive(true);
-            polvo.Play(true);
-
             var principal = polvo.main;
-            Destroy(polvo.gameObject, principal.duration + principal.startLifetime.constantMax);
+            principal.stopAction = ParticleSystemStopAction.Destroy;
+            polvo.Play(true);
         }
 
         private void SacudirCamaraLocal()

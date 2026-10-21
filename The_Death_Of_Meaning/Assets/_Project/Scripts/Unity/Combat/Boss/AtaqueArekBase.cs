@@ -51,7 +51,7 @@ namespace TDOM.Unity
                 feedbackDebug.FlashActive(DuracionFlashDebugGolpe);
         }
 
-        protected static PlayerRoot BuscarJugadorLocal()
+        protected internal static PlayerRoot BuscarJugadorLocal()
         {
             var cliente = NetworkManager.Singleton?.LocalClient;
             if (cliente == null)

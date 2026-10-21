@@ -1,4 +1,5 @@
 using TDOM.Data;
+using TDOM.Unity.Player;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
@@ -84,6 +85,74 @@ namespace TDOM.Unity
 
             CambiarEstado(Estado.Subiendo);
             ColocarCuerpo(0f);
+
+            if (IsServer)
+                SacarJugadoresAtrapados();
+        }
+
+        private void SacarJugadoresAtrapados()
+        {
+            Vector3 centro = transform.position;
+            float altura = _altura.Value;
+            float radioColumna = _perfil.diametroColumna * 0.5f;
+
+            foreach (var objeto in NetworkManager.SpawnManager.SpawnedObjectsList)
+            {
+                if (objeto == null || !objeto.TryGetComponent(out PlayerRoot jugador))
+                    continue;
+
+                Vector3 posicion = jugador.transform.position;
+                if (posicion.y > centro.y + altura)
+                    continue;
+
+                float radioJugador = jugador.TryGetComponent(out CharacterController controlador)
+                    ? controlador.radius
+                    : 0f;
+                float distanciaBorde = radioColumna + radioJugador + _perfil.margenSacarJugador;
+
+                Vector3 hacia = posicion - centro;
+                hacia.y = 0f;
+                if (hacia.magnitude >= distanciaBorde)
+                    continue;
+
+                Vector3 direccion =
+                    hacia.sqrMagnitude > 0.0001f ? hacia.normalized : Vector3.forward;
+                Vector3 destino = centro + direccion * distanciaBorde;
+                destino.y = posicion.y;
+
+                SacarJugadorRpc(
+                    destino,
+                    RpcTarget.Single(jugador.OwnerClientId, RpcTargetUse.Temp)
+                );
+            }
+        }
+
+        [Rpc(SendTo.SpecifiedInParams)]
+        private void SacarJugadorRpc(Vector3 destino, RpcParams rpcParams = default)
+        {
+            var jugador = AtaqueArekBase.BuscarJugadorLocal();
+            if (jugador == null)
+                return;
+
+            var controlador = jugador.GetComponent<CharacterController>();
+            bool controladorActivo = controlador != null && controlador.enabled;
+            if (controladorActivo)
+                controlador.enabled = false;
+
+            try
+            {
+                Transform cuerpo = jugador.transform;
+                var networkTransform = jugador.GetComponent<ClientNetworkTransform>();
+                if (networkTransform != null)
+                    networkTransform.Teleport(destino, cuerpo.rotation, cuerpo.localScale);
+                else
+                    cuerpo.position = destino;
+            }
+            finally
+            {
+                if (controladorActivo)
+                    controlador.enabled = true;
+            }
         }
 
         /// <summary>Solo servidor: la columna se hunde en todas las máquinas y luego se despawnea.</summary>
@@ -105,6 +174,9 @@ namespace TDOM.Unity
         {
             _estado = nuevo;
             _tiempoEnEstado = 0f;
+
+            if (_obstaculo != null)
+                _obstaculo.enabled = nuevo == Estado.Quieta;
         }
 
         private void Update()
