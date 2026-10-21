@@ -364,6 +364,7 @@ MonoBehaviour:
   _fade: {fileID: 1970596275}
   _duracionFade: 0.4
   _prioridadCamaraDeSalida: 100
+  _margenEsperaBlend: 0.5
   _gameplayUI: {fileID: 0}
   _reproducirEnCambioDeFase: 1
   _mostrarDebugUI: 1
@@ -403,7 +404,7 @@ MonoBehaviour:
     m_Value: -100
   OutputChannel: 1
   StandbyUpdate: 2
-  m_StreamingVersion: 0
+  m_StreamingVersion: 20241001
   m_LegacyPriority: 0
   Target:
     TrackingTarget: {fileID: 0}
@@ -615,7 +616,7 @@ MonoBehaviour:
     m_Value: -100
   OutputChannel: 1
   StandbyUpdate: 2
-  m_StreamingVersion: 0
+  m_StreamingVersion: 20241001
   m_LegacyPriority: 0
   Target:
     TrackingTarget: {fileID: 0}
@@ -1153,6 +1154,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1117280042}
   m_LocalEulerAnglesHint: {x: 0, y: 75, z: 0}
+--- !u!1 &1040823277
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1040823278}
+  m_Layer: 0
+  m_Name: RespawnZendre
+  m_TagString: Untagged
+  m_Icon: {fileID: 7250588514170254948, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1040823278
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1040823277}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 52, y: 46, z: 5.18}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1075050568
 GameObject:
   m_ObjectHideFlags: 0
@@ -1459,7 +1491,7 @@ MonoBehaviour:
     m_Value: -100
   OutputChannel: 1
   StandbyUpdate: 2
-  m_StreamingVersion: 0
+  m_StreamingVersion: 20241001
   m_LegacyPriority: 0
   Target:
     TrackingTarget: {fileID: 0}
@@ -1522,7 +1554,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1231129075}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.038861394, y: 0.67476463, z: 0.03562096, w: 0.7361478}
+  m_LocalRotation: {x: 0.02433005, y: 0.6753361, z: -0.022301305, w: 0.7367713}
   m_LocalPosition: {x: -200.86293, y: 23.741001, z: 9.40872}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1590,7 +1622,7 @@ Camera:
     height: 1
   near clip plane: 0.1
   far clip plane: 5000
-  field of view: 60.000004
+  field of view: 60
   orthographic: 0
   orthographic size: 10
   m_Depth: -1
@@ -1616,8 +1648,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1322350425}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.000000008251867, y: 0.9819564, z: -0.18910748, w: 0.000000042848512}
-  m_LocalPosition: {x: 150.84999, y: 67.119995, z: 55.07}
+  m_LocalRotation: {x: 0.02433005, y: 0.6753362, z: -0.022301307, w: 0.73677117}
+  m_LocalPosition: {x: -200.86293, y: 23.741001, z: 9.40872}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2344,7 +2376,7 @@ Transform:
   m_GameObject: {fileID: 4292757805817398283}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 52, y: 46, z: 10}
+  m_LocalPosition: {x: 52, y: 46, z: 14.83}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2375,7 +2407,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3403532553411134909}
   m_Layer: 0
-  m_Name: RespawnPoint
+  m_Name: RespawnAyla
   m_TagString: Untagged
   m_Icon: {fileID: 7250588514170254948, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
@@ -2425,7 +2457,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 85.1, y: -52.2, z: 0}
-  m_LocalScale: {x: 1236.092, y: 17.658457, z: 1236.092}
+  m_LocalScale: {x: 1400.0001, y: 20.000002, z: 1400.0001}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -2473,7 +2505,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18fe96f185e64049b8319b3781027cfe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.KillPlane
-  _respawn: {fileID: 3403532553411134909}
+  _respawnAyla: {fileID: 3403532553411134909}
+  _respawnZendre: {fileID: 1040823278}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -2489,6 +2522,7 @@ SceneRoots:
   - {fileID: 3443063804820025216}
   - {fileID: 85802601234731314}
   - {fileID: 3403532553411134909}
+  - {fileID: 1040823278}
   - {fileID: 6842293942417864967}
   - {fileID: 671097124}
   - {fileID: 30788411}
