@@ -162,5 +162,6 @@ namespace TDOM.Unity.UI
         public const string PausaUI = "pausaui";
         public const string RetryPopUpUI = "retrypopupui";
         public const string ExitPopUpUI = "exitpopupui";
+        public const string DerrotaUI = "derrotaui";
     }
 }

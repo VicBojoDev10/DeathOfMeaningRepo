@@ -197,7 +197,10 @@ namespace TDOM.Unity
 
         private void Update()
         {
-            if (PauseManager.PausadoGlobal)
+            if (
+                PauseManager.PausadoGlobal
+                || (PauseManager.ResultadoGlobal != ResultadoPartida.EnCurso)
+            )
                 return;
             float dt = Time.deltaTime;
 
