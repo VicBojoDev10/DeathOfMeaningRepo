@@ -9,6 +9,7 @@ using TDOM.Unity;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Input;
+using TDOM.Unity.Level;
 using TDOM.Unity.Locomotion;
 using TDOM.Unity.UI;
 using Unity.Netcode;
@@ -61,6 +62,10 @@ namespace TDOM.Unity.Player
         private float _sensitivity = 200f;
 
         private bool _ganchoActivoPrevio;
+
+        [SerializeField]
+        private float _alturaMaxima = 80f;
+        private bool _respawnPorAlturaSolicitado;
 
         public NetworkVariable<float> Energia = new NetworkVariable<float>(
             0,
@@ -205,6 +210,41 @@ namespace TDOM.Unity.Player
         {
             if (IsOwner && _feedback != null)
                 _feedback.OnGolpeRecibido();
+        }
+
+        public void Respawn(Vector3 position, Quaternion rotation)
+        {
+            if (!IsOwner)
+                return;
+
+            _locomocion?.Reiniciar();
+
+            var characterController = GetComponent<CharacterController>();
+
+            bool controllerWasEnabled = characterController != null && characterController.enabled;
+
+            if (controllerWasEnabled)
+                characterController.enabled = false;
+
+            try
+            {
+                var networkTransform = GetComponent<ClientNetworkTransform>();
+
+                if (networkTransform != null)
+                {
+                    networkTransform.HabilitarAutoridadDelDueño();
+                    networkTransform.Teleport(position, rotation, transform.localScale);
+                }
+                else
+                {
+                    transform.SetPositionAndRotation(position, rotation);
+                }
+            }
+            finally
+            {
+                if (controllerWasEnabled)
+                    characterController.enabled = true;
+            }
         }
 
         public void SetCamaraCedida(bool cedida)
@@ -468,6 +508,20 @@ namespace TDOM.Unity.Player
         {
             if (!IsOwner || !_initialSpawnApplied)
                 return;
+
+            if (transform.position.y > _alturaMaxima)
+            {
+                if (!_respawnPorAlturaSolicitado)
+                {
+                    var killPlane = FindAnyObjectByType<KillPlane>();
+                    if (killPlane != null)
+                        _respawnPorAlturaSolicitado = killPlane.RespawnJugador(this);
+                }
+
+                return;
+            }
+
+            _respawnPorAlturaSolicitado = false;
 
             Vector3 currentPosition = transform.position;
             Vector2 currentPlanarPosition = new Vector2(currentPosition.x, currentPosition.z);
