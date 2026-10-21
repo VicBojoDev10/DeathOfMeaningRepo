@@ -31,7 +31,13 @@ flowchart TD
     SCH -->|"Telegraph / Impacto: TelegraphAtaqueRpc, ImpactoAtaqueRpc (ClientsAndHost)"| CLI[Clientes]
     MANO -->|"AvisoRpc (ClientsAndHost)"| CLI
     RAYO -->|"AvisoRpc, RayoRpc, ApagarRpc (ClientsAndHost)"| CLI
-    MORT -->|"AvisoRpc, CaidaRpc (ClientsAndHost)"| CLI
+    MORT -->|"AvisoRpc, CaidaRpc, ImpactoRpc (ClientsAndHost)"| CLI
+    MORT -->|"al impactar: SpawnearColumna por punto (servidor)"| AA
+    AA -->|"Instantiate + Spawn, altura al azar (NetworkVariable)"| COL["ColumnaMortero (NetworkObject, NavMeshObstacle con carve)"]
+    AA -->|"Hundir: pasa el máximo, ataquesDeVidaColumna o cambio de fase opcional"| COL
+    COL -->|"HundirRpc (ClientsAndHost): se hunde y el servidor la despawnea"| CLI
+    COL -->|"al aparecer: SacarJugadorRpc (SpecifiedInParams) al dueño atrapado, teleport al borde"| HIT
+    CLI -->|"ImpactoRpc: polvo por punto y Impacto de cámara según distancia"| RIG["PlayerCameraRig (jugador local)"]
     TENT -->|"AvisoRpc (ClientsAndHost)"| CLI
     MANO -->|"JugadorGolpeadoRpc (SpecifiedInParams)"| HIT[Jugador golpeado]
     RAYO -->|"JugadorGolpeadoRpc (SpecifiedInParams)"| HIT
