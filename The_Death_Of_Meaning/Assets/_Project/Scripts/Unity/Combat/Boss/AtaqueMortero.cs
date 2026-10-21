@@ -15,6 +15,8 @@ namespace TDOM.Unity
     /// coloca 3 puntos sobre el o los objetivos (separados al menos 2 × radioArea), todos ven
     /// un disco de aviso en cada punto, después cae una "piedra" en cada uno y el servidor
     /// detecta a los jugadores dentro. No resta vida: solo detecta y reporta (04. Daño en WIP).
+    /// TW-126: al impactar, cada piedra deja una ColumnaMortero (la spawnea AtaquesArek) y todos
+    /// ven polvo y sienten una sacudida de cámara según la distancia.
     /// </summary>
     public class AtaqueMortero : AtaqueArekBase
     {
@@ -28,6 +30,10 @@ namespace TDOM.Unity
         [Header("Aviso")]
         [SerializeField]
         private AvisoParpadeo _avisoParpadeo;
+
+        [Header("Impacto (plantilla, se clona una vez por disparo)")]
+        [SerializeField]
+        private ParticleSystem _polvo;
 
         private enum FaseMortero
         {
@@ -66,6 +72,8 @@ namespace TDOM.Unity
                 _discoAviso.gameObject.SetActive(false);
             if (_piedra != null)
                 _piedra.gameObject.SetActive(false);
+            if (_polvo != null)
+                _polvo.gameObject.SetActive(false);
 
             if (_avisoParpadeo == null)
                 _avisoParpadeo = GetComponent<AvisoParpadeo>();
@@ -251,6 +259,8 @@ namespace TDOM.Unity
                     if (_tiempoEnFase >= _perfil.caida)
                     {
                         DetectarImpactos();
+                        SpawnearColumnas();
+                        ImpactoRpc();
                         CambiarFase(FaseMortero.Retirada);
                     }
                     break;
@@ -324,6 +334,16 @@ namespace TDOM.Unity
             }
         }
 
+        // TW-126: la columna queda con la base en el piso que ya se calculó para cada punto.
+        private void SpawnearColumnas()
+        {
+            if (_puntosServidor == null || Lanzador == null)
+                return;
+
+            foreach (var punto in _puntosServidor)
+                Lanzador.SpawnearColumna(punto);
+        }
+
         [Rpc(SendTo.ClientsAndHost)]
         private void AvisoRpc(Vector3[] puntos)
         {
@@ -378,6 +398,59 @@ namespace TDOM.Unity
                 piedra.gameObject.SetActive(true);
 
             _tiempoCaidaLocal = 0f;
+        }
+
+        // TW-126: la piedra se esconde (la reemplaza la columna que sube), sale polvo en cada punto
+        // y la cámara del jugador local se sacude según qué tan cerca cayó la piedra más próxima.
+        [Rpc(SendTo.ClientsAndHost)]
+        private void ImpactoRpc()
+        {
+            _tiempoCaidaLocal = -1f;
+            foreach (var piedra in _piedras)
+                piedra.gameObject.SetActive(false);
+
+            foreach (var punto in _puntosLocales)
+                LanzarPolvo(punto);
+
+            SacudirCamaraLocal();
+        }
+
+        // Sin padre: el ataque se despawnea antes de que termine el polvo.
+        private void LanzarPolvo(Vector3 punto)
+        {
+            if (_polvo == null)
+                return;
+
+            ParticleSystem polvo = Instantiate(_polvo, punto, _polvo.transform.rotation);
+            polvo.gameObject.SetActive(true);
+            var principal = polvo.main;
+            principal.stopAction = ParticleSystemStopAction.Destroy;
+            polvo.Play(true);
+        }
+
+        private void SacudirCamaraLocal()
+        {
+            if (_perfil.radioSacudida <= 0f)
+                return;
+
+            var jugador = BuscarJugadorLocal();
+            if (jugador == null)
+                return;
+
+            var rig = jugador.GetComponentInChildren<PlayerCameraRig>(true);
+            if (rig == null)
+                return;
+
+            float distanciaMinima = float.MaxValue;
+            foreach (var punto in _puntosLocales)
+                distanciaMinima = Mathf.Min(
+                    distanciaMinima,
+                    Vector3.Distance(jugador.transform.position, punto)
+                );
+
+            float cercania = 1f - Mathf.Clamp01(distanciaMinima / _perfil.radioSacudida);
+            if (cercania > 0f)
+                rig.Impacto(_perfil.sacudidaMaxima * cercania);
         }
 
         // Mismo feedback que la Mano: impacto de cámara, flash de debug y flash rojo de pantalla.
