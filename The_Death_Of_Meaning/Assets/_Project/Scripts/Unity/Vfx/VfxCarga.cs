@@ -12,6 +12,17 @@ namespace TDOM.Unity.Vfx
 
         protected override bool TiempoAgotado(float tiempo) => tiempo >= _perfil.duracionMaxima;
 
+        protected override void AlIniciar()
+        {
+            if (Principal == null)
+                return;
+
+            var forma = Principal.shape;
+            forma.radius = _perfil.radioCentro;
+            var main = Principal.main;
+            main.startSpeed = _perfil.velocidadParticulas;
+        }
+
         protected override void Avanzar(float t)
         {
             Visual.position = A;

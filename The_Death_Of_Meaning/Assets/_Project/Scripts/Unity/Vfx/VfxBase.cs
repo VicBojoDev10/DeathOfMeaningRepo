@@ -38,6 +38,7 @@ namespace TDOM.Unity.Vfx
         public Quaternion RotacionBase { get; private set; } = Quaternion.identity;
 
         protected Transform Visual => _visual != null ? _visual : transform;
+        protected ParticleSystem Principal { get; private set; }
         protected Quaternion Orientacion =>
             Perfil != null ? Quaternion.Euler(Perfil.orientacion) : Quaternion.identity;
 
@@ -46,6 +47,7 @@ namespace TDOM.Unity.Vfx
             _particulas = GetComponentsInChildren<ParticleSystem>(true);
             _renderers = GetComponentsInChildren<Renderer>(true);
             _bloque = new MaterialPropertyBlock();
+            Principal = Visual.GetComponent<ParticleSystem>();
         }
 
         public void Reproducir(Vector3 posicion, Quaternion rotacion)
@@ -127,6 +129,10 @@ namespace TDOM.Unity.Vfx
 
         protected virtual bool TiempoAgotado(float tiempo) => tiempo >= Perfil.duracion;
 
+        protected virtual float Visibilidad(float tiempo) => 1f;
+
+        protected virtual void AlIniciar() { }
+
         protected abstract void Avanzar(float t);
 
         private void Iniciar(Vector3 posicion, Quaternion rotacion)
@@ -142,6 +148,7 @@ namespace TDOM.Unity.Vfx
             Activo = true;
             gameObject.SetActive(true);
             RecalcularTrayectoria();
+            AlIniciar();
             Avanzar(0f);
             AplicarMaterial(0f);
 
@@ -205,8 +212,10 @@ namespace TDOM.Unity.Vfx
             if (_bloque == null)
                 return;
 
+            float visibilidad = Visibilidad(Tiempo);
             Color color = Perfil.color.Evaluate(t);
-            float intensidad = Perfil.intensidad.Evaluate(t);
+            color.a *= visibilidad;
+            float intensidad = Perfil.intensidad.Evaluate(t) * visibilidad;
             float disolucion = Perfil.disolucion.Evaluate(t);
 
             foreach (var render in _renderers)
