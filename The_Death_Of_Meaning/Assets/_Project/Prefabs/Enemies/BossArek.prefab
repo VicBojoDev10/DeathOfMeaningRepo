@@ -21,6 +21,8 @@ GameObject:
   - component: {fileID: 7370672464009637728}
   - component: {fileID: 214842757908221112}
   - component: {fileID: 3743253964765751442}
+  - component: {fileID: 3441880043407967335}
+  - component: {fileID: 2056042260873663644}
   m_Layer: 0
   m_Name: BossArek
   m_TagString: Untagged
@@ -364,6 +366,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.OjosArek
   ShowTopMostFoldoutHeaderGroup: 1
   _perfil: {fileID: 11400000, guid: a7cbe3bba59d0da4792bba4566da160b, type: 2}
+--- !u!114 &3441880043407967335
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b3f0a0eef2178941b4abd08c0dd6eb4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Vfx.VfxPool
+  _catalogo: {fileID: 11400000, guid: e63be35bfa730c34e89d0b12d85259fb, type: 2}
+--- !u!114 &2056042260873663644
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e5bdbde09808cd47bf6ca37e850a2d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Vfx.VfxRed
+  ShowTopMostFoldoutHeaderGroup: 1
+  _pool: {fileID: 3441880043407967335}
 --- !u!1 &2000000000000000
 GameObject:
   m_ObjectHideFlags: 0
