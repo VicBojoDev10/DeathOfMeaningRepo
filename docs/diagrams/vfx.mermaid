@@ -8,6 +8,11 @@ classDiagram
         +Tangente(a, control, b, t) Vector3
     }
 
+    class VisibilidadVfx {
+        <<static, POCO>>
+        +Factor(tiempo, duracion, aparicion, desaparicion) float
+    }
+
     class VfxProfile {
         <<abstract, ScriptableObject>>
         +puntoA, puntoB
@@ -19,17 +24,22 @@ classDiagram
     class VfxOrigenFinalProfile {
         +avance
         +orientarATrayectoria
+        +particulasResiduales, ancho
+        +aparicion, desaparicion
     }
     class VfxExplosionProfile {
         +radio
         +escala
     }
     class VfxDisparoProfile {
+        +avance
+        +largoEstela
         +tamano
         +escala
     }
     class VfxCargaProfile {
         +escala
+        +radioCentro, velocidadParticulas
         +duracionMaxima
     }
     class VfxCatalogo {
@@ -46,6 +56,8 @@ classDiagram
         +Terminado event
         #Avanzar(t)*
         #TiempoAgotado(tiempo)
+        #Visibilidad(tiempo)
+        #AlIniciar()
     }
     class VfxOrigenFinal
     class VfxExplosion
@@ -82,6 +94,7 @@ classDiagram
     VfxBase <|-- VfxCarga
 
     VfxBase ..> TrayectoriaVfx : calcula la curva A-B
+    VfxOrigenFinal ..> VisibilidadVfx : aparicion y desaparicion
     VfxBase --> VfxProfile : lee tuning
     VfxOrigenFinal --> VfxOrigenFinalProfile
     VfxExplosion --> VfxExplosionProfile
