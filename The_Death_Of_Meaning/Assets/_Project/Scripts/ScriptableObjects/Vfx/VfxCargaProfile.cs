@@ -6,7 +6,9 @@ namespace TDOM.Data
     public sealed class VfxCargaProfile : VfxProfile
     {
         [Header("Carga")]
-        public AnimationCurve escala = AnimationCurve.Linear(0f, 1.5f, 1f, 0.3f);
+        public AnimationCurve escala = AnimationCurve.Linear(0f, 0.5f, 1f, 1f);
+        public float radioCentro = 0.2f;
+        public float velocidadParticulas = 1f;
         public float duracionMaxima = 5f;
     }
 }

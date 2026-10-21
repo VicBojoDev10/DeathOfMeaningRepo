@@ -6,7 +6,9 @@ namespace TDOM.Data
     public sealed class VfxDisparoProfile : VfxProfile
     {
         [Header("Disparo")]
+        public AnimationCurve avance = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+        public float largoEstela = 0.3f;
         public float tamano = 1f;
-        public AnimationCurve escala = AnimationCurve.EaseInOut(0f, 1f, 1f, 0.5f);
+        public AnimationCurve escala = AnimationCurve.Constant(0f, 1f, 1f);
     }
 }
