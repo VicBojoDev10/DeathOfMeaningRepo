@@ -71,6 +71,8 @@ GameObject:
   - component: {fileID: 8501239841203941201}
   - component: {fileID: 8501239841203941202}
   - component: {fileID: 1793130870331789386}
+  - component: {fileID: 6057063955198916791}
+  - component: {fileID: 2102127513358069341}
   m_Layer: 0
   m_Name: PlayerAyla
   m_TagString: Player
@@ -449,6 +451,33 @@ MonoBehaviour:
   _characterController: {fileID: 4118153115610838888}
   _walkThreshold: 0.5
   _runThreshold: 14
+--- !u!114 &6057063955198916791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2229917530308356307}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b3f0a0eef2178941b4abd08c0dd6eb4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Vfx.VfxPool
+  _catalogo: {fileID: 11400000, guid: e63be35bfa730c34e89d0b12d85259fb, type: 2}
+--- !u!114 &2102127513358069341
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2229917530308356307}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e5bdbde09808cd47bf6ca37e850a2d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Vfx.VfxRed
+  ShowTopMostFoldoutHeaderGroup: 1
+  _pool: {fileID: 6057063955198916791}
 --- !u!1 &5167135693431690079
 GameObject:
   m_ObjectHideFlags: 0
