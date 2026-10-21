@@ -63,7 +63,7 @@ namespace TDOM.Unity
                 return;
 
             float tiempoFinal = Mathf.Max(0f, Time.time - _inicioCronometro);
-            PauseManager.Instance?.MarcarResultadoFinalDesdeServidor();
+            PauseManager.Instance?.EstablecerResultadoDesdeServidor(ResultadoPartida.Victoria);
             _cronometroActivo = false;
             Debug.Log($"[GameSessionManager] Partida terminada en {tiempoFinal:F1} segundos.");
             MostrarVictoriaClientRpc(tiempoFinal);
@@ -382,7 +382,7 @@ namespace TDOM.Unity
             if (!IsServer || _inicioPartidaEnProceso || !_seleccion.PuedeIniciar)
                 return;
 
-            PauseManager.Instance?.RestablecerResultadoFinalDesdeServidor();
+            PauseManager.Instance?.RestablecerResultadoDesdeServidor();
             _inicioPartidaEnProceso = true;
             var objetosSpawneados = new List<NetworkObject>(
                 NetworkManager.SpawnManager.SpawnedObjectsList
@@ -450,7 +450,7 @@ namespace TDOM.Unity
                 return;
 
             _cronometroActivo = false;
-            PauseManager.Instance?.MarcarResultadoFinalDesdeServidor();
+            PauseManager.Instance?.EstablecerResultadoDesdeServidor(ResultadoPartida.Derrota);
             Debug.Log($"[GameSessionManager] Derrota registrada en la fase {fase}.");
             MostrarDerrotaClientRpc(fase);
         }
@@ -493,7 +493,7 @@ namespace TDOM.Unity
             if (!IsServer || !_inicioPartidaNotificado)
                 return;
 
-            PauseManager.Instance?.MarcarResultadoFinalDesdeServidor();
+            PauseManager.Instance?.EstablecerResultadoDesdeServidor(ResultadoPartida.Victoria);
             MostrarVictoriaDebugClientRpc();
         }
 

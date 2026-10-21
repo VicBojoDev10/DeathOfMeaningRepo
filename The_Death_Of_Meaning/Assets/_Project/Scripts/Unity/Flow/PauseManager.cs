@@ -5,18 +5,25 @@ using UnityEngine;
 
 namespace TDOM.Unity
 {
+    public enum ResultadoPartida : byte
+    {
+        EnCurso,
+        Victoria,
+        Derrota,
+    }
+
     public class PauseManager : NetworkBehaviour
     {
         public static PauseManager Instance { get; private set; }
         public static bool PausadoGlobal { get; private set; }
-        public static bool ResultadoFinalGlobal { get; private set; }
+        public static ResultadoPartida ResultadoGlobal { get; private set; }
         public readonly NetworkVariable<bool> Pausado = new(
             false,
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server
         );
-        public readonly NetworkVariable<bool> ResultadoFinal = new(
-            false,
+        public readonly NetworkVariable<ResultadoPartida> Resultado = new(
+            ResultadoPartida.EnCurso,
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server
         );
@@ -33,7 +40,7 @@ namespace TDOM.Unity
         private void Update()
         {
             var clienteLocal = NetworkManager?.LocalClient;
-            if (clienteLocal == null || ResultadoFinalGlobal)
+            if (clienteLocal == null || (ResultadoGlobal != ResultadoPartida.EnCurso))
                 return;
 
             foreach (var objeto in clienteLocal.OwnedObjects)
@@ -61,36 +68,36 @@ namespace TDOM.Unity
         {
             Instance = this;
             Pausado.OnValueChanged += AlCambiarPausa;
-            ResultadoFinal.OnValueChanged += AlCambiarResultadoFinal;
+            Resultado.OnValueChanged += AlCambiarResultado;
             AlCambiarPausa(false, Pausado.Value);
-            AlCambiarResultadoFinal(false, ResultadoFinal.Value);
+            AlCambiarResultado(ResultadoPartida.EnCurso, Resultado.Value);
         }
 
         public override void OnNetworkDespawn()
         {
             Pausado.OnValueChanged -= AlCambiarPausa;
-            ResultadoFinal.OnValueChanged -= AlCambiarResultadoFinal;
+            Resultado.OnValueChanged -= AlCambiarResultado;
             if (Instance == this)
                 Instance = null;
             PausadoGlobal = false;
-            ResultadoFinalGlobal = false;
+            ResultadoGlobal = ResultadoPartida.EnCurso;
         }
 
-        private void AlCambiarResultadoFinal(bool anterior, bool actual)
+        private void AlCambiarResultado(ResultadoPartida anterior, ResultadoPartida actual)
         {
-            ResultadoFinalGlobal = actual;
+            ResultadoGlobal = actual;
         }
 
-        public void MarcarResultadoFinalDesdeServidor()
-        {
-            if (IsServer)
-                ResultadoFinal.Value = true;
-        }
-
-        public void RestablecerResultadoFinalDesdeServidor()
+        public void EstablecerResultadoDesdeServidor(ResultadoPartida resultado)
         {
             if (IsServer)
-                ResultadoFinal.Value = false;
+                Resultado.Value = resultado;
+        }
+
+        public void RestablecerResultadoDesdeServidor()
+        {
+            if (IsServer)
+                Resultado.Value = ResultadoPartida.EnCurso;
         }
 
         private void AlCambiarPausa(bool anterior, bool actual)

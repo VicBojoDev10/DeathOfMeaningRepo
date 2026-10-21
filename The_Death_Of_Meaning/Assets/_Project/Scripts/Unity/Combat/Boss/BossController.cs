@@ -70,7 +70,9 @@ namespace TDOM.Unity.Combat
         public void Pausar(bool pausado) => _pausado = pausado;
 
         public bool Pausado =>
-            _pausado || PauseManager.PausadoGlobal || PauseManager.ResultadoFinalGlobal;
+            _pausado
+            || PauseManager.PausadoGlobal
+            || (PauseManager.ResultadoGlobal != ResultadoPartida.EnCurso);
 
         private bool EnTransicion => _maquina != null && _maquina.EnTransicion;
 
