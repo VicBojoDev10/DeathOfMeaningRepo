@@ -394,9 +394,13 @@ namespace TDOM.Unity.Player
             float dt = Time.deltaTime;
             var input = _inputReader.Read();
             bool apuntando = input.AimHeld && PuedeApuntar;
-            _zendreLocomotionAnimator?.ActualizarApuntado(apuntando, input.Move);
 
             ActualizarMirada(input, dt);
+            _zendreLocomotionAnimator?.ActualizarApuntado(
+                apuntando,
+                _fijacion.Activo,
+                input.Move
+            );
 
             if (_camera != null)
                 _camera.ActualizarEncuadre(
