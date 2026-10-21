@@ -223,6 +223,21 @@ namespace TDOM.Gameplay.Locomotion
             _run.Tick(input);
         }
 
+        public void Reiniciar()
+        {
+            State.Velocity = Vector3.zero;
+            State.JumpsUsed = 0;
+            State.CoyoteTimer = 0f;
+            State.BufferTimer = 0f;
+
+            _dash?.Cancelar();
+            _grapple?.Cancelar();
+
+            DashIniciado = false;
+            SaltoAereo = false;
+            Aterrizaje = false;
+        }
+
         private float MultiplicadorDeVelocidad(bool modoPistola) =>
             modoPistola ? _multiplicadorVelocidadPistola : VelocidadCompleta;
     }
