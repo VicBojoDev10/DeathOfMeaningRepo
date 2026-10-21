@@ -1,0 +1,93 @@
+classDiagram
+    class TrayectoriaVfx {
+        <<static, POCO>>
+        +Normal(a, b, arriba, rotacion) Vector3
+        +Control(a, b, arriba, curvatura, rotacion) Vector3
+        +Curvatura(a, b, arriba, rotacion, control) float
+        +Punto(a, control, b, t) Vector3
+        +Tangente(a, control, b, t) Vector3
+    }
+
+    class VfxProfile {
+        <<abstract, ScriptableObject>>
+        +puntoA, puntoB
+        +curvatura, rotacion, orientacion
+        +duracion
+        +color, intensidad, disolucion
+        +tamanoPool
+    }
+    class VfxOrigenFinalProfile {
+        +avance
+        +orientarATrayectoria
+    }
+    class VfxExplosionProfile {
+        +radio
+        +escala
+    }
+    class VfxDisparoProfile {
+        +tamano
+        +escala
+    }
+    class VfxCargaProfile {
+        +escala
+        +duracionMaxima
+    }
+    class VfxCatalogo {
+        <<ScriptableObject>>
+        +efectos GameObject[]
+    }
+
+    class VfxBase {
+        <<abstract, MonoBehaviour>>
+        +Perfil VfxProfile
+        +Reproducir(posicion, rotacion)
+        +ReproducirEntre(a, b)
+        +Detener()
+        +Terminado event
+        #Avanzar(t)*
+        #TiempoAgotado(tiempo)
+    }
+    class VfxOrigenFinal
+    class VfxExplosion
+    class VfxDisparo
+    class VfxCarga
+
+    class VfxPool {
+        <<MonoBehaviour>>
+        +Indice(prefab) int
+        +Pedir(indice) VfxBase
+        +Detener(indice)
+    }
+    class VfxRed {
+        <<NetworkBehaviour>>
+        +Lanzar(efecto, posicion, rotacion)
+        +LanzarEntre(efecto, a, b)
+        +Detener(efecto)
+        -PedirReproducirRpc() Server
+        -PedirReproducirEntreRpc() Server
+        -PedirDetenerRpc() Server
+        -ReproducirRpc() ClientsAndHost
+        -ReproducirEntreRpc() ClientsAndHost
+        -DetenerRpc() ClientsAndHost
+    }
+
+    VfxProfile <|-- VfxOrigenFinalProfile
+    VfxProfile <|-- VfxExplosionProfile
+    VfxProfile <|-- VfxDisparoProfile
+    VfxProfile <|-- VfxCargaProfile
+
+    VfxBase <|-- VfxOrigenFinal
+    VfxBase <|-- VfxExplosion
+    VfxBase <|-- VfxDisparo
+    VfxBase <|-- VfxCarga
+
+    VfxBase ..> TrayectoriaVfx : calcula la curva A-B
+    VfxBase --> VfxProfile : lee tuning
+    VfxOrigenFinal --> VfxOrigenFinalProfile
+    VfxExplosion --> VfxExplosionProfile
+    VfxDisparo --> VfxDisparoProfile
+    VfxCarga --> VfxCargaProfile
+
+    VfxPool --> VfxCatalogo : crea las copias al inicio
+    VfxPool o-- VfxBase : instancias
+    VfxRed --> VfxPool : cada maquina saca su copia
