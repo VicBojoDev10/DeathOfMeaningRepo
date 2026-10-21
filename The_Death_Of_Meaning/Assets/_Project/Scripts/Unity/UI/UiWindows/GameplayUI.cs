@@ -1,6 +1,7 @@
 using TDOM.Contracts;
 using TDOM.Gameplay.Camera;
 using TDOM.Unity.Player;
+using TDOM.Unity.UI;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -28,6 +29,38 @@ namespace TDOM.Unity
         [SerializeField]
         private float multiplicadorEscalaEnRango = 1.15f;
 
+        [Header("Cooldowns")]
+        [SerializeField]
+        private Image dashandembestidaslider;
+
+        [SerializeField]
+        private Image hookandgraplerslider;
+
+        [SerializeField]
+        private Color cooldownDisponible = Color.white;
+
+        [SerializeField]
+        private Color cooldownEnUso = new Color(0.35f, 0.35f, 0.35f, 1f);
+
+        [Header("PlayerHealth")]
+        [SerializeField]
+        private Image mainPlayerIcon;
+
+        [SerializeField]
+        private Image secondaryPlayerIcon;
+
+        [SerializeField]
+        private Slider mainPlayerHealthSlider;
+
+        [SerializeField]
+        private Slider secondaryPlayerHealthSlider;
+
+        [SerializeField]
+        private Sprite zendreIcon;
+
+        [SerializeField]
+        private Sprite aylaIcon;
+
         [Header("Vida del Jefe")]
         [SerializeField]
         private BossHealthBar _barraVidaJefe;
@@ -36,6 +69,36 @@ namespace TDOM.Unity
         private RectTransform _crosshairRect;
         private Vector3 _escalaBase;
         private bool _hudVisible = true;
+        private PlayerEnergyHud _barraEnergiaJugador;
+        private PlayerRoot _jugadorConEnergiaInicializado;
+
+        private void Update()
+        {
+            if (_barraEnergiaJugador == null)
+                _barraEnergiaJugador = GetComponentInChildren<PlayerEnergyHud>(true);
+
+            if (_barraEnergiaJugador == null || _localPlayer == null)
+                return;
+
+            _barraEnergiaJugador.ActualizarEnergia(_localPlayer.Energia.Value);
+
+            if (_jugadorConEnergiaInicializado == _localPlayer)
+                return;
+
+            string etiquetaEnergia = _localPlayer.CharacterId switch
+            {
+                CharacterIds.Ayla => "Stamina",
+                CharacterIds.Zendre => "Maná",
+                _ => "Energy",
+            };
+
+            _barraEnergiaJugador.Reinitialize(
+                _localPlayer,
+                etiquetaEnergia,
+                _localPlayer.EnergiaMaxima
+            );
+            _jugadorConEnergiaInicializado = _localPlayer;
+        }
 
         public void SetHudVisible(bool visible)
         {
@@ -50,6 +113,9 @@ namespace TDOM.Unity
         public override void Initialize()
         {
             base.Initialize();
+
+            ConfigurarImagenCooldown(dashandembestidaslider);
+            ConfigurarImagenCooldown(hookandgraplerslider);
 
             if (crosshairImage != null)
             {
@@ -69,6 +135,8 @@ namespace TDOM.Unity
 
         private void OnDisable()
         {
+            if (_localPlayer != null)
+                _localPlayer.DashEmbestidaIniciada -= ActualizarCooldowns;
             _localPlayer = null;
             if (crosshairImage != null)
                 crosshairImage.gameObject.SetActive(false);
@@ -88,6 +156,8 @@ namespace TDOM.Unity
                 if (_localPlayer == null)
                     return;
             }
+
+            ActualizarCooldowns();
 
             if (_localPlayer.CameraTransform == null)
                 return;
@@ -148,6 +218,8 @@ namespace TDOM.Unity
                 if (p != null && p.IsOwner)
                 {
                     _localPlayer = p;
+                    _localPlayer.DashEmbestidaIniciada += ActualizarCooldowns;
+                    ActualizarIconosPersonajes();
                     if (_crosshairRect == null && crosshairImage != null)
                     {
                         _crosshairRect = crosshairImage.rectTransform;
@@ -156,6 +228,64 @@ namespace TDOM.Unity
                     break;
                 }
             }
+        }
+
+        private void ActualizarIconosPersonajes()
+        {
+            if (_localPlayer == null)
+                return;
+
+            if (_localPlayer.CharacterId == CharacterIds.Ayla)
+            {
+                if (mainPlayerIcon != null)
+                    mainPlayerIcon.sprite = aylaIcon;
+                if (secondaryPlayerIcon != null)
+                    secondaryPlayerIcon.sprite = zendreIcon;
+            }
+            else if (_localPlayer.CharacterId == CharacterIds.Zendre)
+            {
+                if (mainPlayerIcon != null)
+                    mainPlayerIcon.sprite = zendreIcon;
+                if (secondaryPlayerIcon != null)
+                    secondaryPlayerIcon.sprite = aylaIcon;
+            }
+        }
+
+        private static void ConfigurarImagenCooldown(Image imagen)
+        {
+            if (imagen == null)
+                return;
+
+            imagen.type = Image.Type.Filled;
+            imagen.fillMethod = Image.FillMethod.Radial360;
+            imagen.fillOrigin = (int)Image.Origin360.Top;
+            imagen.fillClockwise = true;
+            imagen.raycastTarget = false;
+        }
+
+        private void ActualizarCooldowns()
+        {
+            if (_localPlayer == null)
+                return;
+
+            var cooldowns = _localPlayer.Cooldowns;
+            ActualizarIconoCooldown(dashandembestidaslider, cooldowns.Dash);
+
+            float cooldownSecundario =
+                _localPlayer.CharacterId == CharacterIds.Zendre
+                    ? cooldowns.Ancla
+                    : cooldowns.Gancho;
+            ActualizarIconoCooldown(hookandgraplerslider, cooldownSecundario);
+        }
+
+        private void ActualizarIconoCooldown(Image imagen, float normalizado)
+        {
+            if (imagen == null)
+                return;
+
+            normalizado = Mathf.Clamp01(normalizado);
+            imagen.fillAmount = normalizado;
+            imagen.color = normalizado <= 0.001f ? cooldownDisponible : cooldownEnUso;
         }
     }
 }
