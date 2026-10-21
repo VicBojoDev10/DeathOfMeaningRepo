@@ -438,6 +438,11 @@ namespace TDOM.Unity.Player
                 transform.position,
                 ModoPistola
             );
+            if (_characterId == CharacterIds.Zendre)
+                _zendreLocomotionAnimator?.ActualizarSalto(
+                    _locomocion.SaltoEnCurso,
+                    _locomocion.CayendoEnSalto
+                );
             if (
                 _anchorLauncher != null
                 && _anchorLauncher.AnclaActiva

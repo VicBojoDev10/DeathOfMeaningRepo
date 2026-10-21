@@ -10,6 +10,9 @@ namespace TDOM.Unity
         private static readonly int GardHash = Animator.StringToHash("Gard");
         private static readonly int MoveXHash = Animator.StringToHash("MoveX");
         private static readonly int MoveYHash = Animator.StringToHash("MoveY");
+        private static readonly int JumpHash = Animator.StringToHash("Jump");
+        private static readonly int FallingHash = Animator.StringToHash("Falling");
+        private static readonly int ShootHash = Animator.StringToHash("Shoot");
         private const float SpeedDampTime = 0.1f;
 
         [Header("Referencias")]
@@ -31,6 +34,16 @@ namespace TDOM.Unity
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Owner
         );
+        private readonly NetworkVariable<bool> _jumping = new(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Owner
+        );
+        private readonly NetworkVariable<bool> _falling = new(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Owner
+        );
 
         private Vector3 _ultimaPos;
 
@@ -47,6 +60,8 @@ namespace TDOM.Unity
             {
                 _animator.SetFloat(SpeedHash, 0f);
                 AplicarModos(false, false, Vector2.zero);
+                _animator.SetBool(JumpHash, _jumping.Value);
+                _animator.SetBool(FallingHash, _falling.Value);
             }
         }
 
@@ -66,6 +81,20 @@ namespace TDOM.Unity
             AplicarModos(apuntando, guardia, movimientoDireccional);
         }
 
+        public void ActualizarSalto(bool saltando, bool cayendo)
+        {
+            if (!IsOwner)
+                return;
+
+            if (_jumping.Value != saltando)
+                _jumping.Value = saltando;
+            if (_falling.Value != cayendo)
+                _falling.Value = cayendo;
+            if (saltando && _animator != null)
+                _animator.SetBool(ShootHash, false);
+            AplicarSalto(saltando, cayendo);
+        }
+
         private void Update()
         {
             float dt = Time.deltaTime;
@@ -73,7 +102,10 @@ namespace TDOM.Unity
                 return;
 
             if (!IsOwner)
+            {
                 AplicarModos(_aiming.Value, _guarding.Value, _aimMove.Value);
+                AplicarSalto(_jumping.Value, _falling.Value);
+            }
 
             Vector3 posicionActual = transform.position;
             Vector3 velocidad = (posicionActual - _ultimaPos) / dt;
@@ -92,6 +124,17 @@ namespace TDOM.Unity
             _animator.SetBool(GardHash, guardia);
             _animator.SetFloat(MoveXHash, movimiento.x);
             _animator.SetFloat(MoveYHash, movimiento.y);
+        }
+
+        private void AplicarSalto(bool saltando, bool cayendo)
+        {
+            if (_animator == null)
+                return;
+
+            _animator.SetBool(JumpHash, saltando);
+            _animator.SetBool(FallingHash, cayendo);
+            if (saltando)
+                _animator.SetBool(ShootHash, false);
         }
     }
 }
