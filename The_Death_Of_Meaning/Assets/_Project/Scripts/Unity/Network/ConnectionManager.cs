@@ -223,6 +223,7 @@ namespace TDOM.Unity
 
         private void HandleClientStopped(bool eraHost)
         {
+            Debug.Log($"[Network ClientStopped] eraHost={eraHost}");
             DesuscribirEventosEscena();
         }
 
@@ -235,6 +236,9 @@ namespace TDOM.Unity
 
         private void HandleSceneEvent(SceneEvent evento)
         {
+            Debug.Log(
+                $"[Network Scene Event] tipo={evento.SceneEventType}, cliente={evento.ClientId}"
+            );
             switch (evento.SceneEventType)
             {
                 case SceneEventType.Load

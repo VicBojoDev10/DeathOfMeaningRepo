@@ -6,6 +6,7 @@ using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.POCO.ScriptableObjects;
 using TDOM.Unity.Player;
+using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -68,7 +69,10 @@ namespace TDOM.Unity.Combat
 
         public void Pausar(bool pausado) => _pausado = pausado;
 
-        public bool Pausado => _pausado || PauseManager.PausadoGlobal;
+        public bool Pausado =>
+            _pausado
+            || PauseManager.PausadoGlobal
+            || (PauseManager.ResultadoGlobal != ResultadoPartida.EnCurso);
 
         private bool EnTransicion => _maquina != null && _maquina.EnTransicion;
 
@@ -158,6 +162,7 @@ namespace TDOM.Unity.Combat
             }
 
             _maquina = new BossPhaseStateMachine(_fases);
+            _maquina.Muerto += AlMorir;
             _maquina.TransicionTerminada += AlTerminarTransicion;
             _maquina.VidaCambiada += AlCambiarVida;
             Vida.Value = _maquina.VidaActual;
@@ -199,6 +204,7 @@ namespace TDOM.Unity.Combat
             if (_maquina != null)
             {
                 _maquina.TransicionTerminada -= AlTerminarTransicion;
+                _maquina.Muerto -= AlMorir;
                 _maquina.VidaCambiada -= AlCambiarVida;
             }
 
@@ -259,6 +265,20 @@ namespace TDOM.Unity.Combat
 
         private void AlCambiarVida(float vida) => Vida.Value = vida;
 
+        private void AlMorir()
+        {
+            if (!IsServer)
+                return;
+
+            if (GameSessionManager.Instance == null)
+            {
+                Debug.LogError("No se encontró GameSessionManager para registrar la victoria.");
+                return;
+            }
+
+            GameSessionManager.Instance.FinalizarPartidaDesdeServidor();
+        }
+
         private void AlTerminarTransicion()
         {
             _scheduler?.ReiniciarPorCambioDeFase();
@@ -286,6 +306,9 @@ namespace TDOM.Unity.Combat
                 return;
 
             _maquina.Tick(Time.deltaTime);
+            if (_maquina.EstaMuerto)
+                return;
+
             _ojos.Tick(Time.deltaTime);
 
             if (Pausado)
