@@ -394,10 +394,9 @@ namespace TDOM.Unity.Player
             float dt = Time.deltaTime;
             var input = _inputReader.Read();
             bool apuntando = input.AimHeld && PuedeApuntar;
-            if (_aylaAnimator != null)
-                _aylaAnimator.SetAimState(apuntando);
-
             ActualizarMirada(input, dt);
+            if (_aylaAnimator != null)
+                _aylaAnimator.SetAimState(_fijacion != null && _fijacion.Activo);
 
             if (_camera != null)
                 _camera.ActualizarEncuadre(
