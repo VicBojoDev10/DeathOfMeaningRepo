@@ -16,10 +16,12 @@ namespace TDOM.Data
         public float DownedDuration = 15f;
         public float ReviveHealth = 50f;
         public float ReviveDuration = 3f;
+        public float ReviveRadius = 3.5f;
 
         public float VidaMaxima => MaxHealth;
         public float TiempoAbatido => DownedDuration;
         public float VidaAlRevivir => ReviveHealth;
         public float TiempoParaRevivir => ReviveDuration;
+        public float RadioRevivir => ReviveRadius;
     }
 }

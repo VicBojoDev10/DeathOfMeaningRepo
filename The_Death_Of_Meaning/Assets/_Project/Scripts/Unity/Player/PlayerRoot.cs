@@ -101,8 +101,6 @@ namespace TDOM.Unity.Player
         );
 
         private HealthPool _healthPool;
-        private ulong? _revividorId;
-        private ulong _objetivoReviviendoId;
 
         private FeedbackDirector _feedback;
         private CharacterIds _characterId = CharacterIds.None;
@@ -123,6 +121,7 @@ namespace TDOM.Unity.Player
         public float DuracionAbatido => _definition != null ? _definition.DownedDuration : 15f;
         public float VidaAlRevivir => _definition != null ? _definition.ReviveHealth : 50f;
         public float DuracionRevivir => _definition != null ? _definition.ReviveDuration : 3f;
+        public float RadioRevivir => _definition != null ? _definition.ReviveRadius : 3.5f;
         public float TiempoAbatidoNormalizado =>
             DuracionAbatido > 0f
                 ? Mathf.Clamp01(TiempoAbatidoRestante.Value / DuracionAbatido)
@@ -523,9 +522,6 @@ namespace TDOM.Unity.Player
 
             var input = _inputReader.Read();
 
-            if (EstadoVida.Value == PlayerLifeState.Vivo)
-                ActualizarIntentoRevivirLocal(input);
-
             bool apuntando = input.AimHeld && PuedeApuntar && !EstaAbatidoOMuerto;
 
             ActualizarMirada(input, dt);
@@ -668,59 +664,30 @@ namespace TDOM.Unity.Player
         public void AplicarDanioEnServidor(float cantidad, bool esInstaKill = false) =>
             RecibirDanio(cantidad, esInstaKill);
 
-        public void AsignarRevividor(ulong revividorId)
-        {
-            if (!IsServer)
-                return;
-
-            _revividorId = revividorId;
-        }
-
-        public void RemoverRevividor(ulong revividorId)
-        {
-            if (!IsServer)
-                return;
-
-            if (_revividorId == revividorId)
-            {
-                _revividorId = null;
-                if (_healthPool != null)
-                    _healthPool.CancelRevive();
-                ProgresoRevivir.Value = 0f;
-            }
-        }
-
         private void ActualizarEstadoAbatidoEnServidor(float dt)
         {
-            if (_revividorId.HasValue)
+            PlayerRoot companeroVivo = ObtenerCompaneroVivoCercano(RadioRevivir);
+
+            if (companeroVivo != null)
             {
-                PlayerRoot revividor = ObtenerJugadorPorClienteId(_revividorId.Value);
-                bool revividorValido =
-                    revividor != null
-                    && revividor.IsSpawned
-                    && revividor.EstadoVida.Value == PlayerLifeState.Vivo
-                    && Vector3.Distance(transform.position, revividor.transform.position) <= 4.5f;
+                float duracionRevivir = DuracionRevivir;
+                float vidaAlRevivir = VidaAlRevivir;
+                bool revivio = _healthPool.ProgressRevive(dt, duracionRevivir, vidaAlRevivir);
+                ProgresoRevivir.Value = _healthPool.ReviveProgress;
 
-                if (revividorValido)
+                if (revivio)
                 {
-                    float duracionRevivir = DuracionRevivir;
-                    float vidaAlRevivir = VidaAlRevivir;
-                    bool revivio = _healthPool.ProgressRevive(dt, duracionRevivir, vidaAlRevivir);
-                    ProgresoRevivir.Value = _healthPool.ReviveProgress;
-
-                    if (revivio)
-                    {
-                        EstadoVida.Value = _healthPool.State;
-                        Vida.Value = _healthPool.Current;
-                        TiempoAbatidoRestante.Value = 0f;
-                        ProgresoRevivir.Value = 0f;
-                        _revividorId = null;
-                    }
-
-                    return;
+                    EstadoVida.Value = _healthPool.State;
+                    Vida.Value = _healthPool.Current;
+                    TiempoAbatidoRestante.Value = 0f;
+                    ProgresoRevivir.Value = 0f;
                 }
 
-                _revividorId = null;
+                return;
+            }
+
+            if (_healthPool.ReviveProgress > 0f)
+            {
                 _healthPool.CancelRevive();
                 ProgresoRevivir.Value = 0f;
             }
@@ -735,28 +702,7 @@ namespace TDOM.Unity.Player
             }
         }
 
-        private void ActualizarIntentoRevivirLocal(InputSnapshot input)
-        {
-            PlayerRoot companeroCercano = ObtenerCompaneroAbatidoCercano(3.5f);
-
-            bool botonRevivir = input.AttackHeld;
-
-            if (companeroCercano != null && botonRevivir)
-            {
-                if (_objetivoReviviendoId != companeroCercano.NetworkObjectId)
-                {
-                    _objetivoReviviendoId = companeroCercano.NetworkObjectId;
-                    SolicitarRevivirRpc(companeroCercano.NetworkObjectId, true);
-                }
-            }
-            else if (_objetivoReviviendoId != 0)
-            {
-                SolicitarRevivirRpc(_objetivoReviviendoId, false);
-                _objetivoReviviendoId = 0;
-            }
-        }
-
-        private PlayerRoot ObtenerCompaneroAbatidoCercano(float distanciaMaxima)
+        private PlayerRoot ObtenerCompaneroVivoCercano(float distanciaMaxima)
         {
             if (NetworkManager == null || NetworkManager.SpawnManager == null)
                 return null;
@@ -771,7 +717,10 @@ namespace TDOM.Unity.Player
 
                 if (objeto.TryGetComponent(out PlayerRoot otroJugador))
                 {
-                    if (otroJugador.EstadoVida.Value == PlayerLifeState.Abatido)
+                    if (
+                        otroJugador.IsSpawned
+                        && otroJugador.EstadoVida.Value == PlayerLifeState.Vivo
+                    )
                     {
                         float d = Vector3.Distance(
                             transform.position,
@@ -787,61 +736,6 @@ namespace TDOM.Unity.Player
             }
 
             return companeroCercano;
-        }
-
-        [Rpc(SendTo.Server)]
-        private void SolicitarRevivirRpc(
-            ulong objetivoNetworkId,
-            bool intentando,
-            RpcParams rpc = default
-        )
-        {
-            if (!IsServer || EstadoVida.Value != PlayerLifeState.Vivo)
-                return;
-
-            if (
-                !NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(
-                    objetivoNetworkId,
-                    out var objetivoObj
-                )
-            )
-                return;
-
-            var jugadorAbatido = objetivoObj.GetComponent<PlayerRoot>();
-            if (
-                jugadorAbatido == null
-                || jugadorAbatido.EstadoVida.Value != PlayerLifeState.Abatido
-            )
-                return;
-
-            if (intentando)
-            {
-                float d = Vector3.Distance(transform.position, jugadorAbatido.transform.position);
-                if (d <= 4.5f)
-                    jugadorAbatido.AsignarRevividor(OwnerClientId);
-            }
-            else
-            {
-                jugadorAbatido.RemoverRevividor(OwnerClientId);
-            }
-        }
-
-        private PlayerRoot ObtenerJugadorPorClienteId(ulong clientId)
-        {
-            if (NetworkManager == null || NetworkManager.SpawnManager == null)
-                return null;
-
-            foreach (var objeto in NetworkManager.SpawnManager.SpawnedObjectsList)
-            {
-                if (
-                    objeto != null
-                    && objeto.OwnerClientId == clientId
-                    && objeto.TryGetComponent(out PlayerRoot jugador)
-                )
-                    return jugador;
-            }
-
-            return null;
         }
 
         private void VerificarGameOverEnServidor()
