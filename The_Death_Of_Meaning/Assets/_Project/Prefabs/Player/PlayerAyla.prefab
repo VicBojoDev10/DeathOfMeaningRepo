@@ -448,7 +448,8 @@ MonoBehaviour:
   _animator: {fileID: 1136055855002311730}
   _characterController: {fileID: 4118153115610838888}
   _walkThreshold: 0.5
-  _runThreshold: 14
+  _walkBlendMaxSpeed: 10
+  _runBlendMaxSpeed: 20
 --- !u!1 &5167135693431690079
 GameObject:
   m_ObjectHideFlags: 0

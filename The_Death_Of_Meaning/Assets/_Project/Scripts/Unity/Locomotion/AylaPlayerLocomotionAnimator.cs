@@ -45,7 +45,6 @@ namespace TDOM.Unity
                 _characterController = GetComponent<CharacterController>();
         }
 
-        /// <summary>Actualiza el blend tree de apuntado desde el input del jugador dueño.</summary>
         public void SetAimState(bool aiming)
         {
             if (!IsSpawned || !IsOwner || aiming == _aimState)
@@ -56,7 +55,6 @@ namespace TDOM.Unity
             SyncAimStateRpc(aiming);
         }
 
-        /// <summary>El estado de carrera lo decide PlayerLocomotion al activar L3.</summary>
         public void SetSprintState(bool sprinting)
         {
             if (!IsSpawned || !IsOwner || sprinting == _isSprinting)
@@ -87,7 +85,7 @@ namespace TDOM.Unity
             float dt = Time.deltaTime;
             if (dt <= 0f)
                 return;
-            // Cálculo de velocidad horizontal y vertical
+
             Vector3 pos = transform.position;
             Vector3 v = (pos - _ultimaPos) / dt;
             float velY = v.y;
@@ -95,10 +93,8 @@ namespace TDOM.Unity
             _rawSpeed = v.magnitude;
             _ultimaPos = pos;
 
-            // Suavizado de velocidad para evitar micro-caídas y picos ruidosos de frames
             _smoothSpeed = Mathf.Lerp(_smoothSpeed, _rawSpeed, dt * 12f);
 
-            // 1. Detección robusta de salto (filtra micro-pérdidas de contacto del CharacterController)
             bool isJumping = _isJumpingPrevio;
             if (IsOwner && _characterController != null)
             {
@@ -111,27 +107,24 @@ namespace TDOM.Unity
                     _tiempoEnAire = 0f;
                 }
 
-                // Salto real: impulso ascendente real (velY > 1.5) o caída sostenida en el aire (> 0.10s)
                 isJumping = velY > 1.5f || _tiempoEnAire > 0.10f;
 
-                // Si cambió el estado de salto, sincronizamos a los demás clientes
                 if (isJumping != _isJumpingPrevio)
                 {
                     _isJumpingPrevio = isJumping;
                     SyncJumpStateRpc(isJumping);
                 }
             }
-            // 2. Detección de suelo: caminar, correr o idle
+
             bool isRunning = !isJumping && _isSprinting;
             bool isWalking = !isJumping && _smoothSpeed >= _walkThreshold && !isRunning;
-            // 3. Aplicar al Animator
+
             if (_animator != null)
             {
                 Vector3 localVelocity = transform.InverseTransformDirection(v);
                 _animator.SetFloat(SpeedHash, CalculateLocomotionBlendSpeed(_smoothSpeed));
-                Vector3 localDirection = localVelocity.sqrMagnitude > 0.01f
-                    ? localVelocity.normalized
-                    : Vector3.zero;
+                Vector3 localDirection =
+                    localVelocity.sqrMagnitude > 0.01f ? localVelocity.normalized : Vector3.zero;
                 _animator.SetFloat(MoveXHash, localDirection.x);
                 _animator.SetFloat(MoveYHash, localDirection.z);
                 _animator.SetBool(JumpHash, isJumping);
