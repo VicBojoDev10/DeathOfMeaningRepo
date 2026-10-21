@@ -8,6 +8,7 @@ using TDOM.Gameplay.Locomotion;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Input;
+using TDOM.Unity.Level;
 using TDOM.Unity.Locomotion;
 using Unity.Netcode;
 using UnityEngine;
@@ -61,7 +62,8 @@ namespace TDOM.Unity.Player
         private bool _ganchoActivoPrevio;
 
         [SerializeField]
-        private float _alturaMinima = -30f;
+        private float _alturaMaxima = 80f;
+        private bool _respawnPorAlturaSolicitado;
 
         public NetworkVariable<float> Energia = new NetworkVariable<float>(
             0,
@@ -74,8 +76,6 @@ namespace TDOM.Unity.Player
         private CharacterIds _characterId = CharacterIds.None;
         private bool _initialSpawnApplied;
         private bool _originResetLogged;
-        private Vector3 _respawnPosition;
-        private Quaternion _respawnRotation;
         private Vector3 _initialSpawnPosition;
         private Vector3 _lastObservedPosition;
         public bool AtaqueActivo => MovimientoBloqueado || ModoPistola;
@@ -184,8 +184,6 @@ namespace TDOM.Unity.Player
             _inputReader.enabled = true;
             _initialSpawnPosition = transform.position;
             _lastObservedPosition = transform.position;
-            _respawnPosition = position;
-            _respawnRotation = rotation;
             Debug.Log(
                 $"[SPAWN][OWNER] client={NetworkManager.LocalClientId} "
                     + $"position={transform.position} rotation={transform.eulerAngles}"
@@ -245,17 +243,6 @@ namespace TDOM.Unity.Player
                 if (controllerWasEnabled)
                     characterController.enabled = true;
             }
-        }
-
-        public void ActualizarRespawn(Vector3 position, Quaternion rotation)
-        {
-            _respawnPosition = position;
-            _respawnRotation = rotation;
-        }
-
-        public void Respawn()
-        {
-            Respawn(_respawnPosition, _respawnRotation);
         }
 
         public void SetCamaraCedida(bool cedida)
@@ -516,6 +503,20 @@ namespace TDOM.Unity.Player
         {
             if (!IsOwner || !_initialSpawnApplied)
                 return;
+
+            if (transform.position.y > _alturaMaxima)
+            {
+                if (!_respawnPorAlturaSolicitado)
+                {
+                    var killPlane = FindAnyObjectByType<KillPlane>();
+                    if (killPlane != null)
+                        _respawnPorAlturaSolicitado = killPlane.RespawnJugador(this);
+                }
+
+                return;
+            }
+
+            _respawnPorAlturaSolicitado = false;
 
             Vector3 currentPosition = transform.position;
             Vector2 currentPlanarPosition = new Vector2(currentPosition.x, currentPosition.z);

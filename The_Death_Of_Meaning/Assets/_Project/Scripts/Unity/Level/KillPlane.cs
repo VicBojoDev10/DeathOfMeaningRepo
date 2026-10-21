@@ -24,21 +24,33 @@ namespace TDOM.Unity.Level
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!other.TryGetComponent<PlayerRoot>(out var player))
-                return;
+            var player = other.GetComponentInParent<PlayerRoot>();
+            if (player != null && player.IsOwner)
+                RespawnJugador(player);
+        }
 
-            if (!player.IsOwner)
-                return;
+        public bool RespawnJugador(PlayerRoot player)
+        {
+            if (player == null || !player.IsOwner)
+                return false;
 
             Transform respawn = ObtenerRespawn(player);
+            if (respawn == null)
+            {
+                Debug.LogError(
+                    $"[KillPlane] Falta asignar el punto de respawn para {player.CharacterId}.",
+                    this
+                );
+                return false;
+            }
 
             Debug.LogWarning(
-                $"[SPAWN][KILL-PLANE] owner={player.OwnerClientId} "
-                    + $"from={other.transform.position} "
-                    + $"respawn={respawn.position}"
+                $"[SPAWN][KILL-PLANE] owner={player.OwnerClientId} personaje={player.CharacterId} "
+                    + $"from={player.transform.position} respawn={respawn.position}"
             );
 
             player.Respawn(respawn.position, respawn.rotation);
+            return true;
         }
     }
 }
