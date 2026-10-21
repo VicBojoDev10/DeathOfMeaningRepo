@@ -21,6 +21,14 @@ namespace TDOM.Data
         public float alturaCaida = 15f;
         public float altoPiedra = 6f;
 
+        [Header("Daño")]
+        public float dano = 9999f;
+        public bool esInstaKill = true;
+
         public override float Rango => radioArena;
+
+        public override float Dano => dano;
+
+        public override bool EsInstaKill => esInstaKill;
     }
 }

@@ -16,7 +16,7 @@ using UnityEngine;
 
 namespace TDOM.Unity.Player
 {
-    public class PlayerRoot : NetworkBehaviour
+    public class PlayerRoot : NetworkBehaviour, IDamageable
     {
         public readonly struct CooldownValues
         {
@@ -62,12 +62,42 @@ namespace TDOM.Unity.Player
 
         private bool _ganchoActivoPrevio;
 
+        private BossController _jefe;
+
         public NetworkVariable<float> Energia = new NetworkVariable<float>(
             0,
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server
         );
         private EnergyPool _energyPool;
+
+        public NetworkVariable<float> Vida = new NetworkVariable<float>(
+            100f,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
+        public NetworkVariable<PlayerLifeState> EstadoVida = new NetworkVariable<PlayerLifeState>(
+            PlayerLifeState.Vivo,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
+        public NetworkVariable<float> TiempoAbatidoRestante = new NetworkVariable<float>(
+            0f,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
+        public NetworkVariable<float> ProgresoRevivir = new NetworkVariable<float>(
+            0f,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
+        private HealthPool _healthPool;
+        private ulong? _revividorId;
+        private ulong _objetivoReviviendoId;
 
         private FeedbackDirector _feedback;
         private CharacterIds _characterId = CharacterIds.None;
@@ -84,6 +114,17 @@ namespace TDOM.Unity.Player
 
         public CharacterIds CharacterId => _characterId;
         public float EnergiaMaxima => _definition?.Energy != null ? _definition.Energy.Max : 0f;
+        public float VidaMaxima => _definition != null ? _definition.MaxHealth : 100f;
+        public float DuracionAbatido => _definition != null ? _definition.DownedDuration : 15f;
+        public float VidaAlRevivir => _definition != null ? _definition.ReviveHealth : 50f;
+        public float DuracionRevivir => _definition != null ? _definition.ReviveDuration : 3f;
+        public float TiempoAbatidoNormalizado =>
+            DuracionAbatido > 0f
+                ? Mathf.Clamp01(TiempoAbatidoRestante.Value / DuracionAbatido)
+                : 0f;
+        public bool EstaAbatidoOMuerto =>
+            EstadoVida.Value == PlayerLifeState.Abatido
+            || EstadoVida.Value == PlayerLifeState.Muerto;
         public event Action DashEmbestidaIniciada;
         public CooldownValues Cooldowns =>
             new CooldownValues(
@@ -102,6 +143,9 @@ namespace TDOM.Unity.Player
 
         public override void OnNetworkSpawn()
         {
+            if (GetComponentInChildren<DownedSliderUI>() == null)
+                gameObject.AddComponent<DownedSliderUI>();
+
             _anchorLauncher = GetComponentInChildren<AnchorLauncher>();
             _combat = GetComponentInChildren<PlayerCombat>();
             _look = new LookResolver(
@@ -130,6 +174,18 @@ namespace TDOM.Unity.Player
                 Energia.Value = _energyPool.Current;
             }
 
+            if (IsServer)
+            {
+                float maxHealth = _definition != null ? _definition.MaxHealth : 100f;
+                float downedDuration = _definition != null ? _definition.DownedDuration : 15f;
+                _healthPool = new HealthPool(maxHealth, downedDuration);
+                Vida.Value = _healthPool.Current;
+                EstadoVida.Value = _healthPool.State;
+                TiempoAbatidoRestante.Value = _healthPool.DownedRemainingTime;
+                ProgresoRevivir.Value = 0f;
+                BossController.ObservarJefe(NetworkManager, OnBossSpawned);
+            }
+
             _characterId = GetCharacterId();
 
             if (IsOwner)
@@ -138,6 +194,30 @@ namespace TDOM.Unity.Player
                 if (_camera != null)
                     _feedback = _camera.GetComponent<FeedbackDirector>();
             }
+        }
+
+        private void OnBossSpawned(BossController jefe)
+        {
+            _jefe = jefe;
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            if (IsServer)
+            {
+                BossController.DejarDeObservarJefe(OnBossSpawned);
+                _jefe = null;
+            }
+        }
+
+        public override void OnDestroy()
+        {
+            if (IsServer)
+            {
+                BossController.DejarDeObservarJefe(OnBossSpawned);
+                _jefe = null;
+            }
+            base.OnDestroy();
         }
 
         public void EnviarSpawnInicial(Vector3 position, Quaternion rotation)
@@ -384,53 +464,69 @@ namespace TDOM.Unity.Player
             )
                 return;
 
+            float dt = Time.deltaTime;
+
             if (IsServer && _energyPool != null)
             {
-                _energyPool.Tick(Time.deltaTime, isDowned: false);
+                _energyPool.Tick(dt, isDowned: EstadoVida.Value == PlayerLifeState.Abatido);
                 Energia.Value = _energyPool.Current;
+            }
+
+            if (IsServer && _healthPool != null)
+            {
+                if (EstadoVida.Value == PlayerLifeState.Abatido)
+                    ActualizarEstadoAbatidoEnServidor(dt);
             }
 
             if (!IsOwner || !_initialSpawnApplied)
                 return;
 
-            float dt = Time.deltaTime;
             var input = _inputReader.Read();
-            bool apuntando = input.AimHeld && PuedeApuntar;
+
+            if (EstadoVida.Value == PlayerLifeState.Vivo)
+                ActualizarIntentoRevivirLocal(input);
+
+            bool apuntando = input.AimHeld && PuedeApuntar && !EstaAbatidoOMuerto;
 
             ActualizarMirada(input, dt);
 
             if (_camera != null)
                 _camera.ActualizarEncuadre(
                     apuntando,
-                    AtaqueActivo || _fijacion.Activo,
-                    _locomocion.Corriendo,
+                    (AtaqueActivo || _fijacion.Activo) && !EstaAbatidoOMuerto,
+                    _locomocion.Corriendo && !EstaAbatidoOMuerto,
                     dt
                 );
 
             _motor.ProbeGround(_locomocion.State);
 
-            AlinearConCamaraAlAtacar(input, apuntando);
+            if (!EstaAbatidoOMuerto)
+            {
+                AlinearConCamaraAlAtacar(input, apuntando);
 
-            if (_combat != null)
-                _combat.Tick(input, dt);
+                if (_combat != null)
+                    _combat.Tick(input, dt);
 
-            if (
-                input.GrapplePressed
-                && !AtaqueActivo
-                && _definition != null
-                && _definition.Grapple != null
-                && _camera != null
-            )
-                IntentarGanchoApuntado();
+                if (
+                    input.GrapplePressed
+                    && !AtaqueActivo
+                    && _definition != null
+                    && _definition.Grapple != null
+                    && _camera != null
+                )
+                    IntentarGanchoApuntado();
+            }
 
-            var intent = _locomocion.Tick(
-                input,
-                _look.YawRotation,
-                dt,
-                MovimientoBloqueado,
-                transform.position,
-                ModoPistola
-            );
+            var intent = EstaAbatidoOMuerto
+                ? new MotionIntent(Vector3.zero, ignoreGravity: false)
+                : _locomocion.Tick(
+                    input,
+                    _look.YawRotation,
+                    dt,
+                    MovimientoBloqueado,
+                    transform.position,
+                    ModoPistola
+                );
             if (
                 _anchorLauncher != null
                 && _anchorLauncher.AnclaActiva
@@ -490,6 +586,264 @@ namespace TDOM.Unity.Player
             }
 
             _lastObservedPosition = currentPosition;
+        }
+
+        public void RecibirDanio(float cantidad, bool esInstaKill = false)
+        {
+            if (!IsServer || _healthPool == null)
+                return;
+
+            if (esInstaKill)
+            {
+                _healthPool.TakeDamage(
+                    _healthPool.Current > 0f ? _healthPool.Current : _healthPool.Max
+                );
+            }
+            else
+            {
+                _healthPool.TakeDamage(cantidad);
+            }
+
+            Vida.Value = _healthPool.Current;
+            EstadoVida.Value = _healthPool.State;
+            TiempoAbatidoRestante.Value = _healthPool.DownedRemainingTime;
+
+            VerificarGameOverEnServidor();
+        }
+
+        public void AplicarDanioEnServidor(float cantidad, bool esInstaKill = false) =>
+            RecibirDanio(cantidad, esInstaKill);
+
+        public void AsignarRevividor(ulong revividorId)
+        {
+            if (!IsServer)
+                return;
+
+            _revividorId = revividorId;
+        }
+
+        public void RemoverRevividor(ulong revividorId)
+        {
+            if (!IsServer)
+                return;
+
+            if (_revividorId == revividorId)
+            {
+                _revividorId = null;
+                if (_healthPool != null)
+                    _healthPool.CancelRevive();
+                ProgresoRevivir.Value = 0f;
+            }
+        }
+
+        private void ActualizarEstadoAbatidoEnServidor(float dt)
+        {
+            if (_revividorId.HasValue)
+            {
+                PlayerRoot revividor = ObtenerJugadorPorClienteId(_revividorId.Value);
+                bool revividorValido =
+                    revividor != null
+                    && revividor.IsSpawned
+                    && revividor.EstadoVida.Value == PlayerLifeState.Vivo
+                    && Vector3.Distance(transform.position, revividor.transform.position) <= 4.5f;
+
+                if (revividorValido)
+                {
+                    float duracionRevivir = DuracionRevivir;
+                    float vidaAlRevivir = VidaAlRevivir;
+                    bool revivio = _healthPool.ProgressRevive(dt, duracionRevivir, vidaAlRevivir);
+                    ProgresoRevivir.Value = _healthPool.ReviveProgress;
+
+                    if (revivio)
+                    {
+                        EstadoVida.Value = _healthPool.State;
+                        Vida.Value = _healthPool.Current;
+                        TiempoAbatidoRestante.Value = 0f;
+                        ProgresoRevivir.Value = 0f;
+                        _revividorId = null;
+                    }
+
+                    return;
+                }
+
+                _revividorId = null;
+                _healthPool.CancelRevive();
+                ProgresoRevivir.Value = 0f;
+            }
+
+            _healthPool.Tick(dt);
+            TiempoAbatidoRestante.Value = _healthPool.DownedRemainingTime;
+
+            if (_healthPool.State == PlayerLifeState.Muerto)
+            {
+                EstadoVida.Value = PlayerLifeState.Muerto;
+                VerificarGameOverEnServidor();
+            }
+        }
+
+        private void ActualizarIntentoRevivirLocal(InputSnapshot input)
+        {
+            PlayerRoot companeroCercano = ObtenerCompaneroAbatidoCercano(3.5f);
+
+            bool botonRevivir = input.AttackHeld;
+
+            if (companeroCercano != null && botonRevivir)
+            {
+                if (_objetivoReviviendoId != companeroCercano.NetworkObjectId)
+                {
+                    _objetivoReviviendoId = companeroCercano.NetworkObjectId;
+                    SolicitarRevivirRpc(companeroCercano.NetworkObjectId, true);
+                }
+            }
+            else if (_objetivoReviviendoId != 0)
+            {
+                SolicitarRevivirRpc(_objetivoReviviendoId, false);
+                _objetivoReviviendoId = 0;
+            }
+        }
+
+        private PlayerRoot ObtenerCompaneroAbatidoCercano(float distanciaMaxima)
+        {
+            if (NetworkManager == null || NetworkManager.SpawnManager == null)
+                return null;
+
+            PlayerRoot companeroCercano = null;
+            float menorDistancia = distanciaMaxima;
+
+            foreach (var objeto in NetworkManager.SpawnManager.SpawnedObjectsList)
+            {
+                if (objeto == null || objeto == NetworkObject)
+                    continue;
+
+                if (objeto.TryGetComponent(out PlayerRoot otroJugador))
+                {
+                    if (otroJugador.EstadoVida.Value == PlayerLifeState.Abatido)
+                    {
+                        float d = Vector3.Distance(
+                            transform.position,
+                            otroJugador.transform.position
+                        );
+                        if (d <= menorDistancia)
+                        {
+                            menorDistancia = d;
+                            companeroCercano = otroJugador;
+                        }
+                    }
+                }
+            }
+
+            return companeroCercano;
+        }
+
+        [Rpc(SendTo.Server)]
+        private void SolicitarRevivirRpc(
+            ulong objetivoNetworkId,
+            bool intentando,
+            RpcParams rpc = default
+        )
+        {
+            if (!IsServer || EstadoVida.Value != PlayerLifeState.Vivo)
+                return;
+
+            if (
+                !NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(
+                    objetivoNetworkId,
+                    out var objetivoObj
+                )
+            )
+                return;
+
+            var jugadorAbatido = objetivoObj.GetComponent<PlayerRoot>();
+            if (
+                jugadorAbatido == null
+                || jugadorAbatido.EstadoVida.Value != PlayerLifeState.Abatido
+            )
+                return;
+
+            if (intentando)
+            {
+                float d = Vector3.Distance(transform.position, jugadorAbatido.transform.position);
+                if (d <= 4.5f)
+                    jugadorAbatido.AsignarRevividor(OwnerClientId);
+            }
+            else
+            {
+                jugadorAbatido.RemoverRevividor(OwnerClientId);
+            }
+        }
+
+        private PlayerRoot ObtenerJugadorPorClienteId(ulong clientId)
+        {
+            if (NetworkManager == null || NetworkManager.SpawnManager == null)
+                return null;
+
+            foreach (var objeto in NetworkManager.SpawnManager.SpawnedObjectsList)
+            {
+                if (
+                    objeto != null
+                    && objeto.OwnerClientId == clientId
+                    && objeto.TryGetComponent(out PlayerRoot jugador)
+                )
+                    return jugador;
+            }
+
+            return null;
+        }
+
+        private void VerificarGameOverEnServidor()
+        {
+            if (!IsServer)
+                return;
+
+            if (PauseManager.ResultadoGlobal != ResultadoPartida.EnCurso)
+                return;
+
+            if (NetworkManager == null || NetworkManager.SpawnManager == null)
+                return;
+
+            bool todosAbatidosOMuertos = true;
+            bool algunMuerto = false;
+            int totalJugadores = 0;
+
+            foreach (var objeto in NetworkManager.SpawnManager.SpawnedObjectsList)
+            {
+                if (objeto != null && objeto.TryGetComponent(out PlayerRoot jugador))
+                {
+                    totalJugadores++;
+                    if (jugador.EstadoVida.Value == PlayerLifeState.Muerto)
+                    {
+                        algunMuerto = true;
+                        break;
+                    }
+
+                    if (jugador.EstadoVida.Value != PlayerLifeState.Abatido)
+                    {
+                        todosAbatidosOMuertos = false;
+                    }
+                }
+            }
+
+            if (totalJugadores > 0 && (algunMuerto || todosAbatidosOMuertos))
+            {
+                DispararGameOverEnServidor();
+            }
+        }
+
+        private void DispararGameOverEnServidor()
+        {
+            if (!IsServer)
+                return;
+
+            int fase = _jefe != null ? _jefe.Fase.Value : 1;
+
+            if (GameSessionManager.Instance != null)
+            {
+                GameSessionManager.Instance.FinalizarPartidaPorDerrotaDesdeServidor(fase);
+            }
+            else
+            {
+                PauseManager.Instance?.EstablecerResultadoDesdeServidor(ResultadoPartida.Derrota);
+            }
         }
     }
 }
