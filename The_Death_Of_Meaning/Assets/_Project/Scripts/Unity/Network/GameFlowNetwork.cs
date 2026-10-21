@@ -13,12 +13,22 @@ namespace TDOM.Unity
 
         public override void OnNetworkSpawn()
         {
+            Debug.Log(
+                $"[NetSpawn GameFlowNetwork] server={IsServer}, client={IsClient}, "
+                    + $"id={NetworkObjectId}, escena={gameObject.scene.name}"
+            );
+
             Instance = this;
             Spawned?.Invoke();
         }
 
         public override void OnNetworkDespawn()
         {
+            Debug.Log(
+                $"[NetDespawn GameFlowNetwork] server={IsServer}, client={IsClient}, "
+                    + $"id={NetworkObjectId}, escena={gameObject.scene.name}"
+            );
+
             if (Instance == this)
                 Instance = null;
         }
@@ -42,6 +52,25 @@ namespace TDOM.Unity
         private void StartMatchClientRpc()
         {
             OnCharacterSelectionStarted?.Invoke();
+        }
+
+        public void SolicitarReinicioDePartida()
+        {
+            SolicitarReinicioDePartidaRpc();
+        }
+
+        [Rpc(SendTo.Server, RequireOwnership = false)]
+        private void SolicitarReinicioDePartidaRpc(RpcParams rpcParams = default)
+        {
+            Debug.Log(
+                $"[Restart RPC server] recibido; sender={rpcParams.Receive.SenderClientId}, "
+                    + $"GameSessionManager={GameSessionManager.Instance != null}"
+            );
+
+            if (!IsServer)
+                return;
+
+            GameSessionManager.Instance?.SolicitarReinicioDePartidaDesdeServidor();
         }
     }
 }
