@@ -3,7 +3,27 @@ guid: 28a0c58fcd0dd1f42862669c9e033474
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MAterialCabelloAyla
+    second: {fileID: 2100000, guid: 3ad2d2eff1058834bba3cf5ba768a791, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MaterialCaraAyla
+    second: {fileID: 2100000, guid: 426370b4f3cb77447b46e34b6c035dd8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MaterialCuerpoAyla
+    second: {fileID: 2100000, guid: ea63be2d1c1066444a92dd09b6586ee4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MaterialOjoBocaAyla
+    second: {fileID: 2100000, guid: 8300d1b97f164c64ba43dacad33f0acb, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
