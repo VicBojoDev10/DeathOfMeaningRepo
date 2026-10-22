@@ -9,35 +9,38 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: MAT_Preset_StandardPBR
   m_Shader: {fileID: 4800000, guid: 0dde7f0097aeb2541aea684ca0ad0e3c, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - _ALBEDOVERTEXCOLORMODE_REPLACE
   - _ALPHA_CUTOFF_ON
   - _CAST_SHADOWS_ON
+  - _COLORRAMPLIGHTINGSTAGE_AFTERLIGHTING
+  - _FADEUVSET_UV1
   - _FOG_ON
   - _GREYSCALESTAGE_BEFORELIGHTING
+  - _HEIGHTGRADIENTPOSITIONSPACE_LOCAL
   - _LIGHTMODEL_CLASSIC
   - _MATCAPBLENDMODE_MULTIPLY
   - _OUTLINETYPE_NONE
+  - _RECEIVEDSHADOWSTYPE_CLASSIC
   - _RECEIVE_SHADOWS_ON
   - _REFLECTIONS_CLASSIC
   - _RIMLIGHTINGSTAGE_BEFORELIGHTINGLAST
   - _SHADINGMODEL_PBR
   - _SPECULARMODEL_CLASSIC
   - _TEXTUREBLENDINGMODE_RGB
+  - _TEXTUREBLENDINGSOURCE_VERTEXCOLOR
+  - _TRIPLANARNORMALSPACE_WORLD
   - _USE_WIND_VERTICAL_MASK
   m_InvalidKeywords:
-  - _ALBEDOVERTEXCOLORMODE_REPLACE
-  - _COLORRAMPLIGHTINGSTAGE_AFTERLIGHTING
   - _GLITCHWORLDSPACE_ON
-  - _HEIGHTGRADIENTPOSITIONSPACE_LOCAL
   - _HOLOGRAM_ALPHA
-  - _RECEIVEDSHADOWSTYPE_CLASSIC
   - _REFLECTIONS_BASIC
   - _REFLECTIONS_ON
   - _REFLECTIONTYPE_NONE
   - _SHADING_MODEL_PBR
   - _SPECULAR_ADDITIONAL_LIGHTS
-  - _TEXTUREBLENDINGSOURCE_VERTEXCOLOR
-  - _TRIPLANARNORMALSPACE_WORLD
   - _VERTEX_EXTRUDE_USE_NOISE_TEX
   - _WORKFLOW_BASIC
   m_LightmapFlags: 4
@@ -46,6 +49,7 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -141,6 +145,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 6ea6651424065304492be443204adf61, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TriplanarNoiseTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _TriplanarTopNormalMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -217,6 +225,9 @@ Material:
     - _FadeOn: 0
     - _FadePower: 1
     - _FadeTransition: 0.2
+    - _FadeUVSet: 0
+    - _FlatNormalsBlend: 1
+    - _FlatNormalsEnabled: 0
     - _FogOn: 1
     - _GeneralAlpha: 1
     - _Glitch: 0
@@ -228,6 +239,7 @@ Material:
     - _GreyScaleStage: 0
     - _Greyscale: 0
     - _GreyscaleBlend: 1
+    - _GreyscaleBlending: 1
     - _GreyscaleLuminosity: 0
     - _HalfLambertWrap: 0.66
     - _HandDrawn: 0
@@ -337,6 +349,7 @@ Material:
     - _SpecularToonCutoff: 0.836
     - _SpecularToonSmoothness: 0
     - _SpherizeNormals: 0
+    - _StencilRef: 1
     - _StochasticSampling: 0
     - _StochasticScale: 3.464
     - _StochasticSkew: 0.57735026
@@ -351,13 +364,17 @@ Material:
     - _ToonSmoothness: 0.037
     - _TopNormalStrength: 1
     - _TriplanarMappingOn: 0
+    - _TriplanarNoiseTransitionOn: 0
     - _TriplanarNormalSpace: 1
     - _TriplanarSharpness: 15
+    - _TriplanarTransitionPower: 0.75
     - _UVDistortion: 0
     - _UseCustomTime: 0
     - _UseVerticalMask: 1
     - _VertexColorBlending: 1
     - _VertexDistortionAmount: 0
+    - _VertexDistortionNoiseSpeedX: 4
+    - _VertexDistortionNoiseSpeedY: 4
     - _VertexDistortionOn: 0
     - _VertexExtrude: 0
     - _VertexExtrudeNoiseXSpeed: 4
@@ -396,6 +413,7 @@ Material:
     - _HitColor: {r: 1, g: 1, b: 1, a: 1}
     - _HologramColor: {r: 1.25, g: 2.8, b: 6.8, a: 1}
     - _HologramLineDirection: {r: 0, g: 1, b: 0, a: 0}
+    - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
     - _RimColor: {r: 1, g: 1, b: 1, a: 1}
     - _RimOffset: {r: 0, g: 0, b: 0, a: 0}
     - _SSSColor: {r: 1, g: 1, b: 1, a: 1}
@@ -403,3 +421,4 @@ Material:
     - _ShakeSpeed: {r: 5, g: 5, b: 5, a: 0}
     - _VertexDistortionNoiseSpeed: {r: 4, g: 4, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
