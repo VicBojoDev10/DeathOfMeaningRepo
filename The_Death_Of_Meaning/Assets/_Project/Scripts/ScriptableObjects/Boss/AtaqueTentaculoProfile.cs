@@ -21,6 +21,11 @@ namespace TDOM.Data
         [Header("Dirección")]
         public float desvioMaximo = 15f;
 
+        [Header("Daño")]
+        public float dano = 35f;
+
         public override float Rango => largo;
+
+        public override float Dano => dano;
     }
 }

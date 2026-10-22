@@ -10,5 +10,9 @@ namespace TDOM.Data
     {
         /// <summary>Distancia máxima (en XZ desde el jefe) a la que este ataque alcanza a un jugador.</summary>
         public abstract float Rango { get; }
+
+        public abstract float Dano { get; }
+
+        public virtual bool EsInstaKill => false;
     }
 }

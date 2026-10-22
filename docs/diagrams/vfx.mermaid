@@ -1,0 +1,106 @@
+classDiagram
+    class TrayectoriaVfx {
+        <<static, POCO>>
+        +Normal(a, b, arriba, rotacion) Vector3
+        +Control(a, b, arriba, curvatura, rotacion) Vector3
+        +Curvatura(a, b, arriba, rotacion, control) float
+        +Punto(a, control, b, t) Vector3
+        +Tangente(a, control, b, t) Vector3
+    }
+
+    class VisibilidadVfx {
+        <<static, POCO>>
+        +Factor(tiempo, duracion, aparicion, desaparicion) float
+    }
+
+    class VfxProfile {
+        <<abstract, ScriptableObject>>
+        +puntoA, puntoB
+        +curvatura, rotacion, orientacion
+        +duracion
+        +color, intensidad, disolucion
+        +tamanoPool
+    }
+    class VfxOrigenFinalProfile {
+        +avance
+        +orientarATrayectoria
+        +particulasResiduales, ancho
+        +aparicion, desaparicion
+    }
+    class VfxExplosionProfile {
+        +radio
+        +escala
+    }
+    class VfxDisparoProfile {
+        +avance
+        +largoEstela
+        +tamano
+        +escala
+    }
+    class VfxCargaProfile {
+        +escala
+        +radioCentro, velocidadParticulas
+        +duracionMaxima
+    }
+    class VfxCatalogo {
+        <<ScriptableObject>>
+        +efectos GameObject[]
+    }
+
+    class VfxBase {
+        <<abstract, MonoBehaviour>>
+        +Perfil VfxProfile
+        +Reproducir(posicion, rotacion)
+        +ReproducirEntre(a, b)
+        +Detener()
+        +Terminado event
+        #Avanzar(t)*
+        #TiempoAgotado(tiempo)
+        #Visibilidad(tiempo)
+        #AlIniciar()
+    }
+    class VfxOrigenFinal
+    class VfxExplosion
+    class VfxDisparo
+    class VfxCarga
+
+    class VfxPool {
+        <<MonoBehaviour>>
+        +Indice(prefab) int
+        +Pedir(indice) VfxBase
+        +Detener(indice)
+    }
+    class VfxRed {
+        <<NetworkBehaviour>>
+        +Lanzar(efecto, posicion, rotacion)
+        +LanzarEntre(efecto, a, b)
+        +Detener(efecto)
+        -PedirReproducirRpc() Server
+        -PedirReproducirEntreRpc() Server
+        -PedirDetenerRpc() Server
+        -ReproducirRpc() ClientsAndHost
+        -ReproducirEntreRpc() ClientsAndHost
+        -DetenerRpc() ClientsAndHost
+    }
+
+    VfxProfile <|-- VfxOrigenFinalProfile
+    VfxProfile <|-- VfxExplosionProfile
+    VfxProfile <|-- VfxDisparoProfile
+    VfxProfile <|-- VfxCargaProfile
+
+    VfxBase <|-- VfxOrigenFinal
+    VfxBase <|-- VfxExplosion
+    VfxBase <|-- VfxDisparo
+    VfxBase <|-- VfxCarga
+
+    VfxBase ..> TrayectoriaVfx : calcula la curva A-B
+    VfxOrigenFinal ..> VisibilidadVfx : aparicion y desaparicion
+    VfxBase --> VfxProfile : lee tuning
+    VfxOrigenFinal --> VfxOrigenFinalProfile
+    VfxExplosion --> VfxExplosionProfile
+    VfxDisparo --> VfxDisparoProfile
+    VfxCarga --> VfxCargaProfile
+
+    VfxPool --> VfxCatalogo : crea las copias al inicio
+    VfxPool o-- VfxBase : instancias
+    VfxRed --> VfxPool : cada maquina saca su copia
