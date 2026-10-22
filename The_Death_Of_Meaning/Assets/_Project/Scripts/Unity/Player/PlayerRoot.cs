@@ -784,14 +784,29 @@ namespace TDOM.Unity.Player
 
             int fase = _jefe != null ? _jefe.Fase.Value : 1;
 
-            if (GameSessionManager.Instance != null)
+            var sessionManager = ObtenerGameSessionManager();
+            if (sessionManager != null)
             {
-                GameSessionManager.Instance.FinalizarPartidaPorDerrotaDesdeServidor(fase);
+                sessionManager.FinalizarPartidaPorDerrotaDesdeServidor(fase);
+                return;
             }
-            else
+
+            var pauseManager = FindFirstObjectByType<PauseManager>();
+            pauseManager?.EstablecerResultadoDesdeServidor(ResultadoPartida.Derrota);
+        }
+
+        private GameSessionManager ObtenerGameSessionManager()
+        {
+            if (NetworkManager != null && NetworkManager.SpawnManager != null)
             {
-                PauseManager.Instance?.EstablecerResultadoDesdeServidor(ResultadoPartida.Derrota);
+                foreach (var objeto in NetworkManager.SpawnManager.SpawnedObjectsList)
+                {
+                    if (objeto != null && objeto.TryGetComponent(out GameSessionManager manager))
+                        return manager;
+                }
             }
+
+            return FindFirstObjectByType<GameSessionManager>();
         }
     }
 }
