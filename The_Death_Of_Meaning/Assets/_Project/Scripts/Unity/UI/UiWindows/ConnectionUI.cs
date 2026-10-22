@@ -23,6 +23,7 @@ namespace TDOM.Unity
         public Button joinTest;
 
         private float _lastKeyboardCloseTime = -1f;
+        private bool _connectionAttemptStarted;
 
         private void Awake()
         {
@@ -139,7 +140,7 @@ namespace TDOM.Unity
 
         private void Update()
         {
-            if (!IsOpen || EventSystem.current == null)
+            if (!IsOpen || EventSystem.current == null || _connectionAttemptStarted)
                 return;
 
             var seleccionado = EventSystem.current.currentSelectedGameObject;
@@ -152,7 +153,7 @@ namespace TDOM.Unity
 
         private void RestaurarFocoControl()
         {
-            if (!IsOpen || EventSystem.current == null)
+            if (!IsOpen || EventSystem.current == null || _connectionAttemptStarted)
                 return;
 
             Selectable objetivo = null;
@@ -171,8 +172,6 @@ namespace TDOM.Unity
                 && joinTest.IsInteractable()
             )
                 objetivo = joinTest;
-            else if (ipInputField != null && ipInputField.IsInteractable())
-                objetivo = ipInputField;
             else if (startClientButton != null && startClientButton.IsInteractable())
                 objetivo = startClientButton;
             else if (joinTest != null && joinTest.IsInteractable())
@@ -193,6 +192,9 @@ namespace TDOM.Unity
 
         private void OnInputFieldSelect(string _)
         {
+            if (_connectionAttemptStarted)
+                return;
+
             if (Time.unscaledTime - _lastKeyboardCloseTime < 0.4f)
                 return;
             AbrirTecladoVirtual();
@@ -205,7 +207,7 @@ namespace TDOM.Unity
 
         public void AbrirTecladoVirtual()
         {
-            if (UiManager.Instance == null)
+            if (_connectionAttemptStarted || UiManager.Instance == null)
                 return;
 
             var kbWindow = UiManager.Instance.GetWindow(WindowsIds.KeyboardUI) as KeyboardUI;
@@ -229,7 +231,18 @@ namespace TDOM.Unity
 
         private void IrASeleccionDePersonaje()
         {
+            CerrarTecladoVirtual();
             UiManager.Instance.SwitchWindow(WindowId, WindowsIds.ChSelectionUI);
+        }
+
+        private void CerrarTecladoVirtual()
+        {
+            var kbWindow =
+                UiManager.Instance != null
+                    ? UiManager.Instance.GetWindow(WindowsIds.KeyboardUI) as KeyboardUI
+                    : null;
+            if (kbWindow != null && kbWindow.IsOpen)
+                kbWindow.CerrarTeclado();
         }
 
         private void SuscribirseAGameFlow()
@@ -261,6 +274,7 @@ namespace TDOM.Unity
 
         private void StartHostButton_OnClick()
         {
+            _connectionAttemptStarted = true;
             ConnectionManager.OnCrearPartida();
             hostIpDisplayText.text = $"IP: {ConnectionManager.GetLocalIPAddress()}";
             startHostButton.interactable = false;
@@ -269,6 +283,7 @@ namespace TDOM.Unity
 
         private void StartClientButton_OnClick()
         {
+            _connectionAttemptStarted = true;
             ConnectionManager.OnUnirse(ipInputField.text.Trim());
             startHostButton.interactable = false;
             startClientButton.interactable = false;
@@ -276,6 +291,10 @@ namespace TDOM.Unity
 
         private void ActualizarTextoEstado(EstadoSesion estado)
         {
+            _connectionAttemptStarted =
+                estado != EstadoSesion.Desconectado && estado != EstadoSesion.Error;
+            CerrarTecladoVirtual();
+
             statusText.text = estado switch
             {
                 EstadoSesion.Conectando => "Conectando...",
