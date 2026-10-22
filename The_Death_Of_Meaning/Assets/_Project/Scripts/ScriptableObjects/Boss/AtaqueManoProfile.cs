@@ -15,6 +15,11 @@ namespace TDOM.Data
         public float alto = 1.2f;
         public float ancho = 2f;
 
+        [Header("Daño")]
+        public float dano = 20f;
+
         public override float Rango => radio;
+
+        public override float Dano => dano;
     }
 }

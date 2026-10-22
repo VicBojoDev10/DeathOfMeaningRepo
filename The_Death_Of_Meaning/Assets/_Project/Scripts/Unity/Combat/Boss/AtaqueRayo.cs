@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using TDOM.Data;
+using TDOM.Gameplay.Core;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
@@ -236,13 +237,21 @@ namespace TDOM.Unity
 
                 foreach (var tocado in tocados)
                 {
-                    var jugador = tocado.GetComponentInParent<PlayerRoot>();
-                    if (jugador == null || !_golpeados.Add(jugador.OwnerClientId))
-                        continue; // cada jugador solo una vez por ataque
+                    var damageable = tocado.GetComponentInParent<IDamageable>();
+                    if (damageable == null)
+                        continue;
 
-                    ulong id = jugador.OwnerClientId;
+                    var netObj = tocado.GetComponentInParent<NetworkObject>();
+                    ulong id = netObj != null ? netObj.OwnerClientId : 0;
+                    if (!_golpeados.Add(id))
+                        continue;
+
                     Debug.Log($"[AREK][Rayo] golpeó a cliente {id}");
-                    JugadorGolpeadoRpc(RpcTarget.Single(id, RpcTargetUse.Temp));
+                    float dano = _perfil != null ? _perfil.Dano : 40f;
+                    bool esInstaKill = _perfil != null && _perfil.EsInstaKill;
+                    damageable.RecibirDanio(dano, esInstaKill);
+                    if (netObj != null)
+                        JugadorGolpeadoRpc(RpcTarget.Single(id, RpcTargetUse.Temp));
                 }
             }
         }
