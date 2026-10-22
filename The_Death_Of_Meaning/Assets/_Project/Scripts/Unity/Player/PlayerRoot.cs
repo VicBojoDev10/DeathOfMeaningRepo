@@ -296,6 +296,7 @@ namespace TDOM.Unity.Player
                 return;
 
             _locomocion?.Reiniciar();
+            _motor?.ResetPlataforma();
 
             var characterController = GetComponent<CharacterController>();
 
