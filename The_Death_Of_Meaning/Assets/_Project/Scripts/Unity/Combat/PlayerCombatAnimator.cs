@@ -32,7 +32,8 @@ namespace TDOM.Unity.Combat
 
             var currentState = _animator.GetCurrentAnimatorStateInfo(0);
             bool shootIsActive = currentState.shortNameHash == ShootStateHash;
-            bool shootIsIncoming = _animator.IsInTransition(0)
+            bool shootIsIncoming =
+                _animator.IsInTransition(0)
                 && _animator.GetNextAnimatorStateInfo(0).shortNameHash == ShootStateHash;
 
             if (shootIsActive || shootIsIncoming)

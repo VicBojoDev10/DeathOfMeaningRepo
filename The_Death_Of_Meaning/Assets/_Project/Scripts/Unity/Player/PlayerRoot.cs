@@ -524,11 +524,7 @@ namespace TDOM.Unity.Player
             bool apuntando = input.AimHeld && PuedeApuntar && !EstaAbatidoOMuerto;
 
             ActualizarMirada(input, dt);
-            _zendreLocomotionAnimator?.ActualizarApuntado(
-                apuntando,
-                _fijacion.Activo,
-                input.Move
-            );
+            _zendreLocomotionAnimator?.ActualizarApuntado(apuntando, _fijacion.Activo, input.Move);
 
             if (_camera != null)
                 _camera.ActualizarEncuadre(
