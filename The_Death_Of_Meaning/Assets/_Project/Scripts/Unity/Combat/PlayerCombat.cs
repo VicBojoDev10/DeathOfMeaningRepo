@@ -209,7 +209,7 @@ namespace TDOM.Unity.Combat
             }
 
             if (_combatAnimator != null)
-                _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
+                _combatAnimator.PlayShot(evento.ComboIndex, cargado);
             if (_vfx != null)
                 _vfx.Disparo(cargado);
             _debugFeedback?.FlashActive(0.1f);
@@ -486,7 +486,7 @@ namespace TDOM.Unity.Combat
         private void ReproducirGolpeRpc(int indice, bool cargado, float carga)
         {
             if (_combatAnimator != null)
-                _combatAnimator.PlayCombo(indice, cargado);
+                _combatAnimator.PlayShot(indice, cargado);
             if (_vfx != null)
                 _vfx.Golpe(indice, cargado, carga);
         }

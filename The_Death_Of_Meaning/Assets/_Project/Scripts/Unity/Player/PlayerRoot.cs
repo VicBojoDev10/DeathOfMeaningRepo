@@ -39,6 +39,7 @@ namespace TDOM.Unity.Player
         [SerializeField]
         private PlayerMotor _motor;
         private PlayerLocomotion _locomocion;
+        private ZendrePlayerLocomotionAnimator _zendreLocomotionAnimator;
 
         [SerializeField]
         private PlayerCameraRig _camera;
@@ -149,9 +150,7 @@ namespace TDOM.Unity.Player
 
         public override void OnNetworkSpawn()
         {
-            if (GetComponentInChildren<DownedSliderUI>() == null)
-                gameObject.AddComponent<DownedSliderUI>();
-
+            _zendreLocomotionAnimator = GetComponent<ZendrePlayerLocomotionAnimator>();
             _anchorLauncher = GetComponentInChildren<AnchorLauncher>();
             _combat = GetComponentInChildren<PlayerCombat>();
             _aylaAnimator = GetComponentInChildren<AylaPlayerLocomotionAnimator>();
@@ -526,6 +525,7 @@ namespace TDOM.Unity.Player
             var input = _inputReader.Read();
             bool apuntando = input.AimHeld && PuedeApuntar && !EstaAbatidoOMuerto;
             ActualizarMirada(input, dt);
+            _zendreLocomotionAnimator?.ActualizarApuntado(apuntando, _fijacion.Activo, input.Move);
             if (_aylaAnimator != null)
                 _aylaAnimator.SetAimState(_fijacion != null && _fijacion.Activo);
 
@@ -556,15 +556,18 @@ namespace TDOM.Unity.Player
                     IntentarGanchoApuntado();
             }
 
-            var intent = EstaAbatidoOMuerto
-                ? new MotionIntent(Vector3.zero, ignoreGravity: false)
-                : _locomocion.Tick(
-                    input,
-                    _look.YawRotation,
-                    dt,
-                    MovimientoBloqueado,
-                    transform.position,
-                    ModoPistola
+            var intent = _locomocion.Tick(
+                input,
+                _look.YawRotation,
+                dt,
+                MovimientoBloqueado,
+                transform.position,
+                ModoPistola
+            );
+            if (_characterId == CharacterIds.Zendre)
+                _zendreLocomotionAnimator?.ActualizarSalto(
+                    _locomocion.SaltoEnCurso,
+                    _locomocion.CayendoEnSalto
                 );
             if (
                 _anchorLauncher != null
