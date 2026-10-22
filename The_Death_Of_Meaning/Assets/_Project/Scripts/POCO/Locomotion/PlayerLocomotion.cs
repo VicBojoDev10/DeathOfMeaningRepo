@@ -22,6 +22,8 @@ namespace TDOM.Gameplay.Locomotion
         public bool DashIniciado { get; private set; }
         public bool SaltoAereo { get; private set; }
         public bool Aterrizaje { get; private set; }
+        public bool SaltoEnCurso { get; private set; }
+        public bool CayendoEnSalto { get; private set; }
 
         private bool _groundedPrevio = true;
         private float _velYPrevia;
@@ -112,7 +114,14 @@ namespace TDOM.Gameplay.Locomotion
                 Aterrizaje = true;
             }
 
+            // Mantener el bool de salto sincronizado con el contacto real con el
+            // suelo. El reset ocurre antes de procesar un posible salto bufferizado.
+            if (State.IsGrounded && State.Velocity.y <= 0f)
+                SaltoEnCurso = false;
+
             var intent = TickInterno(input, yaw, dt, blockMove, posicion, modoPistola);
+
+            CayendoEnSalto = SaltoEnCurso && State.Velocity.y <= 0f;
 
             _groundedPrevio = State.IsGrounded;
             _velYPrevia = State.Velocity.y;
@@ -179,6 +188,8 @@ namespace TDOM.Gameplay.Locomotion
                 }
                 int saltosAntes = State.JumpsUsed;
                 _jump.Tick(State, input, dt);
+                if (State.JumpsUsed > saltosAntes && State.Velocity.y > 0f)
+                    SaltoEnCurso = true;
                 if (State.JumpsUsed > saltosAntes && State.JumpsUsed > 1)
                     SaltoAereo = true;
                 _ground.Tick(
