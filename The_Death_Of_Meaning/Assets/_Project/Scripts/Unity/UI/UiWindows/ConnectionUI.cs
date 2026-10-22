@@ -31,9 +31,11 @@ namespace TDOM.Unity
                 firstSelectedObject = startHostButton.gameObject;
         }
 
+        public override void Initialize() => base.Initialize();
+
         void Start()
         {
-            Show();
+            Initialize();
             ActualizarBotonComenzar(
                 NetworkManager.Singleton != null
                     ? NetworkManager.Singleton.ConnectedClientsList.Count
