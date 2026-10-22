@@ -23,6 +23,7 @@ namespace TDOM.Unity
         public Button joinTest;
 
         private float _lastKeyboardCloseTime = -1f;
+        private bool _connectionAttemptStarted;
 
         private void Awake()
         {
@@ -52,7 +53,6 @@ namespace TDOM.Unity
             if (ipInputField != null)
             {
                 ipInputField.onSelect.AddListener(OnInputFieldSelect);
-                ipInputField.onSubmit.AddListener(OnInputFieldSubmit);
             }
 
             var kbWindow =
@@ -98,7 +98,6 @@ namespace TDOM.Unity
             if (ipInputField != null)
             {
                 ipInputField.onSelect.RemoveListener(OnInputFieldSelect);
-                ipInputField.onSubmit.RemoveListener(OnInputFieldSubmit);
             }
 
             var kbWindow =
@@ -191,13 +190,11 @@ namespace TDOM.Unity
 
         private void OnInputFieldSelect(string _)
         {
+            if (_connectionAttemptStarted)
+                return;
+
             if (Time.unscaledTime - _lastKeyboardCloseTime < 0.4f)
                 return;
-            AbrirTecladoVirtual();
-        }
-
-        private void OnInputFieldSubmit(string _)
-        {
             AbrirTecladoVirtual();
         }
 
@@ -259,6 +256,7 @@ namespace TDOM.Unity
 
         private void StartHostButton_OnClick()
         {
+            _connectionAttemptStarted = true;
             ConnectionManager.OnCrearPartida();
             hostIpDisplayText.text = $"IP: {ConnectionManager.GetLocalIPAddress()}";
             startHostButton.interactable = false;
@@ -267,6 +265,7 @@ namespace TDOM.Unity
 
         private void StartClientButton_OnClick()
         {
+            _connectionAttemptStarted = true;
             ConnectionManager.OnUnirse(ipInputField.text.Trim());
             startHostButton.interactable = false;
             startClientButton.interactable = false;
@@ -285,6 +284,7 @@ namespace TDOM.Unity
 
             if (estado == EstadoSesion.Desconectado || estado == EstadoSesion.Error)
             {
+                _connectionAttemptStarted = false;
                 startHostButton.interactable = true;
                 startClientButton.interactable = true;
             }
