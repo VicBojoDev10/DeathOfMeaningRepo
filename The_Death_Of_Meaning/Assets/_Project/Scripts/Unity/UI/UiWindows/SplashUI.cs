@@ -24,6 +24,7 @@ namespace TDOM.Unity
         {
             base.Initialize();
         }
+
         private void Start()
         {
             _startTime = Time.unscaledTime;
