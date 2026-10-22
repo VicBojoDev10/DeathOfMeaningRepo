@@ -1,0 +1,78 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a34d35cf36d0b9649b45a5ba18657d1f, type: 3}
+  m_Name: URPSettings
+  m_EditorClassIdentifier: AllIn13DShaderAssemebly.Editor::AllIn13DShader.URPSettings
+  configs:
+  - shaderDefine: ALLIN1_GPU_INSTANCING_SUPPORT
+    defaultValue: 1
+    displayName: GPU Instancing Support
+    tooltip: Enables GPU Instancing for better performance when rendering many identical
+      objects
+  - shaderDefine: ALLIN1_DOTS_INSTANCING_SUPPORT
+    defaultValue: 0
+    displayName: Entities Graphics Instancing Support (and GPU Resident Drawer)
+    tooltip: Supports Unity Entities Graphics instancing for DOTS-based projects
+      and GPU Resident Drawer
+  - shaderDefine: ALLIN1_FOG_SUPPORT
+    defaultValue: 1
+    displayName: Fog Support
+    tooltip: Unity fog system integration for atmospheric effects
+  - shaderDefine: ALLIN1_LIGHTMAPS_SUPPORT
+    defaultValue: 1
+    displayName: Lightmaps Support
+    tooltip: Enables baked lightmap support for static lighting
+  - shaderDefine: ALLIN1_ADDITIONAL_LIGHTS_SUPPORT
+    defaultValue: 1
+    displayName: Additional Lights Support
+    tooltip: Support for additional real-time lights beyond main directional light
+  - shaderDefine: ALLIN1_CAST_SHADOWS_SUPPORT
+    defaultValue: 1
+    displayName: Cast Shadows Support
+    tooltip: Enables shadow casting from materials using this shader
+  - shaderDefine: ALLIN1_SHADOW_MASK_SUPPORT
+    defaultValue: 1
+    displayName: Shadow Mask Support
+    tooltip: Mixed lighting shadowmask support for hybrid lighting setups
+  - shaderDefine: ALLIN1_FORWARD_PLUS_SUPPORT_UNITY6
+    defaultValue: 1
+    displayName: Forward+ Support (Unity 6+)
+    tooltip: Forward+ rendering path support (Unity 6+ only)
+  - shaderDefine: ALLIN1_REFLECTIONS_PROBES_SUPPORT_UNITY6
+    defaultValue: 0
+    displayName: Reflection Probes Blending Support (Unity 6+)
+    tooltip: Probe blending support (Unity 6+ only, if you aren't using more than
+      1 probe you can disable this)
+  - shaderDefine: ALLIN1_ADAPTATIVE_PROBE_VOLUMES_UNITY6
+    defaultValue: 1
+    displayName: Adaptative Probe Volumes (Unity 6+)
+    tooltip: Adaptative Probe Volumes support (Unity 6+ only)
+  - shaderDefine: ALLIN1_SSO_SUPPORT
+    defaultValue: 1
+    displayName: Screen Space Ambient Occlusion
+    tooltip: Screen Space Ambient Occlusion integration
+  - shaderDefine: ALLIN1_LIGHT_LAYERS_SUPPORT
+    defaultValue: 0
+    displayName: Light Layers Support
+    tooltip: Unity light layer system support (for selective lighting)
+  - shaderDefine: ALLIN1_DECALS_SUPPORT
+    defaultValue: 0
+    displayName: Decals Support
+    tooltip: Unity decals system support
+  - shaderDefine: ALLIN1_LIGHT_COOKIES_SUPPORT
+    defaultValue: 0
+    displayName: 'Light Cookies '
+    tooltip: Unity Light Cookies system support
+  - shaderDefine: ALLIN1_LODCROSSFADE_SUPPORT
+    defaultValue: 0
+    displayName: LOD Cross Fade
+    tooltip: LOD Cross Fade support
