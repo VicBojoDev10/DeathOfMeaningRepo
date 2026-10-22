@@ -33,6 +33,13 @@ namespace TDOM.Unity.Combat
                 return;
 
             ReproducirPendiente();
+
+            if (_animator == null || !_animator.GetBool(ShootHash))
+                return;
+
+            var currentState = _animator.GetCurrentAnimatorStateInfo(0);
+            if (currentState.shortNameHash == ShootStateHash && currentState.normalizedTime >= 1f)
+                _animator.SetBool(ShootHash, false);
         }
 
         public void PlayCombo(int comboIndex, bool charged)
@@ -103,16 +110,6 @@ namespace TDOM.Unity.Combat
 
             if (shootIsActive || shootIsIncoming)
                 _animator.Play(ShootFullPathHash, 0, 0f);
-        }
-
-        private void Update()
-        {
-            if (_animator == null || !_animator.GetBool(ShootHash))
-                return;
-
-            var currentState = _animator.GetCurrentAnimatorStateInfo(0);
-            if (currentState.shortNameHash == ShootStateHash && currentState.normalizedTime >= 1f)
-                _animator.SetBool(ShootHash, false);
         }
     }
 }
