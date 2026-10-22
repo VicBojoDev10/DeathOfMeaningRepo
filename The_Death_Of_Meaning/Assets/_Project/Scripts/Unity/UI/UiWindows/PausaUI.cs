@@ -21,6 +21,7 @@ namespace TDOM.Unity
 
         private void Start()
         {
+            base.Initialize();
             continueButton?.onClick.AddListener(() => PauseManager.Instance?.SolicitarPausa(false));
             retryButton?.onClick.AddListener(() => PauseManager.Instance?.PedirConfirmacion(false));
             exitButton?.onClick.AddListener(() => PauseManager.Instance?.PedirConfirmacion(true));
