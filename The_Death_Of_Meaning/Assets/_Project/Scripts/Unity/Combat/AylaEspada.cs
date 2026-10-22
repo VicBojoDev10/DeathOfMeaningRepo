@@ -27,7 +27,10 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private HumanBodyBones _huesoHumanoide = HumanBodyBones.RightHand;
 
-        [SerializeField, Tooltip("Solo se usa si el avatar no es Humanoid o no encuentra el hueso.")]
+        [
+            SerializeField,
+            Tooltip("Solo se usa si el avatar no es Humanoid o no encuentra el hueso.")
+        ]
         private string _nombreHuesoRespaldo = "DEF-hand.R";
 
         [Header("Ajuste (editable en Play)")]
@@ -37,11 +40,20 @@ namespace TDOM.Unity.Combat
         [SerializeField, Tooltip("Rotación de la espada respecto al hueso, en grados.")]
         private Vector3 _rotacion = Vector3.zero;
 
-        [SerializeField, Min(0.01f), Tooltip("Tamaño relativo al del modelo original (1 = tal cual el FBX).")]
+        [
+            SerializeField,
+            Min(0.01f),
+            Tooltip("Tamaño relativo al del modelo original (1 = tal cual el FBX).")
+        ]
         private float _escala = 0.5f;
 
         [Header("Agarre")]
-        [SerializeField, Tooltip("Parte del modelo que se pone en la mano (centro de su Renderer). Vacío = origen del FBX.")]
+        [
+            SerializeField,
+            Tooltip(
+                "Parte del modelo que se pone en la mano (centro de su Renderer). Vacío = origen del FBX."
+            )
+        ]
         private string _nombreMango = "MangoEspada";
 
         [Header("Visibilidad")]

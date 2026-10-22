@@ -205,7 +205,7 @@ namespace TDOM.Unity.Combat
         {
             if (_melee != null && _melee.Fase != prevMeleePhase && _logCombo)
                 Debug.Log($"[Combo][{NombrePersonaje}] {prevMeleePhase} → {_melee.Fase}");
-            
+
             if (_disparo != null && _disparo.Fase != prevDisparoPhase)
             {
                 if (_logCombo)
