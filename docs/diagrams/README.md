@@ -19,6 +19,7 @@ Si el diagrama quedó desactualizado respecto al código del PR, el PR está mal
 | `player-prefab.mermaid` | Jerarquía del prefab de jugador y sus componentes |
 | `boss.mermaid` | `BossController`, fases, scheduler de ataques de Arek y sus RPCs |
 | `minions.mermaid` | `MinionSpawner`, `MinionSpawnRule`, `MinionController`, `MinionBrain` y sus RPCs |
+| `vfx.mermaid` | `VfxBase`, las familias (Origen-final, Explosión, Disparo, Carga), `TrayectoriaVfx`, `VfxPool` y `VfxRed` |
 | `cinematic-flow.mermaid` | `CinematicDirector`, `GameFlowStateMachine` y la sincronización de cinemáticas en red |
 
 ## Nomenclatura
