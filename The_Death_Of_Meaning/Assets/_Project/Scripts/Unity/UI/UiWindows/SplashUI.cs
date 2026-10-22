@@ -20,10 +20,15 @@ namespace TDOM.Unity
             }
         }
 
+        public override void Initialize()
+        {
+            base.Initialize();
+        }
+
         private void Start()
         {
             _startTime = Time.unscaledTime;
-            Show();
+            Initialize();
             if (UiManager.Instance != null)
             {
                 UiManager.Instance.CloseWindow(WindowsIds.MainMenuUI);

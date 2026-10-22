@@ -21,6 +21,10 @@ namespace TDOM.Data
         public float alturaCaida = 15f;
         public float altoPiedra = 6f;
 
+        [Header("Daño")]
+        public float dano = 9999f;
+        public bool esInstaKill = true;
+
         // TW-126: cada piedra se queda como columna en el punto de impacto.
         [Header("Columnas")]
         public float alturaColumnaMin = 3f;
@@ -45,5 +49,9 @@ namespace TDOM.Data
         public float diametroGrieta = 4f;
 
         public override float Rango => radioArena;
+
+        public override float Dano => dano;
+
+        public override bool EsInstaKill => esInstaKill;
     }
 }

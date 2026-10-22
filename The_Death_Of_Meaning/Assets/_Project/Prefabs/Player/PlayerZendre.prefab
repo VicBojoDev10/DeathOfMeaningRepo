@@ -70,6 +70,8 @@ GameObject:
   - component: {fileID: 4753092728623070081}
   - component: {fileID: 8086599341354008101}
   - component: {fileID: 1537443789259067397}
+  - component: {fileID: 3487254806458268382}
+  - component: {fileID: 486264241539746181}
   m_Layer: 0
   m_Name: PlayerZendre
   m_TagString: Player
@@ -323,7 +325,6 @@ MonoBehaviour:
   _root: {fileID: 6272158663871412553}
   _origen: {fileID: 1217565209590083343}
   _anclaPrefab: {fileID: 8192847192837461520, guid: 769db5fe59a949a179b292707c6f3375, type: 3}
-  _tiempoMaximoColgado: 5
 --- !u!114 &1537443789259067397
 MonoBehaviour:
   m_ObjectHideFlags: 0
