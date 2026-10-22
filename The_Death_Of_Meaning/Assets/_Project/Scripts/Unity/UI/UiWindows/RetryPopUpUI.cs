@@ -13,6 +13,7 @@ namespace TDOM.Unity
 
         private void Start()
         {
+            base.Initialize();
             yesButton?.onClick.AddListener(() =>
                 PauseManager.Instance?.ResponderConfirmacion(true)
             );
