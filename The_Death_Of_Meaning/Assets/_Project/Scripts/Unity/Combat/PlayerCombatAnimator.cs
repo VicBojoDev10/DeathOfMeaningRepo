@@ -7,13 +7,10 @@ namespace TDOM.Unity.Combat
         private static readonly int ComboIndexHash = Animator.StringToHash("ComboIndex");
         private static readonly int ChargedHash = Animator.StringToHash("Charged");
         private static readonly int AttackHash = Animator.StringToHash("Attack");
-        private static readonly int LightOneHash = Animator.StringToHash("Attack");
         private static readonly int LightTwoHash = Animator.StringToHash("1i");
         private static readonly int LightThreeHash = Animator.StringToHash("2IC");
-        private static readonly int ChargedStateHash = Animator.StringToHash("Charged");
 
         private static readonly int ShootHash = Animator.StringToHash("Shoot");
-        private static readonly int ShootStateHash = Animator.StringToHash("Shoot");
         private static readonly int ShootFullPathHash = Animator.StringToHash("Base Layer.Shoot");
 
         [SerializeField]
@@ -29,17 +26,18 @@ namespace TDOM.Unity.Combat
 
         private void Update()
         {
-            if (!_hasPendingCombo || _animator == null || DebeEsperarFinDelGolpe())
+            if (_animator == null)
                 return;
 
-            ReproducirPendiente();
+            if (_animator.GetBool(ShootHash))
+            {
+                AnimatorStateInfo currentState = _animator.GetCurrentAnimatorStateInfo(0);
+                if (currentState.shortNameHash == ShootHash && currentState.normalizedTime >= 1f)
+                    _animator.SetBool(ShootHash, false);
+            }
 
-            if (_animator == null || !_animator.GetBool(ShootHash))
-                return;
-
-            var currentState = _animator.GetCurrentAnimatorStateInfo(0);
-            if (currentState.shortNameHash == ShootStateHash && currentState.normalizedTime >= 1f)
-                _animator.SetBool(ShootHash, false);
+            if (_hasPendingCombo && !DebeEsperarFinDelGolpe())
+                ReproducirPendiente();
         }
 
         public void PlayCombo(int comboIndex, bool charged)
@@ -75,10 +73,10 @@ namespace TDOM.Unity.Combat
 
         private static bool EsEstadoAtaque(int stateHash)
         {
-            return stateHash == LightOneHash
+            return stateHash == AttackHash
                 || stateHash == LightTwoHash
                 || stateHash == LightThreeHash
-                || stateHash == ChargedStateHash;
+                || stateHash == ChargedHash;
         }
 
         private void ReproducirPendiente()
@@ -103,10 +101,10 @@ namespace TDOM.Unity.Combat
             _animator.SetBool(ShootHash, true);
 
             var currentState = _animator.GetCurrentAnimatorStateInfo(0);
-            bool shootIsActive = currentState.shortNameHash == ShootStateHash;
+            bool shootIsActive = currentState.shortNameHash == ShootHash;
             bool shootIsIncoming =
                 _animator.IsInTransition(0)
-                && _animator.GetNextAnimatorStateInfo(0).shortNameHash == ShootStateHash;
+                && _animator.GetNextAnimatorStateInfo(0).shortNameHash == ShootHash;
 
             if (shootIsActive || shootIsIncoming)
                 _animator.Play(ShootFullPathHash, 0, 0f);
