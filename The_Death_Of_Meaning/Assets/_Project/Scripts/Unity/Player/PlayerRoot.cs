@@ -564,6 +564,8 @@ namespace TDOM.Unity.Player
                 transform.position,
                 ModoPistola
             );
+            if (_aylaAnimator != null)
+                _aylaAnimator.SetSprintState(_locomocion.Corriendo);
             if (_characterId == CharacterIds.Zendre)
                 _zendreLocomotionAnimator?.ActualizarSalto(
                     _locomocion.SaltoEnCurso,
