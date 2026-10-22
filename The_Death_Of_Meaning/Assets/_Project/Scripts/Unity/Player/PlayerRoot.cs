@@ -56,6 +56,8 @@ namespace TDOM.Unity.Player
 
         private PlayerCombat _combat;
 
+        private AylaPlayerLocomotionAnimator _aylaAnimator;
+
         [SerializeField]
         private GrappleVisual _grappleVisual;
 
@@ -151,6 +153,7 @@ namespace TDOM.Unity.Player
             _zendreLocomotionAnimator = GetComponent<ZendrePlayerLocomotionAnimator>();
             _anchorLauncher = GetComponentInChildren<AnchorLauncher>();
             _combat = GetComponentInChildren<PlayerCombat>();
+            _aylaAnimator = GetComponentInChildren<AylaPlayerLocomotionAnimator>();
             _look = new LookResolver(
                 _sensitivity,
                 _camera.Config.PitchMin,
@@ -520,11 +523,11 @@ namespace TDOM.Unity.Player
                 return;
 
             var input = _inputReader.Read();
-
             bool apuntando = input.AimHeld && PuedeApuntar && !EstaAbatidoOMuerto;
-
             ActualizarMirada(input, dt);
             _zendreLocomotionAnimator?.ActualizarApuntado(apuntando, _fijacion.Activo, input.Move);
+            if (_aylaAnimator != null)
+                _aylaAnimator.SetAimState(_fijacion != null && _fijacion.Activo);
 
             if (_camera != null)
                 _camera.ActualizarEncuadre(
@@ -561,6 +564,8 @@ namespace TDOM.Unity.Player
                 transform.position,
                 ModoPistola
             );
+            if (_aylaAnimator != null)
+                _aylaAnimator.SetSprintState(_locomocion.Corriendo);
             if (_characterId == CharacterIds.Zendre)
                 _zendreLocomotionAnimator?.ActualizarSalto(
                     _locomocion.SaltoEnCurso,
