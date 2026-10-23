@@ -547,7 +547,7 @@ namespace TDOM.Unity.Combat
             _vfxRed.Lanzar(
                 _vfxPrimerGolpe,
                 origen.position,
-                origen.rotation * Quaternion.Euler(giro)
+                transform.rotation * Quaternion.Euler(giro)
             );
         }
 
