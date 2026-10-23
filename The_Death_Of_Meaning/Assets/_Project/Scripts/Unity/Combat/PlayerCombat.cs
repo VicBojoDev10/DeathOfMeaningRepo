@@ -76,12 +76,12 @@ namespace TDOM.Unity.Combat
         [Tooltip("Segundos que dura el empujon.")]
         private float _empujeDuracion = 0.16f;
 
-        [SerializeField]
+        [SerializeField, Range(0f, 1f)]
         [Tooltip(
-            "Si esta activo el empujon sale en cada golpe de combo, aunque no toque a nadie. "
-                + "Apagado = solo cuando el golpe conecta."
+            "Fuerza del empujon cuando el golpe de combo no toca a nadie, como fraccion del "
+                + "empujon cuando conecta (1 = igual, 0 = solo empuja al conectar)."
         )]
-        private bool _empujarSinImpacto;
+        private float _factorEmpujeSinImpacto = 0.5f;
 
         [Header("Carga del cargado")]
         [SerializeField, Min(0f)]
@@ -555,33 +555,32 @@ namespace TDOM.Unity.Combat
             // uno) dan el zoom y el empujon.
             bool esDeCombo = evento.Kind == AttackKind.Light || ligeros > 0;
 
-            if (!huboImpacto)
+            // El empujon sale con cada golpe de combo; si no toca a nadie es mas suave. El zoom
+            // de camara solo sale al conectar.
+            if (esDeCombo && _root != null)
             {
-                if (_logCombo && esDeCombo)
+                float factor = huboImpacto ? 1f : _factorEmpujeSinImpacto;
+                if (_logCombo)
                     Debug.Log(
-                        $"[Combo][{NombrePersonaje}] el golpe no toco a nadie (radio {_radioHitbox}, "
-                            + $"alcance {_alcanceHitbox}): sin zoom"
-                            + (_empujarSinImpacto ? "" : " ni empujon")
+                        $"[Combo][{NombrePersonaje}] empujon de combo "
+                            + (huboImpacto ? "(conecto)" : "(sin impacto)")
+                            + $" al {factor * 100f:F0}%"
                     );
-                if (esDeCombo && _empujarSinImpacto && _root != null)
-                    _root.EmpujarPorCombo(_empujeAdelante, _empujeArriba, _empujeDuracion);
-                return;
+                _root.EmpujarPorCombo(
+                    _empujeAdelante * factor,
+                    _empujeArriba * factor,
+                    _empujeDuracion
+                );
             }
+
+            if (!huboImpacto)
+                return;
 
             if (_feedback != null)
             {
                 _feedback.OnAtaquePropio();
                 if (esDeCombo)
                     _feedback.OnComboConectado();
-            }
-            if (esDeCombo && _root != null)
-            {
-                if (_logCombo)
-                    Debug.Log(
-                        $"[Combo][{NombrePersonaje}] golpe conectado: empujon "
-                            + $"{_empujeAdelante}m adelante, {_empujeArriba}m arriba"
-                    );
-                _root.EmpujarPorCombo(_empujeAdelante, _empujeArriba, _empujeDuracion);
             }
         }
 
