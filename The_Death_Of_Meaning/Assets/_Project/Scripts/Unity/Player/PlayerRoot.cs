@@ -56,6 +56,8 @@ namespace TDOM.Unity.Player
 
         private PlayerCombat _combat;
 
+        private AylaPlayerLocomotionAnimator _aylaAnimator;
+
         [SerializeField]
         private GrappleVisual _grappleVisual;
 
@@ -151,6 +153,7 @@ namespace TDOM.Unity.Player
             _zendreLocomotionAnimator = GetComponent<ZendrePlayerLocomotionAnimator>();
             _anchorLauncher = GetComponentInChildren<AnchorLauncher>();
             _combat = GetComponentInChildren<PlayerCombat>();
+            _aylaAnimator = GetComponentInChildren<AylaPlayerLocomotionAnimator>();
             _look = new LookResolver(
                 _sensitivity,
                 _camera.Config.PitchMin,
@@ -521,11 +524,11 @@ namespace TDOM.Unity.Player
                 return;
 
             var input = _inputReader.Read();
-
             bool apuntando = input.AimHeld && PuedeApuntar && !EstaAbatidoOMuerto;
-
             ActualizarMirada(input, dt);
             _zendreLocomotionAnimator?.ActualizarApuntado(apuntando, _fijacion.Activo, input.Move);
+            if (_aylaAnimator != null)
+                _aylaAnimator.SetAimState(_fijacion != null && _fijacion.Activo);
 
             if (_camera != null)
                 _camera.ActualizarEncuadre(
@@ -540,6 +543,26 @@ namespace TDOM.Unity.Player
             if (!EstaAbatidoOMuerto)
             {
                 AlinearConCamaraAlAtacar(input, apuntando);
+
+                // Dash cancela el combo en cualquier punto (solo si el dash está disponible).
+                if (
+                    _combat != null
+                    && input.DashPressed
+                    && _combat.PuedeCancelarConDash
+                    && _locomocion.DashDisponible
+                    && !(_anchorLauncher != null && _anchorLauncher.AnclaActiva)
+                )
+                    _combat.CancelarMeleePorDash();
+
+                // Salto también cancela el combo (si hay salto disponible).
+                if (
+                    _combat != null
+                    && input.JumpPressed
+                    && _combat.PuedeCancelarConDash
+                    && _locomocion.SaltoDisponible
+                    && !(_anchorLauncher != null && _anchorLauncher.AnclaActiva)
+                )
+                    _combat.CancelarMeleePorSalto();
 
                 if (_combat != null)
                     _combat.Tick(input, dt);
@@ -562,6 +585,8 @@ namespace TDOM.Unity.Player
                 transform.position,
                 ModoPistola
             );
+            if (_aylaAnimator != null)
+                _aylaAnimator.SetSprintState(_locomocion.Corriendo);
             if (_characterId == CharacterIds.Zendre)
                 _zendreLocomotionAnimator?.ActualizarSalto(
                     _locomocion.SaltoEnCurso,

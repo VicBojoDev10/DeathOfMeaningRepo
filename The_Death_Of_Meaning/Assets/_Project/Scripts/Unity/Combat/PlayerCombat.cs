@@ -55,6 +55,7 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private float _radioDisparo = 0.5f;
+        private bool _cargaVisibleMelee;
 
         public float RadioHitbox => _radioHitbox;
         public float AlcanceHitbox => _alcanceHitbox;
@@ -66,6 +67,34 @@ namespace TDOM.Unity.Combat
         public bool BloqueaMovimiento => _melee?.BloqueaMovimiento ?? false;
         public bool DisparoActivo => _disparo?.BloqueaMovimiento ?? false;
         public bool AtaqueActivo => BloqueaMovimiento || DisparoActivo;
+
+        public bool PuedeCancelarConDash =>
+            IsOwner && _melee != null && _melee.Fase != ComboPhase.Idle;
+
+        public void CancelarMeleePorDash() => CancelarMelee(false);
+
+        public void CancelarMeleePorSalto() => CancelarMelee(true);
+
+        private void CancelarMelee(bool haciaSalto)
+        {
+            if (!PuedeCancelarConDash)
+                return;
+            if (_logCombo)
+                Debug.Log(
+                    $"[Combo][{NombrePersonaje}] cancelado con {(haciaSalto ? "salto" : "dash")} desde {_melee.Fase}"
+                );
+            _melee.Cancelar();
+            if (_combatAnimator != null)
+                _combatAnimator.CancelarAtaque(haciaSalto);
+            CancelarAtaqueRpc(haciaSalto);
+        }
+
+        [Rpc(SendTo.NotOwner)]
+        private void CancelarAtaqueRpc(bool haciaSalto)
+        {
+            if (_combatAnimator != null)
+                _combatAnimator.CancelarAtaque(haciaSalto);
+        }
 
         private PlayerRoot _root;
 
@@ -86,7 +115,8 @@ namespace TDOM.Unity.Combat
                     _definition.Melee.Charged,
                     _definition.Melee.HoldThreshold,
                     _definition.Melee.MaxChargeTime,
-                    _definition.Melee.BufferWindow
+                    _definition.Melee.BufferWindow,
+                    _definition.Melee.CooldownFinCombo
                 );
             }
 
@@ -158,24 +188,23 @@ namespace TDOM.Unity.Combat
             }
 
             ProcesarCambiosDeFase(prevMeleePhase, prevDisparoPhase);
+
+            if (_melee != null)
+            {
+                bool visible = _melee.CargaVisible;
+                if (visible != _cargaVisibleMelee)
+                {
+                    _cargaVisibleMelee = visible;
+                    _vfx?.Carga(visible);
+                    CargaRpc(visible);
+                }
+            }
         }
 
         private void ProcesarCambiosDeFase(ComboPhase prevMeleePhase, ComboPhase prevDisparoPhase)
         {
-            if (_melee != null && _melee.Fase != prevMeleePhase)
-            {
-                if (_logCombo)
-                    Debug.Log($"[Combo][{NombrePersonaje}] {prevMeleePhase} → {_melee.Fase}");
-
-                bool estabaCargando = prevMeleePhase == ComboPhase.Charging;
-                bool estaCargando = _melee.Fase == ComboPhase.Charging;
-                if (estabaCargando != estaCargando)
-                {
-                    if (_vfx != null)
-                        _vfx.Carga(estaCargando);
-                    CargaRpc(estaCargando);
-                }
-            }
+            if (_melee != null && _melee.Fase != prevMeleePhase && _logCombo)
+                Debug.Log($"[Combo][{NombrePersonaje}] {prevMeleePhase} → {_melee.Fase}");
 
             if (_disparo != null && _disparo.Fase != prevDisparoPhase)
             {
@@ -486,7 +515,7 @@ namespace TDOM.Unity.Combat
         private void ReproducirGolpeRpc(int indice, bool cargado, float carga)
         {
             if (_combatAnimator != null)
-                _combatAnimator.PlayShot(indice, cargado);
+                _combatAnimator.PlayCombo(indice, cargado);
             if (_vfx != null)
                 _vfx.Golpe(indice, cargado, carga);
         }
@@ -495,7 +524,7 @@ namespace TDOM.Unity.Combat
         private void ReproducirDisparoRpc(int indice, bool cargado)
         {
             if (_combatAnimator != null)
-                _combatAnimator.PlayCombo(indice, cargado);
+                _combatAnimator.PlayShot(indice, cargado);
             if (_vfx != null)
                 _vfx.Disparo(cargado);
         }

@@ -8,23 +8,34 @@ namespace TDOM.Gameplay.Combat
     {
         private readonly AttackStep[] _pasos;
         private readonly AttackStep _cargado;
+        private readonly float _umbralHold;
         private readonly float _cargaMaxima;
         private readonly InputBuffer _buffer;
         private ComboPhase _fase = ComboPhase.Idle;
         private int _indice;
         private float _timer;
         private float _tiempoDeCarga;
+        private bool _cargaEnCombo;
+        private bool _soltoDuranteWindup;
+        private readonly float _cooldownFinCombo;
+        private float _cooldown;
+        private bool _requiereSoltar;
+        public bool EnCooldown => _cooldown > 0f;
+        public bool CargaVisible => _fase == ComboPhase.Charging && _tiempoDeCarga >= _umbralHold;
 
         public ComboStateMachine(
             AttackStep[] pasos,
             AttackStep cargado,
             float umbralHold,
             float cargaMaxima,
-            float bufferWindow
+            float bufferWindow,
+            float cooldownFinCombo = 0f
         )
         {
+            _cooldownFinCombo = Mathf.Max(0f, cooldownFinCombo);
             _pasos = pasos;
             _cargado = cargado;
+            _umbralHold = Mathf.Max(0f, umbralHold);
             _cargaMaxima = cargaMaxima;
             _buffer = new InputBuffer(bufferWindow);
             _fase = ComboPhase.Idle;
@@ -41,6 +52,8 @@ namespace TDOM.Gameplay.Combat
         public AttackEvent? Tick(InputSnapshot input, float dt)
         {
             _buffer.Tick(dt);
+            if (_cooldown > 0f)
+                _cooldown -= dt;
             _ultimoEvento = null;
             Avanzar(input, dt, esBordeDeFrame: true);
             return _ultimoEvento;
@@ -57,7 +70,11 @@ namespace TDOM.Gameplay.Combat
             switch (_fase)
             {
                 case ComboPhase.Idle:
-                    if (pressed || heldFresco)
+                    if (!held)
+                        _requiereSoltar = false;
+                    if (_cooldown > 0f)
+                        return; // cooldown de fin de combo: se descarta todo lo presionado
+                    if (pressed || (heldFresco && !_requiereSoltar))
                     {
                         IniciarWindup(0);
                         Avanzar(input, dt, esBordeDeFrame: false);
@@ -65,8 +82,11 @@ namespace TDOM.Gameplay.Combat
                     return;
 
                 case ComboPhase.Windup:
+                    float dtEnWindup = Mathf.Min(dt, Mathf.Max(0f, _timer));
                     if (held)
-                        _tiempoDeCarga += dt;
+                        _tiempoDeCarga += dtEnWindup;
+                    if (released)
+                        _soltoDuranteWindup = true;
                     _timer -= dt;
                     if (_timer > 0f)
                         return;
@@ -75,27 +95,51 @@ namespace TDOM.Gameplay.Combat
                     if (held)
                     {
                         _fase = ComboPhase.Charging;
-                        if (released || _tiempoDeCarga >= _cargaMaxima)
+                        if (_tiempoDeCarga >= _cargaMaxima)
                         {
                             float sobranteCarga = EntrarCargado();
                             Avanzar(input, sobranteCarga, esBordeDeFrame: false);
                         }
                     }
+                    else if (_soltoDuranteWindup)
+                    {
+                        if (_tiempoDeCarga >= _umbralHold)
+                        {
+                            float sobranteCarga = EntrarCargado();
+                            Avanzar(input, sobranteCarga, esBordeDeFrame: false);
+                        }
+                        else
+                        {
+                            ResolverCargaCorta();
+                            Avanzar(input, sobranteWindup, esBordeDeFrame: false);
+                        }
+                    }
                     else
                     {
-                        _fase = ComboPhase.Swing;
-                        _timer = _pasos[_indice].ActiveTime;
-                        _ultimoEvento = EventoLigero();
+                        EjecutarLigeroActual();
                         Avanzar(input, sobranteWindup, esBordeDeFrame: false);
                     }
                     return;
 
                 case ComboPhase.Charging:
-                    _tiempoDeCarga += dt;
-                    if (released || _tiempoDeCarga >= _cargaMaxima)
+                    if (held)
+                        _tiempoDeCarga += dt;
+                    if (_tiempoDeCarga >= _cargaMaxima)
                     {
                         float sobranteCarga = EntrarCargado();
                         Avanzar(input, sobranteCarga, esBordeDeFrame: false);
+                    }
+                    else if (released)
+                    {
+                        if (_tiempoDeCarga >= _umbralHold)
+                        {
+                            float sobranteCarga = EntrarCargado();
+                            Avanzar(input, sobranteCarga, esBordeDeFrame: false);
+                        }
+                        else
+                        {
+                            ResolverCargaCorta();
+                        }
                     }
                     return;
 
@@ -104,6 +148,7 @@ namespace TDOM.Gameplay.Combat
                     {
                         _fase = ComboPhase.Charging;
                         _tiempoDeCarga = 0f;
+                        _cargaEnCombo = true;
                         Avanzar(input, dt, esBordeDeFrame: false);
                         return;
                     }
@@ -141,12 +186,15 @@ namespace TDOM.Gameplay.Combat
                         }
                         else
                         {
-                            Reiniciar();
+                            FinalizarCombo();
                         }
                     }
                     else if (_timer <= 0f)
                     {
-                        Reiniciar();
+                        if (_indice + 1 >= _pasos.Length)
+                            FinalizarCombo();
+                        else
+                            Reiniciar();
                     }
                     return;
 
@@ -169,6 +217,31 @@ namespace TDOM.Gameplay.Combat
             _fase = ComboPhase.Windup;
             _timer = _pasos[_indice].WindupTime;
             _tiempoDeCarga = 0f;
+            _cargaEnCombo = false;
+            _soltoDuranteWindup = false;
+        }
+
+        private void EjecutarLigeroActual()
+        {
+            _fase = ComboPhase.Swing;
+            _timer = _pasos[_indice].ActiveTime;
+            _ultimoEvento = EventoLigero();
+        }
+
+        private void ResolverCargaCorta()
+        {
+            if (_cargaEnCombo)
+            {
+                if (_indice + 1 >= _pasos.Length)
+                {
+                    FinalizarCombo();
+                    return;
+                }
+
+                _indice++;
+            }
+
+            EjecutarLigeroActual();
         }
 
         private void AbrirVentanaDeCombo()
@@ -183,7 +256,25 @@ namespace TDOM.Gameplay.Combat
             _indice = 0;
             _timer = 0f;
             _tiempoDeCarga = 0f;
+            _cargaEnCombo = false;
+            _soltoDuranteWindup = false;
             _buffer.Clear();
+        }
+
+        // Combo completo: pequeño cooldown en el que se descartan los inputs extra.
+        private void FinalizarCombo()
+        {
+            Reiniciar();
+            _cooldown = _cooldownFinCombo;
+            _requiereSoltar = true;
+        }
+
+        // Cancelación externa (dash). No aplica cooldown; exige soltar y volver a presionar.
+        public void Cancelar()
+        {
+            Reiniciar();
+            _cooldown = 0f;
+            _requiereSoltar = true;
         }
 
         private float EntrarCargado()
