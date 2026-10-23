@@ -121,6 +121,13 @@ namespace TDOM.Unity.Player
 
         public CharacterIds CharacterId => _characterId;
         public float CostoEnergiaPendiente => _combat != null ? _combat.CostoCargaPendiente : 0f;
+
+        /// <summary>Empujon corto hacia el frente y arriba al conectar un golpe de combo.</summary>
+        public void EmpujarPorCombo(float adelante, float arriba, float duracion)
+        {
+            if (_motor != null)
+                _motor.Empujar(transform.forward, adelante, arriba, duracion);
+        }
         public float EnergiaMaxima => _definition?.Energy != null ? _definition.Energy.Max : 0f;
         public float VidaMaxima => _definition.MaxHealth;
         public float DuracionAbatido => _definition.DownedDuration;

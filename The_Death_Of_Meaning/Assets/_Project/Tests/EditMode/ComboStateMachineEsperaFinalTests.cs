@@ -145,6 +145,20 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
+        public void Un_cargado_normal_deja_el_cooldown_de_fin_de_combo()
+        {
+            animando = false;
+            var primero = combo.Tick(Press, 1.02f);
+            Assert.AreEqual(AttackKind.Charged, primero.Value.Kind);
+            combo.Tick(Neutral, 0.2f); // termina el cargado
+
+            Assert.AreEqual(ComboPhase.Idle, combo.Fase);
+            Assert.IsTrue(combo.EnCooldown, "el cargado tambien deja cooldown");
+            combo.Tick(Neutral, 0.5f);
+            Assert.IsFalse(combo.EnCooldown);
+        }
+
+        [Test]
         public void Sin_hook_el_comportamiento_no_cambia()
         {
             combo.EsperarAnimacionFinal = null;

@@ -265,6 +265,7 @@ namespace TDOM.Gameplay.Combat
                         if (eraCargado)
                         {
                             _requiereSoltar = true;
+                            _cooldown = _cooldownFinCombo;
                             EsperarFinDeAnimacion();
                         }
                         Avanzar(input, sobranteRecovery, esBordeDeFrame: false);

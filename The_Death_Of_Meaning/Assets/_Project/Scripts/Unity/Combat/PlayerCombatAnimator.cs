@@ -15,6 +15,7 @@ namespace TDOM.Unity.Combat
         private static readonly int GirosHash = Animator.StringToHash("1iCargado");
         private static readonly int VelocidadGirosHash = Animator.StringToHash("VelocidadGiros");
 
+        private static readonly int LocomotionShortHash = Animator.StringToHash("Locomotion");
         private static readonly int IsAimingHash = Animator.StringToHash("IsAiming");
         private static readonly int LocomotionFullPathHash = Animator.StringToHash(
             "Base Layer.Locomotion"
@@ -48,33 +49,44 @@ namespace TDOM.Unity.Combat
         [Tooltip("Segundos minimos en espejo antes de poder volver a la normalidad.")]
         private float _graciaEspejo = 0.1f;
 
-        [Header("Ataque 2 (estado 1i): corte")]
+        [Header("Segmentos del combo (un tramo de clip por golpe)")]
         [SerializeField]
         [Tooltip(
-            "Recorta el ataque 2: el clip trae dos ataques y solo se usa el primero. "
-                + "Al llegar al punto de corte vuelve a locomocion."
+            "Activa los segmentos: cada golpe del combo es un tramo de un clip, desde Inicio "
+                + "hasta Fin, indexado como los pasos del perfil (Steps). Editables en Play. "
+                + "Apagado = el Animator usa sus propias transiciones (Zendre)."
         )]
-        private bool _recortarAtaque2;
+        private bool _segmentosActivos;
 
-        [SerializeField, Range(0f, 1f)]
+        [SerializeField]
+        private SegmentoCombo[] _segmentos = SegmentoCombo.PorDefectoAyla();
+
+        [Header("Salidas del ataque cargado (segun golpes basicos previos)")]
+        [SerializeField]
         [Tooltip(
-            "Punto del clip (0-1) donde termina el ataque 2. Debe ser mayor que "
-                + "'Combo Transition Normalized Time' para no comerse el siguiente golpe."
+            "Que animacion sale al soltar el cargado. Los golpes previos que no aparecen aqui "
+                + "usan el clip de cargado normal (Estandar)."
         )]
-        private float _finAtaque2 = 0.55f;
-
-        [SerializeField, Min(0f)]
-        [Tooltip("Segundos de mezcla al cortar el ataque 2 y volver a locomocion.")]
-        private float _mezclaFinAtaque2 = 0.12f;
+        private ConfigSalidaCargada[] _salidasCargadas =
+        {
+            new ConfigSalidaCargada
+            {
+                LigerosPrevios = 1,
+                Tipo = SalidaCargada.EspejoBasico,
+                Retardo = 0.12f,
+            },
+            new ConfigSalidaCargada
+            {
+                LigerosPrevios = 2,
+                Tipo = SalidaCargada.Giros,
+                Retardo = 0f,
+            },
+        };
 
         [Header("Cargado de giros (ab + ab + ac)")]
         [SerializeField]
         [Tooltip("Activa la secuencia de giros para el cargado que sale de dos ataques basicos.")]
         private bool _girosActivos;
-
-        [SerializeField, Min(0)]
-        [Tooltip("Golpes basicos previos al cargado que disparan los giros (2 = ab + ab + ac).")]
-        private int _ligerosPreviosGiros = 2;
 
         [SerializeField, Min(0.1f)]
         [Tooltip("Velocidad de reproduccion del clip durante los giros.")]
@@ -101,11 +113,17 @@ namespace TDOM.Unity.Combat
         private float _pendingCarga;
         private bool _pendingGiros;
         private bool _pendingEspejo;
+        private bool _pendingEspejoBasico;
+        private float _pendingRetardo;
+        private int _segmentoActivo = -1;
+        private int _segmentoHash;
+        private int _frameSegmento = -10;
         private bool _espejoActivo;
         private bool _espejoDeseado;
         private float _graciaRestante;
         private Vector3 _escalaBaseEspejo = Vector3.one;
 
+        private bool _tieneParametroShoot;
         private SecuenciaGiros _secuencia;
         private readonly List<EventoGiros> _eventosGiros = new List<EventoGiros>();
         private bool _secuenciaActiva;
@@ -121,15 +139,53 @@ namespace TDOM.Unity.Combat
 
         public bool AlternarAtaqueBasico => _alternarAtaqueBasico;
 
+        /// <summary>
+        /// La secuencia de giros esta en marcha, en pose de carga o a punto de arrancar. Si la
+        /// maquina espera el fin de los giros y esto es falso, nadie va a avisarle.
+        /// </summary>
+        public bool GirosEnProceso => _secuenciaActiva || _poseCarga || (_hasPendingCombo && _pendingGiros);
+
         /// <summary>Un impacto de la secuencia de giros: (indice, esElTramoFinal).</summary>
         public event Action<int, bool> ImpactoGiros;
 
         /// <summary>La secuencia de giros termino sola (no se dispara al cancelarla).</summary>
         public event Action SecuenciaGirosTerminada;
 
+        /// <summary>Animacion que sale de un cargado precedido de estos golpes basicos.</summary>
+        public SalidaCargada SalidaCargadaPara(int ligerosPrevios)
+        {
+            if (_salidasCargadas != null)
+            {
+                for (int i = 0; i < _salidasCargadas.Length; i++)
+                {
+                    if (_salidasCargadas[i].LigerosPrevios == ligerosPrevios)
+                        return _salidasCargadas[i].Tipo;
+                }
+            }
+            return SalidaCargada.Estandar;
+        }
+
+        /// <summary>Segundos que tarda en arrancar el cargado que sale tras estos golpes.</summary>
+        public float RetardoSalidaCargada(int ligerosPrevios)
+        {
+            if (_salidasCargadas == null)
+                return 0f;
+            for (int i = 0; i < _salidasCargadas.Length; i++)
+            {
+                if (_salidasCargadas[i].LigerosPrevios == ligerosPrevios)
+                    return Mathf.Max(0f, _salidasCargadas[i].Retardo);
+            }
+            return 0f;
+        }
+
         /// <summary>Si un cargado precedido de estos golpes basicos son los giros.</summary>
         public bool UsaGiros(int ligerosPrevios) =>
-            _girosActivos && ligerosPrevios == _ligerosPreviosGiros;
+            _girosActivos && SalidaCargadaPara(ligerosPrevios) == SalidaCargada.Giros;
+
+        /// <summary>Si ese cargado es el golpe basico espejeado (ab => ac).</summary>
+        public bool UsaEspejoBasico(int ligerosPrevios) =>
+            _segmentosActivos
+            && SalidaCargadaPara(ligerosPrevios) == SalidaCargada.EspejoBasico;
 
         private void Awake()
         {
@@ -138,6 +194,21 @@ namespace TDOM.Unity.Combat
             if (_raizEspejo != null)
                 _escalaBaseEspejo = _raizEspejo.localScale;
             _secuencia = new SecuenciaGiros(_giros);
+            _tieneParametroShoot = TieneParametro(ShootHash);
+        }
+
+        // Ayla no tiene el parametro Shoot: preguntarlo cada frame llena la consola de avisos.
+        private bool TieneParametro(int hash)
+        {
+            if (_animator == null || _animator.runtimeAnimatorController == null)
+                return false;
+
+            foreach (AnimatorControllerParameter parametro in _animator.parameters)
+            {
+                if (parametro.nameHash == hash)
+                    return true;
+            }
+            return false;
         }
 
         private void Update()
@@ -147,18 +218,23 @@ namespace TDOM.Unity.Combat
 
             ActualizarEspejo();
 
-            if (_animator.GetBool(ShootHash))
+            if (_tieneParametroShoot && _animator.GetBool(ShootHash))
             {
                 AnimatorStateInfo currentState = _animator.GetCurrentAnimatorStateInfo(0);
                 if (currentState.shortNameHash == ShootHash && currentState.normalizedTime >= 1f)
                     _animator.SetBool(ShootHash, false);
             }
 
-            if (_hasPendingCombo && !DebeEsperarFinDelGolpe())
-                ReproducirPendiente();
+            if (_hasPendingCombo)
+            {
+                if (_pendingRetardo > 0f)
+                    _pendingRetardo -= Time.deltaTime;
+                else if (!DebeEsperarFinDelGolpe())
+                    ReproducirPendiente();
+            }
 
             ActualizarGiros();
-            RecortarAtaque2();
+            ActualizarSegmento();
         }
 
         public void PlayCombo(
@@ -166,7 +242,8 @@ namespace TDOM.Unity.Combat
             bool charged,
             bool espejo = false,
             float cargaRatio = 0f,
-            bool giros = false
+            bool giros = false,
+            int ligerosPrevios = -1
         )
         {
             if (_animator == null)
@@ -177,9 +254,11 @@ namespace TDOM.Unity.Combat
             _pendingCarga = cargaRatio;
             _pendingGiros = giros && _girosActivos;
             _pendingEspejo = espejo;
+            _pendingEspejoBasico = charged && !_pendingGiros && UsaEspejoBasico(ligerosPrevios);
+            _pendingRetardo = _pendingEspejoBasico ? RetardoSalidaCargada(ligerosPrevios) : 0f;
             _hasPendingCombo = true;
 
-            if (!DebeEsperarFinDelGolpe())
+            if (_pendingRetardo <= 0f && !DebeEsperarFinDelGolpe())
                 ReproducirPendiente();
         }
 
@@ -197,10 +276,14 @@ namespace TDOM.Unity.Combat
                 state = _animator.GetNextAnimatorStateInfo(0);
             }
 
+            float puntoCombo = _comboTransitionNormalizedTime;
+            if (HaySegmentoActivo && state.shortNameHash == _segmentoHash)
+                puntoCombo = _segmentos[_segmentoActivo].PuntoComboSeguro;
+
             // Un golpe nuevo interrumpe los giros: no se espera a que terminen.
             return EsEstadoAtaque(state.shortNameHash)
                 && state.shortNameHash != GirosHash
-                && state.normalizedTime < _comboTransitionNormalizedTime;
+                && state.normalizedTime < puntoCombo;
         }
 
         private static bool EsEstadoAtaque(int stateHash)
@@ -216,14 +299,23 @@ namespace TDOM.Unity.Combat
         {
             int comboIndex = _pendingComboIndex;
             bool charged = _pendingCharged;
+            bool espejoBasico = _pendingEspejoBasico;
             _hasPendingCombo = false;
+            _pendingEspejoBasico = false;
+            _pendingRetardo = 0f;
 
             _espejoDeseado = _pendingEspejo;
             DetenerGiros();
 
+            // Un basico que abre combo cambia de lado en cuanto arranca su animacion, aunque el
+            // golpe anterior siga animandose (basico -> basico -> ... es un cancel).
+            if (!charged && comboIndex == 0)
+                AplicarEspejo(_espejoDeseado);
+
             if (charged && _pendingGiros)
             {
                 // Los giros no usan el trigger Attack: el script entra al estado y lo recorta.
+                _segmentoActivo = -1;
                 _animator.SetInteger(ComboIndexHash, 0);
                 _animator.SetBool(ChargedHash, false);
                 _animator.ResetTrigger(AttackHash);
@@ -232,6 +324,19 @@ namespace TDOM.Unity.Combat
                 return;
             }
 
+            // El cargado que sale como golpe basico espejeado usa el primer segmento.
+            int segmento = espejoBasico ? 0 : comboIndex;
+            if (_segmentosActivos && (!charged || espejoBasico) && HaySegmento(segmento))
+            {
+                // El espejo cambia a mitad del combo: aqui si se fuerza (ab => ac).
+                if (espejoBasico)
+                    AplicarEspejo(_espejoDeseado);
+                ReproducirSegmento(segmento);
+                ActualizarEspejo();
+                return;
+            }
+
+            _segmentoActivo = -1;
             _animator.SetInteger(ComboIndexHash, comboIndex);
             _animator.SetBool(ChargedHash, charged);
             _animator.ResetTrigger(AttackHash);
@@ -239,22 +344,65 @@ namespace TDOM.Unity.Combat
             ActualizarEspejo();
         }
 
-        // ---- Ataque 2: se usa solo el primer ataque del clip ----------------------------
+        // ---- Segmentos: cada golpe del combo es un tramo de un clip ---------------------
 
-        private void RecortarAtaque2()
+        private bool HaySegmentoActivo =>
+            _segmentos != null && _segmentoActivo >= 0 && _segmentoActivo < _segmentos.Length;
+
+        private bool HaySegmento(int indice) =>
+            _segmentos != null
+            && indice >= 0
+            && indice < _segmentos.Length
+            && _segmentos[indice] != null
+            && !string.IsNullOrEmpty(_segmentos[indice].Estado);
+
+        private void ReproducirSegmento(int indice)
         {
-            if (!_recortarAtaque2 || _secuenciaActiva || _hasPendingCombo || CargaEnCurso)
+            SegmentoCombo segmento = _segmentos[indice];
+            int hash = Animator.StringToHash(segmento.Estado);
+
+            // No se usan los triggers del Animator: el script entra al tramo y lo recorta.
+            _animator.SetInteger(ComboIndexHash, 0);
+            _animator.SetBool(ChargedHash, false);
+            _animator.ResetTrigger(AttackHash);
+
+            float mezcla =
+                Mathf.Max(0f, segmento.MezclaEntrada) / Mathf.Max(0.05f, segmento.DuracionClip);
+            _animator.CrossFade(hash, mezcla, 0, segmento.InicioSeguro);
+
+            _segmentoActivo = indice;
+            _segmentoHash = hash;
+            _frameSegmento = Time.frameCount;
+        }
+
+        // Al llegar al Fin del tramo se vuelve a locomocion (si no viene otro golpe).
+        private void ActualizarSegmento()
+        {
+            if (!HaySegmentoActivo)
+                return;
+            if (_secuenciaActiva || _poseCarga || _hasPendingCombo || CargaEnCurso)
                 return;
             if (_animator.layerCount == 0 || _animator.IsInTransition(0))
+                return;
+            // Tras CrossFade el Animator tarda un frame en reflejar el estado nuevo.
+            if (Time.frameCount <= _frameSegmento + 1)
                 return;
             if (_animator.GetBool(AttackHash))
                 return; // ya viene otro golpe: la transicion del Animator se encarga
 
             AnimatorStateInfo state = _animator.GetCurrentAnimatorStateInfo(0);
-            if (state.shortNameHash != LightTwoHash || state.normalizedTime < _finAtaque2)
+            if (state.shortNameHash != _segmentoHash)
+            {
+                _segmentoActivo = -1;
+                return;
+            }
+
+            SegmentoCombo segmento = _segmentos[_segmentoActivo];
+            if (state.normalizedTime < segmento.FinSeguro)
                 return;
 
-            SalirDeAtaque(_mezclaFinAtaque2);
+            _segmentoActivo = -1;
+            SalirDeAtaque(segmento.MezclaSalida);
         }
 
         private void SalirDeAtaque(float mezcla)
@@ -442,6 +590,39 @@ namespace TDOM.Unity.Combat
             _animator != null
             && (_hasPendingCombo || _secuenciaActiva || _poseCarga || EnEstadoAtaque());
 
+        /// <summary>Resumen del estado interno para los avisos de depuracion.</summary>
+        public string EstadoDebug()
+        {
+            if (_animator == null || _animator.layerCount == 0)
+                return "sin animator";
+
+            AnimatorStateInfo actual = _animator.GetCurrentAnimatorStateInfo(0);
+            string siguiente = _animator.IsInTransition(0)
+                ? NombreEstado(_animator.GetNextAnimatorStateInfo(0).shortNameHash)
+                : "-";
+            return $"estado={NombreEstado(actual.shortNameHash)}({actual.normalizedTime:F2}) "
+                + $"siguiente={siguiente} segmento={_segmentoActivo} secuencia={_secuenciaActiva} "
+                + $"pose={_poseCarga} pendiente={_hasPendingCombo} cargaEnCurso={CargaEnCurso} "
+                + $"velocidadAnimator={_animator.speed:F2}";
+        }
+
+        private static string NombreEstado(int hash)
+        {
+            if (hash == AttackHash)
+                return "Attack";
+            if (hash == LightTwoHash)
+                return "1i";
+            if (hash == LightThreeHash)
+                return "2IC";
+            if (hash == ChargedHash)
+                return "Charged";
+            if (hash == GirosHash)
+                return "1iCargado";
+            if (hash == LocomotionShortHash)
+                return "Locomotion";
+            return hash.ToString();
+        }
+
         private bool EnEstadoAtaque()
         {
             if (_animator.layerCount == 0)
@@ -517,6 +698,9 @@ namespace TDOM.Unity.Combat
                 return;
 
             _hasPendingCombo = false;
+            _pendingEspejoBasico = false;
+            _pendingRetardo = 0f;
+            _segmentoActivo = -1;
             DetenerGiros();
             _espejoDeseado = false;
             AplicarEspejo(false);
