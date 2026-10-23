@@ -134,7 +134,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 4274321711
+  GlobalObjectIdHash: 3112223628
   InScenePlacedSourceGlobalObjectIdHash: 3093320301
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -264,7 +264,28 @@ MonoBehaviour:
   _inputReader: {fileID: 76253369680155383}
   _grappleVisual: {fileID: 8501239841203941202}
   _sensitivity: 200
+  _alturaMaxima: 80
   Energia:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  Vida:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 100
+  EstadoVida:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  TiempoAbatidoRestante:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  ProgresoRevivir:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
@@ -308,6 +329,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.PlayerCombatAnimator
   _animator: {fileID: 1136055855002311730}
+  _comboTransitionNormalizedTime: 0.4
 --- !u!120 &8501239841203941201
 LineRenderer:
   serializedVersion: 3
@@ -450,7 +472,8 @@ MonoBehaviour:
   _animator: {fileID: 1136055855002311730}
   _characterController: {fileID: 4118153115610838888}
   _walkThreshold: 0.5
-  _runThreshold: 14
+  _walkBlendMaxSpeed: 10
+  _runBlendMaxSpeed: 20
 --- !u!114 &6057063955198916791
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -478,8 +501,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Vfx.VfxRed
   ShowTopMostFoldoutHeaderGroup: 1
   _pool: {fileID: 6057063955198916791}
-  _walkBlendMaxSpeed: 10
-  _runBlendMaxSpeed: 20
 --- !u!1 &5167135693431690079
 GameObject:
   m_ObjectHideFlags: 0
@@ -805,7 +826,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7211782858631420564, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4578916288483374997}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2294028743705186128, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1316703279992756297}
   m_SourcePrefab: {fileID: 100100000, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
 --- !u!95 &1136055855002311730 stripped
 Animator:
@@ -817,6 +841,38 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7211782858631420564, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
   m_PrefabInstance: {fileID: 9074774098523907290}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &7072362300874402698 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2294028743705186128, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
+  m_PrefabInstance: {fileID: 9074774098523907290}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1316703279992756297
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7072362300874402698}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 861770c975b583b4e809a7479c7cd2b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.AylaEspada
+  _animator: {fileID: 1136055855002311730}
+  _espadaPrefab: {fileID: 919132149155446097, guid: 37219bc8d012be148b8c8545aea22f34, type: 3}
+  _huesoHumanoide: 18
+  _nombreHuesoRespaldo: DEF-hand.R
+  _posicion: {x: 0, y: 0, z: 0}
+  _rotacion: {x: 0, y: 0, z: 0}
+  _escala: 0.5
+  _nombreMango: MangoEspada
+  _soloVisibleAtacando: 1
+  _retrasoOcultar: 0.3
+  _estadosDeAtaque:
+  - Attack
+  - 1i
+  - 2IC
+  - Charged
 --- !u!1001 &9094838142294137057
 PrefabInstance:
   m_ObjectHideFlags: 0

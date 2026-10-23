@@ -543,6 +543,26 @@ namespace TDOM.Unity.Player
             {
                 AlinearConCamaraAlAtacar(input, apuntando);
 
+                // Dash cancela el combo en cualquier punto (solo si el dash está disponible).
+                if (
+                    _combat != null
+                    && input.DashPressed
+                    && _combat.PuedeCancelarConDash
+                    && _locomocion.DashDisponible
+                    && !(_anchorLauncher != null && _anchorLauncher.AnclaActiva)
+                )
+                    _combat.CancelarMeleePorDash();
+
+                // Salto también cancela el combo (si hay salto disponible).
+                if (
+                    _combat != null
+                    && input.JumpPressed
+                    && _combat.PuedeCancelarConDash
+                    && _locomocion.SaltoDisponible
+                    && !(_anchorLauncher != null && _anchorLauncher.AnclaActiva)
+                )
+                    _combat.CancelarMeleePorSalto();
+
                 if (_combat != null)
                     _combat.Tick(input, dt);
 

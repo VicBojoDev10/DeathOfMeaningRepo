@@ -10,6 +10,10 @@ namespace TDOM.Data
         public float TerminalVelocity = -50f;
         public float LowJumpMultiplier = 2.0f;
 
+        [Tooltip("Escala de la gravedad mientras se ataca en el aire (1 = normal).")]
+        [Range(0f, 1f)]
+        public float AirAttackGravityScale = 0.25f;
+
         [Header("Movement")]
         public float JumpVelocity = 15f;
         public int MaxJumps = 1;
