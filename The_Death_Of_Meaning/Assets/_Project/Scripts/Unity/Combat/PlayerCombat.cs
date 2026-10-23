@@ -14,6 +14,7 @@ namespace TDOM.Unity.Combat
     {
         private ComboStateMachine _melee;
         private ComboStateMachine _disparo;
+        private readonly AlternadorEspejoAtaque _alternadorEspejo = new AlternadorEspejoAtaque();
 
         [SerializeField]
         private CharacterDefinition _definition;
@@ -43,6 +44,15 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private float _alcanceHitbox = 1.0f;
 
+        [Header("Cargado de giros (ab + ab + ac)")]
+        [SerializeField, Min(0f)]
+        [Tooltip("Daño de cada impacto de un giro, como fraccion del daño del cargado.")]
+        private float _factorDanioGiro = 0.4f;
+
+        [SerializeField, Min(0f)]
+        [Tooltip("Daño del impacto del tramo final, como fraccion del daño del cargado.")]
+        private float _factorDanioFinal = 0.8f;
+
         [Header("Disparo a distancia")]
         [SerializeField]
         private GameObject _proyectilPrefab;
@@ -57,6 +67,8 @@ namespace TDOM.Unity.Combat
         private float _radioDisparo = 0.5f;
         private bool _cargaVisibleMelee;
         private bool _incapacitado;
+        private bool _girosEnCurso;
+        private AttackEvent _eventoGiros;
 
         public void EstablecerIncapacitado(bool incapacitado)
         {
@@ -66,6 +78,7 @@ namespace TDOM.Unity.Combat
 
             _melee?.Cancelar();
             _disparo?.Cancelar();
+            _girosEnCurso = false;
             _cargaVisibleMelee = false;
             _vfx?.Carga(false);
             _combatAnimator?.CancelarAtaque(false);
@@ -98,6 +111,7 @@ namespace TDOM.Unity.Combat
                     $"[Combo][{NombrePersonaje}] cancelado con {(haciaSalto ? "salto" : "dash")} desde {_melee.Fase}"
                 );
             _melee.Cancelar();
+            _girosEnCurso = false;
             if (_combatAnimator != null)
                 _combatAnimator.CancelarAtaque(haciaSalto);
             CancelarAtaqueRpc(haciaSalto);
@@ -132,6 +146,14 @@ namespace TDOM.Unity.Combat
                     _definition.Melee.BufferWindow,
                     _definition.Melee.CooldownFinCombo
                 );
+                _melee.RetenerCargadoSi = ligeros =>
+                    _combatAnimator != null && _combatAnimator.UsaGiros(ligeros);
+            }
+
+            if (_combatAnimator != null)
+            {
+                _combatAnimator.ImpactoGiros += AlImpactoGiro;
+                _combatAnimator.SecuenciaGirosTerminada += AlTerminarGiros;
             }
 
             if (_definition != null && _definition.Ranged != null)
@@ -144,6 +166,16 @@ namespace TDOM.Unity.Combat
                     _definition.Ranged.BufferWindow
                 );
             }
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            if (_combatAnimator != null)
+            {
+                _combatAnimator.ImpactoGiros -= AlImpactoGiro;
+                _combatAnimator.SecuenciaGirosTerminada -= AlTerminarGiros;
+            }
+            base.OnNetworkDespawn();
         }
 
         private bool PuedeConsumirEnergia(AttackEvent evento)
@@ -298,7 +330,11 @@ namespace TDOM.Unity.Combat
         {
             bool cargado = evento.Kind == AttackKind.Charged;
             if (!PuedeConsumirEnergia(evento))
+            {
+                // Si el cargado venia retenido para los giros, hay que soltar la maquina.
+                _melee?.TerminarCargado();
                 return;
+            }
 
             if (_logCombo)
             {
@@ -309,13 +345,32 @@ namespace TDOM.Unity.Combat
                 );
             }
 
+            bool espejo =
+                _combatAnimator != null
+                && _combatAnimator.AlternarAtaqueBasico
+                && _alternadorEspejo.Resolver(evento);
+
+            // Los giros no pegan de golpe: cada impacto llega como evento de la secuencia.
+            bool giros = cargado && _melee != null && _melee.CargadoRetenido;
+            if (giros)
+            {
+                _eventoGiros = evento;
+                _girosEnCurso = true;
+            }
+
             if (_combatAnimator != null)
-                _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
+                _combatAnimator.PlayCombo(
+                    evento.ComboIndex,
+                    cargado,
+                    espejo,
+                    evento.ChargeRatio,
+                    giros
+                );
             if (_vfx != null)
                 _vfx.Golpe(evento.ComboIndex, cargado, evento.ChargeRatio);
             _debugFeedback?.FlashActive(0.1f);
             bool huboImpacto = false;
-            if (_hitbox != null)
+            if (_hitbox != null && !giros)
             {
                 var impactos = _hitbox.DetectarImpactos(_radioHitbox, _alcanceHitbox);
                 foreach (var imp in impactos)
@@ -331,7 +386,46 @@ namespace TDOM.Unity.Combat
             {
                 _feedback.OnAtaquePropio();
             }
-            ReproducirGolpeRpc(evento.ComboIndex, cargado, evento.ChargeRatio);
+            ReproducirGolpeRpc(evento.ComboIndex, cargado, evento.ChargeRatio, espejo, giros);
+        }
+
+        private void AlImpactoGiro(int indice, bool esFinal)
+        {
+            if (!IsOwner || _incapacitado || !_girosEnCurso || _hitbox == null)
+                return;
+
+            float factor = esFinal ? _factorDanioFinal : _factorDanioGiro;
+            var evento = new AttackEvent(
+                _eventoGiros.Kind,
+                _eventoGiros.ComboIndex,
+                _eventoGiros.ChargeRatio,
+                _eventoGiros.Damage * factor
+            );
+
+            if (_logCombo)
+                Debug.Log(
+                    $"[Combo][{NombrePersonaje}] giro {indice} {(esFinal ? "(final) " : "")}daño {evento.Damage}"
+                );
+
+            bool huboImpacto = false;
+            var impactos = _hitbox.DetectarImpactos(_radioHitbox, _alcanceHitbox);
+            foreach (var imp in impactos)
+            {
+                if (imp.Objeto == null)
+                    continue;
+                huboImpacto = true;
+                ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, ReferenciaZona(imp));
+            }
+
+            if (huboImpacto && _feedback != null)
+                _feedback.OnAtaquePropio();
+        }
+
+        private void AlTerminarGiros()
+        {
+            _girosEnCurso = false;
+            if (IsOwner)
+                _melee?.TerminarCargado();
         }
 
         private static NetworkBehaviourReference ReferenciaZona(HitboxCaster.Impacto impacto) =>
@@ -538,13 +632,19 @@ namespace TDOM.Unity.Combat
         }
 
         [Rpc(SendTo.NotOwner)]
-        private void ReproducirGolpeRpc(int indice, bool cargado, float carga)
+        private void ReproducirGolpeRpc(
+            int indice,
+            bool cargado,
+            float carga,
+            bool espejo,
+            bool giros
+        )
         {
             if (_incapacitado)
                 return;
 
             if (_combatAnimator != null)
-                _combatAnimator.PlayCombo(indice, cargado);
+                _combatAnimator.PlayCombo(indice, cargado, espejo, carga, giros);
             if (_vfx != null)
                 _vfx.Golpe(indice, cargado, carga);
         }

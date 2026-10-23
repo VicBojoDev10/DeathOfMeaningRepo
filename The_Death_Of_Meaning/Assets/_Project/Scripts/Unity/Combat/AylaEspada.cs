@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace TDOM.Unity.Combat
@@ -64,12 +65,48 @@ namespace TDOM.Unity.Combat
         private float _retrasoOcultar = 0.3f;
 
         [SerializeField]
-        private string[] _estadosDeAtaque = { "Attack", "1i", "2IC", "Charged" };
+        private string[] _estadosDeAtaque = { "Attack", "1i", "2IC", "Charged", "1iCargado" };
+
+        [Serializable]
+        private struct AjusteEstado
+        {
+            [Tooltip("Nombre del estado del Animator.")]
+            public string Estado;
+
+            [Tooltip(
+                "Giro extra de la espada sobre su propio eje, en grados. Y = 180 la voltea "
+                    + "para que corte con el filo."
+            )]
+            public Vector3 RotacionExtra;
+
+            [Tooltip("Desplazamiento extra del puño, en metros del mundo.")]
+            public Vector3 PosicionExtra;
+        }
+
+        [Header("Ajuste por estado (editable en Play)")]
+        [
+            SerializeField,
+            Tooltip(
+                "Correcciones extra mientras el Animator esta en cada estado. Sirven para "
+                    + "clips cuyo agarre de la espada no coincide con el resto."
+            )
+        ]
+        private AjusteEstado[] _ajustesPorEstado =
+        {
+            new AjusteEstado { Estado = "1i", RotacionExtra = new Vector3(0f, 180f, 0f) },
+            new AjusteEstado { Estado = "1iCargado", RotacionExtra = new Vector3(0f, 180f, 0f) },
+        };
+
+        [SerializeField, Min(0f), Tooltip("Segundos que tarda en pasar de un ajuste al siguiente.")]
+        private float _tiempoCambioAjuste = 0.06f;
 
         private Transform _hueso;
         private Transform _socket;
         private GameObject _visual;
         private int[] _hashesAtaque;
+        private int[] _hashesAjuste;
+        private Quaternion _rotacionExtraActual = Quaternion.identity;
+        private Vector3 _posicionExtraActual = Vector3.zero;
         private float _visibleRestante;
         private bool _visibleActual = true;
 
@@ -81,6 +118,10 @@ namespace TDOM.Unity.Combat
             _hashesAtaque = new int[_estadosDeAtaque.Length];
             for (int i = 0; i < _estadosDeAtaque.Length; i++)
                 _hashesAtaque[i] = Animator.StringToHash(_estadosDeAtaque[i]);
+
+            _hashesAjuste = new int[_ajustesPorEstado.Length];
+            for (int i = 0; i < _ajustesPorEstado.Length; i++)
+                _hashesAjuste[i] = Animator.StringToHash(_ajustesPorEstado[i].Estado);
         }
 
         private void Start()
@@ -183,11 +224,44 @@ namespace TDOM.Unity.Combat
             Vector3 p = _hueso.lossyScale;
             Vector3 inv = new Vector3(Inv(p.x), Inv(p.y), Inv(p.z));
             _socket.localScale = inv * _escala;
-            _socket.localRotation = Quaternion.Euler(_rotacion);
-            _socket.localPosition = Vector3.Scale(_posicion, inv);
+
+            ResolverAjusteObjetivo(out Quaternion rotacionObjetivo, out Vector3 posicionObjetivo);
+            float k =
+                _tiempoCambioAjuste > 0f
+                    ? 1f - Mathf.Exp(-Time.deltaTime / (_tiempoCambioAjuste * 0.35f))
+                    : 1f;
+            _rotacionExtraActual = Quaternion.Slerp(_rotacionExtraActual, rotacionObjetivo, k);
+            _posicionExtraActual = Vector3.Lerp(_posicionExtraActual, posicionObjetivo, k);
+
+            // La rotacion extra se aplica sobre el eje de la propia espada (despues de la base).
+            _socket.localRotation = Quaternion.Euler(_rotacion) * _rotacionExtraActual;
+            _socket.localPosition = Vector3.Scale(_posicion + _posicionExtraActual, inv);
         }
 
-        private static float Inv(float v) => Mathf.Abs(v) < 1e-5f ? 1f : 1f / v;
+        // Ajuste del estado al que va el Animator (si esta en transicion, el de destino).
+        private void ResolverAjusteObjetivo(out Quaternion rotacion, out Vector3 posicion)
+        {
+            rotacion = Quaternion.identity;
+            posicion = Vector3.zero;
+            if (_animator == null || _animator.layerCount == 0 || _hashesAjuste.Length == 0)
+                return;
+
+            int hash = _animator.IsInTransition(0)
+                ? _animator.GetNextAnimatorStateInfo(0).shortNameHash
+                : _animator.GetCurrentAnimatorStateInfo(0).shortNameHash;
+            for (int i = 0; i < _hashesAjuste.Length; i++)
+            {
+                if (_hashesAjuste[i] != hash)
+                    continue;
+                rotacion = Quaternion.Euler(_ajustesPorEstado[i].RotacionExtra);
+                posicion = _ajustesPorEstado[i].PosicionExtra;
+                return;
+            }
+        }
+
+        // Se compensa solo la magnitud: si el modelo esta espejado (escala X negativa para
+        // espejar el ataque), la espada hereda el reflejo y queda en el lado correcto.
+        private static float Inv(float v) => Mathf.Abs(v) < 1e-5f ? 1f : 1f / Mathf.Abs(v);
 
         private bool EnAtaque()
         {

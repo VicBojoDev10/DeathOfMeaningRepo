@@ -331,7 +331,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.PlayerCombatAnimator
   _animator: {fileID: 1136055855002311730}
-  _comboTransitionNormalizedTime: 0.4
+  _comboTransitionNormalizedTime: 0.3
+  _alternarAtaqueBasico: 1
+  _recortarAtaque2: 1
+  _finAtaque2: 0.55
+  _mezclaFinAtaque2: 0.12
+  _girosActivos: 1
+  _ligerosPreviosGiros: 2
+  _velocidadGiros: 2.24
+  _tiempoMaximoGiros: 6
+  _duracionEstadoGiros: 0.7
+  _giros:
+    InicioGiro: 0.1
+    ImpactoGiro: 0.45
+    FinGiro: 0.55
+    InicioFinal: 0.55
+    ImpactoFinal: 0.8
+    FinFinal: 0.97
+    GirosMinimos: 2
+    GirosMaximos: 4
+    RatioCargaMinimo: 0.3
+    MezclaEntrada: 0.08
+    MezclaGiro: 0.1
+    MezclaFinal: 0.12
+    MezclaSalida: 0.12
 --- !u!120 &8501239841203941201
 LineRenderer:
   serializedVersion: 3
@@ -1022,6 +1045,15 @@ MonoBehaviour:
   - 1i
   - 2IC
   - Charged
+  - 1iCargado
+  _ajustesPorEstado:
+  - Estado: 1i
+    RotacionExtra: {x: 0, y: 180, z: 0}
+    PosicionExtra: {x: 0, y: 0, z: 0}
+  - Estado: 1iCargado
+    RotacionExtra: {x: 0, y: 180, z: 0}
+    PosicionExtra: {x: 0, y: 0, z: 0}
+  _tiempoCambioAjuste: 0.06
 --- !u!1001 &9094838142294137057
 PrefabInstance:
   m_ObjectHideFlags: 0

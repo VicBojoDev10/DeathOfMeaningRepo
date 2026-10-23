@@ -1,3 +1,4 @@
+using System;
 using TDOM.Contracts;
 using TDOM.Gameplay.Core;
 using UnityEngine;
@@ -20,6 +21,8 @@ namespace TDOM.Gameplay.Combat
         private readonly float _cooldownFinCombo;
         private float _cooldown;
         private bool _requiereSoltar;
+        private bool _cargadoRetenido;
+        private int _ligerosEnCombo;
         public bool EnCooldown => _cooldown > 0f;
         public bool CargaVisible => _fase == ComboPhase.Charging && _tiempoDeCarga >= _umbralHold;
 
@@ -45,6 +48,17 @@ namespace TDOM.Gameplay.Combat
         }
 
         public ComboPhase Fase => _fase;
+
+        /// <summary>
+        /// Recibe cuantos golpes ligeros se ejecutaron antes del cargado (0 = cargado puro,
+        /// 2 = ab + ab + ac). Si devuelve true, la maquina se queda en ChargedSwing (control
+        /// bloqueado) hasta que alguien llame <see cref="TerminarCargado"/>. Sirve para cargados
+        /// cuya duracion no la decide el perfil, como la secuencia de giros. Se cuenta por
+        /// ligeros ejecutados y no por ComboIndex, que cambia segun cuando se empiece a cargar.
+        /// </summary>
+        public Func<int, bool> RetenerCargadoSi { get; set; }
+
+        public bool CargadoRetenido => _cargadoRetenido;
         public bool BloqueaMovimiento => _fase != ComboPhase.Idle;
 
         private AttackEvent? _ultimoEvento;
@@ -94,12 +108,10 @@ namespace TDOM.Gameplay.Combat
                     float sobranteWindup = -_timer;
                     if (held)
                     {
+                        // El tiempo sobrante del Windup ya es tiempo de carga: se procesa en
+                        // Charging (suma al hold y libera sola al llegar al máximo).
                         _fase = ComboPhase.Charging;
-                        if (_tiempoDeCarga >= _cargaMaxima)
-                        {
-                            float sobranteCarga = EntrarCargado();
-                            Avanzar(input, sobranteCarga, esBordeDeFrame: false);
-                        }
+                        Avanzar(input, sobranteWindup, esBordeDeFrame: false);
                     }
                     else if (_soltoDuranteWindup)
                     {
@@ -200,6 +212,8 @@ namespace TDOM.Gameplay.Combat
 
                 case ComboPhase.ChargedSwing:
                 case ComboPhase.Recovery:
+                    if (_cargadoRetenido)
+                        return;
                     _timer -= dt;
                     if (_timer <= 0f)
                     {
@@ -258,6 +272,8 @@ namespace TDOM.Gameplay.Combat
             _tiempoDeCarga = 0f;
             _cargaEnCombo = false;
             _soltoDuranteWindup = false;
+            _cargadoRetenido = false;
+            _ligerosEnCombo = 0;
             _buffer.Clear();
         }
 
@@ -277,17 +293,30 @@ namespace TDOM.Gameplay.Combat
             _requiereSoltar = true;
         }
 
+        /// <summary>
+        /// Termina un cargado retenido (ver <see cref="RetenerCargadoSi"/>): cuenta como fin de
+        /// combo (mismo cooldown y exige soltar el boton). No hace nada si no hay uno retenido.
+        /// </summary>
+        public void TerminarCargado()
+        {
+            if (!_cargadoRetenido)
+                return;
+            FinalizarCombo();
+        }
+
         private float EntrarCargado()
         {
             float ratio = Mathf.Clamp01(_tiempoDeCarga / _cargaMaxima);
             _ultimoEvento = EventoCargado(ratio);
             _fase = ComboPhase.ChargedSwing;
             _timer = _cargado.ActiveTime;
+            _cargadoRetenido = RetenerCargadoSi != null && RetenerCargadoSi(_ligerosEnCombo);
             return Mathf.Max(0f, _tiempoDeCarga - _cargaMaxima);
         }
 
         private AttackEvent EventoLigero()
         {
+            _ligerosEnCombo++;
             return new AttackEvent(AttackKind.Light, _indice, 0f, _pasos[_indice].Damage);
         }
 
