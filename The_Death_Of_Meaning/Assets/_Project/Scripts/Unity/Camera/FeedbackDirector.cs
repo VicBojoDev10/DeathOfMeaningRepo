@@ -58,6 +58,20 @@ namespace TDOM.Unity.Camera
             IniciarHitstop(_config.golpeHitstopFrames);
         }
 
+        /// <summary>Zoom-in y zoom-out rapido al conectar un golpe de combo.</summary>
+        public void OnComboConectado()
+        {
+            if (_cameraRig == null || _config == null || _config.comboZoomFov == 0f)
+                return;
+
+            _cameraRig.PunchFovSostenido(
+                _config.comboZoomFov,
+                0f,
+                Mathf.Max(0.01f, _config.comboZoomSubida),
+                Mathf.Max(0.01f, _config.comboZoomBajada)
+            );
+        }
+
         public void OnGolpeRecibido()
         {
             _cameraRig.Impacto(_config.golpeRecibidoImpulso);

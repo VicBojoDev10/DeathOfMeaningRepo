@@ -2,6 +2,7 @@ using TDOM.Contracts;
 using TDOM.Gameplay.Camera;
 using TDOM.Unity.Player;
 using TDOM.Unity.UI;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -66,6 +67,8 @@ namespace TDOM.Unity
         private BossHealthBar _barraVidaJefe;
 
         private PlayerRoot _localPlayer;
+        private PlayerRoot _otherPlayer;
+        private float _busquedaJugadoresTimer;
         private RectTransform _crosshairRect;
         private Vector3 _escalaBase;
         private bool _hudVisible = true;
@@ -74,6 +77,16 @@ namespace TDOM.Unity
 
         private void Update()
         {
+            if (_localPlayer == null || _otherPlayer == null)
+            {
+                _busquedaJugadoresTimer -= Time.deltaTime;
+                if (_busquedaJugadoresTimer <= 0f)
+                {
+                    _busquedaJugadoresTimer = 0.5f;
+                    BuscarJugadores();
+                }
+            }
+
             if (_barraEnergiaJugador == null)
                 _barraEnergiaJugador = GetComponentInChildren<PlayerEnergyHud>(true);
 
@@ -81,6 +94,10 @@ namespace TDOM.Unity
                 return;
 
             _barraEnergiaJugador.ActualizarEnergia(_localPlayer.Energia.Value);
+            _barraEnergiaJugador.MostrarCostoPendiente(
+                _localPlayer.CostoEnergiaPendiente,
+                _localPlayer.Energia.Value
+            );
 
             if (_jugadorConEnergiaInicializado == _localPlayer)
                 return;
@@ -135,13 +152,34 @@ namespace TDOM.Unity
 
         private void OnDisable()
         {
-            if (_localPlayer != null)
-                _localPlayer.DashEmbestidaIniciada -= ActualizarCooldowns;
-            _localPlayer = null;
+            DesconectarJugadores();
             if (crosshairImage != null)
                 crosshairImage.gameObject.SetActive(false);
             if (crosshairDefaultImage != null)
                 crosshairDefaultImage.gameObject.SetActive(false);
+        }
+
+        private void OnDestroy()
+        {
+            DesconectarJugadores();
+        }
+
+        private void DesconectarJugadores()
+        {
+            if (_localPlayer != null)
+            {
+                _localPlayer.DashEmbestidaIniciada -= ActualizarCooldowns;
+                _localPlayer.Vida.OnValueChanged -= OnVidaLocalChanged;
+            }
+
+            if (_otherPlayer != null)
+            {
+                _otherPlayer.Vida.OnValueChanged -= OnVidaSecundarioChanged;
+            }
+
+            _localPlayer = null;
+            _otherPlayer = null;
+            _jugadorConEnergiaInicializado = null;
         }
 
         private void LateUpdate()
@@ -149,10 +187,9 @@ namespace TDOM.Unity
             if (!_hudVisible)
                 return;
 
-            // Si no tenemos referencia al jugador local, lo buscamos en la escena
             if (_localPlayer == null)
             {
-                BuscarJugadorLocal();
+                BuscarJugadores();
                 if (_localPlayer == null)
                     return;
             }
@@ -210,44 +247,135 @@ namespace TDOM.Unity
             }
         }
 
-        private void BuscarJugadorLocal()
+        private void BuscarJugadores()
         {
-            var players = FindObjectsByType<PlayerRoot>(FindObjectsSortMode.None);
-            foreach (var p in players)
+            var manager = NetworkManager.Singleton;
+            if (manager == null || !manager.IsClient || manager.SpawnManager == null)
+                return;
+
+            if (_localPlayer == null && manager.LocalClient != null)
             {
-                if (p != null && p.IsOwner)
+                foreach (var objeto in manager.LocalClient.OwnedObjects)
                 {
-                    _localPlayer = p;
-                    _localPlayer.DashEmbestidaIniciada += ActualizarCooldowns;
-                    ActualizarIconosPersonajes();
-                    if (_crosshairRect == null && crosshairImage != null)
+                    if (
+                        objeto != null
+                        && objeto.IsSpawned
+                        && objeto.TryGetComponent(out PlayerRoot player)
+                    )
                     {
-                        _crosshairRect = crosshairImage.rectTransform;
-                        _escalaBase = _crosshairRect.localScale;
+                        ConectarJugadorLocal(player);
+                        break;
                     }
-                    break;
                 }
+            }
+
+            if (_otherPlayer != null)
+                return;
+
+            foreach (var objeto in manager.SpawnManager.SpawnedObjectsList)
+            {
+                if (
+                    objeto != null
+                    && objeto.IsSpawned
+                    && !objeto.IsOwner
+                    && objeto.TryGetComponent(out PlayerRoot player)
+                )
+                {
+                    ConectarJugadorSecundario(player);
+                    return;
+                }
+            }
+        }
+
+        private void ConectarJugadorLocal(PlayerRoot player)
+        {
+            _localPlayer = player;
+            _localPlayer.DashEmbestidaIniciada += ActualizarCooldowns;
+            _localPlayer.Vida.OnValueChanged += OnVidaLocalChanged;
+
+            if (mainPlayerHealthSlider != null)
+            {
+                mainPlayerHealthSlider.minValue = 0f;
+                mainPlayerHealthSlider.maxValue = _localPlayer.VidaMaxima;
+                mainPlayerHealthSlider.value = Mathf.Clamp(
+                    _localPlayer.Vida.Value,
+                    0f,
+                    _localPlayer.VidaMaxima
+                );
+            }
+
+            ActualizarIconosPersonajes();
+
+            if (_crosshairRect == null && crosshairImage != null)
+            {
+                _crosshairRect = crosshairImage.rectTransform;
+                _escalaBase = _crosshairRect.localScale;
+            }
+        }
+
+        private void ConectarJugadorSecundario(PlayerRoot player)
+        {
+            _otherPlayer = player;
+            _otherPlayer.Vida.OnValueChanged += OnVidaSecundarioChanged;
+
+            if (secondaryPlayerHealthSlider != null)
+            {
+                secondaryPlayerHealthSlider.minValue = 0f;
+                secondaryPlayerHealthSlider.maxValue = _otherPlayer.VidaMaxima;
+                secondaryPlayerHealthSlider.value = Mathf.Clamp(
+                    _otherPlayer.Vida.Value,
+                    0f,
+                    _otherPlayer.VidaMaxima
+                );
+            }
+
+            ActualizarIconosPersonajes();
+        }
+
+        private void OnVidaLocalChanged(float anterior, float actual)
+        {
+            if (mainPlayerHealthSlider != null && _localPlayer != null)
+            {
+                mainPlayerHealthSlider.value = Mathf.Clamp(actual, 0f, _localPlayer.VidaMaxima);
+            }
+        }
+
+        private void OnVidaSecundarioChanged(float anterior, float actual)
+        {
+            if (secondaryPlayerHealthSlider != null && _otherPlayer != null)
+            {
+                secondaryPlayerHealthSlider.value = Mathf.Clamp(
+                    actual,
+                    0f,
+                    _otherPlayer.VidaMaxima
+                );
             }
         }
 
         private void ActualizarIconosPersonajes()
         {
-            if (_localPlayer == null)
-                return;
-
-            if (_localPlayer.CharacterId == CharacterIds.Ayla)
+            if (_localPlayer != null)
             {
-                if (mainPlayerIcon != null)
-                    mainPlayerIcon.sprite = aylaIcon;
-                if (secondaryPlayerIcon != null)
-                    secondaryPlayerIcon.sprite = zendreIcon;
+                if (_localPlayer.CharacterId == CharacterIds.Ayla)
+                {
+                    if (mainPlayerIcon != null)
+                        mainPlayerIcon.sprite = aylaIcon;
+                    if (secondaryPlayerIcon != null && _otherPlayer == null)
+                        secondaryPlayerIcon.sprite = zendreIcon;
+                }
+                else if (_localPlayer.CharacterId == CharacterIds.Zendre)
+                {
+                    if (mainPlayerIcon != null)
+                        mainPlayerIcon.sprite = zendreIcon;
+                    if (secondaryPlayerIcon != null && _otherPlayer == null)
+                        secondaryPlayerIcon.sprite = aylaIcon;
+                }
             }
-            else if (_localPlayer.CharacterId == CharacterIds.Zendre)
+
+            if (_otherPlayer != null && secondaryPlayerIcon != null)
             {
-                if (mainPlayerIcon != null)
-                    mainPlayerIcon.sprite = zendreIcon;
-                if (secondaryPlayerIcon != null)
-                    secondaryPlayerIcon.sprite = aylaIcon;
+                secondaryPlayerIcon.sprite =
+                    _otherPlayer.CharacterId == CharacterIds.Ayla ? aylaIcon : zendreIcon;
             }
         }
 

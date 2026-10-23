@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TDOM.Data;
 using TDOM.Gameplay.Combat;
+using TDOM.Gameplay.Core;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
@@ -315,16 +316,19 @@ namespace TDOM.Unity
 
                 foreach (var colisionador in dentro)
                 {
-                    var jugador = colisionador.GetComponentInParent<PlayerRoot>();
-                    if (jugador == null)
+                    var damageable = colisionador.GetComponentInParent<IDamageable>();
+                    if (damageable == null)
                         continue;
 
-                    ulong id = jugador.OwnerClientId;
+                    var netObj = colisionador.GetComponentInParent<NetworkObject>();
+                    ulong id = netObj != null ? netObj.OwnerClientId : 0;
                     if (!_golpeados.Add(id))
-                        continue; // cada jugador solo una vez por ataque, aunque esté en dos círculos
+                        continue;
 
                     Debug.Log($"[AREK][Mortero] golpeó a cliente {id}");
-                    JugadorGolpeadoRpc(RpcTarget.Single(id, RpcTargetUse.Temp));
+                    damageable.RecibirDanio(_perfil.Dano, _perfil.EsInstaKill);
+                    if (netObj != null)
+                        JugadorGolpeadoRpc(RpcTarget.Single(id, RpcTargetUse.Temp));
                 }
             }
         }
