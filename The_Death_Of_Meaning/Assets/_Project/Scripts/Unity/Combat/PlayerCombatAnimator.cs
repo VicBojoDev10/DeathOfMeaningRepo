@@ -15,7 +15,6 @@ namespace TDOM.Unity.Combat
         private static readonly int GirosHash = Animator.StringToHash("1iCargado");
         private static readonly int VelocidadGirosHash = Animator.StringToHash("VelocidadGiros");
 
-        private static readonly int LocomotionShortHash = Animator.StringToHash("Locomotion");
         private static readonly int IsAimingHash = Animator.StringToHash("IsAiming");
         private static readonly int LocomotionFullPathHash = Animator.StringToHash(
             "Base Layer.Locomotion"
@@ -138,12 +137,6 @@ namespace TDOM.Unity.Combat
         public bool CargaEnCurso { get; set; }
 
         public bool AlternarAtaqueBasico => _alternarAtaqueBasico;
-
-        /// <summary>
-        /// La secuencia de giros esta en marcha, en pose de carga o a punto de arrancar. Si la
-        /// maquina espera el fin de los giros y esto es falso, nadie va a avisarle.
-        /// </summary>
-        public bool GirosEnProceso => _secuenciaActiva || _poseCarga || (_hasPendingCombo && _pendingGiros);
 
         /// <summary>Un impacto de la secuencia de giros: (indice, esElTramoFinal).</summary>
         public event Action<int, bool> ImpactoGiros;
@@ -589,39 +582,6 @@ namespace TDOM.Unity.Combat
         public bool AtaqueAnimandose =>
             _animator != null
             && (_hasPendingCombo || _secuenciaActiva || _poseCarga || EnEstadoAtaque());
-
-        /// <summary>Resumen del estado interno para los avisos de depuracion.</summary>
-        public string EstadoDebug()
-        {
-            if (_animator == null || _animator.layerCount == 0)
-                return "sin animator";
-
-            AnimatorStateInfo actual = _animator.GetCurrentAnimatorStateInfo(0);
-            string siguiente = _animator.IsInTransition(0)
-                ? NombreEstado(_animator.GetNextAnimatorStateInfo(0).shortNameHash)
-                : "-";
-            return $"estado={NombreEstado(actual.shortNameHash)}({actual.normalizedTime:F2}) "
-                + $"siguiente={siguiente} segmento={_segmentoActivo} secuencia={_secuenciaActiva} "
-                + $"pose={_poseCarga} pendiente={_hasPendingCombo} cargaEnCurso={CargaEnCurso} "
-                + $"velocidadAnimator={_animator.speed:F2}";
-        }
-
-        private static string NombreEstado(int hash)
-        {
-            if (hash == AttackHash)
-                return "Attack";
-            if (hash == LightTwoHash)
-                return "1i";
-            if (hash == LightThreeHash)
-                return "2IC";
-            if (hash == ChargedHash)
-                return "Charged";
-            if (hash == GirosHash)
-                return "1iCargado";
-            if (hash == LocomotionShortHash)
-                return "Locomotion";
-            return hash.ToString();
-        }
 
         private bool EnEstadoAtaque()
         {

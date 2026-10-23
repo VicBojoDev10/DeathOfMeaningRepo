@@ -107,7 +107,8 @@ namespace TDOM.Gameplay.Locomotion
             float dt,
             bool blockMove = false,
             Vector3 posicion = default,
-            bool modoPistola = false
+            bool modoPistola = false,
+            float multiplicadorAtaque = 1f
         )
         {
             DashIniciado = false;
@@ -124,7 +125,15 @@ namespace TDOM.Gameplay.Locomotion
             if (State.IsGrounded && State.Velocity.y <= 0f)
                 SaltoEnCurso = false;
 
-            var intent = TickInterno(input, yaw, dt, blockMove, posicion, modoPistola);
+            var intent = TickInterno(
+                input,
+                yaw,
+                dt,
+                blockMove,
+                posicion,
+                modoPistola,
+                multiplicadorAtaque
+            );
 
             CayendoEnSalto = SaltoEnCurso && State.Velocity.y <= 0f;
 
@@ -140,7 +149,8 @@ namespace TDOM.Gameplay.Locomotion
             float dt,
             bool blockMove,
             Vector3 posicion,
-            bool modoPistola
+            bool modoPistola,
+            float multiplicadorAtaque
         )
         {
             ActualizarCarrera(input, modoPistola);
@@ -202,9 +212,9 @@ namespace TDOM.Gameplay.Locomotion
                     State,
                     input.Move,
                     yaw,
-                    _run.Corriendo,
+                    _run.Corriendo && multiplicadorAtaque >= 1f,
                     dt,
-                    MultiplicadorDeVelocidad(modoPistola)
+                    MultiplicadorDeVelocidad(modoPistola) * multiplicadorAtaque
                 );
             }
             else

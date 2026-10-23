@@ -54,6 +54,15 @@ namespace TDOM.Unity.Combat
         [Tooltip("Daño del impacto del tramo final, como fraccion del daño del cargado.")]
         private float _factorDanioFinal = 0.8f;
 
+        [Header("Movimiento durante el combo")]
+        [SerializeField, Range(0f, 1f)]
+        [Tooltip(
+            "Fraccion de la velocidad normal con la que se puede caminar mientras se hace el "
+                + "combo de golpes ligeros (0 = el combo bloquea el movimiento, 1 = sin "
+                + "penalizacion)."
+        )]
+        private float _velocidadEnCombo;
+
         [Header("Empujon al conectar un golpe de combo")]
         [SerializeField, Min(0f)]
         [Tooltip("Metros que avanza el personaje hacia el frente al conectar un golpe de combo.")]
@@ -66,6 +75,13 @@ namespace TDOM.Unity.Combat
         [SerializeField, Min(0.02f)]
         [Tooltip("Segundos que dura el empujon.")]
         private float _empujeDuracion = 0.16f;
+
+        [SerializeField]
+        [Tooltip(
+            "Si esta activo el empujon sale en cada golpe de combo, aunque no toque a nadie. "
+                + "Apagado = solo cuando el golpe conecta."
+        )]
+        private bool _empujarSinImpacto;
 
         [Header("Carga del cargado")]
         [SerializeField, Min(0f)]
@@ -93,9 +109,6 @@ namespace TDOM.Unity.Combat
         private bool _poseGirosActiva;
         private AttackEvent _eventoGiros;
         private Coroutine _golpeDiferido;
-        private float _tiempoGirosHuerfano;
-        private ComboPhase _faseVigilada;
-        private float _tiempoEnFase;
 
         /// <summary>
         /// Energia que costara el cargado que se esta preparando (0 si no se esta cargando).
@@ -133,9 +146,20 @@ namespace TDOM.Unity.Combat
         public GameObject ProyectilPrefab => _proyectilPrefab;
         public Transform OrigenDisparo => _origenDisparo;
 
-        public bool BloqueaMovimiento => _melee?.BloqueaMovimiento ?? false;
-        public bool DisparoActivo => _disparo?.BloqueaMovimiento ?? false;
-        public bool AtaqueActivo => BloqueaMovimiento || DisparoActivo;
+        /// <summary>Movimiento bloqueado del todo (carga, cargado, giros).</summary>
+        public bool BloqueaMovimiento => _melee != null && _melee.AtaqueEnCurso && !MovimientoLimitado;
+
+        /// <summary>
+        /// Combo de golpes ligeros en curso con permiso para caminar mas lento. Con la
+        /// velocidad en 0 no hay permiso y el combo bloquea el movimiento como siempre.
+        /// </summary>
+        public bool MovimientoLimitado =>
+            _velocidadEnCombo > 0f && _melee != null && _melee.PermiteMovimientoLento;
+
+        public float MultiplicadorVelocidadAtaque => MovimientoLimitado ? _velocidadEnCombo : 1f;
+
+        public bool DisparoActivo => _disparo?.AtaqueEnCurso ?? false;
+        public bool AtaqueActivo => (_melee?.AtaqueEnCurso ?? false) || DisparoActivo;
 
         public bool PuedeCancelarConDash =>
             IsOwner
@@ -278,8 +302,6 @@ namespace TDOM.Unity.Combat
                 if (evento.HasValue)
                     EjecutarGolpe(evento.Value);
                 ActualizarPoseCarga();
-                VigilarGirosHuerfanos(dt);
-                VigilarFaseAtascada(dt);
             }
 
             if (_disparo != null && !meleeActivo)
@@ -300,69 +322,6 @@ namespace TDOM.Unity.Combat
                     _vfx?.Carga(visible);
                     CargaRpc(visible);
                 }
-            }
-        }
-
-        // La maquina retiene el cargado hasta que la animacion avisa que los giros terminaron.
-        // Si la animacion ya no tiene giros en marcha (se corto o nunca arranco), nadie avisaria
-        // y el personaje se quedaria bloqueado: aqui se libera.
-        private void VigilarGirosHuerfanos(float dt)
-        {
-            bool huerfano =
-                _melee.CargadoRetenido
-                && _combatAnimator != null
-                && !_combatAnimator.GirosEnProceso;
-            if (!huerfano)
-            {
-                _tiempoGirosHuerfano = 0f;
-                return;
-            }
-
-            _tiempoGirosHuerfano += dt;
-            if (_tiempoGirosHuerfano < 0.3f)
-                return;
-
-            _tiempoGirosHuerfano = 0f;
-            Debug.LogWarning(
-                $"[Combo][{NombrePersonaje}] giros huerfanos: la animacion no tenia giros en "
-                    + "marcha y la maquina seguia esperandolos. Se libera el bloqueo."
-            );
-            _girosEnCurso = false;
-            _melee.TerminarCargado();
-            _combatAnimator.CancelarAtaque(false);
-        }
-
-        // Ninguna fase del combo dura segundos: si una se queda ahi, algo no aviso y el personaje
-        // seguiria bloqueado (dash y salto lo cancelan). Se libera y se escribe el estado.
-        private void VigilarFaseAtascada(float dt)
-        {
-            ComboPhase fase = _melee.Fase;
-            if (fase != _faseVigilada || fase == ComboPhase.Idle)
-            {
-                _faseVigilada = fase;
-                _tiempoEnFase = 0f;
-                return;
-            }
-
-            _tiempoEnFase += dt;
-            float limite = _melee.CargadoRetenido ? 8f : 3f;
-            if (_tiempoEnFase < limite)
-                return;
-
-            _tiempoEnFase = 0f;
-            Debug.LogWarning(
-                $"[Combo][{NombrePersonaje}] fase atascada {fase} por mas de {limite:F0}s "
-                    + $"(retenido={_melee.CargadoRetenido}, ligeros={_melee.LigerosEnCombo}, "
-                    + $"girosEnCurso={_girosEnCurso}). "
-                    + (_combatAnimator != null ? _combatAnimator.EstadoDebug() : "sin animator")
-                    + ". Se cancela el ataque."
-            );
-            _girosEnCurso = false;
-            _melee.Cancelar();
-            if (_combatAnimator != null)
-            {
-                _combatAnimator.CargaEnCurso = false;
-                _combatAnimator.CancelarAtaque(false);
             }
         }
 
@@ -592,19 +551,38 @@ namespace TDOM.Unity.Combat
                     }
                 }
             }
+            // Solo los golpes que forman parte de un combo (ligeros y el cargado que sale de
+            // uno) dan el zoom y el empujon.
+            bool esDeCombo = evento.Kind == AttackKind.Light || ligeros > 0;
+
             if (!huboImpacto)
+            {
+                if (_logCombo && esDeCombo)
+                    Debug.Log(
+                        $"[Combo][{NombrePersonaje}] el golpe no toco a nadie (radio {_radioHitbox}, "
+                            + $"alcance {_alcanceHitbox}): sin zoom"
+                            + (_empujarSinImpacto ? "" : " ni empujon")
+                    );
+                if (esDeCombo && _empujarSinImpacto && _root != null)
+                    _root.EmpujarPorCombo(_empujeAdelante, _empujeArriba, _empujeDuracion);
                 return;
+            }
 
             if (_feedback != null)
             {
                 _feedback.OnAtaquePropio();
-                // Solo los golpes que forman parte de un combo (ligeros y el cargado que sale
-                // de uno) dan el zoom y el empujon.
-                if (evento.Kind == AttackKind.Light || ligeros > 0)
+                if (esDeCombo)
                     _feedback.OnComboConectado();
             }
-            if ((evento.Kind == AttackKind.Light || ligeros > 0) && _root != null)
+            if (esDeCombo && _root != null)
+            {
+                if (_logCombo)
+                    Debug.Log(
+                        $"[Combo][{NombrePersonaje}] golpe conectado: empujon "
+                            + $"{_empujeAdelante}m adelante, {_empujeArriba}m arriba"
+                    );
                 _root.EmpujarPorCombo(_empujeAdelante, _empujeArriba, _empujeDuracion);
+            }
         }
 
         private void AlImpactoGiro(int indice, bool esFinal)

@@ -159,6 +159,47 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
+        public void Un_cargado_normal_no_deja_moverse_hasta_que_acaba_su_animacion()
+        {
+            animando = true;
+            TerminarCargadoMantenido();
+            Assert.IsTrue(combo.BloqueaMovimiento, "la animacion sigue: no se puede mover");
+
+            combo.Tick(Neutral, 0.05f);
+            Assert.IsTrue(combo.BloqueaMovimiento);
+
+            animando = false;
+            combo.Tick(Neutral, 0.05f);
+            Assert.IsFalse(combo.BloqueaMovimiento);
+        }
+
+        [Test]
+        public void Cancelar_libera_el_movimiento_del_cargado()
+        {
+            animando = true;
+            TerminarCargadoMantenido();
+            Assert.IsTrue(combo.BloqueaMovimiento);
+
+            combo.Cancelar();
+
+            Assert.IsFalse(combo.BloqueaMovimiento);
+        }
+
+        [Test]
+        public void Tras_un_combo_completo_el_movimiento_no_se_bloquea()
+        {
+            animando = true;
+            var tap = new InputSnapshot { AttackPressed = true };
+            combo.Tick(tap, 0.12f); // ligero 0
+            combo.Tick(tap, 0.12f); // ligero 1 (ultimo)
+            combo.Tick(Neutral, 1f); // el combo termina
+
+            Assert.AreEqual(ComboPhase.Idle, combo.Fase);
+            Assert.IsTrue(combo.EsperandoAnimacionFinal);
+            Assert.IsFalse(combo.BloqueaMovimiento);
+        }
+
+        [Test]
         public void Sin_hook_el_comportamiento_no_cambia()
         {
             combo.EsperarAnimacionFinal = null;

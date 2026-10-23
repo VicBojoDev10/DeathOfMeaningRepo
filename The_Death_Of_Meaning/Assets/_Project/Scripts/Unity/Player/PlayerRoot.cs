@@ -112,9 +112,14 @@ namespace TDOM.Unity.Player
         private bool _originResetLogged;
         private Vector3 _initialSpawnPosition;
         private Vector3 _lastObservedPosition;
-        public bool AtaqueActivo => MovimientoBloqueado || ModoPistola;
+        public bool AtaqueActivo =>
+            MovimientoBloqueado || ModoPistola || (_combat != null && _combat.AtaqueActivo);
         private bool ModoPistola => _combat != null && _combat.DisparoActivo;
         private bool PuedeApuntar => _definition != null && _definition.Ranged != null;
+        // En el aire el combo congela la caida: solo en tierra deja caminar.
+        private bool BloqueoPorAtaqueAereo =>
+            _combat != null && _combat.MovimientoLimitado && !_locomocion.State.IsGrounded;
+
         private bool MovimientoBloqueado =>
             (_combat != null && _combat.BloqueaMovimiento)
             || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
@@ -604,9 +609,10 @@ namespace TDOM.Unity.Player
                     input,
                     _look.YawRotation,
                     dt,
-                    MovimientoBloqueado,
+                    MovimientoBloqueado || BloqueoPorAtaqueAereo,
                     transform.position,
-                    ModoPistola
+                    ModoPistola,
+                    _combat != null ? _combat.MultiplicadorVelocidadAtaque : 1f
                 );
             if (_aylaAnimator != null)
                 _aylaAnimator.SetSprintState(_locomocion.Corriendo);
@@ -625,7 +631,12 @@ namespace TDOM.Unity.Player
                 intent = new MotionIntent(Vector3.zero, ignoreGravity: true);
             }
             _motor.Apply(intent, dt);
-            _facing.Tick(_locomocion.State.Velocity, _look.Yaw, apuntando || ModoPistola, dt);
+            _facing.Tick(
+                _locomocion.State.Velocity,
+                _look.Yaw,
+                apuntando || ModoPistola || (_combat != null && _combat.MovimientoLimitado),
+                dt
+            );
             transform.rotation = _facing.Rotacion;
             AplicarMiradaACamara();
 

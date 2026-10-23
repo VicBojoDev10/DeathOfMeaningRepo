@@ -24,6 +24,7 @@ namespace TDOM.Gameplay.Combat
         private bool _cargadoRetenido;
         private int _ligerosEnCombo;
         private bool _esperandoFinal;
+        private bool _esperaBloqueaMovimiento;
         private float _esperaFinalRestante;
         public bool EnCooldown => _cooldown > 0f;
         public bool CargaVisible => _fase == ComboPhase.Charging && _tiempoDeCarga >= _umbralHold;
@@ -79,7 +80,28 @@ namespace TDOM.Gameplay.Combat
 
         /// <summary>Golpes ligeros ejecutados en el combo en curso (0 si no hay).</summary>
         public int LigerosEnCombo => _ligerosEnCombo;
-        public bool BloqueaMovimiento => _fase != ComboPhase.Idle;
+
+        /// <summary>
+        /// Hay un ataque en curso: una fase del combo o, tras un ataque cargado normal, su
+        /// animacion terminando.
+        /// </summary>
+        public bool AtaqueEnCurso =>
+            _fase != ComboPhase.Idle || (_esperandoFinal && _esperaBloqueaMovimiento);
+
+        /// <summary>
+        /// Los golpes ligeros del combo dejan moverse (mas lento). Carga, cargado, giros y la
+        /// animacion final de un cargado no.
+        /// </summary>
+        public bool PermiteMovimientoLento =>
+            !_cargadoRetenido
+            && (
+                _fase == ComboPhase.Windup
+                || _fase == ComboPhase.Swing
+                || _fase == ComboPhase.ComboWindow
+            );
+
+        /// <summary>El movimiento esta bloqueado del todo (hay ataque y no es de los que dejan moverse).</summary>
+        public bool BloqueaMovimiento => AtaqueEnCurso && !PermiteMovimientoLento;
 
         private AttackEvent? _ultimoEvento;
 
@@ -107,6 +129,7 @@ namespace TDOM.Gameplay.Combat
                     return null;
                 }
                 _esperandoFinal = false;
+                _esperaBloqueaMovimiento = false;
             }
 
             Avanzar(input, dt, esBordeDeFrame: true);
@@ -267,6 +290,7 @@ namespace TDOM.Gameplay.Combat
                             _requiereSoltar = true;
                             _cooldown = _cooldownFinCombo;
                             EsperarFinDeAnimacion();
+                            _esperaBloqueaMovimiento = _esperandoFinal;
                         }
                         Avanzar(input, sobranteRecovery, esBordeDeFrame: false);
                     }
@@ -324,6 +348,7 @@ namespace TDOM.Gameplay.Combat
             _cargadoRetenido = false;
             _ligerosEnCombo = 0;
             _esperandoFinal = false;
+            _esperaBloqueaMovimiento = false;
             _buffer.Clear();
         }
 
