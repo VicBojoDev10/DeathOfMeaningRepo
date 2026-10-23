@@ -116,6 +116,7 @@ namespace TDOM.Unity.Player
             MovimientoBloqueado || ModoPistola || (_combat != null && _combat.AtaqueActivo);
         private bool ModoPistola => _combat != null && _combat.DisparoActivo;
         private bool PuedeApuntar => _definition != null && _definition.Ranged != null;
+
         // En el aire el combo congela la caida: solo en tierra deja caminar.
         private bool BloqueoPorAtaqueAereo =>
             _combat != null && _combat.MovimientoLimitado && !_locomocion.State.IsGrounded;
@@ -139,6 +140,7 @@ namespace TDOM.Unity.Player
             bool enElAire = _locomocion != null && !_locomocion.State.IsGrounded;
             _motor.Empujar(transform.forward, adelante, enElAire ? arriba : 0f, duracion);
         }
+
         public float EnergiaMaxima => _definition?.Energy != null ? _definition.Energy.Max : 0f;
         public float VidaMaxima => _definition.MaxHealth;
         public float DuracionAbatido => _definition.DownedDuration;

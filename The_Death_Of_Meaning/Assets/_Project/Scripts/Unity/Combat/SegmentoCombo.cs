@@ -82,8 +82,26 @@ namespace TDOM.Unity.Combat
             return new[]
             {
                 new SegmentoCombo("1 Basico", "Attack", 0f, 0.80f, 0.30f, 0.08f, 0.15f, 0.70f),
-                new SegmentoCombo("2 Corte (1i, 1a parte)", "1i", 0f, 0.55f, 0.30f, 0.08f, 0.12f, 0.86f),
-                new SegmentoCombo("3 Corte (1i, 2a parte)", "1i", 0.50f, 0.85f, 0.60f, 0.08f, 0.15f, 0.86f),
+                new SegmentoCombo(
+                    "2 Corte (1i, 1a parte)",
+                    "1i",
+                    0f,
+                    0.55f,
+                    0.30f,
+                    0.08f,
+                    0.12f,
+                    0.86f
+                ),
+                new SegmentoCombo(
+                    "3 Corte (1i, 2a parte)",
+                    "1i",
+                    0.50f,
+                    0.85f,
+                    0.60f,
+                    0.08f,
+                    0.15f,
+                    0.86f
+                ),
                 new SegmentoCombo("4 Final 1/3", "2IC", 0f, 0.28f, 0.12f, 0.08f, 0.10f, 2.73f),
                 new SegmentoCombo("5 Final 2/3", "2IC", 0.28f, 0.50f, 0.36f, 0.06f, 0.10f, 2.73f),
                 new SegmentoCombo("6 Final 3/3", "2IC", 0.62f, 0.92f, 0.75f, 0.08f, 0.15f, 2.73f),

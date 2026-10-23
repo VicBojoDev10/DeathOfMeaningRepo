@@ -147,7 +147,8 @@ namespace TDOM.Unity.Combat
         public Transform OrigenDisparo => _origenDisparo;
 
         /// <summary>Movimiento bloqueado del todo (carga, cargado, giros).</summary>
-        public bool BloqueaMovimiento => _melee != null && _melee.AtaqueEnCurso && !MovimientoLimitado;
+        public bool BloqueaMovimiento =>
+            _melee != null && _melee.AtaqueEnCurso && !MovimientoLimitado;
 
         /// <summary>
         /// Combo de golpes ligeros en curso con permiso para caminar mas lento. Con la

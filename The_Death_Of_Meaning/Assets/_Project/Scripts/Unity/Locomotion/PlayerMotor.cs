@@ -55,9 +55,12 @@ namespace TDOM.Unity.Locomotion
             float despues = Mathf.Clamp01(_empujeTiempo / _empujeDuracion);
 
             // Avance con salida suave y salto en arco que termina en el punto de partida.
-            float avance = (1f - (1f - despues) * (1f - despues)) - (1f - (1f - antes) * (1f - antes));
+            float avance =
+                (1f - (1f - despues) * (1f - despues)) - (1f - (1f - antes) * (1f - antes));
             float arco = Mathf.Sin(despues * Mathf.PI) - Mathf.Sin(antes * Mathf.PI);
-            Vector3 delta = _empujeDireccion * (_empujeDistancia * avance) + Vector3.up * (_empujeAltura * arco);
+            Vector3 delta =
+                _empujeDireccion * (_empujeDistancia * avance)
+                + Vector3.up * (_empujeAltura * arco);
 
             if (despues >= 1f)
                 _empujeDuracion = 0f;

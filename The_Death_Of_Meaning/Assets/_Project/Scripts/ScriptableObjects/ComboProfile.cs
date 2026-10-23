@@ -8,6 +8,7 @@ namespace TDOM.Data
     {
         public AttackStep[] Steps;
         public AttackStep Charged;
+
         [Tooltip(
             "Segundos con el boton apretado para que cuente como ataque cargado en vez de "
                 + "golpe basico. Mas bajo = responde antes, pero un toque largo ya es cargado."

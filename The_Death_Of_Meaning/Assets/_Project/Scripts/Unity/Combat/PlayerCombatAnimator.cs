@@ -177,8 +177,7 @@ namespace TDOM.Unity.Combat
 
         /// <summary>Si ese cargado es el golpe basico espejeado (ab => ac).</summary>
         public bool UsaEspejoBasico(int ligerosPrevios) =>
-            _segmentosActivos
-            && SalidaCargadaPara(ligerosPrevios) == SalidaCargada.EspejoBasico;
+            _segmentosActivos && SalidaCargadaPara(ligerosPrevios) == SalidaCargada.EspejoBasico;
 
         private void Awake()
         {
@@ -613,10 +612,7 @@ namespace TDOM.Unity.Combat
 
             bool enAtaque = EnEstadoAtaque();
             bool ataqueEnCamino =
-                _hasPendingCombo
-                || _secuenciaActiva
-                || _poseCarga
-                || _animator.GetBool(AttackHash);
+                _hasPendingCombo || _secuenciaActiva || _poseCarga || _animator.GetBool(AttackHash);
 
             if (_espejoActivo && _espejoDeseado)
             {
