@@ -17,17 +17,18 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
-        public void un_tajo_horizontal_mira_hacia_donde_barre_la_punta()
+        public void un_tajo_horizontal_avanza_hacia_el_frente_del_jugador()
         {
             Quaternion rotacion = MarcoTajo.Rotacion(
                 Vector3.zero,
                 Vector3.forward,
                 new Vector3(-1f, 0f, 1f),
+                Vector3.forward,
                 Quaternion.identity
             );
 
             Vector3 adelante = rotacion * Vector3.forward;
-            Assert.AreEqual(1f, adelante.x, Delta);
+            Assert.AreEqual(1f, adelante.z, Delta);
         }
 
         [Test]
@@ -37,11 +38,28 @@ namespace TDOM.Tests.EditMode
                 Vector3.zero,
                 Vector3.forward,
                 new Vector3(-1f, 0f, 1f),
+                Vector3.forward,
                 Quaternion.identity
             );
 
             Vector3 arriba = rotacion * Vector3.up;
             Assert.AreEqual(1f, Mathf.Abs(arriba.y), Delta);
+        }
+
+        [Test]
+        public void un_tajo_vertical_avanza_al_frente_y_no_hacia_arriba()
+        {
+            Quaternion rotacion = MarcoTajo.Rotacion(
+                Vector3.zero,
+                Vector3.up,
+                new Vector3(0f, 1f, -1f),
+                Vector3.forward,
+                Quaternion.identity
+            );
+
+            Vector3 adelante = rotacion * Vector3.forward;
+            Assert.AreEqual(1f, adelante.z, Delta);
+            Assert.AreEqual(0f, adelante.y, Delta);
         }
 
         [Test]
@@ -51,6 +69,7 @@ namespace TDOM.Tests.EditMode
 
             Quaternion rotacion = MarcoTajo.Rotacion(
                 Vector3.zero,
+                Vector3.forward,
                 Vector3.forward,
                 Vector3.forward,
                 respaldo

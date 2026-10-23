@@ -580,6 +580,7 @@ namespace TDOM.Unity.Combat
                 baseHoja,
                 punta,
                 puntaAnterior,
+                transform.forward,
                 transform.rotation
             );
             _vfxRed.Lanzar(
