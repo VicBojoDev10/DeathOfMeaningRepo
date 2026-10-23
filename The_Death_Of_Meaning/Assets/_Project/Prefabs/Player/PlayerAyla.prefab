@@ -311,10 +311,22 @@ MonoBehaviour:
   _feedback: {fileID: 5153227402770802341}
   _debugFeedback: {fileID: 4774187134671701211}
   _vfx: {fileID: 2189285926878354938}
+  _vfxRed: {fileID: 2102127513358069341}
+  _vfxPrimerGolpe: {fileID: 2884108901446239930, guid: 24f306be62a0ff54fb88dc60829ecdbc, type: 3}
+  _origenVfxPrimerGolpe: {fileID: 562586211900250982}
+  _giroVfxPrimerGolpe: {x: 0, y: 0, z: 0}
+  _giroVfxPrimerGolpeEspejo: {x: 0, y: 0, z: 180}
   _logCombo: 1
-  _velocidadEnCombo: 0.4
   _radioHitbox: 1.5
   _alcanceHitbox: 1
+  _factorDanioGiro: 0.4
+  _factorDanioFinal: 0.8
+  _velocidadEnCombo: 0.4
+  _empujeAdelante: 0.45
+  _empujeArriba: 0.18
+  _empujeDuracion: 0.16
+  _factorEmpujeSinImpacto: 0.5
+  _retardoPoseCarga: 0.06
   _proyectilPrefab: {fileID: 0}
   _origenDisparo: {fileID: 0}
   _rangoDisparo: 25
@@ -334,7 +346,65 @@ MonoBehaviour:
   _animator: {fileID: 1136055855002311730}
   _comboTransitionNormalizedTime: 0.3
   _alternarAtaqueBasico: 1
+  _raizEspejo: {fileID: 0}
+  _graciaEspejo: 0.1
   _segmentosActivos: 1
+  _segmentos:
+  - Nombre: 1 Basico
+    Estado: Attack
+    Inicio: 0
+    Fin: 0.8
+    PuntoCombo: 0.3
+    MezclaEntrada: 0.08
+    MezclaSalida: 0.15
+    DuracionClip: 0.7
+  - Nombre: 2 Corte (1i, 1a parte)
+    Estado: 1i
+    Inicio: 0
+    Fin: 0.55
+    PuntoCombo: 0.3
+    MezclaEntrada: 0.08
+    MezclaSalida: 0.12
+    DuracionClip: 0.86
+  - Nombre: 3 Corte (1i, 2a parte)
+    Estado: 1i
+    Inicio: 0.5
+    Fin: 0.85
+    PuntoCombo: 0.6
+    MezclaEntrada: 0.08
+    MezclaSalida: 0.15
+    DuracionClip: 0.86
+  - Nombre: 4 Final 1/3
+    Estado: 2IC
+    Inicio: 0
+    Fin: 0.28
+    PuntoCombo: 0.12
+    MezclaEntrada: 0.08
+    MezclaSalida: 0.1
+    DuracionClip: 2.73
+  - Nombre: 5 Final 2/3
+    Estado: 2IC
+    Inicio: 0.28
+    Fin: 0.5
+    PuntoCombo: 0.36
+    MezclaEntrada: 0.06
+    MezclaSalida: 0.1
+    DuracionClip: 2.73
+  - Nombre: 6 Final 3/3
+    Estado: 2IC
+    Inicio: 0.62
+    Fin: 0.92
+    PuntoCombo: 0.75
+    MezclaEntrada: 0.08
+    MezclaSalida: 0.15
+    DuracionClip: 2.73
+  _salidasCargadas:
+  - LigerosPrevios: 1
+    Tipo: 1
+    Retardo: 0.12
+  - LigerosPrevios: 2
+    Tipo: 2
+    Retardo: 0
   _girosActivos: 1
   _velocidadGiros: 2.24
   _tiempoMaximoGiros: 6
@@ -801,6 +871,10 @@ PrefabInstance:
       propertyPath: GlobalObjectIdHash
       value: 1225402276
       objectReference: {fileID: 0}
+    - target: {fileID: 4390489414399948762, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
+      propertyPath: AvoidObstacles.CollisionFilter.m_Bits
+      value: 83
+      objectReference: {fileID: 0}
     - target: {fileID: 4924432279636797483, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.321877
@@ -1029,7 +1103,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.AylaEspada
   _animator: {fileID: 1136055855002311730}
-  _espadaPrefab: {fileID: 919132149155446097, guid: 37219bc8d012be148b8c8545aea22f34, type: 3}
+  _espadaPrefab: {fileID: 8714448124305349910, guid: 7e57fa3b505144849abb5bf2dfa66ed2, type: 3}
   _huesoHumanoide: 18
   _nombreHuesoRespaldo: DEF-hand.R
   _posicion: {x: 0, y: 0, z: 0}
@@ -1106,6 +1180,14 @@ PrefabInstance:
     - target: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6941943588414883099, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: _colorPorIndice.Array.data[0].b
+      value: 0.24
+      objectReference: {fileID: 0}
+    - target: {fileID: 6941943588414883099, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: _colorPorIndice.Array.data[0].g
+      value: 0.78
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
