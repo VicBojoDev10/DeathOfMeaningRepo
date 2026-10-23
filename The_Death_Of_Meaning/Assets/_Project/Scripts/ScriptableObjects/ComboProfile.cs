@@ -11,5 +11,8 @@ namespace TDOM.Data
         public float HoldThreshold,
             MaxChargeTime,
             BufferWindow;
+
+        [Tooltip("Segundos tras completar el combo en los que se ignora todo input de ataque.")]
+        public float CooldownFinCombo = 0.3f;
     }
 }

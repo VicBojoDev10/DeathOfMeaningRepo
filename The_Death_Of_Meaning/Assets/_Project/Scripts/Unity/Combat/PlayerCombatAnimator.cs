@@ -10,6 +10,13 @@ namespace TDOM.Unity.Combat
         private static readonly int LightTwoHash = Animator.StringToHash("1i");
         private static readonly int LightThreeHash = Animator.StringToHash("2IC");
 
+        private static readonly int IsAimingHash = Animator.StringToHash("IsAiming");
+        private static readonly int LocomotionFullPathHash = Animator.StringToHash(
+            "Base Layer.Locomotion"
+        );
+        private static readonly int JumpFullPathHash = Animator.StringToHash("Base Layer.Jump");
+        private static readonly int AimFullPathHash = Animator.StringToHash("Base Layer.AimState");
+
         private static readonly int ShootHash = Animator.StringToHash("Shoot");
         private static readonly int ShootFullPathHash = Animator.StringToHash("Base Layer.Shoot");
 
@@ -18,7 +25,7 @@ namespace TDOM.Unity.Combat
 
         [SerializeField, Range(0f, 1f)]
         [Tooltip("Punto del clip actual en el que puede entrar el siguiente golpe del combo.")]
-        private float _comboTransitionNormalizedTime = 0.65f;
+        private float _comboTransitionNormalizedTime = 0.4f;
 
         private bool _hasPendingCombo;
         private int _pendingComboIndex;
@@ -89,6 +96,39 @@ namespace TDOM.Unity.Combat
             _animator.SetBool(ChargedHash, charged);
             _animator.ResetTrigger(AttackHash);
             _animator.SetTrigger(AttackHash);
+        }
+
+        /// <summary>Corta el ataque en curso (dash) y vuelve a Locomotion/Aim.</summary>
+        public void CancelarAtaque(bool haciaSalto = false)
+        {
+            if (_animator == null)
+                return;
+
+            _hasPendingCombo = false;
+            _animator.ResetTrigger(AttackHash);
+            _animator.SetInteger(ComboIndexHash, 0);
+            _animator.SetBool(ChargedHash, false);
+
+            if (_animator.layerCount == 0)
+                return;
+
+            AnimatorStateInfo state = _animator.GetCurrentAnimatorStateInfo(0);
+            bool enAtaque =
+                EsEstadoAtaque(state.shortNameHash)
+                || (
+                    _animator.IsInTransition(0)
+                    && EsEstadoAtaque(_animator.GetNextAnimatorStateInfo(0).shortNameHash)
+                );
+            if (!enAtaque)
+                return;
+
+            int destino = haciaSalto
+                ? JumpFullPathHash
+                : (_animator.GetBool(IsAimingHash) ? AimFullPathHash : LocomotionFullPathHash);
+            if (_animator.HasState(0, destino))
+                _animator.CrossFadeInFixedTime(destino, 0.08f, 0);
+            else if (haciaSalto && _animator.HasState(0, LocomotionFullPathHash))
+                _animator.CrossFadeInFixedTime(LocomotionFullPathHash, 0.08f, 0);
         }
 
         public void PlayShot(int comboIndex, bool charged)

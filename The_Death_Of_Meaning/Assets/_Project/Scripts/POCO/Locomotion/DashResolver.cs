@@ -44,6 +44,8 @@ namespace TDOM.Gameplay
             }
         }
 
+        public bool Disponible => !Activo && _cooldown.Listo;
+
         public bool TryIniciar(Vector3 direccion)
         {
             if (Activo || !_cooldown.Listo)
