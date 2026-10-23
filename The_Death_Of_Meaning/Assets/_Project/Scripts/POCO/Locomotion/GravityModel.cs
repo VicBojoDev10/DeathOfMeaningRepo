@@ -16,16 +16,21 @@ namespace TDOM.Gameplay
             _multiplicadorSaltoCorto = multiplicadorSaltoCorto;
         }
 
-        public void Aplicar(LocomotionState estado, InputSnapshot input, float dt)
+        public void Aplicar(
+            LocomotionState estado,
+            InputSnapshot input,
+            float dt,
+            float escala = 1f
+        )
         {
             if (estado.IsGrounded && estado.Velocity.y < 0f)
             {
-                estado.Velocity.y += _gravedad * dt;
+                estado.Velocity.y += _gravedad * escala * dt;
                 estado.Velocity.y = Mathf.Max(estado.Velocity.y, _velocidadTerminal);
                 return;
             }
 
-            float g = _gravedad;
+            float g = _gravedad * escala;
             if (estado.Velocity.y > 0f && !input.JumpHeld)
             {
                 g *= _multiplicadorSaltoCorto;

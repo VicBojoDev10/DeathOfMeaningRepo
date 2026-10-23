@@ -13,6 +13,7 @@ namespace TDOM.Gameplay.Locomotion
         private readonly DashResolver _dash;
         private readonly GrappleResolver _grapple;
         private readonly float _multiplicadorVelocidadPistola;
+        private readonly InputSnapshot _inputSinControl = new InputSnapshot();
 
         private const float VelocidadCompleta = 1f;
 
@@ -31,6 +32,9 @@ namespace TDOM.Gameplay.Locomotion
         public bool Corriendo => _run != null && _run.Corriendo;
         public bool GanchoActivo => _grapple != null && _grapple.Activo;
         public Vector3 PuntoGancho => _grapple != null ? _grapple.Punto : Vector3.zero;
+        private float _escalaGravedadAtaqueAereo = 1f;
+        public bool SaltoDisponible => _jump != null && _jump.PuedeSaltar(State);
+        public bool DashDisponible => _dash != null && _dash.Disponible;
         public float CooldownDashNormalizado => _dash != null ? _dash.CooldownNormalizado : 0f;
         public float CooldownGanchoNormalizado =>
             _grapple != null ? _grapple.CooldownNormalizado : 0f;
@@ -67,6 +71,7 @@ namespace TDOM.Gameplay.Locomotion
                 m.AirControl
             );
             _run = new SprintResolver();
+            _escalaGravedadAtaqueAereo = m.AirAttackGravityScale;
             _dash = new DashResolver(definition.Dash);
             _grapple = definition.Grapple != null ? new GrappleResolver(definition.Grapple) : null;
             _multiplicadorVelocidadPistola = m.ShootingSpeedMultiplier;
@@ -175,6 +180,7 @@ namespace TDOM.Gameplay.Locomotion
             if (_dash.Activo)
                 return new MotionIntent(State.Velocity, ignoreGravity: true);
 
+            float escalaGravedad = 1f;
             if (!blockMove)
             {
                 if (
@@ -203,11 +209,21 @@ namespace TDOM.Gameplay.Locomotion
             }
             else
             {
+                bool yaAtacando = State.Phase == LocomotionPhase.Attacking;
                 State.Phase = LocomotionPhase.Attacking;
                 _ground.Tick(State, Vector2.zero, yaw, false, dt);
+
+                // Ataque en el aire: al empezar se congela la caída/subida y luego
+                // la gravedad actúa muy reducida mientras dure el combo.
+                if (!State.IsGrounded)
+                {
+                    if (!yaAtacando)
+                        State.Velocity.y = 0f;
+                    escalaGravedad = _escalaGravedadAtaqueAereo;
+                }
             }
 
-            _gravity.Aplicar(State, input, dt);
+            _gravity.Aplicar(State, input, dt, escalaGravedad);
 
             return new MotionIntent(State.Velocity, ignoreGravity: false);
         }
@@ -221,6 +237,19 @@ namespace TDOM.Gameplay.Locomotion
             }
 
             _run.Tick(input);
+        }
+
+        public MotionIntent TickIncapacitado(float dt)
+        {
+            _dash?.Cancelar();
+            _grapple?.Cancelar();
+            _run.Corriendo = false;
+            State.Velocity = new Vector3(0f, Mathf.Min(0f, State.Velocity.y), 0f);
+            State.BufferTimer = 0f;
+            State.CoyoteTimer = 0f;
+            State.Phase = State.IsGrounded ? LocomotionPhase.Grounded : LocomotionPhase.Airborne;
+            SaltoEnCurso = false;
+            return Tick(_inputSinControl, Quaternion.identity, dt);
         }
 
         public void Reiniciar()

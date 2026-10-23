@@ -5,7 +5,6 @@ using TDOM.Gameplay.Core;
 using TDOM.Unity;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Player;
-using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -56,13 +55,21 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private float _radioDisparo = 0.5f;
+        private bool _cargaVisibleMelee;
+        private bool _incapacitado;
 
-        [Header("Vfx del disparo")]
-        [SerializeField]
-        private VfxRed _vfxRed;
+        public void EstablecerIncapacitado(bool incapacitado)
+        {
+            _incapacitado = incapacitado;
+            if (!incapacitado)
+                return;
 
-        [SerializeField]
-        private VfxBase _vfxDisparo;
+            _melee?.Cancelar();
+            _disparo?.Cancelar();
+            _cargaVisibleMelee = false;
+            _vfx?.Carga(false);
+            _combatAnimator?.CancelarAtaque(false);
+        }
 
         public float RadioHitbox => _radioHitbox;
         public float AlcanceHitbox => _alcanceHitbox;
@@ -74,6 +81,34 @@ namespace TDOM.Unity.Combat
         public bool BloqueaMovimiento => _melee?.BloqueaMovimiento ?? false;
         public bool DisparoActivo => _disparo?.BloqueaMovimiento ?? false;
         public bool AtaqueActivo => BloqueaMovimiento || DisparoActivo;
+
+        public bool PuedeCancelarConDash =>
+            IsOwner && _melee != null && _melee.Fase != ComboPhase.Idle;
+
+        public void CancelarMeleePorDash() => CancelarMelee(false);
+
+        public void CancelarMeleePorSalto() => CancelarMelee(true);
+
+        private void CancelarMelee(bool haciaSalto)
+        {
+            if (!PuedeCancelarConDash)
+                return;
+            if (_logCombo)
+                Debug.Log(
+                    $"[Combo][{NombrePersonaje}] cancelado con {(haciaSalto ? "salto" : "dash")} desde {_melee.Fase}"
+                );
+            _melee.Cancelar();
+            if (_combatAnimator != null)
+                _combatAnimator.CancelarAtaque(haciaSalto);
+            CancelarAtaqueRpc(haciaSalto);
+        }
+
+        [Rpc(SendTo.NotOwner)]
+        private void CancelarAtaqueRpc(bool haciaSalto)
+        {
+            if (_combatAnimator != null)
+                _combatAnimator.CancelarAtaque(haciaSalto);
+        }
 
         private PlayerRoot _root;
 
@@ -94,7 +129,8 @@ namespace TDOM.Unity.Combat
                     _definition.Melee.Charged,
                     _definition.Melee.HoldThreshold,
                     _definition.Melee.MaxChargeTime,
-                    _definition.Melee.BufferWindow
+                    _definition.Melee.BufferWindow,
+                    _definition.Melee.CooldownFinCombo
                 );
             }
 
@@ -127,7 +163,7 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.Server)]
         private void ConsumirEnergiaRpc(float cantidad)
         {
-            if (_root != null)
+            if (!_incapacitado && _root != null)
             {
                 _root.ConsumirEnergiaEnServidor(cantidad);
             }
@@ -140,7 +176,7 @@ namespace TDOM.Unity.Combat
 
         public void Tick(InputSnapshot input, float dt)
         {
-            if (!IsOwner)
+            if (!IsOwner || _incapacitado)
                 return;
             if (_melee == null && _disparo == null)
                 return;
@@ -166,24 +202,23 @@ namespace TDOM.Unity.Combat
             }
 
             ProcesarCambiosDeFase(prevMeleePhase, prevDisparoPhase);
+
+            if (_melee != null)
+            {
+                bool visible = _melee.CargaVisible;
+                if (visible != _cargaVisibleMelee)
+                {
+                    _cargaVisibleMelee = visible;
+                    _vfx?.Carga(visible);
+                    CargaRpc(visible);
+                }
+            }
         }
 
         private void ProcesarCambiosDeFase(ComboPhase prevMeleePhase, ComboPhase prevDisparoPhase)
         {
-            if (_melee != null && _melee.Fase != prevMeleePhase)
-            {
-                if (_logCombo)
-                    Debug.Log($"[Combo][{NombrePersonaje}] {prevMeleePhase} → {_melee.Fase}");
-
-                bool estabaCargando = prevMeleePhase == ComboPhase.Charging;
-                bool estaCargando = _melee.Fase == ComboPhase.Charging;
-                if (estabaCargando != estaCargando)
-                {
-                    if (_vfx != null)
-                        _vfx.Carga(estaCargando);
-                    CargaRpc(estaCargando);
-                }
-            }
+            if (_melee != null && _melee.Fase != prevMeleePhase && _logCombo)
+                Debug.Log($"[Combo][{NombrePersonaje}] {prevMeleePhase} → {_melee.Fase}");
 
             if (_disparo != null && _disparo.Fase != prevDisparoPhase)
             {
@@ -218,16 +253,15 @@ namespace TDOM.Unity.Combat
 
             if (_combatAnimator != null)
                 _combatAnimator.PlayShot(evento.ComboIndex, cargado);
-            ReproducirVfxDisparoLocal(cargado);
+            if (_vfx != null)
+                _vfx.Disparo(cargado);
             _debugFeedback?.FlashActive(0.1f);
             if (_feedback != null)
                 _feedback.OnAtaquePropio();
 
             if (_proyectilPrefab != null && _origenDisparo != null)
             {
-                Vector3 direccion = DireccionDeDisparo();
-                LanzarFlechaDisparo(direccion);
-                DispararRpc(_origenDisparo.position, direccion, evento);
+                DispararRpc(_origenDisparo.position, DireccionDeDisparo(), evento);
             }
             else if (_hitbox != null)
             {
@@ -237,26 +271,6 @@ namespace TDOM.Unity.Combat
             }
 
             ReproducirDisparoRpc(evento.ComboIndex, cargado);
-        }
-
-        private bool UsaFlechaDisparo => _vfxRed != null && _vfxDisparo != null;
-
-        private void ReproducirVfxDisparoLocal(bool cargado)
-        {
-            if (UsaFlechaDisparo || _vfx == null)
-                return;
-            _vfx.Disparo(cargado);
-        }
-
-        private void LanzarFlechaDisparo(Vector3 direccion)
-        {
-            if (!UsaFlechaDisparo || direccion == Vector3.zero)
-                return;
-            _vfxRed.Lanzar(
-                _vfxDisparo,
-                _origenDisparo.position,
-                Quaternion.LookRotation(direccion)
-            );
         }
 
         private InputSnapshot ComoDisparo(InputSnapshot input)
@@ -406,6 +420,9 @@ namespace TDOM.Unity.Combat
             NetworkBehaviourReference hitZoneRef = default
         )
         {
+            if (_incapacitado)
+                return;
+
             if (
                 !EstaEnRango(objetivoId, hitZoneRef, _alcanceHitbox, _radioHitbox, tolerancia: 1.3f)
             )
@@ -426,6 +443,9 @@ namespace TDOM.Unity.Combat
             NetworkBehaviourReference hitZoneRef = default
         )
         {
+            if (_incapacitado)
+                return;
+
             if (!EstaEnRango(objetivoId, _rangoDisparo, tolerancia: 1.3f))
             {
                 Debug.LogWarning(
@@ -486,6 +506,9 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.Server)]
         private void DispararRpc(Vector3 origen, Vector3 dir, AttackEvent evento)
         {
+            if (_incapacitado)
+                return;
+
             if (Vector3.Distance(origen, transform.position) > 3f)
                 return;
             Quaternion rotacion =
@@ -507,6 +530,9 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.NotOwner)]
         private void CargaRpc(bool activa)
         {
+            if (_incapacitado && activa)
+                return;
+
             if (_vfx != null)
                 _vfx.Carga(activa);
         }
@@ -514,8 +540,11 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.NotOwner)]
         private void ReproducirGolpeRpc(int indice, bool cargado, float carga)
         {
+            if (_incapacitado)
+                return;
+
             if (_combatAnimator != null)
-                _combatAnimator.PlayShot(indice, cargado);
+                _combatAnimator.PlayCombo(indice, cargado);
             if (_vfx != null)
                 _vfx.Golpe(indice, cargado, carga);
         }
@@ -523,9 +552,13 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.NotOwner)]
         private void ReproducirDisparoRpc(int indice, bool cargado)
         {
+            if (_incapacitado)
+                return;
+
             if (_combatAnimator != null)
-                _combatAnimator.PlayCombo(indice, cargado);
-            ReproducirVfxDisparoLocal(cargado);
+                _combatAnimator.PlayShot(indice, cargado);
+            if (_vfx != null)
+                _vfx.Disparo(cargado);
         }
     }
 }
