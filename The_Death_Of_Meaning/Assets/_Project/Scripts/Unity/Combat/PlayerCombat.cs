@@ -3,6 +3,7 @@ using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.Gameplay.Core;
+using TDOM.Gameplay.Vfx;
 using TDOM.Unity;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Player;
@@ -51,6 +52,14 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private Vector3 _giroVfxPrimerGolpeEspejo = new Vector3(0f, 0f, 180f);
+
+        [SerializeField, Min(0f)]
+        private float _retardoVfxPrimerGolpe = 0.12f;
+
+        [SerializeField, Min(0.01f)]
+        private float _muestreoVfxPrimerGolpe = 0.04f;
+
+        private IOrigenVfxGolpe _origenHoja;
 
         [SerializeField]
         private bool _logCombo = true;
@@ -220,6 +229,7 @@ namespace TDOM.Unity.Combat
         public override void OnNetworkSpawn()
         {
             _root = GetComponentInParent<PlayerRoot>();
+            _origenHoja = GetComponentInChildren<IOrigenVfxGolpe>(true);
 
             if (_vfx == null)
                 Debug.LogWarning($"[PlayerCombat] _vfx no asignado en {name}");
@@ -542,12 +552,40 @@ namespace TDOM.Unity.Combat
             if (_vfxRed == null || _vfxPrimerGolpe == null || cargado || evento.ComboIndex != 0)
                 return;
 
+            if (_origenHoja != null && _origenHoja.Hoja(out _, out _))
+            {
+                StartCoroutine(LanzarVfxPrimerGolpeDesdeHoja());
+                return;
+            }
+
             Transform origen = _origenVfxPrimerGolpe != null ? _origenVfxPrimerGolpe : transform;
             Vector3 giro = espejo ? _giroVfxPrimerGolpeEspejo : _giroVfxPrimerGolpe;
             _vfxRed.Lanzar(
                 _vfxPrimerGolpe,
                 origen.position,
                 transform.rotation * Quaternion.Euler(giro)
+            );
+        }
+
+        private IEnumerator LanzarVfxPrimerGolpeDesdeHoja()
+        {
+            yield return new WaitForSeconds(_retardoVfxPrimerGolpe);
+            _origenHoja.Hoja(out _, out Vector3 puntaAnterior);
+
+            yield return new WaitForSeconds(_muestreoVfxPrimerGolpe);
+            if (_incapacitado || !_origenHoja.Hoja(out Vector3 baseHoja, out Vector3 punta))
+                yield break;
+
+            Quaternion rotacion = MarcoTajo.Rotacion(
+                baseHoja,
+                punta,
+                puntaAnterior,
+                transform.rotation
+            );
+            _vfxRed.Lanzar(
+                _vfxPrimerGolpe,
+                MarcoTajo.Centro(baseHoja, punta),
+                rotacion * Quaternion.Euler(_giroVfxPrimerGolpe)
             );
         }
 

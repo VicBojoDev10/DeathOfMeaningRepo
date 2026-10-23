@@ -16,7 +16,7 @@ namespace TDOM.Unity.Combat
     /// ajustar con el juego corriendo.
     /// </summary>
     [DisallowMultipleComponent]
-    public class AylaEspada : MonoBehaviour
+    public class AylaEspada : MonoBehaviour, IOrigenVfxGolpe
     {
         [Header("Referencias")]
         [SerializeField]
@@ -285,6 +285,16 @@ namespace TDOM.Unity.Combat
         {
             if (_estela != null && _estela.Encendida)
                 _estela.Apagar();
+        }
+
+        public bool Hoja(out Vector3 baseHoja, out Vector3 punta)
+        {
+            if (_estela != null)
+                return _estela.Hoja(out baseHoja, out punta);
+
+            baseHoja = Vector3.zero;
+            punta = Vector3.zero;
+            return false;
         }
 
         private void ActualizarSocket()

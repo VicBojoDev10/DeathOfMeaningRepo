@@ -62,6 +62,13 @@ namespace TDOM.Unity.Vfx
             _encendida = false;
         }
 
+        public bool Hoja(out Vector3 baseHoja, out Vector3 punta)
+        {
+            baseHoja = _base != null ? _base.position : Vector3.zero;
+            punta = _punta != null ? _punta.position : Vector3.zero;
+            return _base != null && _punta != null;
+        }
+
         private void OnDisable()
         {
             _encendida = false;
