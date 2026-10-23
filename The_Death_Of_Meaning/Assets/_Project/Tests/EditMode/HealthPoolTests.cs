@@ -252,6 +252,45 @@ namespace TDOM.Tests.EditMode
             p2.TakeDamage(100f);
             Assert.AreEqual(PlayerLifeState.Abatido, p2.State);
             Assert.IsTrue(HealthPool.CheckGameOver(p1, p2));
+            Assert.IsTrue(HealthPool.CheckGameOver(new List<HealthPool> { p1, p2 }));
+        }
+
+        [Test]
+        public void Un_jugador_abatido_sin_companero_no_provoca_game_over()
+        {
+            var pool = CrearPool();
+            pool.TakeDamage(pool.Max);
+
+            Assert.That(HealthPool.CheckGameOver(new List<HealthPool> { pool }), Is.False);
+            Assert.That(pool.DownedRemainingTime, Is.EqualTo(pool.DownedDuration));
+        }
+
+        [Test]
+        public void Un_jugador_sin_companero_provoca_game_over_al_agotar_su_tiempo()
+        {
+            var pool = CrearPool();
+            pool.TakeDamage(pool.Max);
+            pool.Tick(pool.DownedDuration);
+
+            Assert.That(pool.State, Is.EqualTo(PlayerLifeState.Muerto));
+            Assert.That(HealthPool.CheckGameOver(new List<HealthPool> { pool }), Is.True);
+        }
+
+        [Test]
+        public void El_companero_que_aparece_despues_debe_caer_para_provocar_game_over()
+        {
+            var primero = CrearPool();
+            primero.TakeDamage(primero.Max);
+            var jugadores = new List<HealthPool> { primero };
+
+            Assert.That(HealthPool.CheckGameOver(jugadores), Is.False);
+
+            var companero = CrearPool();
+            jugadores.Add(companero);
+            Assert.That(HealthPool.CheckGameOver(jugadores), Is.False);
+
+            companero.TakeDamage(companero.Max);
+            Assert.That(HealthPool.CheckGameOver(jugadores), Is.True);
         }
 
         [Test]

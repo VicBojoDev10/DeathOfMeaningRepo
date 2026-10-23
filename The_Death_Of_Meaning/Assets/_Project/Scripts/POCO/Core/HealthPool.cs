@@ -13,6 +13,7 @@ namespace TDOM.Gameplay.Core
     public class HealthPool
     {
         private const float DuracionMinimaAbatido = 0.1f;
+        private const int MinimoJugadoresParaDerrotaPorAbatimiento = 2;
         public float Max { get; private set; }
         public float Current { get; private set; }
         public float BaseMax { get; }
@@ -174,7 +175,8 @@ namespace TDOM.Gameplay.Core
                     downedOrDeadCount++;
             }
 
-            return downedOrDeadCount >= players.Count;
+            return players.Count >= MinimoJugadoresParaDerrotaPorAbatimiento
+                && downedOrDeadCount >= players.Count;
         }
     }
 }
