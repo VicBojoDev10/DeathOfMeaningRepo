@@ -1,6 +1,15 @@
 flowchart TD
     Player["Player: PlayerAyla / PlayerZendre (NetworkObject, ClientNetworkTransform, CharacterController, CapsuleCollider)"]
     Player --> Root[PlayerRoot - composition root]
+    Root -->|"Servidor: dano, proximidad y dt"| Health["HealthPool: Vivo / Abatido / Muerto, reanimacion y Game Over"]
+    Root -->|"EstadoVida, Vida, TiempoAbatidoRestante, ProgresoRevivir"| DownedUI["DownedSliderUI: suscripciones durante el spawn de red"]
+    Player --> DownedUI
+    Player --> DownedCanvas["DownedCanvas: prefab UI compartido, Slider y Fill enlazados"]
+    DownedUI --> DownedCanvas
+    DownedUI --> DownedProfile["DownedSliderProfile: altura y colores"]
+    Root -->|"Estado de vida: incapacitar acciones"| Combat
+    Root -->|"Estado de vida: soltar y bloquear ancla"| Anchor
+    Root -->|"Abatido: TickIncapacitado conserva gravedad"| DownedLocomotion[PlayerLocomotion]
     Player --> Motor[PlayerMotor]
     Player --> Reader[PlayerInputReader]
     Player --> Combat[PlayerCombat]

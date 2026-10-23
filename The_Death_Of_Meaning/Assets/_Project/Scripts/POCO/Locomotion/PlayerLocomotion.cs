@@ -13,6 +13,7 @@ namespace TDOM.Gameplay.Locomotion
         private readonly DashResolver _dash;
         private readonly GrappleResolver _grapple;
         private readonly float _multiplicadorVelocidadPistola;
+        private readonly InputSnapshot _inputSinControl = new InputSnapshot();
 
         private const float VelocidadCompleta = 1f;
 
@@ -236,6 +237,19 @@ namespace TDOM.Gameplay.Locomotion
             }
 
             _run.Tick(input);
+        }
+
+        public MotionIntent TickIncapacitado(float dt)
+        {
+            _dash?.Cancelar();
+            _grapple?.Cancelar();
+            _run.Corriendo = false;
+            State.Velocity = new Vector3(0f, Mathf.Min(0f, State.Velocity.y), 0f);
+            State.BufferTimer = 0f;
+            State.CoyoteTimer = 0f;
+            State.Phase = State.IsGrounded ? LocomotionPhase.Grounded : LocomotionPhase.Airborne;
+            SaltoEnCurso = false;
+            return Tick(_inputSinControl, Quaternion.identity, dt);
         }
 
         public void Reiniciar()

@@ -245,41 +245,41 @@ namespace TDOM.Unity
 
         private void BuscarJugadores()
         {
-            if (NetworkManager.Singleton != null && NetworkManager.Singleton.SpawnManager != null)
-            {
-                foreach (var objeto in NetworkManager.Singleton.SpawnManager.SpawnedObjectsList)
-                {
-                    if (objeto != null && objeto.TryGetComponent(out PlayerRoot player))
-                    {
-                        ProcesarJugadorEncontrado(player);
-                    }
-                }
-            }
-            else
-            {
-                var players = FindObjectsByType<PlayerRoot>(
-                    FindObjectsInactive.Exclude,
-                    FindObjectsSortMode.None
-                );
-                foreach (var player in players)
-                {
-                    if (player != null)
-                    {
-                        ProcesarJugadorEncontrado(player);
-                    }
-                }
-            }
-        }
+            var manager = NetworkManager.Singleton;
+            if (manager == null || !manager.IsClient || manager.SpawnManager == null)
+                return;
 
-        private void ProcesarJugadorEncontrado(PlayerRoot player)
-        {
-            if (player.IsOwner && _localPlayer == null)
+            if (_localPlayer == null && manager.LocalClient != null)
             {
-                ConectarJugadorLocal(player);
+                foreach (var objeto in manager.LocalClient.OwnedObjects)
+                {
+                    if (
+                        objeto != null
+                        && objeto.IsSpawned
+                        && objeto.TryGetComponent(out PlayerRoot player)
+                    )
+                    {
+                        ConectarJugadorLocal(player);
+                        break;
+                    }
+                }
             }
-            else if (!player.IsOwner && _otherPlayer == null)
+
+            if (_otherPlayer != null)
+                return;
+
+            foreach (var objeto in manager.SpawnManager.SpawnedObjectsList)
             {
-                ConectarJugadorSecundario(player);
+                if (
+                    objeto != null
+                    && objeto.IsSpawned
+                    && !objeto.IsOwner
+                    && objeto.TryGetComponent(out PlayerRoot player)
+                )
+                {
+                    ConectarJugadorSecundario(player);
+                    return;
+                }
             }
         }
 

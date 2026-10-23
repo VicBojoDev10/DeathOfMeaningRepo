@@ -12,6 +12,86 @@ namespace TDOM.Tests.EditMode
             new HealthPool(vida, tiempoAbatido);
 
         [Test]
+        public void La_cercania_revive_y_pausa_el_tiempo_de_abatido()
+        {
+            var pool = CrearPool();
+            pool.TakeDamage(pool.Max);
+            pool.TickDowned(2f, false, 3f, 40f);
+            pool.TickDowned(1f, true, 3f, 40f);
+
+            Assert.That(pool.DownedRemainingTime, Is.EqualTo(8f).Within(Tolerancia));
+            Assert.That(pool.ReviveProgress, Is.EqualTo(1f / 3f).Within(Tolerancia));
+
+            pool.TickDowned(2f, true, 3f, 40f);
+
+            Assert.That(pool.State, Is.EqualTo(PlayerLifeState.Vivo));
+            Assert.That(pool.Current, Is.EqualTo(40f));
+            Assert.That(pool.ReviveProgress, Is.Zero);
+        }
+
+        [Test]
+        public void Alejarse_cancela_la_reanimacion_y_reanuda_la_cuenta_atras()
+        {
+            var pool = CrearPool();
+            pool.TakeDamage(pool.Max);
+            pool.TickDowned(1f, true, 3f, 40f);
+            pool.TickDowned(2f, false, 3f, 40f);
+
+            Assert.That(pool.ReviveProgress, Is.Zero);
+            Assert.That(pool.DownedRemainingTime, Is.EqualTo(8f).Within(Tolerancia));
+
+            pool.TickDowned(1f, true, 3f, 40f);
+            Assert.That(pool.ReviveProgress, Is.EqualTo(1f / 3f).Within(Tolerancia));
+        }
+
+        [Test]
+        public void La_reanimacion_invalida_no_congela_la_cuenta_atras()
+        {
+            var pool = CrearPool();
+            pool.TakeDamage(pool.Max);
+            pool.TickDowned(10f, true, 0f, 40f);
+
+            Assert.That(pool.State, Is.EqualTo(PlayerLifeState.Muerto));
+            Assert.That(pool.ReviveProgress, Is.Zero);
+        }
+
+        [TestCase(0f)]
+        [TestCase(-1f)]
+        [TestCase(float.NaN)]
+        public void No_se_puede_revivir_sin_vida_valida(float vida)
+        {
+            var pool = CrearPool();
+            pool.TakeDamage(pool.Max);
+
+            Assert.That(pool.Revive(vida), Is.False);
+            Assert.That(pool.State, Is.EqualTo(PlayerLifeState.Abatido));
+            Assert.That(pool.Current, Is.Zero);
+        }
+
+        [Test]
+        public void La_reanimacion_por_cercania_es_determinista_con_dt_fijo()
+        {
+            var primera = CrearPool();
+            var segunda = CrearPool();
+            primera.TakeDamage(primera.Max);
+            segunda.TakeDamage(segunda.Max);
+            const float dt = 1f / 60f;
+
+            for (int i = 0; i < 360; i++)
+            {
+                bool cerca = i >= 60;
+                primera.TickDowned(dt, cerca, 3f, 40f);
+                segunda.TickDowned(dt, cerca, 3f, 40f);
+            }
+
+            Assert.That(primera.State, Is.EqualTo(PlayerLifeState.Vivo));
+            Assert.That(primera.State, Is.EqualTo(segunda.State));
+            Assert.That(primera.Current, Is.EqualTo(segunda.Current));
+            Assert.That(primera.DownedRemainingTime, Is.EqualTo(segunda.DownedRemainingTime));
+            Assert.That(primera.ReviveProgress, Is.EqualTo(segunda.ReviveProgress));
+        }
+
+        [Test]
         public void Constructor_inicia_con_vida_llena_y_estado_vivo()
         {
             var pool = CrearPool(100f, 10f);

@@ -56,6 +56,20 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private float _radioDisparo = 0.5f;
         private bool _cargaVisibleMelee;
+        private bool _incapacitado;
+
+        public void EstablecerIncapacitado(bool incapacitado)
+        {
+            _incapacitado = incapacitado;
+            if (!incapacitado)
+                return;
+
+            _melee?.Cancelar();
+            _disparo?.Cancelar();
+            _cargaVisibleMelee = false;
+            _vfx?.Carga(false);
+            _combatAnimator?.CancelarAtaque(false);
+        }
 
         public float RadioHitbox => _radioHitbox;
         public float AlcanceHitbox => _alcanceHitbox;
@@ -149,7 +163,7 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.Server)]
         private void ConsumirEnergiaRpc(float cantidad)
         {
-            if (_root != null)
+            if (!_incapacitado && _root != null)
             {
                 _root.ConsumirEnergiaEnServidor(cantidad);
             }
@@ -162,7 +176,7 @@ namespace TDOM.Unity.Combat
 
         public void Tick(InputSnapshot input, float dt)
         {
-            if (!IsOwner)
+            if (!IsOwner || _incapacitado)
                 return;
             if (_melee == null && _disparo == null)
                 return;
@@ -406,6 +420,9 @@ namespace TDOM.Unity.Combat
             NetworkBehaviourReference hitZoneRef = default
         )
         {
+            if (_incapacitado)
+                return;
+
             if (
                 !EstaEnRango(objetivoId, hitZoneRef, _alcanceHitbox, _radioHitbox, tolerancia: 1.3f)
             )
@@ -426,6 +443,9 @@ namespace TDOM.Unity.Combat
             NetworkBehaviourReference hitZoneRef = default
         )
         {
+            if (_incapacitado)
+                return;
+
             if (!EstaEnRango(objetivoId, _rangoDisparo, tolerancia: 1.3f))
             {
                 Debug.LogWarning(
@@ -486,6 +506,9 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.Server)]
         private void DispararRpc(Vector3 origen, Vector3 dir, AttackEvent evento)
         {
+            if (_incapacitado)
+                return;
+
             if (Vector3.Distance(origen, transform.position) > 3f)
                 return;
             Quaternion rotacion =
@@ -507,6 +530,9 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.NotOwner)]
         private void CargaRpc(bool activa)
         {
+            if (_incapacitado && activa)
+                return;
+
             if (_vfx != null)
                 _vfx.Carga(activa);
         }
@@ -514,6 +540,9 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.NotOwner)]
         private void ReproducirGolpeRpc(int indice, bool cargado, float carga)
         {
+            if (_incapacitado)
+                return;
+
             if (_combatAnimator != null)
                 _combatAnimator.PlayCombo(indice, cargado);
             if (_vfx != null)
@@ -523,6 +552,9 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.NotOwner)]
         private void ReproducirDisparoRpc(int indice, bool cargado)
         {
+            if (_incapacitado)
+                return;
+
             if (_combatAnimator != null)
                 _combatAnimator.PlayShot(indice, cargado);
             if (_vfx != null)

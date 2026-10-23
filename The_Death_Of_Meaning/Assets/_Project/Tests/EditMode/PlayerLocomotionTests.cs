@@ -655,6 +655,77 @@ namespace TDOM.Tests.EditMode
             Assert.That(primera.State.Velocity, Is.EqualTo(segunda.State.Velocity));
         }
 
+        [Test]
+        public void Abatido_cancela_el_dash_y_el_movimiento_inmediatamente()
+        {
+            var locomotion = CrearLocomotionConPistola();
+            locomotion.Tick(
+                CreateInput(move: Vector2.up, dashPressed: true),
+                Quaternion.identity,
+                DtFijo
+            );
+            Assert.That(locomotion.State.Phase, Is.EqualTo(LocomotionPhase.Dashing));
+
+            var intent = locomotion.TickIncapacitado(DtFijo);
+
+            Assert.That(VelocidadHorizontal(locomotion), Is.Zero);
+            Assert.That(locomotion.DashIniciado, Is.False);
+            Assert.That(intent.IgnoreGravity, Is.False);
+        }
+
+        [Test]
+        public void Abatido_no_reproduce_un_salto_bufferizado_ni_congela_la_caida()
+        {
+            var locomotion = CrearLocomotionConPistola();
+            locomotion.State.IsGrounded = false;
+            locomotion.State.Velocity = new Vector3(5f, -3f, 5f);
+            locomotion.State.BufferTimer = 1f;
+            locomotion.State.CoyoteTimer = 1f;
+
+            locomotion.TickIncapacitado(DtFijo);
+
+            Assert.That(VelocidadHorizontal(locomotion), Is.Zero);
+            Assert.That(locomotion.State.Velocity.y, Is.LessThan(-3f));
+            Assert.That(locomotion.SaltoEnCurso, Is.False);
+            Assert.That(locomotion.State.Phase, Is.EqualTo(LocomotionPhase.Airborne));
+        }
+
+        [Test]
+        public void Abatido_detiene_el_sprint_y_permite_moverse_tras_revivir()
+        {
+            var locomotion = CrearLocomotionConPistola();
+            locomotion.Tick(
+                CreateInput(move: Vector2.up, sprintPressed: true),
+                Quaternion.identity,
+                DtFijo
+            );
+            locomotion.TickIncapacitado(DtFijo);
+
+            Assert.That(locomotion.Corriendo, Is.False);
+            Assert.That(VelocidadHorizontal(locomotion), Is.Zero);
+
+            locomotion.Tick(CreateInput(move: Vector2.up), Quaternion.identity, DtFijo);
+            Assert.That(VelocidadHorizontal(locomotion), Is.GreaterThan(0f));
+        }
+
+        [Test]
+        public void El_movimiento_abatido_es_determinista_con_dt_fijo()
+        {
+            var primera = CrearLocomotionConPistola();
+            var segunda = CrearLocomotionConPistola();
+            primera.State.IsGrounded = false;
+            segunda.State.IsGrounded = false;
+
+            for (int i = 0; i < FramesParaVelocidadEstable; i++)
+            {
+                primera.TickIncapacitado(DtFijo);
+                segunda.TickIncapacitado(DtFijo);
+            }
+
+            Assert.That(primera.State.Velocity, Is.EqualTo(segunda.State.Velocity));
+            Assert.That(VelocidadHorizontal(primera), Is.Zero);
+        }
+
         private static DashProfile CrearDashProfile(float distance, float duration)
         {
             var profile = ScriptableObject.CreateInstance<DashProfile>();

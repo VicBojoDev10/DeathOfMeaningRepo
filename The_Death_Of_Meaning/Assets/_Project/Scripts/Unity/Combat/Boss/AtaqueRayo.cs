@@ -247,9 +247,7 @@ namespace TDOM.Unity
                         continue;
 
                     Debug.Log($"[AREK][Rayo] golpeó a cliente {id}");
-                    float dano = _perfil != null ? _perfil.Dano : 40f;
-                    bool esInstaKill = _perfil != null && _perfil.EsInstaKill;
-                    damageable.RecibirDanio(dano, esInstaKill);
+                    damageable.RecibirDanio(_perfil.Dano, _perfil.EsInstaKill);
                     if (netObj != null)
                         JugadorGolpeadoRpc(RpcTarget.Single(id, RpcTargetUse.Temp));
                 }
