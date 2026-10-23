@@ -203,9 +203,7 @@ namespace TDOM.Unity
                     {
                         _jugadoresGolpeados.Add(clientId);
                         Debug.Log($"[AREK][Mano] golpeó a cliente {clientId}");
-                        float dano = _perfil != null ? _perfil.Dano : 20f;
-                        bool esInstaKill = _perfil != null && _perfil.EsInstaKill;
-                        damageable.RecibirDanio(dano, esInstaKill);
+                        damageable.RecibirDanio(_perfil.Dano, _perfil.EsInstaKill);
                         if (netObj != null)
                             JugadorGolpeadoRpc(RpcTarget.Single(clientId, RpcTargetUse.Temp));
                     }
