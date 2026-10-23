@@ -70,8 +70,6 @@ GameObject:
   - component: {fileID: 4753092728623070081}
   - component: {fileID: 8086599341354008101}
   - component: {fileID: 1537443789259067397}
-  - component: {fileID: 3487254806458268382}
-  - component: {fileID: 486264241539746181}
   m_Layer: 0
   m_Name: PlayerZendre
   m_TagString: Player
@@ -263,7 +261,28 @@ MonoBehaviour:
   _inputReader: {fileID: 4485191308997266209}
   _grappleVisual: {fileID: 0}
   _sensitivity: 200
+  _alturaMaxima: 80
   Energia:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  Vida:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 100
+  EstadoVida:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  TiempoAbatidoRestante:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  ProgresoRevivir:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
@@ -294,6 +313,8 @@ MonoBehaviour:
   _origenDisparo: {fileID: 1217565209590083343}
   _rangoDisparo: 25
   _radioDisparo: 0.5
+  _vfxRed: {fileID: 0}
+  _vfxDisparo: {fileID: 0}
 --- !u!114 &4753092728623070081
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -570,6 +591,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7344774625564070270, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: EmissionModule.enabled
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
