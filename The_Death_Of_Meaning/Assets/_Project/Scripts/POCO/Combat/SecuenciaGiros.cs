@@ -82,7 +82,7 @@ namespace TDOM.Gameplay.Combat
         public int GirosMaximos = 4;
 
         [Range(0f, 1f), Tooltip("Ratio de carga minimo posible (HoldThreshold / MaxChargeTime).")]
-        public float RatioCargaMinimo = 0.3f;
+        public float RatioCargaMinimo = 0.12f;
 
         [Header("Mezclas (segundos)")]
         [Min(0f), Tooltip("Al entrar a la secuencia desde el golpe anterior.")]

@@ -23,6 +23,8 @@ namespace TDOM.Gameplay.Combat
         private bool _requiereSoltar;
         private bool _cargadoRetenido;
         private int _ligerosEnCombo;
+        private bool _esperandoFinal;
+        private float _esperaFinalRestante;
         public bool EnCooldown => _cooldown > 0f;
         public bool CargaVisible => _fase == ComboPhase.Charging && _tiempoDeCarga >= _umbralHold;
 
@@ -59,6 +61,24 @@ namespace TDOM.Gameplay.Combat
         public Func<int, bool> RetenerCargadoSi { get; set; }
 
         public bool CargadoRetenido => _cargadoRetenido;
+
+        /// <summary>
+        /// Tras un combo completo o un cargado la maquina descarta todo input de ataque mientras
+        /// esto devuelva true (la animacion del ataque sigue en curso). Null = no se espera.
+        /// </summary>
+        public Func<bool> EsperarAnimacionFinal { get; set; }
+
+        /// <summary>Seguro: segundos maximos que se espera a que acabe la animacion.</summary>
+        public float MaxEsperaAnimacionFinal { get; set; } = 3f;
+
+        /// <summary>Esperando a que acabe la animacion de un combo o cargado.</summary>
+        public bool EsperandoAnimacionFinal => _esperandoFinal;
+
+        /// <summary>Segundos que lleva el boton sostenido en la carga actual.</summary>
+        public float TiempoDeCarga => _tiempoDeCarga;
+
+        /// <summary>Golpes ligeros ejecutados en el combo en curso (0 si no hay).</summary>
+        public int LigerosEnCombo => _ligerosEnCombo;
         public bool BloqueaMovimiento => _fase != ComboPhase.Idle;
 
         private AttackEvent? _ultimoEvento;
@@ -69,6 +89,26 @@ namespace TDOM.Gameplay.Combat
             if (_cooldown > 0f)
                 _cooldown -= dt;
             _ultimoEvento = null;
+
+            if (_esperandoFinal)
+            {
+                _esperaFinalRestante -= dt;
+                if (
+                    _esperaFinalRestante > 0f
+                    && _fase == ComboPhase.Idle
+                    && EsperarAnimacionFinal != null
+                    && EsperarAnimacionFinal()
+                )
+                {
+                    // Nada de lo que se presione ahora cuenta; al terminar hay que soltar y
+                    // volver a presionar.
+                    _buffer.Clear();
+                    _requiereSoltar = true;
+                    return null;
+                }
+                _esperandoFinal = false;
+            }
+
             Avanzar(input, dt, esBordeDeFrame: true);
             return _ultimoEvento;
         }
@@ -218,7 +258,15 @@ namespace TDOM.Gameplay.Combat
                     if (_timer <= 0f)
                     {
                         float sobranteRecovery = -_timer;
+                        bool eraCargado = _fase == ComboPhase.ChargedSwing;
                         Reiniciar();
+                        // Un cargado que sale solo (carga al maximo) con el boton aun apretado
+                        // no debe arrancar otro: hay que soltar y volver a presionar.
+                        if (eraCargado)
+                        {
+                            _requiereSoltar = true;
+                            EsperarFinDeAnimacion();
+                        }
                         Avanzar(input, sobranteRecovery, esBordeDeFrame: false);
                     }
                     return;
@@ -274,6 +322,7 @@ namespace TDOM.Gameplay.Combat
             _soltoDuranteWindup = false;
             _cargadoRetenido = false;
             _ligerosEnCombo = 0;
+            _esperandoFinal = false;
             _buffer.Clear();
         }
 
@@ -283,6 +332,15 @@ namespace TDOM.Gameplay.Combat
             Reiniciar();
             _cooldown = _cooldownFinCombo;
             _requiereSoltar = true;
+            EsperarFinDeAnimacion();
+        }
+
+        private void EsperarFinDeAnimacion()
+        {
+            if (EsperarAnimacionFinal == null)
+                return;
+            _esperandoFinal = true;
+            _esperaFinalRestante = MaxEsperaAnimacionFinal;
         }
 
         // Cancelación externa (dash). No aplica cooldown; exige soltar y volver a presionar.

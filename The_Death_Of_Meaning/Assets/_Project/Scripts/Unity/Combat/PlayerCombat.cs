@@ -53,6 +53,14 @@ namespace TDOM.Unity.Combat
         [Tooltip("Daño del impacto del tramo final, como fraccion del daño del cargado.")]
         private float _factorDanioFinal = 0.8f;
 
+        [Header("Carga del cargado")]
+        [SerializeField, Min(0f)]
+        [Tooltip(
+            "Segundos de boton sostenido tras los que el ataque de giros adopta su pose de carga "
+                + "(debe ser menor que el HoldThreshold del perfil)."
+        )]
+        private float _retardoPoseCarga = 0.06f;
+
         [Header("Disparo a distancia")]
         [SerializeField]
         private GameObject _proyectilPrefab;
@@ -68,7 +76,21 @@ namespace TDOM.Unity.Combat
         private bool _cargaVisibleMelee;
         private bool _incapacitado;
         private bool _girosEnCurso;
+        private bool _poseGirosActiva;
         private AttackEvent _eventoGiros;
+
+        /// <summary>
+        /// Energia que costara el cargado que se esta preparando (0 si no se esta cargando).
+        /// La HUD la marca sobre la barra mientras se mantiene el boton.
+        /// </summary>
+        public float CostoCargaPendiente =>
+            IsOwner
+            && !_incapacitado
+            && _melee != null
+            && _melee.CargaVisible
+            && _definition?.Energy != null
+                ? _definition.Energy.ChargedCost
+                : 0f;
 
         public void EstablecerIncapacitado(bool incapacitado)
         {
@@ -79,6 +101,7 @@ namespace TDOM.Unity.Combat
             _melee?.Cancelar();
             _disparo?.Cancelar();
             _girosEnCurso = false;
+            _poseGirosActiva = false;
             _cargaVisibleMelee = false;
             _vfx?.Carga(false);
             _combatAnimator?.CancelarAtaque(false);
@@ -96,7 +119,9 @@ namespace TDOM.Unity.Combat
         public bool AtaqueActivo => BloqueaMovimiento || DisparoActivo;
 
         public bool PuedeCancelarConDash =>
-            IsOwner && _melee != null && _melee.Fase != ComboPhase.Idle;
+            IsOwner
+            && _melee != null
+            && (_melee.Fase != ComboPhase.Idle || _melee.EsperandoAnimacionFinal);
 
         public void CancelarMeleePorDash() => CancelarMelee(false);
 
@@ -112,8 +137,12 @@ namespace TDOM.Unity.Combat
                 );
             _melee.Cancelar();
             _girosEnCurso = false;
+            _poseGirosActiva = false;
             if (_combatAnimator != null)
+            {
+                _combatAnimator.CargaEnCurso = false;
                 _combatAnimator.CancelarAtaque(haciaSalto);
+            }
             CancelarAtaqueRpc(haciaSalto);
         }
 
@@ -148,6 +177,10 @@ namespace TDOM.Unity.Combat
                 );
                 _melee.RetenerCargadoSi = ligeros =>
                     _combatAnimator != null && _combatAnimator.UsaGiros(ligeros);
+                // Tras un combo completo o un cargado no se aceptan golpes nuevos hasta que
+                // la animacion termina (dash y salto siguen cancelando).
+                _melee.EsperarAnimacionFinal = () =>
+                    _combatAnimator != null && _combatAnimator.AtaqueAnimandose;
             }
 
             if (_combatAnimator != null)
@@ -224,6 +257,7 @@ namespace TDOM.Unity.Combat
                 var evento = _melee.Tick(input, dt);
                 if (evento.HasValue)
                     EjecutarGolpe(evento.Value);
+                ActualizarPoseCarga();
             }
 
             if (_disparo != null && !meleeActivo)
@@ -245,6 +279,38 @@ namespace TDOM.Unity.Combat
                     CargaRpc(visible);
                 }
             }
+        }
+
+        // Mientras se carga tras dos ligeros, la espada espera en la pose del giro (no vuelve a
+        // idle) y asi el cargado arranca al instante al soltar.
+        private void ActualizarPoseCarga()
+        {
+            if (_combatAnimator == null)
+                return;
+
+            bool cargando = _melee.Fase == ComboPhase.Windup || _melee.Fase == ComboPhase.Charging;
+            _combatAnimator.CargaEnCurso = cargando;
+
+            bool pose =
+                _melee.Fase == ComboPhase.Charging
+                && _melee.TiempoDeCarga >= _retardoPoseCarga
+                && _combatAnimator.UsaGiros(_melee.LigerosEnCombo);
+            if (pose == _poseGirosActiva)
+                return;
+
+            _poseGirosActiva = pose;
+            _combatAnimator.PoseCargaGiros(pose);
+            PoseGirosRpc(pose);
+        }
+
+        [Rpc(SendTo.NotOwner)]
+        private void PoseGirosRpc(bool activa)
+        {
+            if (_incapacitado)
+                return;
+
+            if (_combatAnimator != null)
+                _combatAnimator.PoseCargaGiros(activa);
         }
 
         private void ProcesarCambiosDeFase(ComboPhase prevMeleePhase, ComboPhase prevDisparoPhase)

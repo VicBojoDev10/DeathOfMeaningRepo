@@ -350,7 +350,7 @@ MonoBehaviour:
     FinFinal: 0.97
     GirosMinimos: 2
     GirosMaximos: 4
-    RatioCargaMinimo: 0.3
+    RatioCargaMinimo: 0.12
     MezclaEntrada: 0.08
     MezclaGiro: 0.1
     MezclaFinal: 0.12
@@ -1038,6 +1038,7 @@ MonoBehaviour:
   _rotacion: {x: 0, y: 0, z: 0}
   _escala: 0.5
   _nombreMango: MangoEspada
+  _nombreHoja: OjaPrincipalEspada
   _soloVisibleAtacando: 1
   _retrasoOcultar: 0.3
   _estadosDeAtaque:
@@ -1048,10 +1049,12 @@ MonoBehaviour:
   - 1iCargado
   _ajustesPorEstado:
   - Estado: 1i
-    RotacionExtra: {x: 0, y: 180, z: 0}
+    GiroSobreEjeHoja: -90
+    RotacionExtra: {x: 0, y: 0, z: 0}
     PosicionExtra: {x: 0, y: 0, z: 0}
   - Estado: 1iCargado
-    RotacionExtra: {x: 0, y: 180, z: 0}
+    GiroSobreEjeHoja: -90
+    RotacionExtra: {x: 0, y: 0, z: 0}
     PosicionExtra: {x: 0, y: 0, z: 0}
   _tiempoCambioAjuste: 0.06
 --- !u!1001 &9094838142294137057

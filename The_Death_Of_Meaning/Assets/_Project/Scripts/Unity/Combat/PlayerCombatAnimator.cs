@@ -110,7 +110,14 @@ namespace TDOM.Unity.Combat
         private readonly List<EventoGiros> _eventosGiros = new List<EventoGiros>();
         private bool _secuenciaActiva;
         private bool _saltoReciente;
+        private bool _poseCarga;
         private float _tiempoSecuencia;
+
+        /// <summary>
+        /// El jugador esta cargando un ataque: el ataque 2 no se corta para volver a locomocion,
+        /// asi el cargado que sale del combo no pasa por idle.
+        /// </summary>
+        public bool CargaEnCurso { get; set; }
 
         public bool AlternarAtaqueBasico => _alternarAtaqueBasico;
 
@@ -236,7 +243,7 @@ namespace TDOM.Unity.Combat
 
         private void RecortarAtaque2()
         {
-            if (!_recortarAtaque2 || _secuenciaActiva || _hasPendingCombo)
+            if (!_recortarAtaque2 || _secuenciaActiva || _hasPendingCombo || CargaEnCurso)
                 return;
             if (_animator.layerCount == 0 || _animator.IsInTransition(0))
                 return;
@@ -273,10 +280,55 @@ namespace TDOM.Unity.Combat
             ProcesarEventosGiros();
         }
 
+        /// <summary>
+        /// Mientras se carga el ataque de giros, la espada se queda quieta en la pose de inicio
+        /// del giro (en vez de volver a idle). Al soltar arranca la secuencia desde esa pose.
+        /// </summary>
+        public void PoseCargaGiros(bool activa)
+        {
+            if (_animator == null || !_girosActivos)
+                return;
+
+            if (!activa)
+            {
+                if (!_poseCarga)
+                    return;
+                // Si la carga se acabo sin golpe (sin energia, etc.) se sale de la pose.
+                bool enPose = !_secuenciaActiva && EnEstadoGiros();
+                DetenerGiros();
+                if (enPose)
+                    SalirDeAtaque(_giros.MezclaSalida);
+                return;
+            }
+
+            if (_poseCarga || _secuenciaActiva)
+                return;
+
+            _poseCarga = true;
+            _animator.SetFloat(VelocidadGirosHash, 0f);
+            float mezcla =
+                Mathf.Max(0f, _giros.MezclaEntrada) / Mathf.Max(0.01f, _duracionEstadoGiros);
+            _animator.CrossFade(GirosHash, mezcla, 0, Mathf.Clamp01(_giros.InicioGiro));
+        }
+
+        private bool EnEstadoGiros()
+        {
+            if (_animator.layerCount == 0)
+                return false;
+            return _animator.GetCurrentAnimatorStateInfo(0).shortNameHash == GirosHash
+                || (
+                    _animator.IsInTransition(0)
+                    && _animator.GetNextAnimatorStateInfo(0).shortNameHash == GirosHash
+                );
+        }
+
         private void DetenerGiros()
         {
             _secuenciaActiva = false;
             _secuencia?.Cancelar();
+            if (_poseCarga && _animator != null)
+                _animator.SetFloat(VelocidadGirosHash, _velocidadGiros);
+            _poseCarga = false;
         }
 
         private void ActualizarGiros()
@@ -382,6 +434,14 @@ namespace TDOM.Unity.Combat
             SecuenciaGirosTerminada?.Invoke();
         }
 
+        /// <summary>
+        /// El personaje todavia esta animando un ataque (golpe en curso, golpe pendiente de
+        /// reproducir, pose de carga o secuencia de giros). Falso en cuanto vuelve a locomocion.
+        /// </summary>
+        public bool AtaqueAnimandose =>
+            _animator != null
+            && (_hasPendingCombo || _secuenciaActiva || _poseCarga || EnEstadoAtaque());
+
         private bool EnEstadoAtaque()
         {
             if (_animator.layerCount == 0)
@@ -412,7 +472,10 @@ namespace TDOM.Unity.Combat
 
             bool enAtaque = EnEstadoAtaque();
             bool ataqueEnCamino =
-                _hasPendingCombo || _secuenciaActiva || _animator.GetBool(AttackHash);
+                _hasPendingCombo
+                || _secuenciaActiva
+                || _poseCarga
+                || _animator.GetBool(AttackHash);
 
             if (_espejoActivo && _espejoDeseado)
             {

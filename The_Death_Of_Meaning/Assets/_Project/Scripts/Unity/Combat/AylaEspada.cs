@@ -57,6 +57,15 @@ namespace TDOM.Unity.Combat
         ]
         private string _nombreMango = "MangoEspada";
 
+        [
+            SerializeField,
+            Tooltip(
+                "Parte del modelo que es la hoja. Su lado mas largo se toma como el eje de la "
+                    + "espada para los giros de 'Ajuste por estado'."
+            )
+        ]
+        private string _nombreHoja = "OjaPrincipalEspada";
+
         [Header("Visibilidad")]
         [SerializeField, Tooltip("Si está activo, la espada solo se ve mientras Ayla ataca.")]
         private bool _soloVisibleAtacando = true;
@@ -74,9 +83,12 @@ namespace TDOM.Unity.Combat
             public string Estado;
 
             [Tooltip(
-                "Giro extra de la espada sobre su propio eje, en grados. Y = 180 la voltea "
-                    + "para que corte con el filo."
+                "Giro de la espada sobre el eje de su hoja, en grados (el eje se detecta solo "
+                    + "del modelo). -90 hace que el golpe vaya de lado a lado con el filo."
             )]
+            public float GiroSobreEjeHoja;
+
+            [Tooltip("Rotacion extra adicional, en grados (sobre los ejes de la espada).")]
             public Vector3 RotacionExtra;
 
             [Tooltip("Desplazamiento extra del puño, en metros del mundo.")]
@@ -93,8 +105,8 @@ namespace TDOM.Unity.Combat
         ]
         private AjusteEstado[] _ajustesPorEstado =
         {
-            new AjusteEstado { Estado = "1i", RotacionExtra = new Vector3(0f, 180f, 0f) },
-            new AjusteEstado { Estado = "1iCargado", RotacionExtra = new Vector3(0f, 180f, 0f) },
+            new AjusteEstado { Estado = "1i", GiroSobreEjeHoja = -90f },
+            new AjusteEstado { Estado = "1iCargado", GiroSobreEjeHoja = -90f },
         };
 
         [SerializeField, Min(0f), Tooltip("Segundos que tarda en pasar de un ajuste al siguiente.")]
@@ -106,6 +118,7 @@ namespace TDOM.Unity.Combat
         private int[] _hashesAtaque;
         private int[] _hashesAjuste;
         private Quaternion _rotacionExtraActual = Quaternion.identity;
+        private Vector3 _ejeHoja = Vector3.up;
         private Vector3 _posicionExtraActual = Vector3.zero;
         private float _visibleRestante;
         private bool _visibleActual = true;
@@ -183,6 +196,7 @@ namespace TDOM.Unity.Combat
             // Centra el mango en el origen del socket: así posición/rotación/escala giran
             // alrededor del puño y no alrededor del origen del FBX.
             ActualizarSocket();
+            DetectarEjeHoja();
             if (!string.IsNullOrEmpty(_nombreMango))
             {
                 foreach (Renderer r in _visual.GetComponentsInChildren<Renderer>(true))
@@ -194,6 +208,42 @@ namespace TDOM.Unity.Combat
                     break;
                 }
             }
+        }
+
+        // El eje de la espada se saca de la malla de la hoja (su dimension mas larga), en vez
+        // de suponerlo: asi el giro de 180 grados es sobre el eje correcto sin importar como
+        // se importe el FBX.
+        private void DetectarEjeHoja()
+        {
+            _ejeHoja = Vector3.up;
+            if (string.IsNullOrEmpty(_nombreHoja))
+                return;
+
+            foreach (Renderer r in _visual.GetComponentsInChildren<Renderer>(true))
+            {
+                if (r.name != _nombreHoja)
+                    continue;
+
+                MeshFilter mf = r.GetComponent<MeshFilter>();
+                if (mf == null || mf.sharedMesh == null)
+                    break;
+
+                Vector3 tam = mf.sharedMesh.bounds.size;
+                Vector3 largo;
+                if (tam.x >= tam.y && tam.x >= tam.z)
+                    largo = Vector3.right;
+                else
+                    largo = tam.y >= tam.z ? Vector3.up : Vector3.forward;
+
+                Vector3 dir = _visual.transform.InverseTransformDirection(
+                    r.transform.TransformDirection(largo)
+                );
+                if (dir.sqrMagnitude > 1e-6f)
+                    _ejeHoja = dir.normalized;
+                break;
+            }
+
+            Debug.Log($"[AylaEspada] eje de la hoja (espacio de la espada): {_ejeHoja}", this);
         }
 
         private void LateUpdate()
@@ -253,7 +303,9 @@ namespace TDOM.Unity.Combat
             {
                 if (_hashesAjuste[i] != hash)
                     continue;
-                rotacion = Quaternion.Euler(_ajustesPorEstado[i].RotacionExtra);
+                rotacion =
+                    Quaternion.AngleAxis(_ajustesPorEstado[i].GiroSobreEjeHoja, _ejeHoja)
+                    * Quaternion.Euler(_ajustesPorEstado[i].RotacionExtra);
                 posicion = _ajustesPorEstado[i].PosicionExtra;
                 return;
             }

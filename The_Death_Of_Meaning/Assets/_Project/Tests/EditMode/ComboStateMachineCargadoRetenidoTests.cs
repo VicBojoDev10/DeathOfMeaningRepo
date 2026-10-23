@@ -175,6 +175,40 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
+        public void Mantener_el_boton_tras_un_cargado_no_dispara_otro()
+        {
+            var pressHold = new InputSnapshot { AttackPressed = true, AttackHeld = true };
+            var hold = new InputSnapshot { AttackHeld = true };
+            var neutral = new InputSnapshot();
+
+            var primero = combo.Tick(pressHold, 1.3f); // carga al maximo: sale solo
+            Assert.AreEqual(AttackKind.Charged, primero.Value.Kind);
+
+            int extras = 0;
+            for (int i = 0; i < 100; i++) // 5 s con el boton apretado
+                if (combo.Tick(hold, 0.05f).HasValue)
+                    extras++;
+            Assert.AreEqual(0, extras, "no debe reiniciar la carga ni gastar energia otra vez");
+            Assert.AreEqual(ComboPhase.Idle, combo.Fase);
+
+            combo.Tick(neutral, 0.05f); // se suelta
+            var segundo = combo.Tick(pressHold, 1.3f);
+            Assert.IsTrue(segundo.HasValue, "soltando y volviendo a presionar si carga de nuevo");
+        }
+
+        [Test]
+        public void Expone_el_tiempo_de_carga_y_los_ligeros_del_combo()
+        {
+            combo.Tick(new InputSnapshot { AttackPressed = true }, 0.21f); // ligero 0
+            Assert.AreEqual(1, combo.LigerosEnCombo);
+
+            combo.Tick(new InputSnapshot { AttackPressed = true, AttackHeld = true }, 0.01f);
+            combo.Tick(new InputSnapshot { AttackHeld = true }, 0.3f);
+            Assert.AreEqual(ComboPhase.Charging, combo.Fase);
+            Assert.That(combo.TiempoDeCarga, Is.InRange(0.29f, 0.35f));
+        }
+
+        [Test]
         public void TerminarCargado_sin_retencion_no_hace_nada()
         {
             combo.Tick(new InputSnapshot { AttackPressed = true }, 0.21f);

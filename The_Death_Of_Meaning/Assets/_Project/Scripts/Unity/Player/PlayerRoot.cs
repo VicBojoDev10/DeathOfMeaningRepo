@@ -120,6 +120,7 @@ namespace TDOM.Unity.Player
             || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
 
         public CharacterIds CharacterId => _characterId;
+        public float CostoEnergiaPendiente => _combat != null ? _combat.CostoCargaPendiente : 0f;
         public float EnergiaMaxima => _definition?.Energy != null ? _definition.Energy.Max : 0f;
         public float VidaMaxima => _definition.MaxHealth;
         public float DuracionAbatido => _definition.DownedDuration;
