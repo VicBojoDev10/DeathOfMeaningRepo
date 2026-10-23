@@ -16,6 +16,9 @@ flowchart TD
     HZ -->|"DanioAcumulado (NetworkVariable)"| BOSS[BossController]
     GOLPE --> LOCAL["Local: PlayerCombatAnimator, CombatVfx, FeedbackDirector"]
     DISP --> LOCAL
+    DISP -->|"con _vfxRed y _vfxDisparo: VfxRed.Lanzar en lugar de CombatVfx.Disparo"| FLECHA["VfxRed + VfxPool: Vfx_Zendre_Disparo en todos los clientes"]
+    BRAZO["BrazoApuntado (LateUpdate)"] -->|"con Aim o Shoot: endereza el antebrazo y apunta el brazo al punto de mira"| ORIGEN["Origen del disparo en la mano"]
+    ORIGEN --> DISP
     PC -.->|"ReproducirGolpeRpc, ReproducirDisparoRpc, CargaRpc (NotOwner)"| REM[Animator y VFX del otro cliente]
     PC -->|"BloqueaMovimiento (melee) frena la locomocion, DisparoActivo la limita (modo pistola)"| ROOT[PlayerRoot]
     INZ["InputSnapshot: AimHeld + GrappleHeld (Zendre)"] --> AL["AnchorLauncher + CooldownTimer"]

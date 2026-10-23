@@ -5,6 +5,7 @@ using TDOM.Gameplay.Core;
 using TDOM.Unity;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Player;
+using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -55,6 +56,13 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private float _radioDisparo = 0.5f;
+
+        [Header("Vfx del disparo")]
+        [SerializeField]
+        private VfxRed _vfxRed;
+
+        [SerializeField]
+        private VfxBase _vfxDisparo;
 
         public float RadioHitbox => _radioHitbox;
         public float AlcanceHitbox => _alcanceHitbox;
@@ -210,15 +218,16 @@ namespace TDOM.Unity.Combat
 
             if (_combatAnimator != null)
                 _combatAnimator.PlayShot(evento.ComboIndex, cargado);
-            if (_vfx != null)
-                _vfx.Disparo(cargado);
+            ReproducirVfxDisparoLocal(cargado);
             _debugFeedback?.FlashActive(0.1f);
             if (_feedback != null)
                 _feedback.OnAtaquePropio();
 
             if (_proyectilPrefab != null && _origenDisparo != null)
             {
-                DispararRpc(_origenDisparo.position, DireccionDeDisparo(), evento);
+                Vector3 direccion = DireccionDeDisparo();
+                LanzarFlechaDisparo(direccion);
+                DispararRpc(_origenDisparo.position, direccion, evento);
             }
             else if (_hitbox != null)
             {
@@ -228,6 +237,26 @@ namespace TDOM.Unity.Combat
             }
 
             ReproducirDisparoRpc(evento.ComboIndex, cargado);
+        }
+
+        private bool UsaFlechaDisparo => _vfxRed != null && _vfxDisparo != null;
+
+        private void ReproducirVfxDisparoLocal(bool cargado)
+        {
+            if (UsaFlechaDisparo || _vfx == null)
+                return;
+            _vfx.Disparo(cargado);
+        }
+
+        private void LanzarFlechaDisparo(Vector3 direccion)
+        {
+            if (!UsaFlechaDisparo || direccion == Vector3.zero)
+                return;
+            _vfxRed.Lanzar(
+                _vfxDisparo,
+                _origenDisparo.position,
+                Quaternion.LookRotation(direccion)
+            );
         }
 
         private InputSnapshot ComoDisparo(InputSnapshot input)
@@ -496,8 +525,7 @@ namespace TDOM.Unity.Combat
         {
             if (_combatAnimator != null)
                 _combatAnimator.PlayCombo(indice, cargado);
-            if (_vfx != null)
-                _vfx.Disparo(cargado);
+            ReproducirVfxDisparoLocal(cargado);
         }
     }
 }
