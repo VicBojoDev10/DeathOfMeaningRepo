@@ -23,6 +23,10 @@ namespace TDOM.Unity.Combat
 
         public void FlashActive(float duration)
         {
+            // Si el objeto esta desactivado no se puede iniciar la corrutina.
+            if (!isActiveAndEnabled)
+                return;
+
             if (_routine != null)
                 StopCoroutine(_routine);
 

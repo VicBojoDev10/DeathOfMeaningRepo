@@ -312,6 +312,7 @@ MonoBehaviour:
   _debugFeedback: {fileID: 4774187134671701211}
   _vfx: {fileID: 2189285926878354938}
   _logCombo: 1
+  _velocidadEnCombo: 0.4
   _radioHitbox: 1.5
   _alcanceHitbox: 1
   _proyectilPrefab: {fileID: 0}
@@ -331,7 +332,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.PlayerCombatAnimator
   _animator: {fileID: 1136055855002311730}
-  _comboTransitionNormalizedTime: 0.4
+  _comboTransitionNormalizedTime: 0.3
+  _alternarAtaqueBasico: 1
+  _segmentosActivos: 1
+  _girosActivos: 1
+  _velocidadGiros: 2.24
+  _tiempoMaximoGiros: 6
+  _duracionEstadoGiros: 0.7
+  _giros:
+    InicioGiro: 0.1
+    ImpactoGiro: 0.45
+    FinGiro: 0.55
+    InicioFinal: 0.55
+    ImpactoFinal: 0.8
+    FinFinal: 0.97
+    GirosMinimos: 2
+    GirosMaximos: 4
+    RatioCargaMinimo: 0.12
+    MezclaEntrada: 0.08
+    MezclaGiro: 0.1
+    MezclaFinal: 0.12
+    MezclaSalida: 0.12
 --- !u!120 &8501239841203941201
 LineRenderer:
   serializedVersion: 3
@@ -1015,6 +1036,7 @@ MonoBehaviour:
   _rotacion: {x: 0, y: 0, z: 0}
   _escala: 0.5
   _nombreMango: MangoEspada
+  _nombreHoja: OjaPrincipalEspada
   _soloVisibleAtacando: 1
   _retrasoOcultar: 0.3
   _estadosDeAtaque:
@@ -1022,6 +1044,17 @@ MonoBehaviour:
   - 1i
   - 2IC
   - Charged
+  - 1iCargado
+  _ajustesPorEstado:
+  - Estado: 1i
+    GiroSobreEjeHoja: -90
+    RotacionExtra: {x: 0, y: 0, z: 0}
+    PosicionExtra: {x: 0, y: 0, z: 0}
+  - Estado: 1iCargado
+    GiroSobreEjeHoja: -90
+    RotacionExtra: {x: 0, y: 0, z: 0}
+    PosicionExtra: {x: 0, y: 0, z: 0}
+  _tiempoCambioAjuste: 0.06
 --- !u!1001 &9094838142294137057
 PrefabInstance:
   m_ObjectHideFlags: 0

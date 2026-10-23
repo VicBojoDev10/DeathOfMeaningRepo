@@ -94,6 +94,10 @@ namespace TDOM.Unity
                 return;
 
             _barraEnergiaJugador.ActualizarEnergia(_localPlayer.Energia.Value);
+            _barraEnergiaJugador.MostrarCostoPendiente(
+                _localPlayer.CostoEnergiaPendiente,
+                _localPlayer.Energia.Value
+            );
 
             if (_jugadorConEnergiaInicializado == _localPlayer)
                 return;
