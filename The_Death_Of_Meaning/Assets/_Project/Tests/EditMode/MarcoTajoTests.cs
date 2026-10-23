@@ -17,49 +17,6 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
-        public void la_silueta_apunta_hacia_donde_barre_la_espada()
-        {
-            Quaternion rotacion = MarcoTajo.Rotacion(
-                Vector3.zero,
-                Vector3.forward,
-                new Vector3(-1f, 0f, 1f),
-                Quaternion.identity
-            );
-
-            Vector3 adelante = rotacion * Vector3.forward;
-            Assert.AreEqual(1f, adelante.x, Delta);
-        }
-
-        [Test]
-        public void un_tajo_horizontal_queda_acostado()
-        {
-            Quaternion rotacion = MarcoTajo.Rotacion(
-                Vector3.zero,
-                Vector3.forward,
-                new Vector3(-1f, 0f, 1f),
-                Quaternion.identity
-            );
-
-            Vector3 arriba = rotacion * Vector3.up;
-            Assert.AreEqual(1f, Mathf.Abs(arriba.y), Delta);
-        }
-
-        [Test]
-        public void si_la_espada_no_se_movio_usa_la_rotacion_de_respaldo()
-        {
-            Quaternion respaldo = Quaternion.Euler(0f, 45f, 0f);
-
-            Quaternion rotacion = MarcoTajo.Rotacion(
-                Vector3.zero,
-                Vector3.forward,
-                Vector3.forward,
-                respaldo
-            );
-
-            Assert.AreEqual(1f, Mathf.Abs(Quaternion.Dot(respaldo, rotacion)), Delta);
-        }
-
-        [Test]
         public void el_avance_va_al_frente_sin_subir_ni_bajar()
         {
             Vector3 avance = MarcoTajo.Avance(new Vector3(0f, 0.5f, 1f), 3f);

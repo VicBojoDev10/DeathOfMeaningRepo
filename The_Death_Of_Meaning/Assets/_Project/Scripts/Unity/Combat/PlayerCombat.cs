@@ -48,16 +48,13 @@ namespace TDOM.Unity.Combat
         private Transform _origenVfxPrimerGolpe;
 
         [SerializeField]
-        private Vector3 _giroVfxPrimerGolpe = Vector3.zero;
+        private Vector3 _giroVfxPrimerGolpe = new Vector3(0f, 0f, 45f);
 
         [SerializeField]
-        private Vector3 _giroVfxPrimerGolpeEspejo = new Vector3(0f, 0f, 180f);
+        private Vector3 _giroVfxPrimerGolpeEspejo = new Vector3(0f, 0f, -45f);
 
         [SerializeField, Min(0f)]
         private float _retardoVfxPrimerGolpe = 0.12f;
-
-        [SerializeField, Min(0.01f)]
-        private float _muestreoVfxPrimerGolpe = 0.04f;
 
         [SerializeField, Min(0f)]
         private float _avanceVfxPrimerGolpe = 3f;
@@ -555,42 +552,31 @@ namespace TDOM.Unity.Combat
             if (_vfxRed == null || _vfxPrimerGolpe == null || cargado || evento.ComboIndex != 0)
                 return;
 
-            if (_origenHoja != null && _origenHoja.Hoja(out _, out _))
-            {
-                StartCoroutine(LanzarVfxPrimerGolpeDesdeHoja());
-                return;
-            }
+            StartCoroutine(LanzarVfxPrimerGolpeConRetardo(espejo));
+        }
 
-            Transform origen = _origenVfxPrimerGolpe != null ? _origenVfxPrimerGolpe : transform;
+        private IEnumerator LanzarVfxPrimerGolpeConRetardo(bool espejo)
+        {
+            yield return new WaitForSeconds(_retardoVfxPrimerGolpe);
+            if (_incapacitado)
+                yield break;
+
             Vector3 giro = espejo ? _giroVfxPrimerGolpeEspejo : _giroVfxPrimerGolpe;
             _vfxRed.Lanzar(
                 _vfxPrimerGolpe,
-                origen.position,
-                transform.rotation * Quaternion.Euler(giro)
+                PosicionVfxPrimerGolpe(),
+                transform.rotation * Quaternion.Euler(giro),
+                MarcoTajo.Avance(transform.forward, _avanceVfxPrimerGolpe)
             );
         }
 
-        private IEnumerator LanzarVfxPrimerGolpeDesdeHoja()
+        private Vector3 PosicionVfxPrimerGolpe()
         {
-            yield return new WaitForSeconds(_retardoVfxPrimerGolpe);
-            _origenHoja.Hoja(out _, out Vector3 puntaAnterior);
+            if (_origenHoja != null && _origenHoja.Hoja(out Vector3 baseHoja, out Vector3 punta))
+                return MarcoTajo.Centro(baseHoja, punta);
 
-            yield return new WaitForSeconds(_muestreoVfxPrimerGolpe);
-            if (_incapacitado || !_origenHoja.Hoja(out Vector3 baseHoja, out Vector3 punta))
-                yield break;
-
-            Quaternion rotacion = MarcoTajo.Rotacion(
-                baseHoja,
-                punta,
-                puntaAnterior,
-                transform.rotation
-            );
-            _vfxRed.Lanzar(
-                _vfxPrimerGolpe,
-                MarcoTajo.Centro(baseHoja, punta),
-                rotacion * Quaternion.Euler(_giroVfxPrimerGolpe),
-                MarcoTajo.Avance(transform.forward, _avanceVfxPrimerGolpe)
-            );
+            Transform origen = _origenVfxPrimerGolpe != null ? _origenVfxPrimerGolpe : transform;
+            return origen.position;
         }
 
         // El golpe cae cuando arranca la animacion, no al soltar el boton.
