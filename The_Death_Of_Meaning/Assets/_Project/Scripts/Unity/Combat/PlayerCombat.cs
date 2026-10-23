@@ -6,6 +6,7 @@ using TDOM.Gameplay.Core;
 using TDOM.Unity;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Player;
+using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -34,6 +35,22 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private CombatVfx _vfx;
+
+        [Header("Vfx en red del primer golpe")]
+        [SerializeField]
+        private VfxRed _vfxRed;
+
+        [SerializeField]
+        private VfxBase _vfxPrimerGolpe;
+
+        [SerializeField]
+        private Transform _origenVfxPrimerGolpe;
+
+        [SerializeField]
+        private Vector3 _giroVfxPrimerGolpe = Vector3.zero;
+
+        [SerializeField]
+        private Vector3 _giroVfxPrimerGolpeEspejo = new Vector3(0f, 0f, 180f);
 
         [SerializeField]
         private bool _logCombo = true;
@@ -499,6 +516,7 @@ namespace TDOM.Unity.Combat
                 );
             if (_vfx != null)
                 _vfx.Golpe(evento.ComboIndex, cargado, evento.ChargeRatio);
+            LanzarVfxPrimerGolpe(evento, cargado, espejo);
             _debugFeedback?.FlashActive(0.1f);
 
             if (!giros)
@@ -516,6 +534,20 @@ namespace TDOM.Unity.Combat
                 espejo,
                 giros,
                 ligeros
+            );
+        }
+
+        private void LanzarVfxPrimerGolpe(AttackEvent evento, bool cargado, bool espejo)
+        {
+            if (_vfxRed == null || _vfxPrimerGolpe == null || cargado || evento.ComboIndex != 0)
+                return;
+
+            Transform origen = _origenVfxPrimerGolpe != null ? _origenVfxPrimerGolpe : transform;
+            Vector3 giro = espejo ? _giroVfxPrimerGolpeEspejo : _giroVfxPrimerGolpe;
+            _vfxRed.Lanzar(
+                _vfxPrimerGolpe,
+                origen.position,
+                origen.rotation * Quaternion.Euler(giro)
             );
         }
 
