@@ -313,7 +313,7 @@ MonoBehaviour:
   _vfx: {fileID: 2189285926878354938}
   _vfxRed: {fileID: 2102127513358069341}
   _vfxPrimerGolpe: {fileID: 2884108901446239930, guid: 24f306be62a0ff54fb88dc60829ecdbc, type: 3}
-  _origenVfxPrimerGolpe: {fileID: 562586211900250982}
+  _origenVfxPrimerGolpe: {fileID: 1955049811738589453}
   _giroVfxPrimerGolpe: {x: 0, y: 0, z: 0}
   _giroVfxPrimerGolpeEspejo: {x: 0, y: 0, z: 180}
   _logCombo: 1
@@ -1085,6 +1085,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7211782858631420564, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
   m_PrefabInstance: {fileID: 9074774098523907290}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &1955049811738589453 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7408889247839657431, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
+  m_PrefabInstance: {fileID: 9074774098523907290}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &7072362300874402698 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2294028743705186128, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
@@ -1137,6 +1142,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 562586211900250982}
     m_Modifications:
+    - target: {fileID: 1127990116355230326, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1127990116355230326, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2178800891133331861, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
       propertyPath: m_Name
       value: CombatVfx
