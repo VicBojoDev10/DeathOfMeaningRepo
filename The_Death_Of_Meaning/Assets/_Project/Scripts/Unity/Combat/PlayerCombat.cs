@@ -59,6 +59,9 @@ namespace TDOM.Unity.Combat
         [SerializeField, Min(0.01f)]
         private float _muestreoVfxPrimerGolpe = 0.04f;
 
+        [SerializeField, Min(0f)]
+        private float _avanceVfxPrimerGolpe = 3f;
+
         private IOrigenVfxGolpe _origenHoja;
 
         [SerializeField]
@@ -580,13 +583,13 @@ namespace TDOM.Unity.Combat
                 baseHoja,
                 punta,
                 puntaAnterior,
-                transform.forward,
                 transform.rotation
             );
             _vfxRed.Lanzar(
                 _vfxPrimerGolpe,
                 MarcoTajo.Centro(baseHoja, punta),
-                rotacion * Quaternion.Euler(_giroVfxPrimerGolpe)
+                rotacion * Quaternion.Euler(_giroVfxPrimerGolpe),
+                MarcoTajo.Avance(transform.forward, _avanceVfxPrimerGolpe)
             );
         }
 

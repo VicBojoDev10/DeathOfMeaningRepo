@@ -16,16 +16,19 @@ namespace TDOM.Unity.Vfx
                 _pool = GetComponent<VfxPool>();
         }
 
-        public void Lanzar(VfxBase efecto, Vector3 posicion, Quaternion rotacion)
+        public void Lanzar(VfxBase efecto, Vector3 posicion, Quaternion rotacion) =>
+            Lanzar(efecto, posicion, rotacion, Vector3.zero);
+
+        public void Lanzar(VfxBase efecto, Vector3 posicion, Quaternion rotacion, Vector3 velocidad)
         {
             int indice = IndiceDe(efecto);
             if (indice < 0)
                 return;
 
             if (IsServer)
-                ReproducirRpc(indice, posicion, rotacion);
+                ReproducirRpc(indice, posicion, rotacion, velocidad);
             else if (IsOwner)
-                PedirReproducirRpc(indice, posicion, rotacion);
+                PedirReproducirRpc(indice, posicion, rotacion, velocidad);
         }
 
         public void LanzarEntre(VfxBase efecto, Vector3 a, Vector3 b)
@@ -59,11 +62,12 @@ namespace TDOM.Unity.Vfx
             int indice,
             Vector3 posicion,
             Quaternion rotacion,
+            Vector3 velocidad,
             RpcParams rpcParams = default
         )
         {
             if (rpcParams.Receive.SenderClientId == OwnerClientId)
-                ReproducirRpc(indice, posicion, rotacion);
+                ReproducirRpc(indice, posicion, rotacion, velocidad);
         }
 
         [Rpc(SendTo.Server)]
@@ -86,11 +90,16 @@ namespace TDOM.Unity.Vfx
         }
 
         [Rpc(SendTo.ClientsAndHost)]
-        private void ReproducirRpc(int indice, Vector3 posicion, Quaternion rotacion)
+        private void ReproducirRpc(
+            int indice,
+            Vector3 posicion,
+            Quaternion rotacion,
+            Vector3 velocidad
+        )
         {
             var instancia = _pool != null ? _pool.Pedir(indice) : null;
             if (instancia != null)
-                instancia.Reproducir(posicion, rotacion);
+                instancia.Reproducir(posicion, rotacion, velocidad);
         }
 
         [Rpc(SendTo.ClientsAndHost)]

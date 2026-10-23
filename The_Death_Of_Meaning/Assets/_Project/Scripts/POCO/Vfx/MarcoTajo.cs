@@ -14,19 +14,23 @@ namespace TDOM.Gameplay.Vfx
             Vector3 baseHoja,
             Vector3 punta,
             Vector3 puntaAnterior,
-            Vector3 adelante,
             Quaternion respaldo
         )
         {
-            Vector3 normal = Vector3.Cross(punta - baseHoja, punta - puntaAnterior);
-            if (normal.sqrMagnitude < Minimo)
+            Vector3 barrido = punta - puntaAnterior;
+            Vector3 normal = Vector3.Cross(punta - baseHoja, barrido);
+            if (barrido.sqrMagnitude < Minimo || normal.sqrMagnitude < Minimo)
                 return respaldo;
 
-            Vector3 adelanteEnPlano = Vector3.ProjectOnPlane(adelante, normal.normalized);
-            if (adelanteEnPlano.sqrMagnitude < Minimo)
-                return respaldo;
+            return Quaternion.LookRotation(barrido.normalized, normal.normalized);
+        }
 
-            return Quaternion.LookRotation(adelanteEnPlano.normalized, normal.normalized);
+        public static Vector3 Avance(Vector3 adelante, float rapidez)
+        {
+            Vector3 horizontal = Vector3.ProjectOnPlane(adelante, Vector3.up);
+            return horizontal.sqrMagnitude < Minimo
+                ? Vector3.zero
+                : horizontal.normalized * rapidez;
         }
     }
 }
