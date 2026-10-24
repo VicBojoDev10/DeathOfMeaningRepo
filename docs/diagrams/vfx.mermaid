@@ -135,19 +135,28 @@ classDiagram
         <<interface>>
         +Hoja(out baseHoja, out punta) bool
     }
+    class ICargaVfx {
+        <<interface>>
+        +SetCarga(activa)
+    }
     class AylaEspada {
         <<MonoBehaviour>>
         +EstelaOn(idPerfil)
         +EstelaOff()
+        +SetCarga(activa)
+        +EspadaBurst()
     }
     class PlayerCombat {
         <<NetworkBehaviour>>
         -LanzarVfxGolpeLigero(evento, cargado, espejo)
+        -MostrarCarga(activa)
     }
 
     EstelaEspada ..> MuestrasEstela : guarda la hoja cada frame
     EstelaEspada --> EstelaEspadaProfile : lee tuning
     AylaEspada ..|> IOrigenVfxGolpe
+    AylaEspada ..|> ICargaVfx
+    PlayerCombat --> ICargaVfx : brillo de carga (dueño + CargaRpc)
     AylaEspada --> EstelaEspada : Animation Events
     PlayerCombat --> IOrigenVfxGolpe : centro de la hoja
     PlayerCombat ..> MarcoTajo : posicion y avance
