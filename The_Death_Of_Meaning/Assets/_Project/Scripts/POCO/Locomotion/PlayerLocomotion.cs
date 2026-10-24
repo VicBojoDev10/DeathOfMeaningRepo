@@ -13,6 +13,7 @@ namespace TDOM.Gameplay.Locomotion
         private readonly DashResolver _dash;
         private readonly GrappleResolver _grapple;
         private readonly float _multiplicadorVelocidadPistola;
+        private readonly InputSnapshot _inputSinControl = new InputSnapshot();
 
         private const float VelocidadCompleta = 1f;
 
@@ -106,7 +107,8 @@ namespace TDOM.Gameplay.Locomotion
             float dt,
             bool blockMove = false,
             Vector3 posicion = default,
-            bool modoPistola = false
+            bool modoPistola = false,
+            float multiplicadorAtaque = 1f
         )
         {
             DashIniciado = false;
@@ -123,7 +125,15 @@ namespace TDOM.Gameplay.Locomotion
             if (State.IsGrounded && State.Velocity.y <= 0f)
                 SaltoEnCurso = false;
 
-            var intent = TickInterno(input, yaw, dt, blockMove, posicion, modoPistola);
+            var intent = TickInterno(
+                input,
+                yaw,
+                dt,
+                blockMove,
+                posicion,
+                modoPistola,
+                multiplicadorAtaque
+            );
 
             CayendoEnSalto = SaltoEnCurso && State.Velocity.y <= 0f;
 
@@ -139,7 +149,8 @@ namespace TDOM.Gameplay.Locomotion
             float dt,
             bool blockMove,
             Vector3 posicion,
-            bool modoPistola
+            bool modoPistola,
+            float multiplicadorAtaque
         )
         {
             ActualizarCarrera(input, modoPistola);
@@ -201,9 +212,9 @@ namespace TDOM.Gameplay.Locomotion
                     State,
                     input.Move,
                     yaw,
-                    _run.Corriendo,
+                    _run.Corriendo && multiplicadorAtaque >= 1f,
                     dt,
-                    MultiplicadorDeVelocidad(modoPistola)
+                    MultiplicadorDeVelocidad(modoPistola) * multiplicadorAtaque
                 );
             }
             else
@@ -236,6 +247,19 @@ namespace TDOM.Gameplay.Locomotion
             }
 
             _run.Tick(input);
+        }
+
+        public MotionIntent TickIncapacitado(float dt)
+        {
+            _dash?.Cancelar();
+            _grapple?.Cancelar();
+            _run.Corriendo = false;
+            State.Velocity = new Vector3(0f, Mathf.Min(0f, State.Velocity.y), 0f);
+            State.BufferTimer = 0f;
+            State.CoyoteTimer = 0f;
+            State.Phase = State.IsGrounded ? LocomotionPhase.Grounded : LocomotionPhase.Airborne;
+            SaltoEnCurso = false;
+            return Tick(_inputSinControl, Quaternion.identity, dt);
         }
 
         public void Reiniciar()

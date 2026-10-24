@@ -27,6 +27,19 @@ namespace TDOM.Unity.Combat
         private GameObject _anclaPrefab;
 
         private bool _esperandoSoltar;
+        private bool _incapacitado;
+
+        public void EstablecerIncapacitado(bool incapacitado)
+        {
+            _incapacitado = incapacitado;
+            if (!incapacitado)
+                return;
+
+            AnclaActiva = false;
+            _esperandoSoltar = true;
+            if (IsServer)
+                DespawnearAncla();
+        }
 
         private CooldownTimer _cooldown;
         private NetworkObject _anclaSpawnada;
@@ -55,7 +68,7 @@ namespace TDOM.Unity.Combat
 
         private void Update()
         {
-            if (!IsOwner || _perfil == null || _cooldown == null)
+            if (!IsOwner || _incapacitado || _perfil == null || _cooldown == null)
                 return;
 
             float dt = Time.deltaTime;
@@ -94,6 +107,12 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.Server)]
         private void LanzarAnclaRpc(Vector3 origen, Vector3 dir)
         {
+            if (_incapacitado)
+            {
+                RechazarLanzamientoRpc();
+                return;
+            }
+
             float limit =
                 _perfil != null && _perfil.ToleranciaOrigen > 0f ? _perfil.ToleranciaOrigen : 6f;
             float distance = Vector3.Distance(origen, transform.position);
@@ -125,6 +144,11 @@ namespace TDOM.Unity.Combat
 
         [Rpc(SendTo.Server)]
         private void SoltarAnclaRpc()
+        {
+            DespawnearAncla();
+        }
+
+        private void DespawnearAncla()
         {
             if (_anclaSpawnada != null && _anclaSpawnada.IsSpawned)
             {
