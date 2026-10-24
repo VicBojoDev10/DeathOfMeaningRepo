@@ -12,9 +12,22 @@ namespace TDOM.Unity
 {
     public class ConnectionManager : Singleton<ConnectionManager>
     {
-        private const float TiempoLimiteConexion = 10f;
+        private const float TiempoMaxCierreRed = 3f;
+
         [SerializeField]
         private GameObject gameFlowNetworkPrefab;
+
+        [Header("Tiempos de espera")]
+        [Tooltip("Segundos que un cliente espera respuesta del host antes de cancelar solo.")]
+        [SerializeField, Min(1f)]
+        private float tiempoLimiteCliente = 10f;
+
+        [Tooltip(
+            "Segundos que un host espera a que entre un jugador antes de cerrar la partida. 0 = sin límite."
+        )]
+        [SerializeField, Min(0f)]
+        private float tiempoEsperaHost = 0f;
+
         private readonly SessionStatus _status = new();
         private readonly HashSet<ulong> _clientesAprobadosPendientes = new();
         public event Action<EstadoSesion> OnEstadoCambiado;
@@ -22,21 +35,34 @@ namespace TDOM.Unity
         public event Action OnCargaEscenaIniciada;
         public event Action OnCargaEscenaCompletada;
         public event Action<string> OnConexionRechazada;
+
+        public event Action<int> OnTiempoRestanteCambiado;
         public EstadoSesion EstadoActual => _status.Estado;
 
         private bool _isSubscribed;
-        private Coroutine _timeoutConexion;
         private float _finTiempoLimiteConexion = -1f;
-        private bool _esCancelacionIntencional;
+        private bool _cerrandoRed;
         private bool _intentoComoCliente;
+        private int _ultimoSegundoNotificado = -1;
+
+        public bool CerrandoRed => _cerrandoRed;
+
+        public bool PuedeCancelar => !_cerrandoRed && EstadoEsActivo(_status.Estado);
 
         public bool ClienteEsperandoConexion =>
             _intentoComoCliente && _status.Estado == EstadoSesion.Conectando;
         public bool UltimoIntentoFueCliente => _intentoComoCliente;
+
+        public bool TemporizadorActivo => _finTiempoLimiteConexion >= 0f;
         public int SegundosRestantesConexion =>
             _finTiempoLimiteConexion < 0f
                 ? 0
                 : Mathf.CeilToInt(Mathf.Max(0f, _finTiempoLimiteConexion - Time.unscaledTime));
+
+        public static bool EstadoEsActivo(EstadoSesion estado) =>
+            estado == EstadoSesion.Conectando
+            || estado == EstadoSesion.Listo
+            || estado == EstadoSesion.EsperandoJugador;
 
         private void Start()
         {
@@ -50,12 +76,42 @@ namespace TDOM.Unity
 
         private void OnDisable()
         {
+
+            _cerrandoRed = false;
             DesuscribirEventosNetwork();
         }
 
         private void OnDestroy()
         {
             DesuscribirEventosNetwork();
+        }
+
+        private void Update()
+        {
+            if (_finTiempoLimiteConexion < 0f)
+                return;
+
+            NotificarTiempo();
+            if (_cerrandoRed || Time.unscaledTime < _finTiempoLimiteConexion)
+                return;
+
+            DetenerTimeout();
+            var networkManager = NetworkManager.Singleton;
+
+            if (_intentoComoCliente && _status.Estado == EstadoSesion.Conectando)
+            {
+                CancelarConexion("No se encontró la partida. Puedes intentar de nuevo.", true);
+            }
+            else if (
+                !_intentoComoCliente
+                && _status.Estado == EstadoSesion.Listo
+                && networkManager != null
+                && networkManager.IsServer
+                && JugadoresConectados() < 2
+            )
+            {
+                CancelarConexion("Se agotó el tiempo de espera. Puedes crear la partida de nuevo.", true);
+            }
         }
 
         private void SuscribirEventosNetwork()
@@ -122,7 +178,9 @@ namespace TDOM.Unity
 
         public void OnCrearPartida()
         {
-            PrepararIntento(false);
+            if (!PrepararIntento(false))
+                return;
+
             if (NetworkManager.Singleton == null)
             {
                 Debug.LogError(
@@ -148,7 +206,9 @@ namespace TDOM.Unity
 
         public void OnUnirse(string ip)
         {
-            PrepararIntento(true);
+            if (!PrepararIntento(true))
+                return;
+
             if (!IPAddress.TryParse(ip, out _))
             {
                 FallarIntento("La dirección IP no es válida.");
@@ -172,42 +232,55 @@ namespace TDOM.Unity
             }
 
             NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
+            EstablecerLimite(tiempoLimiteCliente);
             CambiarEstado(EstadoSesion.Conectando);
-            _finTiempoLimiteConexion = Time.unscaledTime + TiempoLimiteConexion;
             if (!NetworkManager.Singleton.StartClient())
-            {
-                _finTiempoLimiteConexion = -1f;
                 FallarIntento("No se pudo iniciar la conexión.");
-            }
-            else
+        }
+
+        private bool PrepararIntento(bool comoCliente)
+        {
+            var networkManager = NetworkManager.Singleton;
+            if (_cerrandoRed || (networkManager != null && networkManager.IsListening))
             {
-                if (_status.Estado == EstadoSesion.Conectando)
-                    _timeoutConexion = StartCoroutine(EsperarConexion());
+
+                Debug.LogWarning(
+                    "[ConnectionManager] Intento ignorado: la red está activa o cerrándose todavía."
+                );
+                return false;
             }
-        }
 
-        private void PrepararIntento(bool comoCliente)
-        {
             _intentoComoCliente = comoCliente;
-            _esCancelacionIntencional = false;
             DetenerTimeout();
+            return true;
         }
 
-        private IEnumerator EsperarConexion()
+        private void EstablecerLimite(float segundos)
         {
-            yield return new WaitForSecondsRealtime(TiempoLimiteConexion);
-            _timeoutConexion = null;
-            if (_status.Estado == EstadoSesion.Conectando && _intentoComoCliente)
-                CancelarConexion("No se encontró la partida. Puedes intentar de nuevo.", true);
+            _finTiempoLimiteConexion = Time.unscaledTime + segundos;
+            NotificarTiempo();
         }
 
         private void DetenerTimeout()
         {
             _finTiempoLimiteConexion = -1f;
-            if (_timeoutConexion == null)
+            NotificarTiempo();
+        }
+
+        private void IniciarTemporizadorHost()
+        {
+            if (tiempoEsperaHost > 0f)
+                EstablecerLimite(tiempoEsperaHost);
+        }
+
+        private void NotificarTiempo()
+        {
+            int segundos = _finTiempoLimiteConexion < 0f ? -1 : SegundosRestantesConexion;
+            if (segundos == _ultimoSegundoNotificado)
                 return;
-            StopCoroutine(_timeoutConexion);
-            _timeoutConexion = null;
+
+            _ultimoSegundoNotificado = segundos;
+            OnTiempoRestanteCambiado?.Invoke(segundos);
         }
 
         private void FallarIntento(string mensaje)
@@ -221,32 +294,99 @@ namespace TDOM.Unity
 
         private void CancelarConexion(string mensaje, bool mostrarMensaje)
         {
-            var networkManager = NetworkManager.Singleton;
-            if (_status.Estado == EstadoSesion.Cancelada
-                && (networkManager == null || !networkManager.IsListening))
+            if (_cerrandoRed)
                 return;
 
+            var networkManager = NetworkManager.Singleton;
+            bool redActiva =
+                networkManager != null
+                && (networkManager.IsListening || networkManager.ShutdownInProgress);
+            if (!redActiva && !EstadoEsActivo(_status.Estado))
+                return;
+
+            Debug.Log(
+                $"[ConnectionManager] Cancelando. estado={_status.Estado}, cliente={_intentoComoCliente}, redActiva={redActiva}"
+            );
+            CerrarRed(EstadoSesion.Cancelada, mostrarMensaje ? mensaje : null, false);
+        }
+
+        private void CerrarRed(EstadoSesion estadoFinal, string mensaje, bool diferir)
+        {
+            if (_cerrandoRed)
+                return;
+
+            _cerrandoRed = true;
             DetenerTimeout();
-            _esCancelacionIntencional = true;
-            if (networkManager != null && networkManager.IsListening)
+            StartCoroutine(CerrarRedCoroutine(estadoFinal, mensaje, diferir));
+        }
+
+        private IEnumerator CerrarRedCoroutine(EstadoSesion estadoFinal, string mensaje, bool diferir)
+        {
+
+            if (diferir)
+                yield return null;
+
+            var networkManager = NetworkManager.Singleton;
+            if (networkManager != null && networkManager.IsListening && !networkManager.ShutdownInProgress)
             {
-                if (networkManager.IsServer && GameFlowNetwork.Instance != null)
-                {
-                    var networkObject = GameFlowNetwork.Instance.NetworkObject;
-                    if (networkObject != null && networkObject.IsSpawned)
-                        networkObject.Despawn(true);
-                }
+                if (networkManager.IsServer)
+                    DespawnGameFlow();
                 networkManager.Shutdown();
             }
+
+            float limite = Time.unscaledTime + TiempoMaxCierreRed;
+            while (
+                networkManager != null
+                && (networkManager.IsListening || networkManager.ShutdownInProgress)
+            )
+            {
+                if (Time.unscaledTime > limite)
+                {
+                    Debug.LogWarning(
+                        "[ConnectionManager] NGO tardó demasiado en cerrar; se continúa de todos modos."
+                    );
+                    break;
+                }
+                yield return null;
+            }
+
             _clientesAprobadosPendientes.Clear();
+            _cerrandoRed = false;
+
             OnJugadoresCambiado?.Invoke(0);
-            CambiarEstado(EstadoSesion.Cancelada);
-            if (mostrarMensaje)
+            CambiarEstado(estadoFinal);
+            if (!string.IsNullOrWhiteSpace(mensaje))
                 OnConexionRechazada?.Invoke(mensaje);
+        }
+
+        private static void DespawnGameFlow()
+        {
+            if (GameFlowNetwork.Instance == null)
+                return;
+
+            var networkObject = GameFlowNetwork.Instance.NetworkObject;
+            if (networkObject != null && networkObject.IsSpawned)
+                networkObject.Despawn(true);
+        }
+
+        private int JugadoresConectados(ulong? excluir = null)
+        {
+            var networkManager = NetworkManager.Singleton;
+            if (networkManager == null)
+                return 0;
+
+            int total = 0;
+            foreach (var cliente in networkManager.ConnectedClientsList)
+                if (excluir == null || cliente.ClientId != excluir.Value)
+                    total++;
+            return total;
         }
 
         private void HandleServerStarted()
         {
+            if (_cerrandoRed)
+                return;
+
             CambiarEstado(EstadoSesion.Listo);
             if (NetworkManager.Singleton.IsServer)
             {
@@ -257,42 +397,48 @@ namespace TDOM.Unity
 
         private void HandleClientConnected(ulong clientId)
         {
-            if (clientId == NetworkManager.Singleton.LocalClientId)
-                DetenerTimeout();
+            var networkManager = NetworkManager.Singleton;
             _clientesAprobadosPendientes.Remove(clientId);
-            if (clientId == NetworkManager.Singleton.LocalClientId)
+            if (_cerrandoRed)
+                return;
+
+            if (clientId == networkManager.LocalClientId)
             {
+                DetenerTimeout();
                 CambiarEstado(EstadoSesion.Listo);
             }
 
-            if (NetworkManager.Singleton.IsServer)
+            if (networkManager.IsServer)
             {
-                OnJugadoresCambiado?.Invoke(NetworkManager.Singleton.ConnectedClientsList.Count);
+                int jugadores = networkManager.ConnectedClientsList.Count;
+                if (jugadores >= 2)
+                    DetenerTimeout();
+                else
+                    IniciarTemporizadorHost();
+                OnJugadoresCambiado?.Invoke(jugadores);
             }
         }
 
         private void HandleClientDisconnected(ulong clientId)
         {
             _clientesAprobadosPendientes.Remove(clientId);
-            if (clientId == NetworkManager.Singleton.LocalClientId)
+            if (_cerrandoRed)
+                return;
+
+            var networkManager = NetworkManager.Singleton;
+
+            if (clientId == networkManager.LocalClientId)
             {
                 bool esperandoPrimeraConexion =
                     _intentoComoCliente && _status.Estado == EstadoSesion.Conectando;
-                string motivo = NetworkManager.Singleton.DisconnectReason;
+                string motivo = networkManager.DisconnectReason;
 
-                if (_esCancelacionIntencional)
+                if (esperandoPrimeraConexion && string.IsNullOrWhiteSpace(motivo))
+                    return;
+
+                if (!networkManager.IsServer)
                 {
-                    DetenerTimeout();
-                    CambiarEstado(EstadoSesion.Cancelada);
-                }
-                else if (!esperandoPrimeraConexion || !string.IsNullOrWhiteSpace(motivo))
-                {
-                    DetenerTimeout();
-                    CambiarEstado(EstadoSesion.Error);
-                }
-                if (!NetworkManager.Singleton.IsServer)
-                {
-                    if (!string.IsNullOrWhiteSpace(motivo))
+                    if (motivo != null)
                     {
                         if (motivo.Contains("Partida llena", StringComparison.OrdinalIgnoreCase))
                             motivo = "Partida llena";
@@ -300,42 +446,26 @@ namespace TDOM.Unity
                             motivo.Contains("Partida en curso", StringComparison.OrdinalIgnoreCase)
                         )
                             motivo = "Partida en curso";
-                        if (!string.IsNullOrWhiteSpace(motivo))
-                            OnConexionRechazada?.Invoke(motivo);
                     }
-                    else if (!_esCancelacionIntencional && !esperandoPrimeraConexion)
-                    {
-                        OnConexionRechazada?.Invoke("Se perdió la conexión con la partida.");
-                    }
-
-                    if (!_esCancelacionIntencional && !esperandoPrimeraConexion)
-                        StartCoroutine(LimpiarRedTrasFallo());
+                    if (string.IsNullOrWhiteSpace(motivo))
+                        motivo = "Se perdió la conexión con la partida.";
+                    CerrarRed(EstadoSesion.Error, motivo, true);
                 }
-            }
-
-            if (NetworkManager.Singleton.IsServer)
-            {
-                OnJugadoresCambiado?.Invoke(NetworkManager.Singleton.ConnectedClientsList.Count);
-            }
-        }
-
-        private IEnumerator LimpiarRedTrasFallo()
-        {
-            // NGO puede seguir dentro del callback de desconexión; apagarlo al frame siguiente.
-            yield return null;
-            var networkManager = NetworkManager.Singleton;
-            if (networkManager != null && networkManager.IsListening)
-            {
-                if (networkManager.IsServer && GameFlowNetwork.Instance != null)
+                else
                 {
-                    var networkObject = GameFlowNetwork.Instance.NetworkObject;
-                    if (networkObject != null && networkObject.IsSpawned)
-                        networkObject.Despawn(true);
+                    CerrarRed(EstadoSesion.Error, null, true);
                 }
-                networkManager.Shutdown();
+                return;
             }
-            _clientesAprobadosPendientes.Clear();
-            OnJugadoresCambiado?.Invoke(0);
+
+            if (networkManager.IsServer)
+            {
+
+                int jugadores = JugadoresConectados(clientId);
+                if (jugadores < 2)
+                    IniciarTemporizadorHost();
+                OnJugadoresCambiado?.Invoke(jugadores);
+            }
         }
 
         private void HandleClientStarted()
@@ -351,22 +481,18 @@ namespace TDOM.Unity
         private void HandleClientStopped(bool eraHost)
         {
             Debug.Log($"[Network ClientStopped] eraHost={eraHost}");
+            DesuscribirEventosEscena();
+            if (_cerrandoRed)
+                return;
+
             bool esperandoPrimeraConexion =
                 _intentoComoCliente && _status.Estado == EstadoSesion.Conectando;
-            if (!esperandoPrimeraConexion || _esCancelacionIntencional)
-                DetenerTimeout();
-            DesuscribirEventosEscena();
-            if (_esCancelacionIntencional)
-                CambiarEstado(EstadoSesion.Cancelada);
-            else if (esperandoPrimeraConexion)
-            {
-                // Mantener visible el contador hasta agotar los 10 segundos del intento.
-            }
-            else if (_status.Estado == EstadoSesion.Conectando || _status.Estado == EstadoSesion.Listo)
-            {
-                CambiarEstado(EstadoSesion.Error);
-                OnConexionRechazada?.Invoke("Se perdió la conexión con la partida.");
-            }
+
+            if (esperandoPrimeraConexion)
+                return;
+
+            if (_status.Estado == EstadoSesion.Conectando || _status.Estado == EstadoSesion.Listo)
+                CerrarRed(EstadoSesion.Error, "Se perdió la conexión con la partida.", true);
         }
 
         private void DesuscribirEventosEscena()
@@ -395,14 +521,13 @@ namespace TDOM.Unity
 
         private void HandleTransportFailure()
         {
-            if (!_esCancelacionIntencional)
-            {
-                if (_intentoComoCliente && _status.Estado == EstadoSesion.Conectando)
-                    return;
+            if (_cerrandoRed)
+                return;
 
-                FallarIntento("Falló la conexión de red.");
-                StartCoroutine(LimpiarRedTrasFallo());
-            }
+            if (_intentoComoCliente && _status.Estado == EstadoSesion.Conectando)
+                return;
+
+            CerrarRed(EstadoSesion.Error, "Falló la conexión de red.", true);
         }
 
         private void CambiarEstado(EstadoSesion nuevoEstado)

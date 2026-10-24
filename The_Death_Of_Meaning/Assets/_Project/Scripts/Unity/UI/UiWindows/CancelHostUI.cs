@@ -1,5 +1,5 @@
+using System;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using TMPro;
 
@@ -8,7 +8,8 @@ namespace TDOM.Unity
     public class CancelHostUI : UIWindow
     {
         public Button cancelButton;
-        public TextMeshProUGUI timerText;
+        public TextMeshProUGUI timerText; 
+        public event Action OnCancelarSolicitado;
 
         private void Awake()
         {
@@ -31,35 +32,12 @@ namespace TDOM.Unity
                 cancelButton.onClick.RemoveListener(CancelarConexion);
         }
 
-        private void Update()
+        public void ActualizarTiempo(int segundos)
         {
-            if (!IsOpen)
-                return;
-
-            var manager = ConnectionManager.Instance;
             if (timerText != null)
-            {
-                timerText.text = manager != null && manager.ClienteEsperandoConexion
-                    ? $"{manager.SegundosRestantesConexion}..."
-                    : string.Empty;
-            }
-
-            bool cancelar = Gamepad.current != null && Gamepad.current.buttonEast.wasPressedThisFrame;
-            cancelar |= Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
-            if (cancelar)
-                CancelarConexion();
+                timerText.text = segundos >= 0 ? $"{segundos}..." : string.Empty;
         }
 
-        public void CancelarConexion()
-        {
-            var manager = ConnectionManager.Instance;
-            if (manager == null)
-                return;
-
-            if (manager.EstadoActual == TDOM.Gameplay.Core.EstadoSesion.Conectando
-                || manager.EstadoActual == TDOM.Gameplay.Core.EstadoSesion.Listo
-                || manager.EstadoActual == TDOM.Gameplay.Core.EstadoSesion.EsperandoJugador)
-                manager.CancelarConexion();
-        }
+        public void CancelarConexion() => OnCancelarSolicitado?.Invoke();
     }
 }
