@@ -181,3 +181,25 @@ classDiagram
     PlayerCombat --> IOrigenVfxGolpe : centro de la hoja
     PlayerCombat ..> MarcoTajo : posicion y avance
     PlayerCombat --> VfxRed : silueta por golpe ligero
+
+    class ContextoDashVfx {
+        <<POCO>>
+        +Tipo : TipoDashVfx
+        +Nube : NubeDashVfx
+        +GanchoReciente : bool
+        +Capturar(enSuelo, corriendo, cancelaAtaque, ganchoActivo, dt)
+    }
+    class VfxDash {
+        <<MonoBehaviour>>
+        +Capturar(enSuelo, corriendo, cancelaAtaque, ganchoActivo, dt)
+        +Lanzar(posicion, velocidad, rotacionPorDefecto)
+    }
+    class PlayerRoot {
+        <<NetworkBehaviour>>
+        -CapturarContextoVfxDash(dt)
+        -LanzarVfxDash()
+    }
+
+    VfxDash ..> ContextoDashVfx : color y nube del dash
+    VfxDash --> VfxRed : ventisca, chispas y nube
+    PlayerRoot --> VfxDash : estado antes del dash y lanzamiento

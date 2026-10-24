@@ -12,6 +12,7 @@ using TDOM.Unity.Combat;
 using TDOM.Unity.Input;
 using TDOM.Unity.Level;
 using TDOM.Unity.Locomotion;
+using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
@@ -61,6 +62,9 @@ namespace TDOM.Unity.Player
 
         [SerializeField]
         private GrappleVisual _grappleVisual;
+
+        [SerializeField]
+        private VfxDash _vfxDash;
 
         [SerializeField]
         private float _sensitivity = 200f;
@@ -195,6 +199,9 @@ namespace TDOM.Unity.Player
 
             if (_grappleVisual == null)
                 _grappleVisual = GetComponentInChildren<GrappleVisual>();
+
+            if (_vfxDash == null)
+                _vfxDash = GetComponentInChildren<VfxDash>();
 
             if (IsServer && _definition != null && _definition.Energy != null)
             {
@@ -519,6 +526,26 @@ namespace TDOM.Unity.Player
                 _feedback.OnAterrizajeFuerte();
         }
 
+        private void CapturarContextoVfxDash(float dt)
+        {
+            if (_vfxDash == null)
+                return;
+
+            _vfxDash.Capturar(
+                _locomocion.State.IsGrounded,
+                _locomocion.Corriendo,
+                _combat != null && (_combat.AtaqueActivo || _combat.PuedeCancelarConDash),
+                _locomocion.GanchoActivo,
+                dt
+            );
+        }
+
+        private void LanzarVfxDash()
+        {
+            if (_vfxDash != null)
+                _vfxDash.Lanzar(transform.position, _locomocion.State.Velocity, transform.rotation);
+        }
+
         private void AplicarMiradaACamara()
         {
             if (_camera != null)
@@ -662,6 +689,7 @@ namespace TDOM.Unity.Player
                 );
 
             _motor.ProbeGround(_locomocion.State);
+            CapturarContextoVfxDash(dt);
 
             if (!EstaAbatidoOMuerto)
             {
@@ -746,7 +774,10 @@ namespace TDOM.Unity.Player
 
             DispararFeedbackDeLocomocion();
             if (_locomocion.DashIniciado)
+            {
                 DashEmbestidaIniciada?.Invoke();
+                LanzarVfxDash();
+            }
             RegistrarDesplazamientoLateralEnCamara(input.Move);
 
             bool ganchoActivoActual = _locomocion != null && _locomocion.GanchoActivo;
