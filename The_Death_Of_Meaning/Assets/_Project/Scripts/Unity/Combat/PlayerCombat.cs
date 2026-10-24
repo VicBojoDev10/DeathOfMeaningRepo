@@ -98,12 +98,10 @@ namespace TDOM.Unity.Combat
         private VfxBase[] _vfxCargadoGrandePorEtapa = new VfxBase[0];
 
         [SerializeField]
-        [Tooltip("Inclinación de cada silueta grande al soltar el cargado.")]
-        private Vector3[] _girosCargadoGrande =
-        {
-            new Vector3(0f, 0f, 45f),
-            new Vector3(0f, 0f, -45f),
-        };
+        [Tooltip(
+            "Metros a la derecha (+) o izquierda (-) de la silueta normal, una por silueta grande."
+        )]
+        private float[] _desplazamientosCargadoGrande = { -1.2f, 1.2f };
 
         [SerializeField]
         [Tooltip("Inclinación de cada silueta que sale en los cortes del cargado de giros.")]
@@ -636,14 +634,10 @@ namespace TDOM.Unity.Combat
             if (grande == null)
                 return;
 
-            foreach (Vector3 giro in _girosCargadoGrande)
-            {
-                VfxGolpeLigero ajuste = _vfxCargado;
-                ajuste.Efecto = grande;
-                ajuste.Giro = giro;
-                ajuste.GiroEspejo = giro;
-                StartCoroutine(LanzarVfxGolpeLigeroConRetardo(ajuste, espejo));
-            }
+            VfxGolpeLigero ajuste = _vfxCargado;
+            ajuste.Efecto = grande;
+            foreach (float lateral in _desplazamientosCargadoGrande)
+                StartCoroutine(LanzarVfxGolpeLigeroConRetardo(ajuste, espejo, lateral));
         }
 
         private VfxBase EfectoCargado(float progreso)
@@ -671,7 +665,11 @@ namespace TDOM.Unity.Combat
             _vfxRed.Lanzar(efecto, posicion, rumbo * Quaternion.Euler(_giroCorteGiro), avance);
         }
 
-        private IEnumerator LanzarVfxGolpeLigeroConRetardo(VfxGolpeLigero ajuste, bool espejo)
+        private IEnumerator LanzarVfxGolpeLigeroConRetardo(
+            VfxGolpeLigero ajuste,
+            bool espejo,
+            float lateral = 0f
+        )
         {
             yield return new WaitForSeconds(ajuste.Retardo);
             if (_incapacitado)
@@ -680,7 +678,7 @@ namespace TDOM.Unity.Combat
             Vector3 giro = espejo ? ajuste.GiroEspejo : ajuste.Giro;
             _vfxRed.Lanzar(
                 ajuste.Efecto != null ? ajuste.Efecto : _vfxGolpeLigero,
-                PosicionVfxGolpeLigero(),
+                PosicionVfxGolpeLigero() + transform.right * lateral,
                 transform.rotation * Quaternion.Euler(giro),
                 MarcoTajo.Avance(transform.forward, _avanceVfxGolpeLigero)
             );
