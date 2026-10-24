@@ -12,9 +12,9 @@ using TDOM.Unity.Combat;
 using TDOM.Unity.Input;
 using TDOM.Unity.Level;
 using TDOM.Unity.Locomotion;
-using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace TDOM.Unity.Player
 {
@@ -73,6 +73,8 @@ namespace TDOM.Unity.Player
         private float _alturaMaxima = 80f;
         private bool _respawnPorAlturaSolicitado;
         private bool _respawnEnCurso;
+        private GameObject _respawnFadeCanvas;
+        private CanvasGroup _respawnFade;
 
         public NetworkVariable<float> Energia = new NetworkVariable<float>(
             0,
@@ -218,6 +220,7 @@ namespace TDOM.Unity.Player
 
             if (IsOwner)
             {
+                CrearOverlayRespawn();
                 _inputReader.ActivarPersonaje(_characterId);
                 if (_camera != null)
                     _feedback = _camera.GetComponent<FeedbackDirector>();
@@ -242,6 +245,7 @@ namespace TDOM.Unity.Player
 
         public override void OnNetworkDespawn()
         {
+            DestruirOverlayRespawn();
             EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
             _healthPool = null;
             _vidasJugadores.Clear();
@@ -254,6 +258,7 @@ namespace TDOM.Unity.Player
 
         public override void OnDestroy()
         {
+            DestruirOverlayRespawn();
             EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
             if (IsServer)
             {
@@ -341,18 +346,74 @@ namespace TDOM.Unity.Player
         private IEnumerator RespawnConFundidoRutina(Vector3 position, Quaternion rotation)
         {
             _respawnEnCurso = true;
-            var transicion = UiManager.Instance != null ? UiManager.Instance.TransitionManager : null;
-
-            if (transicion != null)
-                yield return transicion.FadeOut(0.25f);
-
+            yield return FundirOverlayRespawn(1f, 0.25f);
             Respawn(position, rotation);
             yield return new WaitForSecondsRealtime(0.1f);
-
-            if (transicion != null)
-                yield return transicion.FadeIn(0.35f);
-
+            yield return FundirOverlayRespawn(0f, 0.35f);
             _respawnEnCurso = false;
+        }
+
+        private IEnumerator FundirOverlayRespawn(float alphaObjetivo, float duracion)
+        {
+            if (_respawnFade == null)
+                yield break;
+
+            float alphaInicial = _respawnFade.alpha;
+            float transcurrido = 0f;
+            while (transcurrido < duracion && _respawnFade != null)
+            {
+                transcurrido += Time.unscaledDeltaTime;
+                _respawnFade.alpha = Mathf.Lerp(
+                    alphaInicial,
+                    alphaObjetivo,
+                    transcurrido / duracion
+                );
+                yield return null;
+            }
+
+            if (_respawnFade != null)
+                _respawnFade.alpha = alphaObjetivo;
+        }
+
+        private void CrearOverlayRespawn()
+        {
+            if (_respawnFadeCanvas != null)
+                return;
+
+            _respawnFadeCanvas = new GameObject("RespawnFadeLocal");
+            var canvas = _respawnFadeCanvas.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = short.MaxValue;
+
+            _respawnFade = _respawnFadeCanvas.AddComponent<CanvasGroup>();
+            _respawnFade.alpha = 0f;
+            _respawnFade.interactable = false;
+            _respawnFade.blocksRaycasts = false;
+
+            var imagenObjeto = new GameObject(
+                "PantallaNegra",
+                typeof(RectTransform),
+                typeof(Image)
+            );
+            imagenObjeto.transform.SetParent(_respawnFadeCanvas.transform, false);
+            var rect = imagenObjeto.GetComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            var imagen = imagenObjeto.GetComponent<Image>();
+            imagen.color = Color.black;
+            imagen.raycastTarget = false;
+        }
+
+        private void DestruirOverlayRespawn()
+        {
+            if (_respawnFadeCanvas != null)
+                Destroy(_respawnFadeCanvas);
+
+            _respawnFadeCanvas = null;
+            _respawnFade = null;
         }
 
         public void Respawn(Vector3 position, Quaternion rotation)
@@ -881,5 +942,3 @@ namespace TDOM.Unity.Player
         }
     }
 }
-
-
