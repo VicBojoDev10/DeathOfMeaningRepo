@@ -139,6 +139,7 @@ classDiagram
         <<interface>>
         +SetCarga(activa, segundosCargados, segundosMaximos)
         +EtapaDe(progreso) int
+        +ForzarEtapaFinal(activa)
     }
     class EtapasCarga {
         <<POCO>>
@@ -156,12 +157,14 @@ classDiagram
         +EstelaOff()
         +SetCarga(activa, segundosCargados, segundosMaximos)
         +EtapaDe(progreso) int
+        +ForzarEtapaFinal(activa)
         +EspadaBurst()
     }
     class PlayerCombat {
         <<NetworkBehaviour>>
         -LanzarVfxGolpeLigero(evento, cargado, espejo)
         -LanzarVfxCargado(progreso, espejo)
+        -LanzarVfxCorteGiro()
         -MostrarCarga(activa)
     }
 
