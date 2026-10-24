@@ -49,7 +49,7 @@ namespace TDOM.Unity.Level
                     + $"from={player.transform.position} respawn={respawn.position}"
             );
 
-            player.Respawn(respawn.position, respawn.rotation);
+            player.RespawnConFundido(respawn.position, respawn.rotation);
             return true;
         }
     }
