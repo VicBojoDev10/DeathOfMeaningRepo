@@ -135,19 +135,48 @@ classDiagram
         <<interface>>
         +Hoja(out baseHoja, out punta) bool
     }
+    class ICargaVfx {
+        <<interface>>
+        +SetCarga(activa, segundosCargados, segundosMaximos)
+        +EtapaDe(progreso) int
+        +ForzarEtapaFinal(activa)
+    }
+    class EtapasCarga {
+        <<POCO>>
+        +Progreso(segundosCargados, transcurridos, maximos) float
+        +Indice(inicios, progreso) int
+    }
+    class CargaEspadaProfile {
+        <<ScriptableObject>>
+        +etapas : Etapa[]
+        +emisionCuerpo : AnimationCurve
+    }
     class AylaEspada {
         <<MonoBehaviour>>
         +EstelaOn(idPerfil)
         +EstelaOff()
+        +SetCarga(activa, segundosCargados, segundosMaximos)
+        +EtapaDe(progreso) int
+        +ForzarEtapaFinal(activa)
+        +EspadaBurst()
     }
     class PlayerCombat {
         <<NetworkBehaviour>>
         -LanzarVfxGolpeLigero(evento, cargado, espejo)
+        -LanzarVfxCargado(progreso, espejo)
+        -LanzarVfxTornadoGiro()
+        -LanzarArcosGiro()
+        -MostrarCarga(activa)
     }
 
     EstelaEspada ..> MuestrasEstela : guarda la hoja cada frame
     EstelaEspada --> EstelaEspadaProfile : lee tuning
     AylaEspada ..|> IOrigenVfxGolpe
+    AylaEspada ..|> ICargaVfx
+    PlayerCombat --> ICargaVfx : silueta de carga (dueño + CargaRpc)
+    PlayerCombat --> VfxRed : silueta del cargado por etapa
+    AylaEspada --> CargaEspadaProfile : colores y emisión
+    AylaEspada ..> EtapasCarga : etapa por progreso
     AylaEspada --> EstelaEspada : Animation Events
     PlayerCombat --> IOrigenVfxGolpe : centro de la hoja
     PlayerCombat ..> MarcoTajo : posicion y avance

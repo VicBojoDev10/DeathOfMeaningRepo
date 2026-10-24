@@ -1,4 +1,6 @@
 using System;
+using TDOM.Data;
+using TDOM.Gameplay.Vfx;
 using TDOM.Unity.Vfx;
 using UnityEngine;
 
@@ -16,7 +18,7 @@ namespace TDOM.Unity.Combat
     /// ajustar con el juego corriendo.
     /// </summary>
     [DisallowMultipleComponent]
-    public class AylaEspada : MonoBehaviour, IOrigenVfxGolpe
+    public class AylaEspada : MonoBehaviour, IOrigenVfxGolpe, ICargaVfx
     {
         [Header("Referencias")]
         [SerializeField]
@@ -66,6 +68,22 @@ namespace TDOM.Unity.Combat
             )
         ]
         private string _nombreHoja = "OjaPrincipalEspada";
+
+        [Header("Ataque cargado")]
+        [
+            SerializeField,
+            Tooltip("Hijo de la espada con la silueta que cambia de color mientras se carga.")
+        ]
+        private string _nombreCarga = "Carga";
+
+        [SerializeField, Tooltip("Hijo de la espada con la ráfaga al soltar el cargado.")]
+        private string _nombreLiberacion = "Liberacion";
+
+        [SerializeField, Tooltip("Colores de la silueta y emisión de las partículas del cuerpo.")]
+        private CargaEspadaProfile _perfilCarga;
+
+        [SerializeField, Tooltip("Partículas alrededor del cuerpo de Ayla mientras carga.")]
+        private ParticleSystem _particulasCuerpo;
 
         [Header("Visibilidad")]
         [SerializeField, Tooltip("Si está activo, la espada solo se ve mientras Ayla ataca.")]
@@ -117,6 +135,20 @@ namespace TDOM.Unity.Combat
         private Transform _socket;
         private GameObject _visual;
         private EstelaEspada _estela;
+        private static readonly int ColorSilueta = Shader.PropertyToID("_Color");
+        private static readonly int IntensidadSilueta = Shader.PropertyToID("_Intensidad");
+
+        private GameObject _carga;
+        private Renderer[] _renderersCarga = new Renderer[0];
+        private MaterialPropertyBlock _bloqueCarga;
+        private ParticleSystem _liberacion;
+        private bool _cargaActiva;
+        private float _segundosCargados;
+        private float _segundosMaximos;
+        private float _transcurridoCarga;
+        private bool _forzarEtapaFinal;
+        private float[] _iniciosEtapa = new float[0];
+        private float _emisionBaseCuerpo;
         private int[] _hashesAtaque;
         private int[] _hashesAjuste;
         private Quaternion _rotacionExtraActual = Quaternion.identity;
@@ -137,6 +169,23 @@ namespace TDOM.Unity.Combat
             _hashesAjuste = new int[_ajustesPorEstado.Length];
             for (int i = 0; i < _ajustesPorEstado.Length; i++)
                 _hashesAjuste[i] = Animator.StringToHash(_ajustesPorEstado[i].Estado);
+
+            PrepararCarga();
+        }
+
+        private void PrepararCarga()
+        {
+            _bloqueCarga = new MaterialPropertyBlock();
+
+            if (_perfilCarga != null && _perfilCarga.etapas != null)
+            {
+                _iniciosEtapa = new float[_perfilCarga.etapas.Length];
+                for (int i = 0; i < _iniciosEtapa.Length; i++)
+                    _iniciosEtapa[i] = _perfilCarga.etapas[i].desde;
+            }
+
+            if (_particulasCuerpo != null)
+                _emisionBaseCuerpo = _particulasCuerpo.emission.rateOverTimeMultiplier;
         }
 
         private void Start()
@@ -191,6 +240,13 @@ namespace TDOM.Unity.Combat
             _visual.transform.localScale = Vector3.one;
 
             _estela = _visual.GetComponentInChildren<EstelaEspada>(true);
+            _carga = BuscarHijo(_nombreCarga)?.gameObject;
+            _liberacion = BuscarHijo(_nombreLiberacion)?.GetComponent<ParticleSystem>();
+            if (_carga != null)
+            {
+                _renderersCarga = _carga.GetComponentsInChildren<Renderer>(true);
+                _carga.SetActive(_cargaActiva);
+            }
             foreach (Collider c in _visual.GetComponentsInChildren<Collider>(true))
                 c.enabled = false;
             foreach (Transform t in _visual.GetComponentsInChildren<Transform>(true))
@@ -255,6 +311,7 @@ namespace TDOM.Unity.Combat
                 return;
 
             ActualizarSocket();
+            ActualizarCarga();
 
             if (!_soloVisibleAtacando)
             {
@@ -262,7 +319,7 @@ namespace TDOM.Unity.Combat
                 return;
             }
 
-            if (EnAtaque())
+            if (_cargaActiva || EnAtaque())
             {
                 _visibleRestante = _retrasoOcultar;
             }
@@ -285,6 +342,102 @@ namespace TDOM.Unity.Combat
         {
             if (_estela != null && _estela.Encendida)
                 _estela.Apagar();
+        }
+
+        public void SetCarga(bool activa, float segundosCargados, float segundosMaximos)
+        {
+            _cargaActiva = activa;
+            _segundosCargados = segundosCargados;
+            _segundosMaximos = segundosMaximos;
+            _transcurridoCarga = 0f;
+
+            if (_carga != null)
+                _carga.SetActive(activa);
+            AlternarParticulasCuerpo(activa);
+            if (!activa || _visual == null)
+                return;
+
+            ActualizarCarga();
+            _visibleRestante = _retrasoOcultar;
+            AplicarVisibilidad(true);
+        }
+
+        public int EtapaDe(float progreso) => EtapasCarga.Indice(_iniciosEtapa, progreso);
+
+        public void ForzarEtapaFinal(bool activa) => _forzarEtapaFinal = activa;
+
+        private int EtapaActual(float progreso) =>
+            _forzarEtapaFinal ? _iniciosEtapa.Length - 1 : EtapaDe(progreso);
+
+        private void ActualizarCarga()
+        {
+            if (!_cargaActiva)
+                return;
+
+            _transcurridoCarga += Time.deltaTime;
+            float progreso = EtapasCarga.Progreso(
+                _segundosCargados,
+                _transcurridoCarga,
+                _segundosMaximos
+            );
+            PintarSilueta(EtapaActual(progreso));
+            EscalarEmisionCuerpo(progreso);
+        }
+
+        private void PintarSilueta(int etapa)
+        {
+            if (etapa == EtapasCarga.SinEtapa)
+                return;
+
+            CargaEspadaProfile.Etapa datos = _perfilCarga.etapas[etapa];
+            foreach (Renderer r in _renderersCarga)
+            {
+                r.GetPropertyBlock(_bloqueCarga);
+                _bloqueCarga.SetColor(ColorSilueta, datos.color);
+                _bloqueCarga.SetFloat(IntensidadSilueta, datos.intensidad);
+                r.SetPropertyBlock(_bloqueCarga);
+            }
+        }
+
+        private void EscalarEmisionCuerpo(float progreso)
+        {
+            if (_particulasCuerpo == null || _perfilCarga == null)
+                return;
+
+            ParticleSystem.EmissionModule emision = _particulasCuerpo.emission;
+            emision.rateOverTimeMultiplier =
+                _emisionBaseCuerpo * _perfilCarga.emisionCuerpo.Evaluate(progreso);
+        }
+
+        private void AlternarParticulasCuerpo(bool activa)
+        {
+            if (_particulasCuerpo == null)
+                return;
+
+            if (activa)
+                _particulasCuerpo.Play(true);
+            else
+                _particulasCuerpo.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+        }
+
+        public void EspadaBurst()
+        {
+            if (_liberacion == null)
+                return;
+
+            _liberacion.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            _liberacion.Play(true);
+        }
+
+        private Transform BuscarHijo(string nombre)
+        {
+            if (string.IsNullOrEmpty(nombre))
+                return null;
+
+            foreach (Transform t in _visual.GetComponentsInChildren<Transform>(true))
+                if (t.name == nombre)
+                    return t;
+            return null;
         }
 
         public bool Hoja(out Vector3 baseHoja, out Vector3 punta)
