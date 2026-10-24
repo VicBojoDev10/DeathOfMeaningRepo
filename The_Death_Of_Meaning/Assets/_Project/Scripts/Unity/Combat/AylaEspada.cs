@@ -1,4 +1,5 @@
 using System;
+using TDOM.Unity.Vfx;
 using UnityEngine;
 
 namespace TDOM.Unity.Combat
@@ -15,7 +16,7 @@ namespace TDOM.Unity.Combat
     /// ajustar con el juego corriendo.
     /// </summary>
     [DisallowMultipleComponent]
-    public class AylaEspada : MonoBehaviour
+    public class AylaEspada : MonoBehaviour, IOrigenVfxGolpe
     {
         [Header("Referencias")]
         [SerializeField]
@@ -115,6 +116,7 @@ namespace TDOM.Unity.Combat
         private Transform _hueso;
         private Transform _socket;
         private GameObject _visual;
+        private EstelaEspada _estela;
         private int[] _hashesAtaque;
         private int[] _hashesAjuste;
         private Quaternion _rotacionExtraActual = Quaternion.identity;
@@ -188,6 +190,7 @@ namespace TDOM.Unity.Combat
             _visual.transform.localRotation = Quaternion.identity;
             _visual.transform.localScale = Vector3.one;
 
+            _estela = _visual.GetComponentInChildren<EstelaEspada>(true);
             foreach (Collider c in _visual.GetComponentsInChildren<Collider>(true))
                 c.enabled = false;
             foreach (Transform t in _visual.GetComponentsInChildren<Transform>(true))
@@ -260,11 +263,38 @@ namespace TDOM.Unity.Combat
             }
 
             if (EnAtaque())
+            {
                 _visibleRestante = _retrasoOcultar;
+            }
             else
+            {
                 _visibleRestante -= Time.deltaTime;
+                EstelaOff();
+            }
 
             AplicarVisibilidad(_visibleRestante > 0f);
+        }
+
+        public void EstelaOn(string idPerfil)
+        {
+            if (_estela != null)
+                _estela.Encender(idPerfil);
+        }
+
+        public void EstelaOff()
+        {
+            if (_estela != null && _estela.Encendida)
+                _estela.Apagar();
+        }
+
+        public bool Hoja(out Vector3 baseHoja, out Vector3 punta)
+        {
+            if (_estela != null)
+                return _estela.Hoja(out baseHoja, out punta);
+
+            baseHoja = Vector3.zero;
+            punta = Vector3.zero;
+            return false;
         }
 
         private void ActualizarSocket()

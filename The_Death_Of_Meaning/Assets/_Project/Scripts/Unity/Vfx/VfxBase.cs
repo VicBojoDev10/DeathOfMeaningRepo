@@ -36,6 +36,7 @@ namespace TDOM.Unity.Vfx
         public Vector3 Control { get; private set; }
         public Vector3 PosicionBase { get; private set; }
         public Quaternion RotacionBase { get; private set; } = Quaternion.identity;
+        public Vector3 Velocidad { get; private set; }
 
         protected Transform Visual => _visual != null ? _visual : transform;
         protected ParticleSystem Principal { get; private set; }
@@ -50,15 +51,20 @@ namespace TDOM.Unity.Vfx
             Principal = Visual.GetComponent<ParticleSystem>();
         }
 
-        public void Reproducir(Vector3 posicion, Quaternion rotacion)
+        public void Reproducir(Vector3 posicion, Quaternion rotacion) =>
+            Reproducir(posicion, rotacion, Vector3.zero);
+
+        public void Reproducir(Vector3 posicion, Quaternion rotacion, Vector3 velocidad)
         {
             _entrePuntos = false;
+            Velocidad = velocidad;
             Iniciar(posicion, rotacion);
         }
 
         public void ReproducirEntre(Vector3 a, Vector3 b)
         {
             _entrePuntos = true;
+            Velocidad = Vector3.zero;
             _aFijo = a;
             _bFijo = b;
             Vector3 direccion = b - a;
@@ -165,6 +171,7 @@ namespace TDOM.Unity.Vfx
                 return;
 
             Tiempo += Time.deltaTime;
+            PosicionBase += Velocidad * Time.deltaTime;
             RecalcularTrayectoria();
 
             float t = Perfil.duracion > 0f ? Mathf.Clamp01(Tiempo / Perfil.duracion) : 1f;

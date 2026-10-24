@@ -50,7 +50,9 @@ classDiagram
     class VfxBase {
         <<abstract, MonoBehaviour>>
         +Perfil VfxProfile
+        +Velocidad Vector3
         +Reproducir(posicion, rotacion)
+        +Reproducir(posicion, rotacion, velocidad)
         +ReproducirEntre(a, b)
         +Detener()
         +Terminado event
@@ -73,6 +75,7 @@ classDiagram
     class VfxRed {
         <<NetworkBehaviour>>
         +Lanzar(efecto, posicion, rotacion)
+        +Lanzar(efecto, posicion, rotacion, velocidad)
         +LanzarEntre(efecto, a, b)
         +Detener(efecto)
         -PedirReproducirRpc() Server
@@ -104,3 +107,48 @@ classDiagram
     VfxPool --> VfxCatalogo : crea las copias al inicio
     VfxPool o-- VfxBase : instancias
     VfxRed --> VfxPool : cada maquina saca su copia
+
+    class MuestrasEstela {
+        <<POCO>>
+        +Cantidad int
+        +Agregar(baseHoja, punta, distanciaMinima) bool
+        +Envejecer(segundos, duracionVida)
+        +Vaciar()
+    }
+    class MarcoTajo {
+        <<static, POCO>>
+        +Centro(baseHoja, punta) Vector3
+        +Avance(adelante, rapidez) Vector3
+    }
+    class EstelaEspadaProfile {
+        <<ScriptableObject>>
+        +duracionVida, distanciaMinima, maxPuntos
+        +curvaAncho, gradienteColor, material
+    }
+    class EstelaEspada {
+        <<MonoBehaviour>>
+        +Encender(idPerfil)
+        +Apagar()
+        +Hoja(out baseHoja, out punta) bool
+    }
+    class IOrigenVfxGolpe {
+        <<interface>>
+        +Hoja(out baseHoja, out punta) bool
+    }
+    class AylaEspada {
+        <<MonoBehaviour>>
+        +EstelaOn(idPerfil)
+        +EstelaOff()
+    }
+    class PlayerCombat {
+        <<NetworkBehaviour>>
+        -LanzarVfxGolpeLigero(evento, cargado, espejo)
+    }
+
+    EstelaEspada ..> MuestrasEstela : guarda la hoja cada frame
+    EstelaEspada --> EstelaEspadaProfile : lee tuning
+    AylaEspada ..|> IOrigenVfxGolpe
+    AylaEspada --> EstelaEspada : Animation Events
+    PlayerCombat --> IOrigenVfxGolpe : centro de la hoja
+    PlayerCombat ..> MarcoTajo : posicion y avance
+    PlayerCombat --> VfxRed : silueta por golpe ligero
