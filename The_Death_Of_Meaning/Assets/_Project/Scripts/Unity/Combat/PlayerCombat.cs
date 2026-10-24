@@ -106,15 +106,8 @@ namespace TDOM.Unity.Combat
         private float _adelantoCargadoCentral = 0.6f;
 
         [SerializeField]
-        [Tooltip("Una silueta por inclinación en cada corte del cargado de giros.")]
-        private Vector3[] _girosCorteGiro =
-        {
-            new Vector3(0f, 0f, 90f),
-            new Vector3(0f, 0f, 45f),
-            new Vector3(0f, 0f, -45f),
-        };
-
-        private const float EtapaCompleta = 1f;
+        [Tooltip("Tornado de siluetas que sale en cada corte del cargado de giros.")]
+        private VfxBase _vfxTornadoGiro;
 
         private IOrigenVfxGolpe _origenHoja;
         private ICargaVfx _cargaArma;
@@ -661,18 +654,12 @@ namespace TDOM.Unity.Combat
             return etapa >= 0 && etapa < efectos.Length ? efectos[etapa] : null;
         }
 
-        private void LanzarVfxCorteGiro()
+        private void LanzarVfxTornadoGiro()
         {
-            VfxBase efecto = EfectoCargado(EtapaCompleta);
-            if (_vfxRed == null || efecto == null)
+            if (_vfxRed == null || _vfxTornadoGiro == null)
                 return;
 
-            Vector3 posicion = PosicionVfxGolpeLigero();
-            Vector3 avance = MarcoTajo.Avance(posicion - transform.position, _avanceVfxGolpeLigero);
-            Quaternion rumbo =
-                avance.sqrMagnitude > 0f ? Quaternion.LookRotation(avance) : transform.rotation;
-            foreach (Vector3 giro in _girosCorteGiro)
-                _vfxRed.Lanzar(efecto, posicion, rumbo * Quaternion.Euler(giro), avance);
+            _vfxRed.Lanzar(_vfxTornadoGiro, transform.position, transform.rotation);
         }
 
         private IEnumerator LanzarVfxGolpeLigeroConRetardo(
@@ -774,7 +761,7 @@ namespace TDOM.Unity.Combat
             if (!IsOwner || _incapacitado || !_girosEnCurso)
                 return;
 
-            LanzarVfxCorteGiro();
+            LanzarVfxTornadoGiro();
             if (_hitbox == null)
                 return;
 
