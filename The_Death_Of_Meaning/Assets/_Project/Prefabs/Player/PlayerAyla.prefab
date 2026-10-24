@@ -5199,10 +5199,11 @@ MonoBehaviour:
   - {fileID: 6734519336811798006, guid: d9549c496a02a3f4ca38b7127f303152, type: 3}
   - {fileID: 412829231189845167, guid: b11d371979ac47e4abfcb1501714e5a7, type: 3}
   - {fileID: 6881604803931853183, guid: caaa2b4750829b44db12e8d51f7cd536, type: 3}
-  _girosCargadoGrande:
-  - {x: 0, y: 0, z: 45}
-  - {x: 0, y: 0, z: -45}
-  _giroCorteGiro: {x: 0, y: 0, z: 90}
+  _desplazamientosCargadoLaterales:
+  - -1.2
+  - 1.2
+  _adelantoCargadoCentral: 0.6
+  _vfxTornadoGiro: {fileID: 180731170448229091, guid: 3ca91bf5d2c20204c8bdab81cad25033, type: 3}
   _logCombo: 1
   _radioHitbox: 1.5
   _alcanceHitbox: 1
