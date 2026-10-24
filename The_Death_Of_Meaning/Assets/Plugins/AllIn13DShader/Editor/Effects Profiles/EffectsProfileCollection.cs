@@ -5,192 +5,213 @@ using UnityEngine;
 
 namespace AllIn13DShader
 {
-	public class EffectsProfileCollection : ScriptableObject
-	{
-		public static string ASSET_NAME = "EffectsProfileCollection";
+    public class EffectsProfileCollection : ScriptableObject
+    {
+        public static string ASSET_NAME = "EffectsProfileCollection";
 
-		public EffectsProfile generalProfile;
-		public List<EffectsProfile> profiles;
+        public EffectsProfile generalProfile;
+        public List<EffectsProfile> profiles;
 
-		public static EffectsProfileCollection CreateAsset(PropertiesConfigCollection propertiesConfigCollection)
-		{
-			EffectsProfileCollection res = EffectsProfileCollection.CreateInstance<EffectsProfileCollection>();
+        public static EffectsProfileCollection CreateAsset(
+            PropertiesConfigCollection propertiesConfigCollection
+        )
+        {
+            EffectsProfileCollection res =
+                EffectsProfileCollection.CreateInstance<EffectsProfileCollection>();
 
-			res.profiles = new List<EffectsProfile>();
+            res.profiles = new List<EffectsProfile>();
 
-			EffectsProfile effectsProfile = new EffectsProfile(string.Empty, string.Empty);
-			effectsProfile.CreateDefault(propertiesConfigCollection);
-			res.generalProfile = effectsProfile;
+            EffectsProfile effectsProfile = new EffectsProfile(string.Empty, string.Empty);
+            effectsProfile.CreateDefault(propertiesConfigCollection);
+            res.generalProfile = effectsProfile;
 
-			string path = Path.Combine(GlobalConfiguration.GetDefaultConfigFolderPath(), ASSET_NAME + ".asset"); 
-			AssetDatabase.CreateAsset(res, path);
+            string path = Path.Combine(
+                GlobalConfiguration.GetDefaultConfigFolderPath(),
+                ASSET_NAME + ".asset"
+            );
+            AssetDatabase.CreateAsset(res, path);
 
-			return res;
-		}
+            return res;
+        }
 
-		public EffectsProfile FindEffectProfileByGUID(string guid)
-		{
-			EffectsProfile res = null;
+        public EffectsProfile FindEffectProfileByGUID(string guid)
+        {
+            EffectsProfile res = null;
 
-			for (int i = 0; i < profiles.Count; i++)
-			{
-				if (profiles[i].shaderGUID == guid)
-				{
-					res = profiles[i];
-					break;
-				}
-			}
+            for (int i = 0; i < profiles.Count; i++)
+            {
+                if (profiles[i].shaderGUID == guid)
+                {
+                    res = profiles[i];
+                    break;
+                }
+            }
 
-			return res;
-		}
+            return res;
+        }
 
-		public EffectsProfile FindEffectProfileByShader(Shader shader)
-		{
-			EffectsProfile res = null;
+        public EffectsProfile FindEffectProfileByShader(Shader shader)
+        {
+            EffectsProfile res = null;
 
-			string assetPath = AssetDatabase.GetAssetPath(shader);
-			string guid = AssetDatabase.AssetPathToGUID(assetPath);
+            string assetPath = AssetDatabase.GetAssetPath(shader);
+            string guid = AssetDatabase.AssetPathToGUID(assetPath);
 
-			res = FindEffectProfileByGUID(guid);
+            res = FindEffectProfileByGUID(guid);
 
-			return res;
-		}
+            return res;
+        }
 
-		public bool RemoveEffectsProfileByShader(Shader shader)
-		{
-			bool res = false;
-			EffectsProfile effectProfile = FindEffectProfileByShader(shader);
-			if(effectProfile != null)
-			{
-				res = profiles.Remove(effectProfile);
-			}
+        public bool RemoveEffectsProfileByShader(Shader shader)
+        {
+            bool res = false;
+            EffectsProfile effectProfile = FindEffectProfileByShader(shader);
+            if (effectProfile != null)
+            {
+                res = profiles.Remove(effectProfile);
+            }
 
-			if (res)
-			{
-				EditorUtility.SetDirty(this);
-			}
+            if (res)
+            {
+                EditorUtility.SetDirty(this);
+            }
 
-			return res;
-		}
+            return res;
+        }
 
-		public void ConfigureEffectProfileByMaterialInfo(EffectsProfile target, EffectsProfile activeEffectsList, AbstractMaterialInfo matInfo, PropertiesConfig propertiesConfig)
-		{
-			List<AllIn13DEffectConfig> effectConfigs = propertiesConfig.GetAllEffects();
-			for(int i = 0; i < effectConfigs.Count; i++)
-			{
-				bool effectEnabled = AllIn13DEffectConfig.IsEffectEnabled(effectConfigs[i], matInfo) && 
-					effectConfigs[i].AreDependenciesMet(propertiesConfig, matInfo) && 
-					activeEffectsList.IsEffectEnabled(effectConfigs[i].effectName);
+        public void ConfigureEffectProfileByMaterialInfo(
+            EffectsProfile target,
+            EffectsProfile activeEffectsList,
+            AbstractMaterialInfo matInfo,
+            PropertiesConfig propertiesConfig
+        )
+        {
+            List<AllIn13DEffectConfig> effectConfigs = propertiesConfig.GetAllEffects();
+            for (int i = 0; i < effectConfigs.Count; i++)
+            {
+                bool effectEnabled =
+                    AllIn13DEffectConfig.IsEffectEnabled(effectConfigs[i], matInfo)
+                    && effectConfigs[i].AreDependenciesMet(propertiesConfig, matInfo)
+                    && activeEffectsList.IsEffectEnabled(effectConfigs[i].effectName);
 
-				if (effectEnabled)
-				{
-					target.EnableEffect(effectConfigs[i], matInfo);
-				}
-				else
-				{
-					target.DisableEffect(effectConfigs[i]);
-				}
-			}
-		}
+                if (effectEnabled)
+                {
+                    target.EnableEffect(effectConfigs[i], matInfo);
+                }
+                else
+                {
+                    target.DisableEffect(effectConfigs[i]);
+                }
+            }
+        }
 
-		public EffectsProfile CreateNewProfile(string profileName)
-		{
-			System.Guid guid = System.Guid.NewGuid();
-			string id = $"{guid.ToString()}";
-			
-			EffectsProfile res = new EffectsProfile(id, profileName);
+        public EffectsProfile CreateNewProfile(string profileName)
+        {
+            System.Guid guid = System.Guid.NewGuid();
+            string id = $"{guid.ToString()}";
 
-			profiles.Add(res);
+            EffectsProfile res = new EffectsProfile(id, profileName);
 
-			return res;
-		}
+            profiles.Add(res);
 
-		public void BindEffectConfigs(PropertiesConfig propertiesConfig)
-		{
-			generalProfile.BindEffectConfigs(propertiesConfig);
+            return res;
+        }
 
-			for(int i = 0; i < profiles.Count; i++)
-			{
-				profiles[i].BindEffectConfigs(propertiesConfig);
-			}
-		}
+        public void BindEffectConfigs(PropertiesConfig propertiesConfig)
+        {
+            generalProfile.BindEffectConfigs(propertiesConfig);
 
-		public void CleanInvalidProfiles()
-		{
-			List<EffectsProfile> profilesToRemove = new List<EffectsProfile>();
+            for (int i = 0; i < profiles.Count; i++)
+            {
+                profiles[i].BindEffectConfigs(propertiesConfig);
+            }
+        }
 
-			for (int i = 0; i < profiles.Count - 1; i++)
-			{
-				bool removeThisProfile = false;
+        public void CleanInvalidProfiles()
+        {
+            List<EffectsProfile> profilesToRemove = new List<EffectsProfile>();
 
-				if (profiles[i] == null)
-				{
-					removeThisProfile = true;
-				}
-				else
-				{
-					Shader shader = profiles[i].FindShader(); 
-					if(shader == null)
-					{
-						removeThisProfile = true;
-					}
-				}
+            for (int i = 0; i < profiles.Count - 1; i++)
+            {
+                bool removeThisProfile = false;
 
-				if (removeThisProfile)
-				{
-					profilesToRemove.Add(profiles[i]);
-				}
-			}
+                if (profiles[i] == null)
+                {
+                    removeThisProfile = true;
+                }
+                else
+                {
+                    Shader shader = profiles[i].FindShader();
+                    if (shader == null)
+                    {
+                        removeThisProfile = true;
+                    }
+                }
 
-			for(int i = 0; i < profilesToRemove.Count; i++)
-			{
-				profiles.Remove(profilesToRemove[i]);
-			}
-		}
+                if (removeThisProfile)
+                {
+                    profilesToRemove.Add(profiles[i]);
+                }
+            }
 
-		public void CheckBakedShadersFolder(string folderPath, PropertiesConfig propertiesConfig)
-		{
-			if (AssetDatabase.IsValidFolder(folderPath))
-			{
-				string[] files = Directory.GetFiles(folderPath, "*.shader", SearchOption.AllDirectories);
+            for (int i = 0; i < profilesToRemove.Count; i++)
+            {
+                profiles.Remove(profilesToRemove[i]);
+            }
+        }
 
-				for (int i = 0; i < files.Length; i++)
-				{
-					Shader shader = (Shader)AssetDatabase.LoadAssetAtPath(files[i], typeof(Shader));
+        public void CheckBakedShadersFolder(string folderPath, PropertiesConfig propertiesConfig)
+        {
+            if (AssetDatabase.IsValidFolder(folderPath))
+            {
+                string[] files = Directory.GetFiles(
+                    folderPath,
+                    "*.shader",
+                    SearchOption.AllDirectories
+                );
 
-					EffectsProfile effectProfile = FindEffectProfileByShader(shader);
+                for (int i = 0; i < files.Length; i++)
+                {
+                    Shader shader = (Shader)AssetDatabase.LoadAssetAtPath(files[i], typeof(Shader));
 
-					if (effectProfile == null)
-					{
-						EffectProfileCreatorFromShaderVariant.Create(shader, files[i], propertiesConfig, this);
-					}
-				}
-			}
-		}
+                    EffectsProfile effectProfile = FindEffectProfileByShader(shader);
 
-		public void CheckBakedShadersFolder(PropertiesConfig propertiesConfig)
-		{
-			string shaderVariantsFolderPath = ShaderVariantCreator.GetShaderVariantsFolderPath();
-			CheckBakedShadersFolder(shaderVariantsFolderPath, propertiesConfig);
+                    if (effectProfile == null)
+                    {
+                        EffectProfileCreatorFromShaderVariant.Create(
+                            shader,
+                            files[i],
+                            propertiesConfig,
+                            this
+                        );
+                    }
+                }
+            }
+        }
 
-			if (AssetDatabase.IsValidFolder(Constants.DEMO_SHADERS_BAKED_FOLDER_PATH))
-			{
-				CheckBakedShadersFolder(Constants.DEMO_SHADERS_BAKED_FOLDER_PATH, propertiesConfig);
-			}
-		}
+        public void CheckBakedShadersFolder(PropertiesConfig propertiesConfig)
+        {
+            string shaderVariantsFolderPath = ShaderVariantCreator.GetShaderVariantsFolderPath();
+            CheckBakedShadersFolder(shaderVariantsFolderPath, propertiesConfig);
 
-		public void CheckRemovedShader(string removedPath)
-		{
-			string guid = AssetDatabase.AssetPathToGUID(removedPath);
+            if (AssetDatabase.IsValidFolder(Constants.DEMO_SHADERS_BAKED_FOLDER_PATH))
+            {
+                CheckBakedShadersFolder(Constants.DEMO_SHADERS_BAKED_FOLDER_PATH, propertiesConfig);
+            }
+        }
 
-			EffectsProfile effectsProfileToRemove = FindEffectProfileByGUID(guid);
+        public void CheckRemovedShader(string removedPath)
+        {
+            string guid = AssetDatabase.AssetPathToGUID(removedPath);
 
-			if(effectsProfileToRemove != null)
-			{
-				profiles.Remove(effectsProfileToRemove);
-			}
+            EffectsProfile effectsProfileToRemove = FindEffectProfileByGUID(guid);
 
-			EditorUtility.SetDirty(this);
-		}
-	}
+            if (effectsProfileToRemove != null)
+            {
+                profiles.Remove(effectsProfileToRemove);
+            }
+
+            EditorUtility.SetDirty(this);
+        }
+    }
 }

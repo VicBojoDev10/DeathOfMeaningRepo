@@ -3,61 +3,70 @@ using UnityEngine;
 
 namespace AllIn13DShader
 {
-	public class TriplanarEffectDrawer : AbstractEffectDrawer
-	{
-		private int mainTexPropertyIndex;
-		private EffectProperty mainNormalMapProperty;
-		
-		public TriplanarEffectDrawer(EffectProperty mainNormalMapProperty, AllIn13DShaderInspectorReferences references, 
-			PropertiesConfig propertiesConfig) : base(references, propertiesConfig)
-		{
-			this.drawerID = Constants.TRIPLANAR_EFFECT_DRAWER_ID;
-			this.mainNormalMapProperty = mainNormalMapProperty;
+    public class TriplanarEffectDrawer : AbstractEffectDrawer
+    {
+        private int mainTexPropertyIndex;
+        private EffectProperty mainNormalMapProperty;
 
-			mainTexPropertyIndex = FindPropertyIndex("_MainTex");
-		}
+        public TriplanarEffectDrawer(
+            EffectProperty mainNormalMapProperty,
+            AllIn13DShaderInspectorReferences references,
+            PropertiesConfig propertiesConfig
+        )
+            : base(references, propertiesConfig)
+        {
+            this.drawerID = Constants.TRIPLANAR_EFFECT_DRAWER_ID;
+            this.mainNormalMapProperty = mainNormalMapProperty;
 
-		protected override void DrawProperties()
-		{
-			bool isTriplanarNoiseTransitionEnabled = references.IsKeywordEnabled("_TRIPLANAR_NOISE_TRANSITION_ON");
+            mainTexPropertyIndex = FindPropertyIndex("_MainTex");
+        }
 
-			MaterialProperty matProperty = references.matProperties[mainTexPropertyIndex];
+        protected override void DrawProperties()
+        {
+            bool isTriplanarNoiseTransitionEnabled = references.IsKeywordEnabled(
+                "_TRIPLANAR_NOISE_TRANSITION_ON"
+            );
 
-			EffectPropertyDrawer.DrawProperty(
-				materialProperty: matProperty,
-				labelPrefix: string.Empty,
-				displayName: matProperty.displayName,
-				customValue: string.Empty,
-				allowReset: true, 
-				isKeywordProperty: false,
-				propertyType: EffectProperty.PropertyType.BASIC,
-				references: references);
+            MaterialProperty matProperty = references.matProperties[mainTexPropertyIndex];
 
-			EffectProperty triplanarNoiseTransitionToggleProperty = effectConfig.effectProperties[6];
+            EffectPropertyDrawer.DrawProperty(
+                materialProperty: matProperty,
+                labelPrefix: string.Empty,
+                displayName: matProperty.displayName,
+                customValue: string.Empty,
+                allowReset: true,
+                isKeywordProperty: false,
+                propertyType: EffectProperty.PropertyType.BASIC,
+                references: references
+            );
 
-			DrawProperty(effectConfig.effectProperties[0]);
-			DrawProperty(effectConfig.effectProperties[1]);
+            EffectProperty triplanarNoiseTransitionToggleProperty = effectConfig.effectProperties[
+                6
+            ];
 
-			if (IsEffectPropertyVisible(mainNormalMapProperty, references.targetMatInfos))
-			{
-				EditorUtils.DrawLine(Color.grey, 1, 3);
-				DrawProperty(mainNormalMapProperty, false);
-				DrawProperty(effectConfig.effectProperties[2]);
-			}
+            DrawProperty(effectConfig.effectProperties[0]);
+            DrawProperty(effectConfig.effectProperties[1]);
 
-			EditorUtils.DrawLine(Color.grey, 1, 3);
-			DrawProperty(effectConfig.effectProperties[3]);
-			DrawProperty(effectConfig.effectProperties[4]);
+            if (IsEffectPropertyVisible(mainNormalMapProperty, references.targetMatInfos))
+            {
+                EditorUtils.DrawLine(Color.grey, 1, 3);
+                DrawProperty(mainNormalMapProperty, false);
+                DrawProperty(effectConfig.effectProperties[2]);
+            }
 
-			EditorUtils.DrawLine(Color.grey, 1, 3);
-			DrawProperty(effectConfig.effectProperties[5]);
-			DrawProperty(triplanarNoiseTransitionToggleProperty);
-			
-			if (isTriplanarNoiseTransitionEnabled)
-			{
-				DrawProperty(effectConfig.effectProperties[7]);
-				DrawProperty(effectConfig.effectProperties[8]);
-			}
-		}
-	}
+            EditorUtils.DrawLine(Color.grey, 1, 3);
+            DrawProperty(effectConfig.effectProperties[3]);
+            DrawProperty(effectConfig.effectProperties[4]);
+
+            EditorUtils.DrawLine(Color.grey, 1, 3);
+            DrawProperty(effectConfig.effectProperties[5]);
+            DrawProperty(triplanarNoiseTransitionToggleProperty);
+
+            if (isTriplanarNoiseTransitionEnabled)
+            {
+                DrawProperty(effectConfig.effectProperties[7]);
+                DrawProperty(effectConfig.effectProperties[8]);
+            }
+        }
+    }
 }

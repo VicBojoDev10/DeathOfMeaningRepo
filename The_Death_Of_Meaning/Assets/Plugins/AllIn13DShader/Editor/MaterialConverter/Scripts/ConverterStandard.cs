@@ -2,46 +2,43 @@ using UnityEngine;
 
 namespace AllIn13DShader
 {
-	public class ConverterStandard : ConverterGeneral
-	{
-		public override void ApplyConversion(Material from, Material target)
-		{
-			base.ApplyConversion(from, target);
+    public class ConverterStandard : ConverterGeneral
+    {
+        public override void ApplyConversion(Material from, Material target)
+        {
+            base.ApplyConversion(from, target);
 
-			DisableEffect("ALPHA_CUTOFF");
+            DisableEffect("ALPHA_CUTOFF");
 
-			bool emissionEffectEnabled = from.IsKeywordEnabled("_EMISSION");
-			SetEnableEffect("EMISSION", emissionEffectEnabled);
+            bool emissionEffectEnabled = from.IsKeywordEnabled("_EMISSION");
+            SetEnableEffect("EMISSION", emissionEffectEnabled);
 
-			bool normalMapEffectEnabled = from.IsKeywordEnabled("_NORMALMAP");
-			SetEnableEffect("NORMAL_MAP", normalMapEffectEnabled);
+            bool normalMapEffectEnabled = from.IsKeywordEnabled("_NORMALMAP");
+            SetEnableEffect("NORMAL_MAP", normalMapEffectEnabled);
 
-			EnableLightModelClassic();
+            EnableLightModelClassic();
 
-			EnablePBR();
-			
-			target.SetFloat("_ReflectionsAtten", 1.0f);
+            EnablePBR();
 
-			bool specularEnabled = !from.IsKeywordEnabled("_SPECULARHIGHLIGHTS_OFF");
-			if (specularEnabled)
-			{
-				EnableSpecularClassic();
-				target.SetFloat("_SpecularAtten", 1.0f);
-			}
-			else
-			{
-				DisableEffect("SPECULARMODEL");
-			}
+            target.SetFloat("_ReflectionsAtten", 1.0f);
 
-			DisableEffect("RIM_LIGHTING");
+            bool specularEnabled = !from.IsKeywordEnabled("_SPECULARHIGHLIGHTS_OFF");
+            if (specularEnabled)
+            {
+                EnableSpecularClassic();
+                target.SetFloat("_SpecularAtten", 1.0f);
+            }
+            else
+            {
+                DisableEffect("SPECULARMODEL");
+            }
 
-			//Blending Mode
-			ConvertBlending();
-		}
+            DisableEffect("RIM_LIGHTING");
 
-		protected virtual void ConvertBlending()
-		{
-		
-		}
-	}
+            //Blending Mode
+            ConvertBlending();
+        }
+
+        protected virtual void ConvertBlending() { }
+    }
 }

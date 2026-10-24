@@ -1,8 +1,8 @@
 using System;
 using TDOM.Data;
 using TDOM.Gameplay.Combat;
-using TDOM.Unity.Player;
 using TDOM.Unity.Level;
+using TDOM.Unity.Player;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -88,7 +88,9 @@ namespace TDOM.Unity.Combat
                 // Las plataformas se siguen solo cuando el impacto fue una superficie
                 // circular. El anclaje a ojos conserva su flujo independiente.
                 if (_plataformaAnclada != null)
-                    transform.position = _plataformaAnclada.transform.TransformPoint(_puntoLocalPlataforma);
+                    transform.position = _plataformaAnclada.transform.TransformPoint(
+                        _puntoLocalPlataforma
+                    );
 
                 if (_ojoAnclado != null && !_ojosAnclados.AdmiteAncla(_ojoAnclado))
                 {
@@ -168,7 +170,9 @@ namespace TDOM.Unity.Combat
             _plataformaAnclada = collider.GetComponentInParent<PlataformaCircular>();
             _ancladaAPlataforma.Value = _plataformaAnclada != null;
             if (_plataformaAnclada != null)
-                _puntoLocalPlataforma = _plataformaAnclada.transform.InverseTransformPoint(transform.position);
+                _puntoLocalPlataforma = _plataformaAnclada.transform.InverseTransformPoint(
+                    transform.position
+                );
         }
 
         private void ResolverPlataformaLocal()

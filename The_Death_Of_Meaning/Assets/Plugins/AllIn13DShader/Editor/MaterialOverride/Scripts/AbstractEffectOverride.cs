@@ -3,85 +3,85 @@ using UnityEngine;
 
 namespace AllIn13DShader
 {
-	public abstract class AbstractEffectOverride
-	{
-		public List<PropertyOverride> propertyOverrides;
+    public abstract class AbstractEffectOverride
+    {
+        public List<PropertyOverride> propertyOverrides;
 
-		public string displayName;
-		public string propertyName;
+        public string displayName;
+        public string propertyName;
 
-		public bool overrideEnabled;
+        public bool overrideEnabled;
 
-		public List<EffectKeywordData> keywords;
+        public List<EffectKeywordData> keywords;
 
-		public AbstractEffectOverride(AllIn13DEffectConfig effectConfig)
-		{
-			this.displayName = effectConfig.displayName;
-			this.propertyName = effectConfig.keywordPropertyName;
-			this.keywords = new List<EffectKeywordData>(effectConfig.keywords);
+        public AbstractEffectOverride(AllIn13DEffectConfig effectConfig)
+        {
+            this.displayName = effectConfig.displayName;
+            this.propertyName = effectConfig.keywordPropertyName;
+            this.keywords = new List<EffectKeywordData>(effectConfig.keywords);
 
-			this.propertyOverrides = new List<PropertyOverride>();
-		}
+            this.propertyOverrides = new List<PropertyOverride>();
+        }
 
-		public void AddPropertyOverride(EffectProperty effectProperty, Shader shader)
-		{
-			PropertyOverride propertyOverride = new PropertyOverride(this, effectProperty, shader);
+        public void AddPropertyOverride(EffectProperty effectProperty, Shader shader)
+        {
+            PropertyOverride propertyOverride = new PropertyOverride(this, effectProperty, shader);
 
-			AddPropertyOverride(propertyOverride);
-		}
+            AddPropertyOverride(propertyOverride);
+        }
 
-		public void AddPropertyOverride(int propertyIndex, Shader shader)
-		{
-			PropertyOverride propertyOverride = new PropertyOverride(this, propertyIndex, shader);
+        public void AddPropertyOverride(int propertyIndex, Shader shader)
+        {
+            PropertyOverride propertyOverride = new PropertyOverride(this, propertyIndex, shader);
 
-			AddPropertyOverride(propertyOverride);
-		}
+            AddPropertyOverride(propertyOverride);
+        }
 
-		private void AddPropertyOverride(PropertyOverride propertyOverride)
-		{
-			if (!propertyOverrides.Contains(propertyOverride))
-			{
-				propertyOverrides.Add(propertyOverride);
-			}
-		}
+        private void AddPropertyOverride(PropertyOverride propertyOverride)
+        {
+            if (!propertyOverrides.Contains(propertyOverride))
+            {
+                propertyOverrides.Add(propertyOverride);
+            }
+        }
 
-		public virtual void ApplyChangesToMaterial(Material mat)
-		{
-			if (overrideEnabled)
-			{
-				ApplyMainPropertyChanges(mat);
-			}
+        public virtual void ApplyChangesToMaterial(Material mat)
+        {
+            if (overrideEnabled)
+            {
+                ApplyMainPropertyChanges(mat);
+            }
 
-			for(int i = 0; i < propertyOverrides.Count; i++)
-			{
-				propertyOverrides[i].ApplyChangesToMaterial(mat);
-			}
-		}
+            for (int i = 0; i < propertyOverrides.Count; i++)
+            {
+                propertyOverrides[i].ApplyChangesToMaterial(mat);
+            }
+        }
 
-		protected abstract void ApplyMainPropertyChanges(Material mat);
+        protected abstract void ApplyMainPropertyChanges(Material mat);
 
-		public bool RemovePropertyOverride(PropertyOverride propertyOverrideToRemove)
-		{
-			bool res = propertyOverrides.Remove(propertyOverrideToRemove);
-			return res;
-		}
+        public bool RemovePropertyOverride(PropertyOverride propertyOverrideToRemove)
+        {
+            bool res = propertyOverrides.Remove(propertyOverrideToRemove);
+            return res;
+        }
 
-		public override bool Equals(object obj)
-		{
-			bool res = false;
+        public override bool Equals(object obj)
+        {
+            bool res = false;
 
-			if(obj is AbstractEffectOverride)
-			{
-				AbstractEffectOverride abstractEffectOverride = (AbstractEffectOverride)obj;
-				res = propertyName == abstractEffectOverride.propertyName;
-			}
+            if (obj is AbstractEffectOverride)
+            {
+                AbstractEffectOverride abstractEffectOverride = (AbstractEffectOverride)obj;
+                res = propertyName == abstractEffectOverride.propertyName;
+            }
 
-			return res;
-		}
+            return res;
+        }
 
-		public override int GetHashCode()
-		{
-			return propertyName.GetHashCode();
-		}
-	}
+        public override int GetHashCode()
+        {
+            return propertyName.GetHashCode();
+        }
+    }
 }

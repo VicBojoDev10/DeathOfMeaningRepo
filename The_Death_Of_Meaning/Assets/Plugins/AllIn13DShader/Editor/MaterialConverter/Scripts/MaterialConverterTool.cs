@@ -5,244 +5,272 @@ using UnityEngine;
 
 namespace AllIn13DShader
 {
-	public static class MaterialConverterTool
-	{
-		private const int OVERRIDE = 0;
-		private const int CANCEL = 1;
-		private const int KEEP_ORIGINALS = 2;
+    public static class MaterialConverterTool
+    {
+        private const int OVERRIDE = 0;
+        private const int CANCEL = 1;
+        private const int KEEP_ORIGINALS = 2;
 
-		[MenuItem(itemName: "Assets/AllIn1/Convert ALL materials to AllIn13DShader", isValidateFunction: true)]
-		public static bool ValidateBatchConvert()
-		{
-			bool res = true;
+        [MenuItem(
+            itemName: "Assets/AllIn1/Convert ALL materials to AllIn13DShader",
+            isValidateFunction: true
+        )]
+        public static bool ValidateBatchConvert()
+        {
+            bool res = true;
 
-			Object[] selectedAssets = Selection.GetFiltered<Object>(SelectionMode.Assets);
-			foreach (Object asset in selectedAssets)
-			{
-				string path = AssetDatabase.GetAssetPath(asset);
-				
-				bool isValidFolder = AssetDatabase.IsValidFolder(path);
+            Object[] selectedAssets = Selection.GetFiltered<Object>(SelectionMode.Assets);
+            foreach (Object asset in selectedAssets)
+            {
+                string path = AssetDatabase.GetAssetPath(asset);
 
-				Material mat = AssetDatabase.LoadAssetAtPath<Material>(path);
-				bool isMaterial = mat != null;
+                bool isValidFolder = AssetDatabase.IsValidFolder(path);
 
-				res = res && (isValidFolder || isMaterial);
-			}
+                Material mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+                bool isMaterial = mat != null;
 
-			return res;
-		}
+                res = res && (isValidFolder || isMaterial);
+            }
 
-		[MenuItem(itemName: "Assets/AllIn1/Convert ALL materials to AllIn13DShader")]
-		public static void BatchConvert()
-		{
-			Object[] selectedAssets = Selection.GetFiltered<Object>(SelectionMode.Assets);
-			HashSet<string> pathsToConvert = CollectPathsToConvert(selectedAssets);
+            return res;
+        }
 
-			string title = "Converting materials to AllIn13D";
-			string message = $"You are about to convert {pathsToConvert.Count} materials to AllIn13D";
-			string okButton = "Convert and Override";
-			string altButton = "Convert and keep originals";
-			string cancelButton = "Cancel";
+        [MenuItem(itemName: "Assets/AllIn1/Convert ALL materials to AllIn13DShader")]
+        public static void BatchConvert()
+        {
+            Object[] selectedAssets = Selection.GetFiltered<Object>(SelectionMode.Assets);
+            HashSet<string> pathsToConvert = CollectPathsToConvert(selectedAssets);
 
+            string title = "Converting materials to AllIn13D";
+            string message =
+                $"You are about to convert {pathsToConvert.Count} materials to AllIn13D";
+            string okButton = "Convert and Override";
+            string altButton = "Convert and keep originals";
+            string cancelButton = "Cancel";
 
-			int dialog = EditorUtility.DisplayDialogComplex(title, message, okButton, cancelButton, altButton);
-			
-			if(dialog == CANCEL) { return; }
+            int dialog = EditorUtility.DisplayDialogComplex(
+                title,
+                message,
+                okButton,
+                cancelButton,
+                altButton
+            );
 
-			ConvertMaterials(pathsToConvert, dialog);
-		}
-		
-		[MenuItem(itemName: "Assets/AllIn1/Convert Standard materials to AllIn13DShader")]
-		public static void BatchConvertStandardMats()
-		{
-			Object[] selectedAssets = Selection.GetFiltered<Object>(SelectionMode.Assets);
-			HashSet<string> pathsToConvert = CollectPathsToConvert(selectedAssets);
-			
-			//Remove pathsToConvert of materials that have a shader name that contains Standard
-			HashSet<string> standardMaterialPaths = new HashSet<string>(pathsToConvert.Count);
-			foreach(string path in pathsToConvert)
-			{
-				Material mat = AssetDatabase.LoadAssetAtPath<Material>(path);
-				if(mat != null && mat.shader != null && mat.shader.name.Contains("Standard"))
-					standardMaterialPaths.Add(path);
-			}
+            if (dialog == CANCEL)
+            {
+                return;
+            }
 
-			string title = "Converting Standard materials to AllIn13D";
-			string message = $"You are about to convert {standardMaterialPaths.Count} Standard materials to AllIn13D";
-			string okButton = "Convert and Override";
-			string altButton = "Convert and keep originals";
-			string cancelButton = "Cancel";
+            ConvertMaterials(pathsToConvert, dialog);
+        }
 
-			int dialog = EditorUtility.DisplayDialogComplex(title, message, okButton, cancelButton, altButton);
-    
-			if(dialog == CANCEL) return;
+        [MenuItem(itemName: "Assets/AllIn1/Convert Standard materials to AllIn13DShader")]
+        public static void BatchConvertStandardMats()
+        {
+            Object[] selectedAssets = Selection.GetFiltered<Object>(SelectionMode.Assets);
+            HashSet<string> pathsToConvert = CollectPathsToConvert(selectedAssets);
 
-			ConvertMaterials(standardMaterialPaths, dialog);
-		}
+            //Remove pathsToConvert of materials that have a shader name that contains Standard
+            HashSet<string> standardMaterialPaths = new HashSet<string>(pathsToConvert.Count);
+            foreach (string path in pathsToConvert)
+            {
+                Material mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+                if (mat != null && mat.shader != null && mat.shader.name.Contains("Standard"))
+                    standardMaterialPaths.Add(path);
+            }
 
-		private static HashSet<string> CollectPathsToConvert(Object[] selectedAssets)
-		{
-			HashSet<string> res = new HashSet<string>();
+            string title = "Converting Standard materials to AllIn13D";
+            string message =
+                $"You are about to convert {standardMaterialPaths.Count} Standard materials to AllIn13D";
+            string okButton = "Convert and Override";
+            string altButton = "Convert and keep originals";
+            string cancelButton = "Cancel";
 
-			foreach (Object asset in selectedAssets)
-			{
-				string path = AssetDatabase.GetAssetPath(asset);
+            int dialog = EditorUtility.DisplayDialogComplex(
+                title,
+                message,
+                okButton,
+                cancelButton,
+                altButton
+            );
 
-				if (asset is Material)
-				{
-					res.Add(path);
-				}
-				else
-				{
-					string[] materialsInFolderGUIDs = AssetDatabase.FindAssets("t: Material", new string[] { path });
-					foreach (string guid in materialsInFolderGUIDs)
-					{
-						res.Add(AssetDatabase.GUIDToAssetPath(guid));
-					}
-				}
-			}
+            if (dialog == CANCEL)
+                return;
 
-			return res;
-		}
+            ConvertMaterials(standardMaterialPaths, dialog);
+        }
 
-		private static void ConvertMaterials(HashSet<string> materialsPaths, int dialog)
-		{
-			Undo.IncrementCurrentGroup();
+        private static HashSet<string> CollectPathsToConvert(Object[] selectedAssets)
+        {
+            HashSet<string> res = new HashSet<string>();
 
-			Material matTemplate = GlobalConfiguration.instance.defaultPreset;
-			foreach (string path in materialsPaths)
-			{
-				ConvertMaterial(path, matTemplate, dialog);
-			}
+            foreach (Object asset in selectedAssets)
+            {
+                string path = AssetDatabase.GetAssetPath(asset);
 
-			Undo.SetCurrentGroupName("Materials conversion to AllIn13DShader");
+                if (asset is Material)
+                {
+                    res.Add(path);
+                }
+                else
+                {
+                    string[] materialsInFolderGUIDs = AssetDatabase.FindAssets(
+                        "t: Material",
+                        new string[] { path }
+                    );
+                    foreach (string guid in materialsInFolderGUIDs)
+                    {
+                        res.Add(AssetDatabase.GUIDToAssetPath(guid));
+                    }
+                }
+            }
 
-			AssetDatabase.SaveAssets();
-			AssetDatabase.Refresh();
-		}
+            return res;
+        }
 
-		private static void ConvertMaterial(string path, Material matTemplate, int dialog)
-		{
-			Material matFrom = AssetDatabase.LoadAssetAtPath<Material>(path);
-			Material target = new Material(matTemplate);
+        private static void ConvertMaterials(HashSet<string> materialsPaths, int dialog)
+        {
+            Undo.IncrementCurrentGroup();
 
-			ApplyConversion(matFrom, target);
+            Material matTemplate = GlobalConfiguration.instance.defaultPreset;
+            foreach (string path in materialsPaths)
+            {
+                ConvertMaterial(path, matTemplate, dialog);
+            }
 
-			string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(path);
-			string folder = Path.GetDirectoryName(path);
-			string fileName = Path.GetFileName(path);
+            Undo.SetCurrentGroupName("Materials conversion to AllIn13DShader");
 
-			string fileNameNewAsset = fileNameWithoutExtension + "_AllIn13D" + ".mat";
-			string pathNewAsset = Path.Combine(folder, fileNameNewAsset);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
 
-			if (dialog == KEEP_ORIGINALS)
-			{
-				AssetDatabase.CreateAsset(target, pathNewAsset);
-				Object createdObject = AssetDatabase.LoadAssetAtPath<Object>(pathNewAsset);
-			}
-			else if (dialog == OVERRIDE)
-			{
-				Undo.RecordObject(matFrom, "Material converted");
+        private static void ConvertMaterial(string path, Material matTemplate, int dialog)
+        {
+            Material matFrom = AssetDatabase.LoadAssetAtPath<Material>(path);
+            Material target = new Material(matTemplate);
 
-				matFrom.shader = target.shader;
-				matFrom.CopyMatchingPropertiesFromMaterial(target);
-				EditorUtility.SetDirty(matFrom);
-			}
-		}
+            ApplyConversion(matFrom, target);
 
-		public static Material Convert(Shader shader, Material from)
-		{
-			Material res = new Material(shader);
-			Texture normalMap = from.GetTexture("_BumpMap");
+            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(path);
+            string folder = Path.GetDirectoryName(path);
+            string fileName = Path.GetFileName(path);
 
-			if (normalMap != null)
-			{
-				res.SetTexture("_NormalMap", normalMap);
-			}
+            string fileNameNewAsset = fileNameWithoutExtension + "_AllIn13D" + ".mat";
+            string pathNewAsset = Path.Combine(folder, fileNameNewAsset);
 
-			return res;
-		}
+            if (dialog == KEEP_ORIGINALS)
+            {
+                AssetDatabase.CreateAsset(target, pathNewAsset);
+                Object createdObject = AssetDatabase.LoadAssetAtPath<Object>(pathNewAsset);
+            }
+            else if (dialog == OVERRIDE)
+            {
+                Undo.RecordObject(matFrom, "Material converted");
 
-		public static ConverterGeneral GetConverterByShader(Shader shader)
-		{
-			ConverterGeneral res = new ConverterGeneral();
+                matFrom.shader = target.shader;
+                matFrom.CopyMatchingPropertiesFromMaterial(target);
+                EditorUtility.SetDirty(matFrom);
+            }
+        }
 
-			if(shader.name == "Standard")
-			{
-				res = new ConverterStandardBIRP();
-			}
-			else if(shader.name == "Universal Render Pipeline/Lit")
-			{
-				res = new ConverterURPLit();
-			}
+        public static Material Convert(Shader shader, Material from)
+        {
+            Material res = new Material(shader);
+            Texture normalMap = from.GetTexture("_BumpMap");
 
-			return res;
-		}
+            if (normalMap != null)
+            {
+                res.SetTexture("_NormalMap", normalMap);
+            }
 
-		public static void ApplyConversion(Material from, Material target)
-		{
-			if(from != null && target != null)
-			{
-				ConverterGeneral converter = GetConverterByShader(from.shader);
-				converter.ApplyConversion(from, target);
-			}
-		}
+            return res;
+        }
 
-		public static void ApplyConversionProperty(ConversionProperty conversionProperty, Material from, Material target, ref bool propertyActive)
-		{
-			string propertyNameFrom = string.Empty;
-			string propertyNameTarget = conversionProperty.propertyName;
+        public static ConverterGeneral GetConverterByShader(Shader shader)
+        {
+            ConverterGeneral res = new ConverterGeneral();
 
-			if (from.HasProperty(conversionProperty.propertyName))
-			{
-				propertyNameFrom = conversionProperty.propertyName;
-			}
-			else
-			{
-				for (int i = 0; i < conversionProperty.alternativeNames.Length; i++)
-				{
-					if (from.HasProperty(conversionProperty.alternativeNames[i]))
-					{
-						propertyNameFrom = conversionProperty.alternativeNames[i];
-						break;
-					}
-				}
-			}
+            if (shader.name == "Standard")
+            {
+                res = new ConverterStandardBIRP();
+            }
+            else if (shader.name == "Universal Render Pipeline/Lit")
+            {
+                res = new ConverterURPLit();
+            }
 
-			if (!string.IsNullOrEmpty(propertyNameFrom))
-			{
-				switch (conversionProperty.propertyType)
-				{
-					case ConversionPropertyType.TEXTURE:
-						Texture texValue = from.GetTexture(propertyNameFrom);
-						target.SetTexture(propertyNameTarget, texValue);
-						
-						propertyActive = texValue != null;
+            return res;
+        }
 
-						break;
-					case ConversionPropertyType.FLOAT:
-						float floatValue = from.GetFloat(propertyNameFrom);
-						target.SetFloat(propertyNameTarget, floatValue);
+        public static void ApplyConversion(Material from, Material target)
+        {
+            if (from != null && target != null)
+            {
+                ConverterGeneral converter = GetConverterByShader(from.shader);
+                converter.ApplyConversion(from, target);
+            }
+        }
 
-						propertyActive = true;
+        public static void ApplyConversionProperty(
+            ConversionProperty conversionProperty,
+            Material from,
+            Material target,
+            ref bool propertyActive
+        )
+        {
+            string propertyNameFrom = string.Empty;
+            string propertyNameTarget = conversionProperty.propertyName;
 
-						break;
-					case ConversionPropertyType.COLOR:
-						Color colorValue = from.GetColor(propertyNameFrom);
-						target.SetColor(propertyNameTarget, colorValue);
+            if (from.HasProperty(conversionProperty.propertyName))
+            {
+                propertyNameFrom = conversionProperty.propertyName;
+            }
+            else
+            {
+                for (int i = 0; i < conversionProperty.alternativeNames.Length; i++)
+                {
+                    if (from.HasProperty(conversionProperty.alternativeNames[i]))
+                    {
+                        propertyNameFrom = conversionProperty.alternativeNames[i];
+                        break;
+                    }
+                }
+            }
 
-						propertyActive = true;
+            if (!string.IsNullOrEmpty(propertyNameFrom))
+            {
+                switch (conversionProperty.propertyType)
+                {
+                    case ConversionPropertyType.TEXTURE:
+                        Texture texValue = from.GetTexture(propertyNameFrom);
+                        target.SetTexture(propertyNameTarget, texValue);
 
-						break;
-					case ConversionPropertyType.VECTOR:
-						Vector4 vectorValue = from.GetVector(propertyNameFrom);
-						target.SetVector(propertyNameTarget, vectorValue);
+                        propertyActive = texValue != null;
 
-						propertyActive = true;
+                        break;
+                    case ConversionPropertyType.FLOAT:
+                        float floatValue = from.GetFloat(propertyNameFrom);
+                        target.SetFloat(propertyNameTarget, floatValue);
 
-						break;
-				}
-			}
-		}
-	}
+                        propertyActive = true;
+
+                        break;
+                    case ConversionPropertyType.COLOR:
+                        Color colorValue = from.GetColor(propertyNameFrom);
+                        target.SetColor(propertyNameTarget, colorValue);
+
+                        propertyActive = true;
+
+                        break;
+                    case ConversionPropertyType.VECTOR:
+                        Vector4 vectorValue = from.GetVector(propertyNameFrom);
+                        target.SetVector(propertyNameTarget, vectorValue);
+
+                        propertyActive = true;
+
+                        break;
+                }
+            }
+        }
+    }
 }

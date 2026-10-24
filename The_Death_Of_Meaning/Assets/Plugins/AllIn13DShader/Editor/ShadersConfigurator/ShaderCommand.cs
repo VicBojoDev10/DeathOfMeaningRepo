@@ -1,38 +1,37 @@
 namespace AllIn13DShader
 {
-	public abstract class ShaderCommand
-	{
-		public ShaderCommandValue shaderCommandValue;
+    public abstract class ShaderCommand
+    {
+        public ShaderCommandValue shaderCommandValue;
 
-		public string GetShaderEntry()
-		{
-			string res = string.Empty;
-			string shaderEntryValue = string.Empty;
-			
-			switch (shaderCommandValue)
-			{
-				case ShaderCommandValue.DEFINED_IN_CODE:
-					shaderEntryValue = GetShaderEntryValueDefinedInCode();
-					break;
-				case ShaderCommandValue.DEFINED_IN_PROPERTIES:
-					shaderEntryValue = GetShaderEntryValueDefinedInProperties();
-					break;
-			}
+        public string GetShaderEntry()
+        {
+            string res = string.Empty;
+            string shaderEntryValue = string.Empty;
 
-			if (!string.IsNullOrEmpty(shaderEntryValue))
-			{
-				string format = GetShaderEntryFormat();
-				res = string.Format(format, shaderEntryValue);
-			}
-			
-			return res;
-		}
+            switch (shaderCommandValue)
+            {
+                case ShaderCommandValue.DEFINED_IN_CODE:
+                    shaderEntryValue = GetShaderEntryValueDefinedInCode();
+                    break;
+                case ShaderCommandValue.DEFINED_IN_PROPERTIES:
+                    shaderEntryValue = GetShaderEntryValueDefinedInProperties();
+                    break;
+            }
 
-		protected abstract string GetShaderEntryFormat();
+            if (!string.IsNullOrEmpty(shaderEntryValue))
+            {
+                string format = GetShaderEntryFormat();
+                res = string.Format(format, shaderEntryValue);
+            }
 
-		protected abstract string GetShaderEntryValueDefinedInProperties();
+            return res;
+        }
 
-		protected abstract string GetShaderEntryValueDefinedInCode();
+        protected abstract string GetShaderEntryFormat();
 
-	}
+        protected abstract string GetShaderEntryValueDefinedInProperties();
+
+        protected abstract string GetShaderEntryValueDefinedInCode();
+    }
 }

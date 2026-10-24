@@ -4,24 +4,32 @@ namespace AllIn13DShader
 {
     public class SkyController : MonoBehaviour
     {
-        [SerializeField] private Material[] skyMaterials;
-        [SerializeField] private int firstSkyIndex = 0;
-        [SerializeField] private InputHandler skyChangeInputHandler;
+        [SerializeField]
+        private Material[] skyMaterials;
+
+        [SerializeField]
+        private int firstSkyIndex = 0;
+
+        [SerializeField]
+        private InputHandler skyChangeInputHandler;
 
         private int currentSkyIndex;
 
         public void Init()
         {
             currentSkyIndex = firstSkyIndex;
-            
-            RenderSettings.defaultReflectionMode = UnityEngine.Rendering.DefaultReflectionMode.Skybox;
+
+            RenderSettings.defaultReflectionMode = UnityEngine
+                .Rendering
+                .DefaultReflectionMode
+                .Skybox;
             RenderSettings.skybox = skyMaterials[currentSkyIndex];
         }
 
         public void NextSky()
         {
             currentSkyIndex++;
-            if(currentSkyIndex >= skyMaterials.Length)
+            if (currentSkyIndex >= skyMaterials.Length)
             {
                 currentSkyIndex = 0;
             }
@@ -33,7 +41,7 @@ namespace AllIn13DShader
 
         public void DemoChanged(DemoElementData demoElementData)
         {
-            if(demoElementData.skyboxEnabled)
+            if (demoElementData.skyboxEnabled)
             {
                 RenderSettings.skybox = skyMaterials[currentSkyIndex];
             }

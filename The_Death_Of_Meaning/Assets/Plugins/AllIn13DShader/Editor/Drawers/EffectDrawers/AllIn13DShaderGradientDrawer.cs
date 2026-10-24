@@ -3,41 +3,50 @@ using UnityEngine;
 
 namespace AllIn13DShader
 {
-	public class AllIn13DShaderGradientDrawer : MaterialPropertyDrawer
-	{
-		private GradientEditorDrawer gradientEditorDrawer;
+    public class AllIn13DShaderGradientDrawer : MaterialPropertyDrawer
+    {
+        private GradientEditorDrawer gradientEditorDrawer;
 
-		private void RefreshReferences(MaterialProperty prop)
-		{
-			if(gradientEditorDrawer == null)
-			{
-				gradientEditorDrawer = new GradientEditorDrawer();
-			}
-		}
+        private void RefreshReferences(MaterialProperty prop)
+        {
+            if (gradientEditorDrawer == null)
+            {
+                gradientEditorDrawer = new GradientEditorDrawer();
+            }
+        }
 
-		public override void OnGUI(Rect position, MaterialProperty prop, GUIContent label, MaterialEditor editor)
-		{
-			RefreshReferences(prop);
+        public override void OnGUI(
+            Rect position,
+            MaterialProperty prop,
+            GUIContent label,
+            MaterialEditor editor
+        )
+        {
+            RefreshReferences(prop);
 
-			Texture texValue = prop.textureValue;
+            Texture texValue = prop.textureValue;
 
-			EditorGUI.BeginChangeCheck();
-			Texture newTex = gradientEditorDrawer.Draw(position, texValue);
-			if (EditorGUI.EndChangeCheck())
-			{
-				prop.textureValue = newTex;
-			}
-		}
+            EditorGUI.BeginChangeCheck();
+            Texture newTex = gradientEditorDrawer.Draw(position, texValue);
+            if (EditorGUI.EndChangeCheck())
+            {
+                prop.textureValue = newTex;
+            }
+        }
 
-		public override float GetPropertyHeight(MaterialProperty prop, string label, MaterialEditor editor)
-		{
-			float res = 0f;
-			if(gradientEditorDrawer != null)
-			{
-				res = gradientEditorDrawer.GetPropertyHeight();
-			}
+        public override float GetPropertyHeight(
+            MaterialProperty prop,
+            string label,
+            MaterialEditor editor
+        )
+        {
+            float res = 0f;
+            if (gradientEditorDrawer != null)
+            {
+                res = gradientEditorDrawer.GetPropertyHeight();
+            }
 
-			return res;
-		}
-	}
+            return res;
+        }
+    }
 }

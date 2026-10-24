@@ -11,32 +11,46 @@ namespace TDOM.Unity.Level
         {
             Fija,
             MirarAlCentro,
-            TangenteAlMovimiento
+            TangenteAlMovimiento,
         }
 
-        [Tooltip("Transform que marca el centro de la órbita (por ejemplo, el centro de la arena del boss).")]
-        [SerializeField] private Transform centerArena;
+        [Tooltip(
+            "Transform que marca el centro de la órbita (por ejemplo, el centro de la arena del boss)."
+        )]
+        [SerializeField]
+        private Transform centerArena;
 
         [Tooltip("Distancia horizontal de la plataforma al centro de la órbita en metros.")]
-        [SerializeField, Min(0f)] private float radius = 2.58f;
+        [SerializeField, Min(0f)]
+        private float radius = 2.58f;
 
         [Tooltip("Velocidad angular en grados por segundo.")]
-        [SerializeField] private float angularVelocity = 25f;
+        [SerializeField]
+        private float angularVelocity = 25f;
 
         [Tooltip("1 = Sentido antihorario (+), -1 = Sentido horario (-).")]
-        [SerializeField] private float sense = 1f;
+        [SerializeField]
+        private float sense = 1f;
 
         [Tooltip("Fase inicial en grados (0 a 360).")]
-        [SerializeField] private float initialPhase = 0f;
+        [SerializeField]
+        private float initialPhase = 0f;
 
         [Tooltip("Modo de orientación de la plataforma mientras orbita.")]
-        [SerializeField] private ModoRotacionPlataforma rotationMode = ModoRotacionPlataforma.Fija;
+        [SerializeField]
+        private ModoRotacionPlataforma rotationMode = ModoRotacionPlataforma.Fija;
 
-        [Tooltip("Si está activo, preserva la altura Y con la que se posicionó en la escena respecto al centro.")]
-        [SerializeField] private bool usarAlturaInicial = true;
+        [Tooltip(
+            "Si está activo, preserva la altura Y con la que se posicionó en la escena respecto al centro."
+        )]
+        [SerializeField]
+        private bool usarAlturaInicial = true;
 
-        [Tooltip("Desfase de altura vertical (Y) respecto al centro. Se autocalcula si usarAlturaInicial está activo.")]
-        [SerializeField] private float heightOffset = 0f;
+        [Tooltip(
+            "Desfase de altura vertical (Y) respecto al centro. Se autocalcula si usarAlturaInicial está activo."
+        )]
+        [SerializeField]
+        private float heightOffset = 0f;
 
         private Vector3 _lastPosition;
         private Vector3 _frameDelta;
@@ -76,9 +90,10 @@ namespace TDOM.Unity.Level
         {
             if (usarAlturaInicial)
             {
-                heightOffset = centerArena != null
-                    ? transform.position.y - centerArena.position.y
-                    : transform.position.y;
+                heightOffset =
+                    centerArena != null
+                        ? transform.position.y - centerArena.position.y
+                        : transform.position.y;
             }
         }
 
@@ -112,7 +127,11 @@ namespace TDOM.Unity.Level
                 float dir = Sense;
                 float angleDeg = initialPhase + (float)(dir * angularVelocity * networkTime);
                 float angleRad = angleDeg * Mathf.Deg2Rad;
-                Vector3 tangent = new Vector3(-Mathf.Sin(angleRad) * dir, 0f, Mathf.Cos(angleRad) * dir);
+                Vector3 tangent = new Vector3(
+                    -Mathf.Sin(angleRad) * dir,
+                    0f,
+                    Mathf.Cos(angleRad) * dir
+                );
                 if (tangent.sqrMagnitude > 0.001f)
                     transform.rotation = Quaternion.LookRotation(tangent, Vector3.up);
             }
@@ -144,7 +163,13 @@ namespace TDOM.Unity.Level
             return new Vector3(x, y, z);
         }
 
-        public void Configurar(Transform center, float newRadius, float newAngularVelocity, float newSense, float newInitialPhase)
+        public void Configurar(
+            Transform center,
+            float newRadius,
+            float newAngularVelocity,
+            float newSense,
+            float newInitialPhase
+        )
         {
             centerArena = center;
             radius = Mathf.Max(0f, newRadius);
@@ -188,14 +213,18 @@ namespace TDOM.Unity.Level
         {
             Gizmos.color = Color.cyan;
             Vector3 centerWorld = centerArena != null ? centerArena.position : Vector3.zero;
-            float yPos = Application.isPlaying ? transform.position.y : (centerWorld.y + heightOffset);
+            float yPos = Application.isPlaying
+                ? transform.position.y
+                : (centerWorld.y + heightOffset);
             Vector3 gizmoCenter = new Vector3(centerWorld.x, yPos, centerWorld.z);
 
             Gizmos.DrawWireSphere(gizmoCenter, radius);
 
             // Dibuja radio hacia la fase inicial
             float initialRad = initialPhase * Mathf.Deg2Rad;
-            Vector3 initialPos = gizmoCenter + new Vector3(Mathf.Cos(initialRad) * radius, 0f, Mathf.Sin(initialRad) * radius);
+            Vector3 initialPos =
+                gizmoCenter
+                + new Vector3(Mathf.Cos(initialRad) * radius, 0f, Mathf.Sin(initialRad) * radius);
             Gizmos.color = Color.yellow;
             Gizmos.DrawLine(gizmoCenter, initialPos);
             Gizmos.DrawSphere(initialPos, 0.25f);

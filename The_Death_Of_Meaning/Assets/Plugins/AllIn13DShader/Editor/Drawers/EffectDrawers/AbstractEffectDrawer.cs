@@ -3,337 +3,388 @@ using UnityEngine;
 
 namespace AllIn13DShader
 {
-	public abstract class AbstractEffectDrawer
-	{
-		private const float HEIGHT_PER_LINE = 12.5f;
+    public abstract class AbstractEffectDrawer
+    {
+        private const float HEIGHT_PER_LINE = 12.5f;
 
-		protected string drawerID;
-		protected PropertiesConfig propertiesConfig;
-		protected AllIn13DEffectConfig effectConfig;
-		protected AllIn13DShaderInspectorReferences references;
-		protected int globalEffectIndex;
+        protected string drawerID;
+        protected PropertiesConfig propertiesConfig;
+        protected AllIn13DEffectConfig effectConfig;
+        protected AllIn13DShaderInspectorReferences references;
+        protected int globalEffectIndex;
 
-		public string ID
-		{
-			get
-			{
-				return drawerID;
-			}
-		}
+        public string ID
+        {
+            get { return drawerID; }
+        }
 
-		public AbstractEffectDrawer(AllIn13DShaderInspectorReferences references, PropertiesConfig propertiesConfig)
-		{
-			this.references = references;
-			this.propertiesConfig = propertiesConfig;
-		}
+        public AbstractEffectDrawer(
+            AllIn13DShaderInspectorReferences references,
+            PropertiesConfig propertiesConfig
+        )
+        {
+            this.references = references;
+            this.propertiesConfig = propertiesConfig;
+        }
 
-		public void Draw(PropertiesConfig propertiesConfig, AllIn13DEffectConfig effectConfig, int globalEffectIndex)
-		{
-			this.propertiesConfig = propertiesConfig;
-			this.effectConfig = effectConfig;
-			this.globalEffectIndex = globalEffectIndex;
+        public void Draw(
+            PropertiesConfig propertiesConfig,
+            AllIn13DEffectConfig effectConfig,
+            int globalEffectIndex
+        )
+        {
+            this.propertiesConfig = propertiesConfig;
+            this.effectConfig = effectConfig;
+            this.globalEffectIndex = globalEffectIndex;
 
-			Draw();
-		}
+            Draw();
+        }
 
-		protected virtual void Draw()
-		{
-			bool isShaderVariant = references.IsShaderVariant();
-			bool areDependenciesMet = AreDependenciesMet();
-			bool isEffectAvailableOnGlobalConfig = references.effectsProfileCollection.generalProfile.IsEffectEnabled(effectConfig.effectName);
-			bool isEffectAvailable = AllIn13DEffectConfig.IsEffectAvailable(effectConfig, references);
+        protected virtual void Draw()
+        {
+            bool isShaderVariant = references.IsShaderVariant();
+            bool areDependenciesMet = AreDependenciesMet();
+            bool isEffectAvailableOnGlobalConfig =
+                references.effectsProfileCollection.generalProfile.IsEffectEnabled(
+                    effectConfig.effectName
+                );
+            bool isEffectAvailable = AllIn13DEffectConfig.IsEffectAvailable(
+                effectConfig,
+                references
+            );
 
-			bool groupEnabled = isEffectAvailable;
-			if (!isShaderVariant)
-			{
-				groupEnabled = groupEnabled && areDependenciesMet && isEffectAvailableOnGlobalConfig;
-			}
-			//bool groupEnabled = areDependenciesMet && isEffectAvailable && isEffectAvailableOnGlobalConfig /*|| (references.isShaderVariant && isEnabledInEffectsProfile)*/;
+            bool groupEnabled = isEffectAvailable;
+            if (!isShaderVariant)
+            {
+                groupEnabled =
+                    groupEnabled && areDependenciesMet && isEffectAvailableOnGlobalConfig;
+            }
+            //bool groupEnabled = areDependenciesMet && isEffectAvailable && isEffectAvailableOnGlobalConfig /*|| (references.isShaderVariant && isEnabledInEffectsProfile)*/;
 
-			//bool disableGroup = !groupEnabled;
+            //bool disableGroup = !groupEnabled;
 
-			EditorGUILayout.BeginHorizontal();
-			EditorGUI.BeginDisabledGroup(!groupEnabled);
-			EffectPropertyDrawer.DrawMainProperty(globalEffectIndex, effectConfig, references, isEffectAvailable, isEffectAvailableOnGlobalConfig);
-			EditorGUILayout.EndHorizontal();
-			
-			bool isAnyPropertyVisible = IsAnyPropertyVisible();
+            EditorGUILayout.BeginHorizontal();
+            EditorGUI.BeginDisabledGroup(!groupEnabled);
+            EffectPropertyDrawer.DrawMainProperty(
+                globalEffectIndex,
+                effectConfig,
+                references,
+                isEffectAvailable,
+                isEffectAvailableOnGlobalConfig
+            );
+            EditorGUILayout.EndHorizontal();
 
-			if (isAnyPropertyVisible)
-			{
-				EditorGUILayout.BeginVertical(references.propertiesStyle);
-				DrawExtraData();
-				DrawProperties();
-				EditorGUILayout.EndVertical();
-			}
-			EditorGUI.EndDisabledGroup();
-		}
+            bool isAnyPropertyVisible = IsAnyPropertyVisible();
 
-		private void DrawExtraData()
-		{
-			if (IsParentPropertyEnabled())
-			{
-				string customMessage = effectConfig.GetCustomMessage(references.targetMatInfos);
-				if (!string.IsNullOrEmpty(customMessage))
-				{
-					EditorGUILayout.BeginHorizontal();
+            if (isAnyPropertyVisible)
+            {
+                EditorGUILayout.BeginVertical(references.propertiesStyle);
+                DrawExtraData();
+                DrawProperties();
+                EditorGUILayout.EndVertical();
+            }
+            EditorGUI.EndDisabledGroup();
+        }
 
-					int numLines = EditorUtils.GetNumLines(customMessage);
-					float heightField = numLines * HEIGHT_PER_LINE;
+        private void DrawExtraData()
+        {
+            if (IsParentPropertyEnabled())
+            {
+                string customMessage = effectConfig.GetCustomMessage(references.targetMatInfos);
+                if (!string.IsNullOrEmpty(customMessage))
+                {
+                    EditorGUILayout.BeginHorizontal();
 
-					if (!string.IsNullOrEmpty(effectConfig.docURL))
-					{
-						if (GUILayout.Button("?", GUILayout.Width(heightField), GUILayout.Height(heightField)))
-						{
-							Application.OpenURL(effectConfig.docURL);
-						}
-					}
+                    int numLines = EditorUtils.GetNumLines(customMessage);
+                    float heightField = numLines * HEIGHT_PER_LINE;
 
-					EditorGUILayout.LabelField(customMessage, references.smallLabelStyle, GUILayout.Height(heightField));
-					EditorGUILayout.EndHorizontal();
-				}
-			}
-		}
+                    if (!string.IsNullOrEmpty(effectConfig.docURL))
+                    {
+                        if (
+                            GUILayout.Button(
+                                "?",
+                                GUILayout.Width(heightField),
+                                GUILayout.Height(heightField)
+                            )
+                        )
+                        {
+                            Application.OpenURL(effectConfig.docURL);
+                        }
+                    }
 
-		protected virtual void DrawProperties()
-		{
-			for (int i = 0; i < effectConfig.effectProperties.Count; i++)
-			{
-				EffectProperty effectProperty = effectConfig.effectProperties[i];
-				DrawProperty(effectProperty, string.Empty, true);
-			}
-		}
+                    EditorGUILayout.LabelField(
+                        customMessage,
+                        references.smallLabelStyle,
+                        GUILayout.Height(heightField)
+                    );
+                    EditorGUILayout.EndHorizontal();
+                }
+            }
+        }
 
-		protected virtual void DrawProperty(EffectProperty effectProperty)
-		{
-			DrawProperty(effectProperty, true);
-		}
+        protected virtual void DrawProperties()
+        {
+            for (int i = 0; i < effectConfig.effectProperties.Count; i++)
+            {
+                EffectProperty effectProperty = effectConfig.effectProperties[i];
+                DrawProperty(effectProperty, string.Empty, true);
+            }
+        }
 
-		protected virtual void DrawProperty(EffectProperty effectProperty, bool allowReset)
-		{
-			DrawProperty(effectProperty, string.Empty, allowReset);
-		}
+        protected virtual void DrawProperty(EffectProperty effectProperty)
+        {
+            DrawProperty(effectProperty, true);
+        }
 
-		protected virtual void DrawProperty(EffectProperty effectProperty, string labelPrefix, bool allowReset)
-		{
-			if (IsEffectPropertyVisible(effectProperty, references.targetMatInfos))
-			{
-				EffectProperty.PropertyType propertyType = effectProperty.GetPropertyType();
-				MaterialProperty matProperty = references.matProperties[effectProperty.propertyIndex];
+        protected virtual void DrawProperty(EffectProperty effectProperty, bool allowReset)
+        {
+            DrawProperty(effectProperty, string.Empty, allowReset);
+        }
 
-				string propertyCustomValue = string.Empty;
-				if(references.IsShaderVariant() && effectProperty.IsPropertyWithKeywords())
-				{
-					int index = 0;
-					bool isEnabled = references.IsEffectPropertyEnabled(effectProperty, ref index);
+        protected virtual void DrawProperty(
+            EffectProperty effectProperty,
+            string labelPrefix,
+            bool allowReset
+        )
+        {
+            if (IsEffectPropertyVisible(effectProperty, references.targetMatInfos))
+            {
+                EffectProperty.PropertyType propertyType = effectProperty.GetPropertyType();
+                MaterialProperty matProperty = references.matProperties[
+                    effectProperty.propertyIndex
+                ];
 
-					if (isEnabled)
-					{
-						if (effectProperty.IsEnumProperty())
-						{
-							propertyCustomValue = effectProperty.propertyKeywords[index];
-						}
-						else
-						{
-							propertyCustomValue = string.Empty;
-						}
-					}
-				}
+                string propertyCustomValue = string.Empty;
+                if (references.IsShaderVariant() && effectProperty.IsPropertyWithKeywords())
+                {
+                    int index = 0;
+                    bool isEnabled = references.IsEffectPropertyEnabled(effectProperty, ref index);
 
-				EffectPropertyDrawer.DrawProperty(
-					materialProperty: matProperty,
-					labelPrefix: labelPrefix, 
-					displayName: effectProperty.displayName,
-					customValue: propertyCustomValue,
-					allowReset: allowReset,
-					isKeywordProperty: effectProperty.IsPropertyWithKeywords(),
-					propertyType: effectProperty.GetPropertyType(),
-					references: references);
+                    if (isEnabled)
+                    {
+                        if (effectProperty.IsEnumProperty())
+                        {
+                            propertyCustomValue = effectProperty.propertyKeywords[index];
+                        }
+                        else
+                        {
+                            propertyCustomValue = string.Empty;
+                        }
+                    }
+                }
 
-				//EffectPropertyDrawer.DrawProperty(effectProperty, labelPrefix, effectProperty.displayName, allowReset, effectProperty.IsPropertyWithKeywords(), references);
-				//EffectPropertyDrawer.DrawProperty(effectProperty, labelPrefix, allowReset, references);
-			}
-		}
+                EffectPropertyDrawer.DrawProperty(
+                    materialProperty: matProperty,
+                    labelPrefix: labelPrefix,
+                    displayName: effectProperty.displayName,
+                    customValue: propertyCustomValue,
+                    allowReset: allowReset,
+                    isKeywordProperty: effectProperty.IsPropertyWithKeywords(),
+                    propertyType: effectProperty.GetPropertyType(),
+                    references: references
+                );
 
-		protected bool IsParentPropertyEnabled()
-		{
-			bool res = true;
+                //EffectPropertyDrawer.DrawProperty(effectProperty, labelPrefix, effectProperty.displayName, allowReset, effectProperty.IsPropertyWithKeywords(), references);
+                //EffectPropertyDrawer.DrawProperty(effectProperty, labelPrefix, allowReset, references);
+            }
+        }
 
-			for (int matIdx = 0; matIdx < references.targetMatInfos.Length; matIdx++)
-			{
-				AbstractMaterialInfo targetMatInfo = references.targetMatInfos[matIdx];
+        protected bool IsParentPropertyEnabled()
+        {
+            bool res = true;
 
-				bool thisMatParentPropertyEnabled = false;
-				for (int kwIdx = 0; kwIdx < effectConfig.keywords.Count; kwIdx++)
-				{
-					string kw = effectConfig.keywords[kwIdx].keyword;
-					if (targetMatInfo.IsKeywordEnabled(kw))
-					{
-						thisMatParentPropertyEnabled = true;
-						break;
-					}
-				}
+            for (int matIdx = 0; matIdx < references.targetMatInfos.Length; matIdx++)
+            {
+                AbstractMaterialInfo targetMatInfo = references.targetMatInfos[matIdx];
 
-				res = res && thisMatParentPropertyEnabled;
-			}
+                bool thisMatParentPropertyEnabled = false;
+                for (int kwIdx = 0; kwIdx < effectConfig.keywords.Count; kwIdx++)
+                {
+                    string kw = effectConfig.keywords[kwIdx].keyword;
+                    if (targetMatInfo.IsKeywordEnabled(kw))
+                    {
+                        thisMatParentPropertyEnabled = true;
+                        break;
+                    }
+                }
 
-			return res;
-		}
+                res = res && thisMatParentPropertyEnabled;
+            }
 
-		protected bool IsAnyPropertyVisible()
-		{
-			bool res = false;
+            return res;
+        }
 
-			bool parentPropertyEnabled = IsParentPropertyEnabled();
-			if (parentPropertyEnabled)
-			{
-				for (int propIdx = 0; propIdx < effectConfig.effectProperties.Count; propIdx++)
-				{
-					EffectProperty effectProperty = effectConfig.effectProperties[propIdx];
+        protected bool IsAnyPropertyVisible()
+        {
+            bool res = false;
 
-					res = IsEffectPropertyVisible(effectProperty, references.targetMatInfos);
-					if (res)
-					{
-						break;
-					}
-				}
-			}
+            bool parentPropertyEnabled = IsParentPropertyEnabled();
+            if (parentPropertyEnabled)
+            {
+                for (int propIdx = 0; propIdx < effectConfig.effectProperties.Count; propIdx++)
+                {
+                    EffectProperty effectProperty = effectConfig.effectProperties[propIdx];
 
-			res = res || (parentPropertyEnabled && !string.IsNullOrEmpty(effectConfig.GetCustomMessage(references.targetMatInfos)));
+                    res = IsEffectPropertyVisible(effectProperty, references.targetMatInfos);
+                    if (res)
+                    {
+                        break;
+                    }
+                }
+            }
 
-			return res;
-		}
+            res =
+                res
+                || (
+                    parentPropertyEnabled
+                    && !string.IsNullOrEmpty(
+                        effectConfig.GetCustomMessage(references.targetMatInfos)
+                    )
+                );
 
-		protected bool IsEffectPropertyVisible(EffectProperty effectProperty, AbstractMaterialInfo[] targetMatInfos)
-		{
-			bool res = true;
+            return res;
+        }
 
-			for (int i = 0; i < targetMatInfos.Length; i++)
-			{
-				res = res && IsEffectPropertyVisible(effectProperty, targetMatInfos[i]);
-			}
+        protected bool IsEffectPropertyVisible(
+            EffectProperty effectProperty,
+            AbstractMaterialInfo[] targetMatInfos
+        )
+        {
+            bool res = true;
 
-			return res;
-		}
+            for (int i = 0; i < targetMatInfos.Length; i++)
+            {
+                res = res && IsEffectPropertyVisible(effectProperty, targetMatInfos[i]);
+            }
 
-		protected bool IsEffectPropertyVisible(EffectProperty effectProperty, AbstractMaterialInfo targetMatInfo)
-		{
-			bool res = false;
-			
-			bool anyIncompatibilities = false;
+            return res;
+        }
 
-			for (int i = 0; i < effectProperty.incompatibleKeywords.Count; i++)
-			{
-				string incompatibleKw = effectProperty.incompatibleKeywords[i];
-				if (targetMatInfo.IsKeywordEnabled(incompatibleKw))
-				{
-					anyIncompatibilities = true;
-				}
-			}
+        protected bool IsEffectPropertyVisible(
+            EffectProperty effectProperty,
+            AbstractMaterialInfo targetMatInfo
+        )
+        {
+            bool res = false;
 
-			if (!anyIncompatibilities)
-			{
-				if (effectProperty.keywordsOp == KeywordsOp.OR)
-				{
-					for (int i = 0; i < effectProperty.keywords.Count; i++)
-					{
-						string keyword = effectProperty.keywords[i];
+            bool anyIncompatibilities = false;
 
-						if (targetMatInfo.IsKeywordEnabled(keyword))
-						{
-							res = true;
-							break;
-						}
-					}
-				}
-				else
-				{
-					res = true;
-					for (int i = 0; i < effectProperty.keywords.Count; i++)
-					{
-						string keyword = effectProperty.keywords[i];
-						if (!targetMatInfo.IsKeywordEnabled(keyword))
-						{
-							res = false;
-							break;
-						}
-					}
-				}
-			}
+            for (int i = 0; i < effectProperty.incompatibleKeywords.Count; i++)
+            {
+                string incompatibleKw = effectProperty.incompatibleKeywords[i];
+                if (targetMatInfo.IsKeywordEnabled(incompatibleKw))
+                {
+                    anyIncompatibilities = true;
+                }
+            }
 
-			return res;
-		}
+            if (!anyIncompatibilities)
+            {
+                if (effectProperty.keywordsOp == KeywordsOp.OR)
+                {
+                    for (int i = 0; i < effectProperty.keywords.Count; i++)
+                    {
+                        string keyword = effectProperty.keywords[i];
 
-		protected MaterialProperty FindPropertyByName(string propertyName)
-		{
-			MaterialProperty res = null;
+                        if (targetMatInfo.IsKeywordEnabled(keyword))
+                        {
+                            res = true;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    res = true;
+                    for (int i = 0; i < effectProperty.keywords.Count; i++)
+                    {
+                        string keyword = effectProperty.keywords[i];
+                        if (!targetMatInfo.IsKeywordEnabled(keyword))
+                        {
+                            res = false;
+                            break;
+                        }
+                    }
+                }
+            }
 
-			for (int i = 0; i < references.matProperties.Length; i++)
-			{
-				if (references.matProperties[i].name == propertyName)
-				{
-					res = references.matProperties[i];
-					break;
-				}
-			}
+            return res;
+        }
 
-			return res;
-		}
+        protected MaterialProperty FindPropertyByName(string propertyName)
+        {
+            MaterialProperty res = null;
 
-		protected int FindPropertyIndex(string propertyName)
-		{
-			int res = -1;
+            for (int i = 0; i < references.matProperties.Length; i++)
+            {
+                if (references.matProperties[i].name == propertyName)
+                {
+                    res = references.matProperties[i];
+                    break;
+                }
+            }
 
-			for (int i = 0; i < references.matProperties.Length; i++)
-			{
-				if (references.matProperties[i].name == propertyName)
-				{
-					res = i;
-					break;
-				}
-			}
+            return res;
+        }
 
-			return res;
-		}
+        protected int FindPropertyIndex(string propertyName)
+        {
+            int res = -1;
 
-		protected bool AreDependenciesMet()
-		{
-			bool res = true;
+            for (int i = 0; i < references.matProperties.Length; i++)
+            {
+                if (references.matProperties[i].name == propertyName)
+                {
+                    res = i;
+                    break;
+                }
+            }
 
-			if (!string.IsNullOrEmpty(effectConfig.dependentOnEffect))
-			{
-				AllIn13DEffectConfig dependentEffect = propertiesConfig.FindEffectConfigByID(effectConfig.dependentOnEffect);
-				res = res && AllIn13DEffectConfig.IsEffectEnabled(dependentEffect, references);
-			}
+            return res;
+        }
 
-			if (!string.IsNullOrEmpty(effectConfig.incompatibleWithEffectID))
-			{
-				AllIn13DEffectConfig dependentEffect = propertiesConfig.FindEffectConfigByID(effectConfig.incompatibleWithEffectID);
-				res = res && !AllIn13DEffectConfig.IsEffectEnabled(dependentEffect, references);
-			}
+        protected bool AreDependenciesMet()
+        {
+            bool res = true;
 
-			return res;
-		}
+            if (!string.IsNullOrEmpty(effectConfig.dependentOnEffect))
+            {
+                AllIn13DEffectConfig dependentEffect = propertiesConfig.FindEffectConfigByID(
+                    effectConfig.dependentOnEffect
+                );
+                res = res && AllIn13DEffectConfig.IsEffectEnabled(dependentEffect, references);
+            }
 
-		protected bool IsShaderVariant()
-		{
-			bool res = true;
+            if (!string.IsNullOrEmpty(effectConfig.incompatibleWithEffectID))
+            {
+                AllIn13DEffectConfig dependentEffect = propertiesConfig.FindEffectConfigByID(
+                    effectConfig.incompatibleWithEffectID
+                );
+                res = res && !AllIn13DEffectConfig.IsEffectEnabled(dependentEffect, references);
+            }
 
-			for(int i = 0; i < references.targetMatInfos.Length; i++)
-			{
-				if (references.targetMatInfos[i].IsShaderVariant())
-				{
-					res = false;
-					break;
-				}
-			}
+            return res;
+        }
 
-			return res;
-		}
+        protected bool IsShaderVariant()
+        {
+            bool res = true;
 
-		public virtual void Refresh(AllIn13DShaderInspectorReferences references)
-		{
-			this.references = references;
-		}
-	}
+            for (int i = 0; i < references.targetMatInfos.Length; i++)
+            {
+                if (references.targetMatInfos[i].IsShaderVariant())
+                {
+                    res = false;
+                    break;
+                }
+            }
+
+            return res;
+        }
+
+        public virtual void Refresh(AllIn13DShaderInspectorReferences references)
+        {
+            this.references = references;
+        }
+    }
 }

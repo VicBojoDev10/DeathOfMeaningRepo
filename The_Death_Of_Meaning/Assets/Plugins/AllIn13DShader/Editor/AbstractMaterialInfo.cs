@@ -2,99 +2,103 @@ using UnityEngine;
 
 namespace AllIn13DShader
 {
-	public abstract class AbstractMaterialInfo
-	{
-		public string[] enabledKeywords;
-		public Material mat;
+    public abstract class AbstractMaterialInfo
+    {
+        public string[] enabledKeywords;
+        public Material mat;
 
-		public AbstractMaterialInfo(Material mat)
-		{
-			this.enabledKeywords = new string[0];
-			this.mat = mat;
-		}
+        public AbstractMaterialInfo(Material mat)
+        {
+            this.enabledKeywords = new string[0];
+            this.mat = mat;
+        }
 
-		public abstract void RefreshKeywords();
+        public abstract void RefreshKeywords();
 
-		public abstract void EnableKeyword(string keyword);
+        public abstract void EnableKeyword(string keyword);
 
-		public abstract void DisableKeyword(string keyword);
+        public abstract void DisableKeyword(string keyword);
 
-		public abstract bool IsShaderVariant();
+        public abstract bool IsShaderVariant();
 
-		public bool IsKeywordEnabled(string keyword)
-		{
-			bool res = false;
+        public bool IsKeywordEnabled(string keyword)
+        {
+            bool res = false;
 
-			for (int i = 0; i < enabledKeywords.Length; i++)
-			{
-				if (enabledKeywords[i] == keyword)
-				{
-					res = true;
-					break;
-				}
-			}
+            for (int i = 0; i < enabledKeywords.Length; i++)
+            {
+                if (enabledKeywords[i] == keyword)
+                {
+                    res = true;
+                    break;
+                }
+            }
 
-			return res;
-		}
+            return res;
+        }
 
-		public int GetEnabledKeywordIndexByEffect(AllIn13DEffectConfig effectConfig)
-		{
-			int res = -1;
-			for (int i = 0; i < enabledKeywords.Length; i++)
-			{
-				res = effectConfig.GetKeywordIndex(enabledKeywords[i]);
-				if(res >= 0)
-				{
-					break;
-				}
-			}
+        public int GetEnabledKeywordIndexByEffect(AllIn13DEffectConfig effectConfig)
+        {
+            int res = -1;
+            for (int i = 0; i < enabledKeywords.Length; i++)
+            {
+                res = effectConfig.GetKeywordIndex(enabledKeywords[i]);
+                if (res >= 0)
+                {
+                    break;
+                }
+            }
 
-			return res;
-		}
+            return res;
+        }
 
-		public int GetEnabledKeywordIndexByEffectProperty(EffectProperty effectProperty)
-		{
-			int res = -1;
-			
-			if(effectProperty.IsEnumProperty() || effectProperty.IsToggleProperty())
-			{
-				for (int i = 0; i < enabledKeywords.Length; i++)
-				{
-					for (int j = 0; j < effectProperty.fullKeywordNames.Length; j++)
-					{
-						if (effectProperty.fullKeywordNames[j] == enabledKeywords[i])
-						{
-							res = j;
-							break;
-						}
-					}
+        public int GetEnabledKeywordIndexByEffectProperty(EffectProperty effectProperty)
+        {
+            int res = -1;
 
-					if(res >= 0)
-					{
-						break;
-					}
-				}
-			}
+            if (effectProperty.IsEnumProperty() || effectProperty.IsToggleProperty())
+            {
+                for (int i = 0; i < enabledKeywords.Length; i++)
+                {
+                    for (int j = 0; j < effectProperty.fullKeywordNames.Length; j++)
+                    {
+                        if (effectProperty.fullKeywordNames[j] == enabledKeywords[i])
+                        {
+                            res = j;
+                            break;
+                        }
+                    }
 
-			return res;
-		}
+                    if (res >= 0)
+                    {
+                        break;
+                    }
+                }
+            }
 
-		public static AbstractMaterialInfo CreateInstance(Material mat)
-		{
-			EffectsProfileCollection effectsProfileCollection = GlobalConfiguration.instance.effectsProfileCollection;
-			EffectsProfile effectsProfile = effectsProfileCollection.FindEffectProfileByShader(mat.shader);
+            return res;
+        }
 
-			AbstractMaterialInfo res = null;
-			if (effectsProfile == null)
-			{
-				res = new CommonMaterialInfo(mat);
-			}
-			else
-			{
-				res = new EffectProfileMaterialInfo(effectsProfile, mat);
-			}
+        public static AbstractMaterialInfo CreateInstance(Material mat)
+        {
+            EffectsProfileCollection effectsProfileCollection = GlobalConfiguration
+                .instance
+                .effectsProfileCollection;
+            EffectsProfile effectsProfile = effectsProfileCollection.FindEffectProfileByShader(
+                mat.shader
+            );
 
-			return res;
-		}
-	}
+            AbstractMaterialInfo res = null;
+            if (effectsProfile == null)
+            {
+                res = new CommonMaterialInfo(mat);
+            }
+            else
+            {
+                res = new EffectProfileMaterialInfo(effectsProfile, mat);
+            }
+
+            return res;
+        }
+    }
 }

@@ -6,58 +6,81 @@ namespace AllIn13DShader
 {
     public class OptionsDemo : MonoBehaviour
     {
-        [SerializeField] private Color lockedColor = Color.red;
+        [SerializeField]
+        private Color lockedColor = Color.red;
 
         [Space, Header("Lock Camera")]
-        [SerializeField] private AllIn1MouseTransformRotator allIn1MouseRotate;
-        [SerializeField] private TextMeshProUGUI lockCamText;
-        [SerializeField] private Image lockCamButtonImage;
-        
+        [SerializeField]
+        private AllIn1MouseTransformRotator allIn1MouseRotate;
+
+        [SerializeField]
+        private TextMeshProUGUI lockCamText;
+
+        [SerializeField]
+        private Image lockCamButtonImage;
+
         [Space, Header("Lock Cursor")]
-        [SerializeField] private bool lockCursor = true;
-        [SerializeField] private TextMeshProUGUI lockCursorText;
-        [SerializeField] private Image lockCursorButtonImage;
-        
+        [SerializeField]
+        private bool lockCursor = true;
+
+        [SerializeField]
+        private TextMeshProUGUI lockCursorText;
+
+        [SerializeField]
+        private Image lockCursorButtonImage;
+
         [Space, Header("Hide Ui")]
-        [SerializeField] private CanvasGroup uiCanvasGroup;
-        [SerializeField] private float uiCanvasSmoothing = 5f;
+        [SerializeField]
+        private CanvasGroup uiCanvasGroup;
 
-		[Space, Header("Demo Info")]
-		[SerializeField] private bool showingDemoInfo = false;
-		[SerializeField] private Image showDemoInfoButtonImage;
+        [SerializeField]
+        private float uiCanvasSmoothing = 5f;
 
-		private bool cursorIsLocked, camIsLocked, uiIsHidden;
+        [Space, Header("Demo Info")]
+        [SerializeField]
+        private bool showingDemoInfo = false;
+
+        [SerializeField]
+        private Image showDemoInfoButtonImage;
+
+        private bool cursorIsLocked,
+            camIsLocked,
+            uiIsHidden;
         private float uiCanvasAlpha;
 
         private void Start()
         {
             cursorIsLocked = lockCursor;
             SetCursorLock();
-            
+
             camIsLocked = false;
             SetCamLock();
         }
 
         private void Update()
         {
-            uiCanvasGroup.alpha = Mathf.Lerp(uiCanvasGroup.alpha, uiIsHidden ? 0f : 1f, Time.unscaledDeltaTime * uiCanvasSmoothing);
+            uiCanvasGroup.alpha = Mathf.Lerp(
+                uiCanvasGroup.alpha,
+                uiIsHidden ? 0f : 1f,
+                Time.unscaledDeltaTime * uiCanvasSmoothing
+            );
         }
-        
+
         public void ToggleCursorButtonPress()
         {
             cursorIsLocked = !cursorIsLocked;
             SetCursorLock();
-		}
+        }
 
-		public void ToggleShowInfo()
-		{
-			showingDemoInfo = !showingDemoInfo;
-			showDemoInfoButtonImage.color = showingDemoInfo ? lockedColor : Color.clear;
-		}
+        public void ToggleShowInfo()
+        {
+            showingDemoInfo = !showingDemoInfo;
+            showDemoInfoButtonImage.color = showingDemoInfo ? lockedColor : Color.clear;
+        }
 
         private void SetCursorLock()
         {
-            if(cursorIsLocked)
+            if (cursorIsLocked)
             {
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;
@@ -72,18 +95,17 @@ namespace AllIn13DShader
                 lockCursorButtonImage.color = Color.clear;
             }
         }
-        
+
         public void CamLockButtonPress()
         {
             camIsLocked = !camIsLocked;
             SetCamLock();
         }
-        
-        
+
         private void SetCamLock()
         {
             allIn1MouseRotate.enabled = !camIsLocked;
-            if(camIsLocked)
+            if (camIsLocked)
             {
                 lockCamText.text = "Unlock Camera";
                 lockCamButtonImage.color = lockedColor;
@@ -94,7 +116,7 @@ namespace AllIn13DShader
                 lockCamButtonImage.color = Color.clear;
             }
         }
-        
+
         public void HideUiButtonPress()
         {
             uiIsHidden = !uiIsHidden;

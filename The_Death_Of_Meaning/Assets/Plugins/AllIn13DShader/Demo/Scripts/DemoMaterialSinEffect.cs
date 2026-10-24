@@ -4,12 +4,21 @@ namespace AllIn13DShader
 {
     public class DemoMaterialSinEffect : MonoBehaviour
     {
-        [SerializeField] private Renderer targetRenderer;
-        [SerializeField] private string propertyName = "_AlphaCutoffValue";
-        [SerializeField] private float minValue = 0f;
-        [SerializeField] private float maxValue = 1f;
-        [SerializeField] private float speed = 1f;
-    
+        [SerializeField]
+        private Renderer targetRenderer;
+
+        [SerializeField]
+        private string propertyName = "_AlphaCutoffValue";
+
+        [SerializeField]
+        private float minValue = 0f;
+
+        [SerializeField]
+        private float maxValue = 1f;
+
+        [SerializeField]
+        private float speed = 1f;
+
         private Material currMaterial;
         private int propertyId;
 

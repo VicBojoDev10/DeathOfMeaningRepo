@@ -3,69 +3,74 @@ using UnityEngine;
 
 namespace AllIn13DShader
 {
-	[CustomEditor(typeof(DepthColoringCamera))]
-	public class DepthColoringCameraCustomEditor : Editor
-	{
-		private SerializedProperty spCam;
-		private SerializedProperty spDepthColoringProperties;
+    [CustomEditor(typeof(DepthColoringCamera))]
+    public class DepthColoringCameraCustomEditor : Editor
+    {
+        private SerializedProperty spCam;
+        private SerializedProperty spDepthColoringProperties;
 
-		private AllIn1DepthColoringProperties depthColoringProperties;
-		private DepthColoringPropertiesDrawer depthColoringPropertiesDrawer;
+        private AllIn1DepthColoringProperties depthColoringProperties;
+        private DepthColoringPropertiesDrawer depthColoringPropertiesDrawer;
 
-		private DepthColoringCamera depthColoringCamera;
+        private DepthColoringCamera depthColoringCamera;
 
-		private bool depthColoringFoldout;
+        private bool depthColoringFoldout;
 
-		private void RefreshReferences()
-		{
-			if(spCam == null)
-			{
-				spCam = serializedObject.FindProperty("cam");
-			}
+        private void RefreshReferences()
+        {
+            if (spCam == null)
+            {
+                spCam = serializedObject.FindProperty("cam");
+            }
 
-			if(spDepthColoringProperties == null)
-			{
-				spDepthColoringProperties = serializedObject.FindProperty("depthColoringProperties");
-			}
-		}
+            if (spDepthColoringProperties == null)
+            {
+                spDepthColoringProperties = serializedObject.FindProperty(
+                    "depthColoringProperties"
+                );
+            }
+        }
 
-		private void RefreshDepthColoringPropertiesDrawer()
-		{
-			if(depthColoringPropertiesDrawer == null && depthColoringProperties != null)
-			{
-				depthColoringPropertiesDrawer = new DepthColoringPropertiesDrawer(depthColoringProperties);
-			}
-			else if(depthColoringPropertiesDrawer != null && depthColoringProperties != null)
-			{
-				depthColoringPropertiesDrawer.SetDepthColoringProperties(depthColoringProperties);
-			}
-		}
+        private void RefreshDepthColoringPropertiesDrawer()
+        {
+            if (depthColoringPropertiesDrawer == null && depthColoringProperties != null)
+            {
+                depthColoringPropertiesDrawer = new DepthColoringPropertiesDrawer(
+                    depthColoringProperties
+                );
+            }
+            else if (depthColoringPropertiesDrawer != null && depthColoringProperties != null)
+            {
+                depthColoringPropertiesDrawer.SetDepthColoringProperties(depthColoringProperties);
+            }
+        }
 
-		public override void OnInspectorGUI()
-		{
-			serializedObject.Update();
+        public override void OnInspectorGUI()
+        {
+            serializedObject.Update();
 
-			RefreshReferences();
+            RefreshReferences();
 
-			EditorGUI.BeginChangeCheck();
-			EditorGUILayout.PropertyField(spCam);
-			EditorGUILayout.PropertyField(spDepthColoringProperties);
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(spCam);
+            EditorGUILayout.PropertyField(spDepthColoringProperties);
 
-			serializedObject.ApplyModifiedProperties();
+            serializedObject.ApplyModifiedProperties();
 
-			if(spDepthColoringProperties.objectReferenceValue != null)
-			{
-				GUILayout.Space(25f);
+            if (spDepthColoringProperties.objectReferenceValue != null)
+            {
+                GUILayout.Space(25f);
 
-				depthColoringProperties = (AllIn1DepthColoringProperties)spDepthColoringProperties.objectReferenceValue;
+                depthColoringProperties = (AllIn1DepthColoringProperties)
+                    spDepthColoringProperties.objectReferenceValue;
 
-				RefreshDepthColoringPropertiesDrawer();
+                RefreshDepthColoringPropertiesDrawer();
 
-				if(depthColoringPropertiesDrawer != null)
-				{
-					depthColoringPropertiesDrawer.Draw(true);
-				}
-			}
-		}
-	}
+                if (depthColoringPropertiesDrawer != null)
+                {
+                    depthColoringPropertiesDrawer.Draw(true);
+                }
+            }
+        }
+    }
 }

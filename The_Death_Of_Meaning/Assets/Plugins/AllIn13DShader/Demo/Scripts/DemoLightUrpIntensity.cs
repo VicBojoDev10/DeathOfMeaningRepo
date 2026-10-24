@@ -4,9 +4,11 @@ namespace AllIn13DShader
 {
     public class DemoLightUrpIntensity : MonoBehaviour
     {
-        [SerializeField] private Light thisLight;
-        [SerializeField] private float urpIntensityMultiplier = 5f;
+        [SerializeField]
+        private Light thisLight;
 
+        [SerializeField]
+        private float urpIntensityMultiplier = 5f;
 
         private void Start()
         {
@@ -19,7 +21,7 @@ namespace AllIn13DShader
 
         private void Reset()
         {
-            if(thisLight == null) 
+            if (thisLight == null)
             {
                 thisLight = GetComponent<Light>();
             }

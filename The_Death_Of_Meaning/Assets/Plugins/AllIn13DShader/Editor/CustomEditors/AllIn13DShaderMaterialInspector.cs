@@ -1,416 +1,513 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace AllIn13DShader 
+namespace AllIn13DShader
 {
-	[CanEditMultipleObjects]
-	public class AllIn13DShaderMaterialInspector : ShaderGUI
-	{
-		private PropertiesConfigCollection propertiesConfigCollection;
-		
-		private PropertiesConfig currentPropertiesConfig;
+    [CanEditMultipleObjects]
+    public class AllIn13DShaderMaterialInspector : ShaderGUI
+    {
+        private PropertiesConfigCollection propertiesConfigCollection;
 
-		private AllIn13DShaderInspectorReferences inspectorReferences;
-		private AbstractEffectDrawer[] drawers;
-		private GlobalPropertiesDrawer globalPropertiesDrawer;
-		private AdvancedPropertiesDrawer advancedPropertiesDrawer;
+        private PropertiesConfig currentPropertiesConfig;
 
-		private MaterialPresetCollection blendingModeCollection;
+        private AllIn13DShaderInspectorReferences inspectorReferences;
+        private AbstractEffectDrawer[] drawers;
+        private GlobalPropertiesDrawer globalPropertiesDrawer;
+        private AdvancedPropertiesDrawer advancedPropertiesDrawer;
 
-		private MaterialProperty matPropertyRenderPreset;
-		private MaterialProperty matPropertyBlendSrc;
-		private MaterialProperty matPropertyBlendDst;
-		private MaterialProperty matPropertyZWrite;
-		
-		private int lastRenderQueue;
+        private MaterialPresetCollection blendingModeCollection;
 
-		private static CommonStyles commonStyles;
+        private MaterialProperty matPropertyRenderPreset;
+        private MaterialProperty matPropertyBlendSrc;
+        private MaterialProperty matPropertyBlendDst;
+        private MaterialProperty matPropertyZWrite;
 
-		private void RefreshReferences(MaterialEditor materialEditor, MaterialProperty[] properties)
-		{
-			if (inspectorReferences == null)
-			{
-				inspectorReferences = new AllIn13DShaderInspectorReferences();
-				inspectorReferences.Setup(materialEditor, properties);
+        private int lastRenderQueue;
 
-				if (lastRenderQueue > 0)
-				{
-					for(int i = 0; i < inspectorReferences.targetMatInfos.Length; i++)
-					{
-						inspectorReferences.targetMatInfos[i].mat.renderQueue = lastRenderQueue;
-					}
-				}
-			}
+        private static CommonStyles commonStyles;
 
-			if (propertiesConfigCollection == null)
-			{
-				string[] guids = AssetDatabase.FindAssets("PropertiesConfigCollection t:PropertiesConfigCollection");
-				if(guids.Length == 0)
-				{
-					Debug.LogWarning("PropertiesConfigCollection not found in the project. Configuring...");
-					this.propertiesConfigCollection = PropertiesConfigCreator.CreateConfig();
-					Debug.LogWarning("AllIn13DShader configured");
-				}
-				else
-				{
-					string path = AssetDatabase.GUIDToAssetPath(guids[0]);
-					propertiesConfigCollection = AssetDatabase.LoadAssetAtPath<PropertiesConfigCollection>(path);
-				}
+        private void RefreshReferences(MaterialEditor materialEditor, MaterialProperty[] properties)
+        {
+            if (inspectorReferences == null)
+            {
+                inspectorReferences = new AllIn13DShaderInspectorReferences();
+                inspectorReferences.Setup(materialEditor, properties);
 
-				RefreshPropertiesConfig();
-			}
+                if (lastRenderQueue > 0)
+                {
+                    for (int i = 0; i < inspectorReferences.targetMatInfos.Length; i++)
+                    {
+                        inspectorReferences.targetMatInfos[i].mat.renderQueue = lastRenderQueue;
+                    }
+                }
+            }
 
-			if (blendingModeCollection == null)
-			{
-				blendingModeCollection = (MaterialPresetCollection)EditorUtils.FindAsset<ScriptableObject>("BlendingModeCollection");
-			}
+            if (propertiesConfigCollection == null)
+            {
+                string[] guids = AssetDatabase.FindAssets(
+                    "PropertiesConfigCollection t:PropertiesConfigCollection"
+                );
+                if (guids.Length == 0)
+                {
+                    Debug.LogWarning(
+                        "PropertiesConfigCollection not found in the project. Configuring..."
+                    );
+                    this.propertiesConfigCollection = PropertiesConfigCreator.CreateConfig();
+                    Debug.LogWarning("AllIn13DShader configured");
+                }
+                else
+                {
+                    string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+                    propertiesConfigCollection =
+                        AssetDatabase.LoadAssetAtPath<PropertiesConfigCollection>(path);
+                }
 
-			CreateDrawers();
+                RefreshPropertiesConfig();
+            }
 
-			matPropertyRenderPreset = inspectorReferences.matProperties[currentPropertiesConfig.renderPreset];
-			matPropertyBlendSrc = inspectorReferences.matProperties[currentPropertiesConfig.blendSrcIdx];
-			matPropertyBlendDst = inspectorReferences.matProperties[currentPropertiesConfig.blendDstIdx];
-			matPropertyZWrite = inspectorReferences.matProperties[currentPropertiesConfig.zWriteIndex];
+            if (blendingModeCollection == null)
+            {
+                blendingModeCollection = (MaterialPresetCollection)
+                    EditorUtils.FindAsset<ScriptableObject>("BlendingModeCollection");
+            }
 
-			//We ensure that data is refreshed. Sometimes objects are not null but we need to refresh the references
-			inspectorReferences.Setup(materialEditor, properties);
+            CreateDrawers();
 
-			if(commonStyles == null)
-			{
-				commonStyles = new CommonStyles();
-			}
+            matPropertyRenderPreset = inspectorReferences.matProperties[
+                currentPropertiesConfig.renderPreset
+            ];
+            matPropertyBlendSrc = inspectorReferences.matProperties[
+                currentPropertiesConfig.blendSrcIdx
+            ];
+            matPropertyBlendDst = inspectorReferences.matProperties[
+                currentPropertiesConfig.blendDstIdx
+            ];
+            matPropertyZWrite = inspectorReferences.matProperties[
+                currentPropertiesConfig.zWriteIndex
+            ];
 
-			RefreshDrawers();
-		}
+            //We ensure that data is refreshed. Sometimes objects are not null but we need to refresh the references
+            inspectorReferences.Setup(materialEditor, properties);
 
-		private void ResetReferences()
-		{
-			this.propertiesConfigCollection = null;
-			this.currentPropertiesConfig = null;
+            if (commonStyles == null)
+            {
+                commonStyles = new CommonStyles();
+            }
 
-			inspectorReferences = null;
-			drawers = null;
+            RefreshDrawers();
+        }
 
-			globalPropertiesDrawer = null;
-			advancedPropertiesDrawer = null;
-		}
+        private void ResetReferences()
+        {
+            this.propertiesConfigCollection = null;
+            this.currentPropertiesConfig = null;
 
-		private void CreateDrawers()
-		{
-			if (propertiesConfigCollection == null || 
-				currentPropertiesConfig == null ||
-				inspectorReferences == null ||
-				drawers == null ||
-				globalPropertiesDrawer == null ||
-				advancedPropertiesDrawer == null)
-			{
-				drawers = new AbstractEffectDrawer[0];
+            inspectorReferences = null;
+            drawers = null;
 
-				GeneralEffectDrawer generalEffectDrawer = new GeneralEffectDrawer(inspectorReferences, currentPropertiesConfig);
-				
-				EffectProperty mainNormalMapProperty = currentPropertiesConfig.FindEffectProperty("NORMAL_MAP", "_NormalMap");
+            globalPropertiesDrawer = null;
+            advancedPropertiesDrawer = null;
+        }
 
-				TriplanarEffectDrawer triplanarEffectDrawer = new TriplanarEffectDrawer(mainNormalMapProperty, inspectorReferences, currentPropertiesConfig);
-				ColorRampEffectDrawer colorRampEffectDrawer = new ColorRampEffectDrawer(inspectorReferences, currentPropertiesConfig);
-				OutlineEffectDrawer outlineEffectDrawer = new OutlineEffectDrawer(inspectorReferences, currentPropertiesConfig);
-				TextureBlendingEffectDrawer vertexColorEffectDrawer = new TextureBlendingEffectDrawer(mainNormalMapProperty, inspectorReferences, currentPropertiesConfig);
-				NormalMapEffectDrawer normalMapEffectDrawer = new NormalMapEffectDrawer(inspectorReferences, currentPropertiesConfig);
+        private void CreateDrawers()
+        {
+            if (
+                propertiesConfigCollection == null
+                || currentPropertiesConfig == null
+                || inspectorReferences == null
+                || drawers == null
+                || globalPropertiesDrawer == null
+                || advancedPropertiesDrawer == null
+            )
+            {
+                drawers = new AbstractEffectDrawer[0];
 
-				drawers = new AbstractEffectDrawer[]
-				{
-					generalEffectDrawer,
-					triplanarEffectDrawer,
-					colorRampEffectDrawer, 
-					outlineEffectDrawer,
-					vertexColorEffectDrawer,
-					normalMapEffectDrawer
-				};
+                GeneralEffectDrawer generalEffectDrawer = new GeneralEffectDrawer(
+                    inspectorReferences,
+                    currentPropertiesConfig
+                );
 
-				advancedPropertiesDrawer = new AdvancedPropertiesDrawer(currentPropertiesConfig.advancedProperties, currentPropertiesConfig.blendSrcIdx, currentPropertiesConfig.blendDstIdx, inspectorReferences);
-			}
+                EffectProperty mainNormalMapProperty = currentPropertiesConfig.FindEffectProperty(
+                    "NORMAL_MAP",
+                    "_NormalMap"
+                );
 
-			if (globalPropertiesDrawer == null)
-			{
-				globalPropertiesDrawer = new GlobalPropertiesDrawer();
-			}
-		}
+                TriplanarEffectDrawer triplanarEffectDrawer = new TriplanarEffectDrawer(
+                    mainNormalMapProperty,
+                    inspectorReferences,
+                    currentPropertiesConfig
+                );
+                ColorRampEffectDrawer colorRampEffectDrawer = new ColorRampEffectDrawer(
+                    inspectorReferences,
+                    currentPropertiesConfig
+                );
+                OutlineEffectDrawer outlineEffectDrawer = new OutlineEffectDrawer(
+                    inspectorReferences,
+                    currentPropertiesConfig
+                );
+                TextureBlendingEffectDrawer vertexColorEffectDrawer =
+                    new TextureBlendingEffectDrawer(
+                        mainNormalMapProperty,
+                        inspectorReferences,
+                        currentPropertiesConfig
+                    );
+                NormalMapEffectDrawer normalMapEffectDrawer = new NormalMapEffectDrawer(
+                    inspectorReferences,
+                    currentPropertiesConfig
+                );
 
-		private void RefreshDrawers()
-		{
-			for(int i = 0; i < drawers.Length; i++)
-			{
-				drawers[i].Refresh(inspectorReferences);
-			}
-		}
+                drawers = new AbstractEffectDrawer[]
+                {
+                    generalEffectDrawer,
+                    triplanarEffectDrawer,
+                    colorRampEffectDrawer,
+                    outlineEffectDrawer,
+                    vertexColorEffectDrawer,
+                    normalMapEffectDrawer,
+                };
 
-		private AbstractEffectDrawer FindEffectDrawerByID(string drawerID)
-		{
-			AbstractEffectDrawer res = null;
+                advancedPropertiesDrawer = new AdvancedPropertiesDrawer(
+                    currentPropertiesConfig.advancedProperties,
+                    currentPropertiesConfig.blendSrcIdx,
+                    currentPropertiesConfig.blendDstIdx,
+                    inspectorReferences
+                );
+            }
 
-			for (int i = 0; i < drawers.Length; i++)
-			{
-				if (drawers[i].ID == drawerID)
-				{
-					res = drawers[i];
-					break;
-				}
-			}
+            if (globalPropertiesDrawer == null)
+            {
+                globalPropertiesDrawer = new GlobalPropertiesDrawer();
+            }
+        }
 
-			return res;
-		}
+        private void RefreshDrawers()
+        {
+            for (int i = 0; i < drawers.Length; i++)
+            {
+                drawers[i].Refresh(inspectorReferences);
+            }
+        }
 
-		public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
-		{
-			base.AssignNewShaderToMaterial(material, oldShader, newShader);
-		}
+        private AbstractEffectDrawer FindEffectDrawerByID(string drawerID)
+        {
+            AbstractEffectDrawer res = null;
 
-		private void RefreshPropertiesConfig()
-		{
-			Shader shader = inspectorReferences.GetShader();
-			currentPropertiesConfig = propertiesConfigCollection.FindPropertiesConfigByShader(shader);
+            for (int i = 0; i < drawers.Length; i++)
+            {
+                if (drawers[i].ID == drawerID)
+                {
+                    res = drawers[i];
+                    break;
+                }
+            }
 
-			inspectorReferences.SetOutlineEffect(currentPropertiesConfig);
-			inspectorReferences.SetCastShadowsEffect(currentPropertiesConfig);
-		}
+            return res;
+        }
 
-		public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
-		{
-			if (inspectorReferences != null && drawers != null)
-			{
-				inspectorReferences.Setup(materialEditor, properties);
-			}
+        public override void AssignNewShaderToMaterial(
+            Material material,
+            Shader oldShader,
+            Shader newShader
+        )
+        {
+            base.AssignNewShaderToMaterial(material, oldShader, newShader);
+        }
 
-			RefreshReferences(materialEditor, properties);
+        private void RefreshPropertiesConfig()
+        {
+            Shader shader = inspectorReferences.GetShader();
+            currentPropertiesConfig = propertiesConfigCollection.FindPropertiesConfigByShader(
+                shader
+            );
 
-			commonStyles.InitStyles();
+            inspectorReferences.SetOutlineEffect(currentPropertiesConfig);
+            inspectorReferences.SetCastShadowsEffect(currentPropertiesConfig);
+        }
+
+        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
+        {
+            if (inspectorReferences != null && drawers != null)
+            {
+                inspectorReferences.Setup(materialEditor, properties);
+            }
+
+            RefreshReferences(materialEditor, properties);
+
+            commonStyles.InitStyles();
 
 #if ALLIN13DSHADER_URP
-			bool urpCorrectlyConfigured = URPConfigurator.IsURPCorrectlyConfigured();
-			if (!urpCorrectlyConfigured)
-			{
-				EditorGUILayout.LabelField(CommonMessages.URP_PIPELINE_NOT_ASSIGNED, commonStyles.warningLabel);
-				EditorUtils.DrawButtonLink(CommonMessages.URP_PIPELINE_NOT_ASSIGNED_DOC_LINK);
+            bool urpCorrectlyConfigured = URPConfigurator.IsURPCorrectlyConfigured();
+            if (!urpCorrectlyConfigured)
+            {
+                EditorGUILayout.LabelField(
+                    CommonMessages.URP_PIPELINE_NOT_ASSIGNED,
+                    commonStyles.warningLabel
+                );
+                EditorUtils.DrawButtonLink(CommonMessages.URP_PIPELINE_NOT_ASSIGNED_DOC_LINK);
 
-				GUILayout.Space(50f);
-			}
+                GUILayout.Space(50f);
+            }
 
-			EditorGUI.BeginDisabledGroup(!urpCorrectlyConfigured);
+            EditorGUI.BeginDisabledGroup(!urpCorrectlyConfigured);
 #endif
 
-			DrawPresetsTabs();
-			DrawAdvancedProperties();
-			DrawGlobalProperties();
-			DrawEffects();
+            DrawPresetsTabs();
+            DrawAdvancedProperties();
+            DrawGlobalProperties();
+            DrawEffects();
 
 #if ALLIN13DSHADER_URP
-			EditorGUI.EndDisabledGroup();
+            EditorGUI.EndDisabledGroup();
 #endif
 
-			CheckLightmapFlags();
-			bool shaderChanged = false;
-			for (int i = 0; i < inspectorReferences.targetMatInfos.Length; i++)
-			{
-				Material targetMat = inspectorReferences.targetMatInfos[i].mat;
+            CheckLightmapFlags();
+            bool shaderChanged = false;
+            for (int i = 0; i < inspectorReferences.targetMatInfos.Length; i++)
+            {
+                Material targetMat = inspectorReferences.targetMatInfos[i].mat;
 
-				lastRenderQueue = targetMat.renderQueue;
+                lastRenderQueue = targetMat.renderQueue;
 
-				if (!inspectorReferences.targetMatInfos[i].IsShaderVariant())
-				{
-					shaderChanged = shaderChanged || MaterialUtils.CheckMaterialShader(targetMat);
-				}
-			}
+                if (!inspectorReferences.targetMatInfos[i].IsShaderVariant())
+                {
+                    shaderChanged = shaderChanged || MaterialUtils.CheckMaterialShader(targetMat);
+                }
+            }
 
+            EditorGUILayout.Separator();
+            EditorUtils.DrawLine(Color.grey, 1, 3);
 
+            if (inspectorReferences.AreAllMaterialsShaderGeneric())
+            {
+                if (GUILayout.Button("Bake Shader Keywords"))
+                {
+                    for (int i = 0; i < inspectorReferences.targetMatInfos.Length; i++)
+                    {
+                        string variantName = Selection.objects[i].name;
+                        Shader newShader = ShaderVariantCreator.CreateVariantByMaterialInfo(
+                            currentPropertiesConfig,
+                            inspectorReferences.targetMatInfos[i],
+                            variantName
+                        );
+                        inspectorReferences.targetMatInfos[i].mat.shader = newShader;
+                    }
+                    //Shader newShader = ShaderVariantCreator.CreateVariantByMaterialInfo(currentPropertiesConfig, inspectorReferences.targetMatInfos[0], variantName);
+                    //materialEditor.SetShader(newShader);
 
-			EditorGUILayout.Separator();
-			EditorUtils.DrawLine(Color.grey, 1, 3);
+                    shaderChanged = true;
+                }
+            }
+            else
+            {
+                if (GUILayout.Button("Revert To Generic Shader"))
+                {
+                    Shader currentShader = inspectorReferences.GetShader();
+                    GlobalConfiguration.instance.effectsProfileCollection.RemoveEffectsProfileByShader(
+                        currentShader
+                    );
 
-			if (inspectorReferences.AreAllMaterialsShaderGeneric())
-			{
-				if (GUILayout.Button("Bake Shader Keywords"))
-				{
-					for (int i = 0; i < inspectorReferences.targetMatInfos.Length; i++)
-					{
-						string variantName = Selection.objects[i].name;
-						Shader newShader = ShaderVariantCreator.CreateVariantByMaterialInfo(currentPropertiesConfig, inspectorReferences.targetMatInfos[i], variantName);
-						inspectorReferences.targetMatInfos[i].mat.shader = newShader;
-					}
-					//Shader newShader = ShaderVariantCreator.CreateVariantByMaterialInfo(currentPropertiesConfig, inspectorReferences.targetMatInfos[0], variantName);
-					//materialEditor.SetShader(newShader);
+                    Shader newShader = Shader.Find(Constants.SHADER_FULL_NAME_ALLIN13D);
+                    materialEditor.SetShader(newShader);
 
-					shaderChanged = true;
-				}
-			}
-			else
-			{
-				if (GUILayout.Button("Revert To Generic Shader"))
-				{
-					Shader currentShader = inspectorReferences.GetShader();
-					GlobalConfiguration.instance.effectsProfileCollection.RemoveEffectsProfileByShader(currentShader);
+                    shaderChanged = true;
+                }
+            }
 
-					Shader newShader = Shader.Find(Constants.SHADER_FULL_NAME_ALLIN13D);
-					materialEditor.SetShader(newShader);
+            if (shaderChanged)
+            {
+                ResetReferences();
+            }
+        }
 
-					shaderChanged = true;
-				}
-			}
+        //private void CheckPasses(Material targetMat)
+        //{
+        //	if (targetMat.IsKeywordEnabled("_LIGHTMODEL_FASTLIGHTING") || targetMat.IsKeywordEnabled("_LIGHTMODEL_NONE"))
+        //	{
+        //		targetMat.SetShaderPassEnabled("ForwardAdd", false);
+        //	}
+        //	else
+        //	{
+        //		targetMat.SetShaderPassEnabled("ForwardAdd", true);
+        //	}
+        //}
 
-			if (shaderChanged)
-			{
-				ResetReferences();
-			}
-		}
+        private void DrawPresetsTabs()
+        {
+            EditorGUI.BeginChangeCheck();
 
-		//private void CheckPasses(Material targetMat)
-		//{
-		//	if (targetMat.IsKeywordEnabled("_LIGHTMODEL_FASTLIGHTING") || targetMat.IsKeywordEnabled("_LIGHTMODEL_NONE"))
-		//	{
-		//		targetMat.SetShaderPassEnabled("ForwardAdd", false);
-		//	}
-		//	else
-		//	{
-		//		targetMat.SetShaderPassEnabled("ForwardAdd", true);
-		//	}
-		//}
+            string[] texts = blendingModeCollection.CreateStringsArray();
 
-		private void DrawPresetsTabs()
-		{
-			EditorGUI.BeginChangeCheck();
+            int presetIndex = (int)matPropertyRenderPreset.floatValue;
+            if (presetIndex >= blendingModeCollection.presets.Length)
+            {
+                presetIndex = 1;
+                matPropertyRenderPreset.floatValue = presetIndex;
+            }
 
-			string[] texts = blendingModeCollection.CreateStringsArray();
+            BlendingMode previousPreset = blendingModeCollection[presetIndex];
+            if (previousPreset == null)
+            {
+                previousPreset = blendingModeCollection[0];
+            }
 
+            int newIndex = (int)matPropertyRenderPreset.floatValue;
+            newIndex = GUILayout.SelectionGrid(
+                newIndex,
+                texts,
+                3,
+                inspectorReferences.tabButtonStyle
+            );
+            matPropertyRenderPreset.floatValue = newIndex;
+            if (EditorGUI.EndChangeCheck())
+            {
+                BlendingMode selectedPreset = blendingModeCollection[newIndex];
+                for (int i = 0; i < inspectorReferences.targetMatInfos.Length; i++)
+                {
+                    Material targetMat = inspectorReferences.targetMatInfos[i].mat;
+                    ApplyMaterialPreset(targetMat, previousPreset, selectedPreset);
+                }
+            }
+        }
 
-			int presetIndex = (int)matPropertyRenderPreset.floatValue;
-			if (presetIndex >= blendingModeCollection.presets.Length)
-			{
-				presetIndex = 1;
-				matPropertyRenderPreset.floatValue = presetIndex;
-			}
+        private void DrawAdvancedProperties()
+        {
+            //Security check
+            if (advancedPropertiesDrawer != null)
+            {
+                advancedPropertiesDrawer.Draw();
+            }
+        }
 
-			BlendingMode previousPreset = blendingModeCollection[presetIndex];
-			if(previousPreset == null)
-			{
-				previousPreset = blendingModeCollection[0];
-			}
+        private void DrawGlobalProperties()
+        {
+            globalPropertiesDrawer.Draw(
+                currentPropertiesConfig.singleProperties,
+                inspectorReferences
+            );
+        }
 
-			int newIndex = (int)matPropertyRenderPreset.floatValue;
-			newIndex = GUILayout.SelectionGrid(newIndex, texts, 3, inspectorReferences.tabButtonStyle);
-			matPropertyRenderPreset.floatValue = newIndex;
-			if (EditorGUI.EndChangeCheck())
-			{
-				BlendingMode selectedPreset = blendingModeCollection[newIndex];
-				for(int i = 0; i < inspectorReferences.targetMatInfos.Length; i++)
-				{
-					Material targetMat = inspectorReferences.targetMatInfos[i].mat;
-					ApplyMaterialPreset(targetMat, previousPreset, selectedPreset);
-				}
-			}
-		}
+        private void DrawEffects()
+        {
+            int globalEffectIndex = 0;
+            for (
+                int groupIdx = 0;
+                groupIdx < currentPropertiesConfig.effectsGroups.Length;
+                groupIdx++
+            )
+            {
+                EffectGroup effectGroup = currentPropertiesConfig.effectsGroups[groupIdx];
+                if (effectGroup.effects.Length <= 0)
+                {
+                    continue;
+                }
 
-		private void DrawAdvancedProperties()
-		{
-			//Security check
-			if (advancedPropertiesDrawer != null)
-			{
-				advancedPropertiesDrawer.Draw();
-			}
-		}
+                EditorGUILayout.Separator();
+                EditorUtils.DrawLine(Color.grey, 1, 3);
+                GUILayout.Label(effectGroup.DisplayName, inspectorReferences.bigLabelStyle);
 
-		private void DrawGlobalProperties()
-		{
-			globalPropertiesDrawer.Draw(currentPropertiesConfig.singleProperties, inspectorReferences);
-		}
+                for (int effectIdx = 0; effectIdx < effectGroup.effects.Length; effectIdx++)
+                {
+                    AllIn13DEffectConfig effectConfig = effectGroup.effects[effectIdx];
 
-		private void DrawEffects()
-		{
-			int globalEffectIndex = 0;
-			for (int groupIdx = 0; groupIdx < currentPropertiesConfig.effectsGroups.Length; groupIdx++)
-			{
-				EffectGroup effectGroup = currentPropertiesConfig.effectsGroups[groupIdx];
-				if (effectGroup.effects.Length <= 0) { continue; }
+                    globalEffectIndex++;
 
-				EditorGUILayout.Separator();
-				EditorUtils.DrawLine(Color.grey, 1, 3);
-				GUILayout.Label(effectGroup.DisplayName, inspectorReferences.bigLabelStyle);
+                    AbstractEffectDrawer drawer = FindEffectDrawerByID(effectConfig.effectDrawerID);
+                    drawer.Draw(currentPropertiesConfig, effectConfig, globalEffectIndex);
+                }
+            }
+        }
 
-				for (int effectIdx = 0; effectIdx < effectGroup.effects.Length; effectIdx++)
-				{
-					AllIn13DEffectConfig effectConfig = effectGroup.effects[effectIdx];
+        private void CheckLightmapFlags()
+        {
+            for (int i = 0; i < inspectorReferences.targetMatInfos.Length; i++)
+            {
+                AbstractMaterialInfo matInfo = inspectorReferences.targetMatInfos[i];
+                AllIn13DEffectConfig emissionEffectConfig =
+                    propertiesConfigCollection.propertiesConfig.FindEffectConfigByID(
+                        Constants.EFFECT_ID_EMISSION
+                    );
+                bool emissionEnabled = AllIn13DEffectConfig.IsEffectEnabled(
+                    emissionEffectConfig,
+                    matInfo
+                );
+                if (emissionEnabled)
+                {
+                    matInfo.mat.globalIlluminationFlags =
+                        MaterialGlobalIlluminationFlags.BakedEmissive;
+                }
+                else
+                {
+                    matInfo.mat.globalIlluminationFlags =
+                        MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+                }
+            }
+        }
 
-					globalEffectIndex++;
+        private void ApplyMaterialPreset(
+            Material targetMat,
+            BlendingMode previousPresset,
+            BlendingMode newPreset
+        )
+        {
+            matPropertyBlendSrc.floatValue = (float)newPreset.blendSrc;
+            matPropertyBlendDst.floatValue = (float)newPreset.blendDst;
+            matPropertyZWrite.floatValue = newPreset.depthWrite ? 1.0f : 0.0f;
 
-					AbstractEffectDrawer drawer = FindEffectDrawerByID(effectConfig.effectDrawerID);
-					drawer.Draw(currentPropertiesConfig, effectConfig, globalEffectIndex);
-				}
-			}
-		}
+            lastRenderQueue = (int)newPreset.renderQueue;
+            targetMat.renderQueue = lastRenderQueue;
 
-		private void CheckLightmapFlags()
-		{
-			for (int i = 0; i < inspectorReferences.targetMatInfos.Length; i++)
-			{
-				AbstractMaterialInfo matInfo = inspectorReferences.targetMatInfos[i];
-				AllIn13DEffectConfig emissionEffectConfig = propertiesConfigCollection.propertiesConfig.FindEffectConfigByID(Constants.EFFECT_ID_EMISSION);
-				bool emissionEnabled = AllIn13DEffectConfig.IsEffectEnabled(emissionEffectConfig, matInfo);
-				if (emissionEnabled)
-				{
-					matInfo.mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
-				}
-				else
-				{
-					matInfo.mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-				}
-			}
-		}
+            if (previousPresset != newPreset && previousPresset.defaultEnabledEffects != null)
+            {
+                for (int i = 0; i < previousPresset.defaultEnabledEffects.Length; i++)
+                {
+                    string effectID = previousPresset.defaultEnabledEffects[i];
+                    AllIn13DEffectConfig effectConfig =
+                        currentPropertiesConfig.FindEffectConfigByID(effectID);
 
-		private void ApplyMaterialPreset(Material targetMat, BlendingMode previousPresset, BlendingMode newPreset)
-		{
-			matPropertyBlendSrc.floatValue = (float)newPreset.blendSrc;
-			matPropertyBlendDst.floatValue = (float)newPreset.blendDst;
-			matPropertyZWrite.floatValue = newPreset.depthWrite ? 1.0f : 0.0f;
+                    for (
+                        int matIdx = 0;
+                        matIdx < inspectorReferences.targetMatInfos.Length;
+                        matIdx++
+                    )
+                    {
+                        AbstractMaterialInfo matInfo = inspectorReferences.targetMatInfos[matIdx];
+                        AllIn13DEffectConfig.DisableEffectToggle(
+                            effectConfig,
+                            inspectorReferences,
+                            matInfo
+                        );
+                    }
+                }
+            }
 
+            if (newPreset.defaultEnabledEffects != null)
+            {
+                for (int matIdx = 0; matIdx < inspectorReferences.targetMatInfos.Length; matIdx++)
+                {
+                    AbstractMaterialInfo matInfo = inspectorReferences.targetMatInfos[matIdx];
 
-			lastRenderQueue = (int)newPreset.renderQueue;
-			targetMat.renderQueue = lastRenderQueue;
+                    if (newPreset.isTransparent)
+                    {
+                        matInfo.EnableKeyword(Constants.KEYWORD_ALLIN13D_SURFACE_TRANSPARENT);
+                    }
+                    else
+                    {
+                        matInfo.DisableKeyword(Constants.KEYWORD_ALLIN13D_SURFACE_TRANSPARENT);
+                    }
 
-			if (previousPresset != newPreset && previousPresset.defaultEnabledEffects != null)
-			{
-				for (int i = 0; i < previousPresset.defaultEnabledEffects.Length; i++)
-				{
-					string effectID = previousPresset.defaultEnabledEffects[i];
-					AllIn13DEffectConfig effectConfig = currentPropertiesConfig.FindEffectConfigByID(effectID);
-
-					for(int matIdx = 0; matIdx < inspectorReferences.targetMatInfos.Length; matIdx++)
-					{
-						AbstractMaterialInfo matInfo = inspectorReferences.targetMatInfos[matIdx];
-						AllIn13DEffectConfig.DisableEffectToggle(effectConfig, inspectorReferences, matInfo);
-					}
-				}
-			}
-
-			if (newPreset.defaultEnabledEffects != null)
-			{
-				for (int matIdx = 0; matIdx < inspectorReferences.targetMatInfos.Length; matIdx++)
-				{
-					AbstractMaterialInfo matInfo = inspectorReferences.targetMatInfos[matIdx];
-
-					if (newPreset.isTransparent)
-					{
-						matInfo.EnableKeyword(Constants.KEYWORD_ALLIN13D_SURFACE_TRANSPARENT);
-					}
-					else
-					{
-						matInfo.DisableKeyword(Constants.KEYWORD_ALLIN13D_SURFACE_TRANSPARENT);
-					}
-
-					for (int i = 0; i < newPreset.defaultEnabledEffects.Length; i++)
-					{
-						string effectID = newPreset.defaultEnabledEffects[i];
-						AllIn13DEffectConfig effectConfig = currentPropertiesConfig.FindEffectConfigByID(effectID);
-						AllIn13DEffectConfig.EnableEffectToggle(effectConfig, inspectorReferences, matInfo);
-					}
-				}
-			}
-		}
-	}
+                    for (int i = 0; i < newPreset.defaultEnabledEffects.Length; i++)
+                    {
+                        string effectID = newPreset.defaultEnabledEffects[i];
+                        AllIn13DEffectConfig effectConfig =
+                            currentPropertiesConfig.FindEffectConfigByID(effectID);
+                        AllIn13DEffectConfig.EnableEffectToggle(
+                            effectConfig,
+                            inspectorReferences,
+                            matInfo
+                        );
+                    }
+                }
+            }
+        }
+    }
 }

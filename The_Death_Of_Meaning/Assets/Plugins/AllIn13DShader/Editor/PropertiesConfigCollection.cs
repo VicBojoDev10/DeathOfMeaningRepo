@@ -3,31 +3,31 @@ using UnityEngine;
 
 namespace AllIn13DShader
 {
-	public class PropertiesConfigCollection : ScriptableObject
-	{
-		public PropertiesConfig propertiesConfig;
-		
-		public void AddConfig(PropertiesConfig config)
-		{
-			this.propertiesConfig = config;
-		}
+    public class PropertiesConfigCollection : ScriptableObject
+    {
+        public PropertiesConfig propertiesConfig;
 
-		public PropertiesConfig FindPropertiesConfigByShader(Shader shader)
-		{
-			PropertiesConfig res = null;
+        public void AddConfig(PropertiesConfig config)
+        {
+            this.propertiesConfig = config;
+        }
 
-			res = propertiesConfig;
+        public PropertiesConfig FindPropertiesConfigByShader(Shader shader)
+        {
+            PropertiesConfig res = null;
 
-			return res;
-		}
+            res = propertiesConfig;
 
-		public bool IsAllIn3DShaderMaterial(Material mat)
-		{
-			bool res = false;
+            return res;
+        }
 
-			res = mat.shader.name.Contains("AllIn13DShader");
+        public bool IsAllIn3DShaderMaterial(Material mat)
+        {
+            bool res = false;
 
-			return res;
-		}
-	}
+            res = mat.shader.name.Contains("AllIn13DShader");
+
+            return res;
+        }
+    }
 }

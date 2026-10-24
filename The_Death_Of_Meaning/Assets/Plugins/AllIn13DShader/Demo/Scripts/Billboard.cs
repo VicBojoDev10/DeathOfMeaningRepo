@@ -10,20 +10,26 @@ namespace AllIn13DShader
     [ExecuteAlways]
     public class Billboard : MonoBehaviour
     {
-        [SerializeField] 
+        [SerializeField]
         private bool yAxisOnly = true;
-    
-        [SerializeField, Tooltip("If true, will update rotation every frame. If false, only on camera movement")]
+
+        [
+            SerializeField,
+            Tooltip("If true, will update rotation every frame. If false, only on camera movement")
+        ]
         private bool continuousUpdate = true;
 
-        [SerializeField, Tooltip("If true, follows editor scene view camera. If false, follows main camera")]
+        [
+            SerializeField,
+            Tooltip("If true, follows editor scene view camera. If false, follows main camera")
+        ]
         private bool useEditorCamera = false;
 
         private Transform targetCameraTransform;
         private Vector3 previousCameraPosition;
         private Quaternion initialRotation;
         private bool wasUsingEditorCamera;
-    
+
         // Static cached reference to main camera
         private static Camera mainCameraCache;
         private static bool mainCameraSearched = false;
@@ -39,36 +45,41 @@ namespace AllIn13DShader
 
         private void Update()
         {
-            bool shouldUpdateCamera = targetCameraTransform == null || wasUsingEditorCamera != useEditorCamera;
-        
-            if(shouldUpdateCamera)
+            bool shouldUpdateCamera =
+                targetCameraTransform == null || wasUsingEditorCamera != useEditorCamera;
+
+            if (shouldUpdateCamera)
             {
                 UpdateCameraReference();
             }
 
-            if(targetCameraTransform == null) return;
+            if (targetCameraTransform == null)
+                return;
 
-            if(!continuousUpdate && previousCameraPosition == targetCameraTransform.position)
+            if (!continuousUpdate && previousCameraPosition == targetCameraTransform.position)
             {
                 return;
             }
 
-            if(yAxisOnly)
+            if (yAxisOnly)
             {
                 // Only rotate around Y axis
                 Vector3 directionToCamera = targetCameraTransform.position - transform.position;
                 directionToCamera.y = 0;
 
-                if(directionToCamera != Vector3.zero)
+                if (directionToCamera != Vector3.zero)
                 {
-                    transform.rotation = Quaternion.LookRotation(directionToCamera) * initialRotation;
+                    transform.rotation =
+                        Quaternion.LookRotation(directionToCamera) * initialRotation;
                 }
             }
             else
             {
                 // Full billboard - face camera completely
-                transform.LookAt(transform.position + targetCameraTransform.rotation * Vector3.forward,
-                    targetCameraTransform.rotation * Vector3.up);
+                transform.LookAt(
+                    transform.position + targetCameraTransform.rotation * Vector3.forward,
+                    targetCameraTransform.rotation * Vector3.up
+                );
             }
 
             previousCameraPosition = targetCameraTransform.position;
@@ -77,11 +88,12 @@ namespace AllIn13DShader
         private void UpdateCameraReference()
         {
 #if UNITY_EDITOR
-            if(useEditorCamera)
+            if (useEditorCamera)
             {
                 SceneView sceneView = SceneView.lastActiveSceneView;
-                if(sceneView == null || sceneView.camera == null) return;
-                
+                if (sceneView == null || sceneView.camera == null)
+                    return;
+
                 targetCameraTransform = sceneView.camera.transform;
                 wasUsingEditorCamera = true;
             }
@@ -94,8 +106,9 @@ namespace AllIn13DShader
                     mainCameraCache = Camera.main;
                     mainCameraSearched = true;
                 }
-            
-                if(mainCameraCache == null) return;
+
+                if (mainCameraCache == null)
+                    return;
                 targetCameraTransform = mainCameraCache.transform;
                 wasUsingEditorCamera = false;
             }

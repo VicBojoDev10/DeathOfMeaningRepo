@@ -1,288 +1,321 @@
+using UnityEngine;
+using UnityEngine.EventSystems;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
 
-using UnityEngine;
-using UnityEngine.EventSystems;
-
 namespace AllIn13DShader
 {
     public class AllIn13dShaderDemoController : MonoBehaviour
     {
-		public DemoExpositor CurrentExpositor
-		{
-			get
-			{
-				return demoExpositors[currentExpositorIndex];
-			}
-		}
+        public DemoExpositor CurrentExpositor
+        {
+            get { return demoExpositors[currentExpositorIndex]; }
+        }
 
-		public DemoElement CurrentDemoElement
-		{
-			get
-			{
-				return CurrentExpositor.CurrentDemoElement;
-			}
-		}
+        public DemoElement CurrentDemoElement
+        {
+            get { return CurrentExpositor.CurrentDemoElement; }
+        }
 
+        public DemoSceneConfiguration demoSceneConfig;
+        public DemoUI demoUI;
+        public Transform initPosition;
 
-		public DemoSceneConfiguration demoSceneConfig;
-		public DemoUI demoUI;
-		public Transform initPosition;
+        [SerializeField]
+        private SkyController skyController;
 
-		[SerializeField] private SkyController skyController;
-		[SerializeField] private AllIn1MainLightController mainLightController;
+        [SerializeField]
+        private AllIn1MainLightController mainLightController;
 
-		[SerializeField] private DemoExpositor[] demoExpositors;
-		[SerializeField] private GameObject expositorNameGo;
+        [SerializeField]
+        private DemoExpositor[] demoExpositors;
 
-		[SerializeField] private DemoCameraController cameraController;
+        [SerializeField]
+        private GameObject expositorNameGo;
 
-		[SerializeField] private GameObject environmentsParentGo;
+        [SerializeField]
+        private DemoCameraController cameraController;
 
+        [SerializeField]
+        private GameObject environmentsParentGo;
 
-		//private DemoElement currentDemoElement;
-		private DemoElement previousDemoElement;
+        //private DemoElement currentDemoElement;
+        private DemoElement previousDemoElement;
 
         [Space, Header("Start Index")]
-        [SerializeField] private int startExpositorIndex;
-        [SerializeField] private int startDemoIndex;
+        [SerializeField]
+        private int startExpositorIndex;
+
+        [SerializeField]
+        private int startDemoIndex;
 
         [Space, Header("Event Systems")]
-        [SerializeField] private EventSystem oldInputEventSystem;
-        [SerializeField] private EventSystem newInputEventSystem;
+        [SerializeField]
+        private EventSystem oldInputEventSystem;
+
+        [SerializeField]
+        private EventSystem newInputEventSystem;
 
         [Space, Header("Input Handlers")]
-		[SerializeField] private InputHandler showDemoInfoHandler;
-		
-		[Space, Header("Scale Tweens")]
-		[SerializeField] private AllIn1DemoScaleTween demoLabelScaleTween;
-		[SerializeField] private AllIn1DemoScaleTween expositorLabelScaleTween;
-		[SerializeField] private AllIn1DemoScaleTween infoPanelScaleTween;
-		
-		private int currentExpositorIndex;
+        [SerializeField]
+        private InputHandler showDemoInfoHandler;
+
+        [Space, Header("Scale Tweens")]
+        [SerializeField]
+        private AllIn1DemoScaleTween demoLabelScaleTween;
+
+        [SerializeField]
+        private AllIn1DemoScaleTween expositorLabelScaleTween;
+
+        [SerializeField]
+        private AllIn1DemoScaleTween infoPanelScaleTween;
+
+        private int currentExpositorIndex;
         private Vector3 targetCameraPosition;
 
-		private EnvironmentController currentEnvironmentController;
-		private bool moveCurrentEnvironment;
+        private EnvironmentController currentEnvironmentController;
+        private bool moveCurrentEnvironment;
 
         private void Start()
         {
-			for(int i = 0; i < demoExpositors.Length; i++)
-			{
-				demoExpositors[i].Init(demoSceneConfig);
-			}
-			
-			int childCount = environmentsParentGo.transform.childCount;
-			for(int i = childCount - 1; i >= 0; i--) Destroy(environmentsParentGo.transform.GetChild(i).gameObject);
+            for (int i = 0; i < demoExpositors.Length; i++)
+            {
+                demoExpositors[i].Init(demoSceneConfig);
+            }
+
+            int childCount = environmentsParentGo.transform.childCount;
+            for (int i = childCount - 1; i >= 0; i--)
+                Destroy(environmentsParentGo.transform.GetChild(i).gameObject);
 
             EnableCorrectInputSystem();
             demoExpositors[startExpositorIndex].SetDemoExpositor(startDemoIndex);
 
-			demoUI.Refresh(CurrentExpositor);
+            demoUI.Refresh(CurrentExpositor);
 
-			previousDemoElement = null;
+            previousDemoElement = null;
 
-			skyController.Init();
+            skyController.Init();
 
-			cameraController.Init(demoSceneConfig);
-			
-			DemoChanged();
+            cameraController.Init(demoSceneConfig);
 
-			CurrentDemoElement.Show();
+            DemoChanged();
 
-			expositorNameGo.SetActive(demoExpositors.Length > 1);
+            CurrentDemoElement.Show();
+
+            expositorNameGo.SetActive(demoExpositors.Length > 1);
         }
-        
+
         public void NavigateToNextExpositor()
         {
-	        previousDemoElement = CurrentDemoElement;
-	        Vector3 nextDemoPos = previousDemoElement.transform.position + cameraController.cam.transform.up * demoSceneConfig.distanceBetweenDemos;
+            previousDemoElement = CurrentDemoElement;
+            Vector3 nextDemoPos =
+                previousDemoElement.transform.position
+                + cameraController.cam.transform.up * demoSceneConfig.distanceBetweenDemos;
 
-	        CurrentDemoElement.Hide();
-	        ChangeExpositor(1);
+            CurrentDemoElement.Hide();
+            ChangeExpositor(1);
 
-	        moveCurrentEnvironment = false;
+            moveCurrentEnvironment = false;
 
-	        CurrentDemoElement.transform.position = nextDemoPos;
-	        CurrentDemoElement.Show();
+            CurrentDemoElement.transform.position = nextDemoPos;
+            CurrentDemoElement.Show();
 
-	        expositorLabelScaleTween.ScaleDownTween();
-	        infoPanelScaleTween.ScaleUpTween();
-	        DemoChanged();
+            expositorLabelScaleTween.ScaleDownTween();
+            infoPanelScaleTween.ScaleUpTween();
+            DemoChanged();
         }
 
         public void NavigateToPreviousExpositor()
         {
-	        previousDemoElement = CurrentDemoElement;
-	        Vector3 nextDemoPos = previousDemoElement.transform.position - cameraController.cam.transform.up * demoSceneConfig.distanceBetweenDemos;
+            previousDemoElement = CurrentDemoElement;
+            Vector3 nextDemoPos =
+                previousDemoElement.transform.position
+                - cameraController.cam.transform.up * demoSceneConfig.distanceBetweenDemos;
 
-	        CurrentDemoElement.Hide();
-	        ChangeExpositor(-1);
+            CurrentDemoElement.Hide();
+            ChangeExpositor(-1);
 
-	        moveCurrentEnvironment = false;
+            moveCurrentEnvironment = false;
 
-	        CurrentDemoElement.transform.position = nextDemoPos;
-	        CurrentDemoElement.Show();
+            CurrentDemoElement.transform.position = nextDemoPos;
+            CurrentDemoElement.Show();
 
-	        expositorLabelScaleTween.ScaleDownTween();
-	        infoPanelScaleTween.ScaleUpTween();
-	        DemoChanged();
+            expositorLabelScaleTween.ScaleDownTween();
+            infoPanelScaleTween.ScaleUpTween();
+            DemoChanged();
         }
-        
+
         public void NavigateToPreviousDemo()
         {
-	        previousDemoElement = CurrentDemoElement;
+            previousDemoElement = CurrentDemoElement;
 
-	        DemoElement nextDemoElement = demoExpositors[currentExpositorIndex].GetPreviousDemoElement();
-	        Vector3 nextDemoPos = GetNextDemoPos(previousDemoElement, nextDemoElement, -cameraController.cam.transform.right);
+            DemoElement nextDemoElement = demoExpositors[currentExpositorIndex]
+                .GetPreviousDemoElement();
+            Vector3 nextDemoPos = GetNextDemoPos(
+                previousDemoElement,
+                nextDemoElement,
+                -cameraController.cam.transform.right
+            );
 
-	        moveCurrentEnvironment = previousDemoElement.demoElementData.environment == nextDemoElement.demoElementData.environment;
+            moveCurrentEnvironment =
+                previousDemoElement.demoElementData.environment
+                == nextDemoElement.demoElementData.environment;
 
-	        demoExpositors[currentExpositorIndex].PreviousDemoElement(nextDemoPos);
-	        demoLabelScaleTween.ScaleDownTween();
-	        infoPanelScaleTween.ScaleUpTween();
-	        DemoChanged();
+            demoExpositors[currentExpositorIndex].PreviousDemoElement(nextDemoPos);
+            demoLabelScaleTween.ScaleDownTween();
+            infoPanelScaleTween.ScaleUpTween();
+            DemoChanged();
         }
 
         public void NavigateToNextDemo()
         {
-	        previousDemoElement = CurrentDemoElement;
+            previousDemoElement = CurrentDemoElement;
 
-	        DemoElement nextDemoElement = demoExpositors[currentExpositorIndex].GetNextDemoElement();
-	        Vector3 nextDemoPos = GetNextDemoPos(previousDemoElement, nextDemoElement, cameraController.cam.transform.right);
+            DemoElement nextDemoElement = demoExpositors[currentExpositorIndex]
+                .GetNextDemoElement();
+            Vector3 nextDemoPos = GetNextDemoPos(
+                previousDemoElement,
+                nextDemoElement,
+                cameraController.cam.transform.right
+            );
 
-	        moveCurrentEnvironment = previousDemoElement.demoElementData.environment == nextDemoElement.demoElementData.environment;
+            moveCurrentEnvironment =
+                previousDemoElement.demoElementData.environment
+                == nextDemoElement.demoElementData.environment;
 
-	        demoExpositors[currentExpositorIndex].NextDemoElement(nextDemoPos);
-	        demoLabelScaleTween.ScaleDownTween();
-	        infoPanelScaleTween.ScaleUpTween();
-	        DemoChanged();
+            demoExpositors[currentExpositorIndex].NextDemoElement(nextDemoPos);
+            demoLabelScaleTween.ScaleDownTween();
+            infoPanelScaleTween.ScaleUpTween();
+            DemoChanged();
         }
-        
 
-		private void LateUpdate()
-		{
-			if (moveCurrentEnvironment && currentEnvironmentController != null)
-			{
-				currentEnvironmentController.transform.position += cameraController.GetDeltaMovement();
-			}
-		}
+        private void LateUpdate()
+        {
+            if (moveCurrentEnvironment && currentEnvironmentController != null)
+            {
+                currentEnvironmentController.transform.position +=
+                    cameraController.GetDeltaMovement();
+            }
+        }
 
-		private void DemoChanged()
-		{
-			demoUI.Refresh(CurrentExpositor);
+        private void DemoChanged()
+        {
+            demoUI.Refresh(CurrentExpositor);
 
-			mainLightController.DemoChanged(CurrentDemoElement.demoElementData);
-			skyController.DemoChanged(CurrentDemoElement.demoElementData);
+            mainLightController.DemoChanged(CurrentDemoElement.demoElementData);
+            skyController.DemoChanged(CurrentDemoElement.demoElementData);
 
-			cameraController.DemoChanged(CurrentDemoElement);
+            cameraController.DemoChanged(CurrentDemoElement);
 
-			CheckCurrentEnvironment();
-		}
+            CheckCurrentEnvironment();
+        }
 
-		private Vector3 GetNextDemoPos(DemoElement previousDemo, DemoElement nextDemo, Vector3 dir)
-		{
-			//Vector3 res = previousDemo.transform.position;
+        private Vector3 GetNextDemoPos(DemoElement previousDemo, DemoElement nextDemo, Vector3 dir)
+        {
+            //Vector3 res = previousDemo.transform.position;
 
-			//if(previousDemo.demoElementData.environment != nextDemo.demoElementData.environment)
-			//{
-			//	res += dir * demoSceneConfig.distanceBetweenDemos;
-			//}
+            //if(previousDemo.demoElementData.environment != nextDemo.demoElementData.environment)
+            //{
+            //	res += dir * demoSceneConfig.distanceBetweenDemos;
+            //}
 
-			Vector3 res = previousDemo.transform.position + dir * demoSceneConfig.distanceBetweenDemos;
-			return res;
-		}
+            Vector3 res =
+                previousDemo.transform.position + dir * demoSceneConfig.distanceBetweenDemos;
+            return res;
+        }
 
-		private void CheckCurrentEnvironment()
-		{
-			DemoEnvironment currentEnvironment = CurrentDemoElement.demoElementData.environment;
+        private void CheckCurrentEnvironment()
+        {
+            DemoEnvironment currentEnvironment = CurrentDemoElement.demoElementData.environment;
 
-			DemoEnvironment previousEnvironment = previousDemoElement?.demoElementData.environment;
+            DemoEnvironment previousEnvironment = previousDemoElement?.demoElementData.environment;
 
-			if(currentEnvironment != previousEnvironment)
-			{
-				if (currentEnvironmentController != null)
-				{
-					currentEnvironmentController.Hide();
-				}
+            if (currentEnvironment != previousEnvironment)
+            {
+                if (currentEnvironmentController != null)
+                {
+                    currentEnvironmentController.Hide();
+                }
 
-				if(currentEnvironment != null)
-				{
-					ChangeEnvironment(currentEnvironment);
-				}
+                if (currentEnvironment != null)
+                {
+                    ChangeEnvironment(currentEnvironment);
+                }
 
-				moveCurrentEnvironment = false;
-			}
-			else
-			{
-				moveCurrentEnvironment = true;
-			}
-		}
+                moveCurrentEnvironment = false;
+            }
+            else
+            {
+                moveCurrentEnvironment = true;
+            }
+        }
 
-		private void ChangeEnvironment(DemoEnvironment environment)
-		{
-			GameObject newEnvironmentGo = Instantiate(environment.prefab);
-			newEnvironmentGo.transform.parent = environmentsParentGo.transform;
-			newEnvironmentGo.transform.position = CurrentDemoElement.transform.position;
-			newEnvironmentGo.transform.rotation = Quaternion.identity;
-			newEnvironmentGo.transform.localScale = Vector3.zero;
+        private void ChangeEnvironment(DemoEnvironment environment)
+        {
+            GameObject newEnvironmentGo = Instantiate(environment.prefab);
+            newEnvironmentGo.transform.parent = environmentsParentGo.transform;
+            newEnvironmentGo.transform.position = CurrentDemoElement.transform.position;
+            newEnvironmentGo.transform.rotation = Quaternion.identity;
+            newEnvironmentGo.transform.localScale = Vector3.zero;
 
+            currentEnvironmentController = newEnvironmentGo.GetComponent<EnvironmentController>();
+            currentEnvironmentController.Init(demoSceneConfig);
 
-			currentEnvironmentController = newEnvironmentGo.GetComponent<EnvironmentController>();
-			currentEnvironmentController.Init(demoSceneConfig);
-
-			currentEnvironmentController.Show(CurrentDemoElement);
-		}
+            currentEnvironmentController.Show(CurrentDemoElement);
+        }
 
 #if UNITY_EDITOR
-		[ContextMenu("Setup Demo Scene")]
-		public void Setup()
-		{
-			RemoveOldElements();
+        [ContextMenu("Setup Demo Scene")]
+        public void Setup()
+        {
+            RemoveOldElements();
 
-			for(int i = 0; i < demoSceneConfig.expositors.Length; i++)
-			{
-				DemoExpositorData expositorData = demoSceneConfig.expositors[i];
+            for (int i = 0; i < demoSceneConfig.expositors.Length; i++)
+            {
+                DemoExpositorData expositorData = demoSceneConfig.expositors[i];
 
-				GameObject goExpositor = new GameObject($"Expositor {i + 1}");
-				goExpositor.transform.parent = transform;
-				goExpositor.transform.localPosition = new Vector3(0f, i * -25f, 0f);
-				goExpositor.transform.localRotation = Quaternion.identity;
+                GameObject goExpositor = new GameObject($"Expositor {i + 1}");
+                goExpositor.transform.parent = transform;
+                goExpositor.transform.localPosition = new Vector3(0f, i * -25f, 0f);
+                goExpositor.transform.localRotation = Quaternion.identity;
 
-				DemoExpositor expositor = goExpositor.AddComponent<DemoExpositor>();
-				expositor.Setup(expositorData, demoSceneConfig);
+                DemoExpositor expositor = goExpositor.AddComponent<DemoExpositor>();
+                expositor.Setup(expositorData, demoSceneConfig);
 
-				ArrayUtility.Add(ref demoExpositors, expositor);
-			}
+                ArrayUtility.Add(ref demoExpositors, expositor);
+            }
 
-			currentExpositorIndex = 0;
+            currentExpositorIndex = 0;
 
-			EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
-		}
+            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        }
 
-		private void RemoveOldElements()
-		{
-			DemoExpositor[] expositorsToDestroy = transform.GetComponentsInChildren<DemoExpositor>();
-			for(int i = 0; i < expositorsToDestroy.Length; i++)
-			{
-				DestroyImmediate(expositorsToDestroy[i].gameObject);
-			}
+        private void RemoveOldElements()
+        {
+            DemoExpositor[] expositorsToDestroy =
+                transform.GetComponentsInChildren<DemoExpositor>();
+            for (int i = 0; i < expositorsToDestroy.Length; i++)
+            {
+                DestroyImmediate(expositorsToDestroy[i].gameObject);
+            }
 
-			ArrayUtility.Clear(ref demoExpositors);
-		}
+            ArrayUtility.Clear(ref demoExpositors);
+        }
 #endif
 
-		private void ChangeExpositor(int changeAmount)
+        private void ChangeExpositor(int changeAmount)
         {
-			currentExpositorIndex += changeAmount;
-            if(currentExpositorIndex >= demoExpositors.Length) currentExpositorIndex = 0;
-            if(currentExpositorIndex < 0) currentExpositorIndex = demoExpositors.Length - 1;
-		}
-		
-		public int GetCurrentExpositorIndex() => currentExpositorIndex;
-        
+            currentExpositorIndex += changeAmount;
+            if (currentExpositorIndex >= demoExpositors.Length)
+                currentExpositorIndex = 0;
+            if (currentExpositorIndex < 0)
+                currentExpositorIndex = demoExpositors.Length - 1;
+        }
+
+        public int GetCurrentExpositorIndex() => currentExpositorIndex;
+
         private void EnableCorrectInputSystem()
         {
             bool newInputSystemEnabled = false;

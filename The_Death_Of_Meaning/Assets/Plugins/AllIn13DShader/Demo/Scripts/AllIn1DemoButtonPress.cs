@@ -1,29 +1,39 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 
 namespace AllIn13DShader
 {
     [RequireComponent(typeof(InputHandler))]
     public class AllIn1DemoButtonPress : MonoBehaviour
     {
-        [SerializeField] private InputHandler inputHandler;
-        [SerializeField] private AllIn1DemoScaleTween scaleTween;
-        [SerializeField] private Button button;
+        [SerializeField]
+        private InputHandler inputHandler;
+
+        [SerializeField]
+        private AllIn1DemoScaleTween scaleTween;
+
+        [SerializeField]
+        private Button button;
 
         [Space, Header("Label Settings")]
-        [SerializeField] private bool completelyIgnoreLabel;
-        [SerializeField] private bool showKeyLabel = true;
-        [SerializeField] private TextMeshProUGUI keyLabel;
-        
+        [SerializeField]
+        private bool completelyIgnoreLabel;
+
+        [SerializeField]
+        private bool showKeyLabel = true;
+
+        [SerializeField]
+        private TextMeshProUGUI keyLabel;
+
         private Coroutine resetButtonColorCr;
 
         private void Start()
         {
-            if(!completelyIgnoreLabel)
+            if (!completelyIgnoreLabel)
             {
-                if(!showKeyLabel)
+                if (!showKeyLabel)
                 {
                     keyLabel.enabled = false;
                     enabled = false;
@@ -37,7 +47,7 @@ namespace AllIn13DShader
 
         private void Update()
         {
-            if(inputHandler.IsKeyPressed())
+            if (inputHandler.IsKeyPressed())
             {
                 SimulateClick();
             }
@@ -45,13 +55,14 @@ namespace AllIn13DShader
 
         private void SimulateClick()
         {
-            if(button != null)
+            if (button != null)
             {
                 ColorBlock colors = button.colors;
                 button.targetGraphic.color = colors.pressedColor;
                 button.onClick.Invoke();
-        
-                if(resetButtonColorCr != null) StopCoroutine(resetButtonColorCr);
+
+                if (resetButtonColorCr != null)
+                    StopCoroutine(resetButtonColorCr);
                 resetButtonColorCr = StartCoroutine(ResetButtonColor());
             }
         }

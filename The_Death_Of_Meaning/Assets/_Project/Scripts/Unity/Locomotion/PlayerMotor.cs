@@ -45,19 +45,22 @@ namespace TDOM.Unity.Locomotion
 
         public PlataformaCircular PlataformaActual => _plataformaActual;
 
-        public void Apply(MotionIntent intent, float dt, PlataformaCircular plataformaForzada = null)
+        public void Apply(
+            MotionIntent intent,
+            float dt,
+            PlataformaCircular plataformaForzada = null
+        )
         {
             if (_cc == null)
                 return;
 
-            PlataformaCircular plataformaMovimiento = plataformaForzada != null
-                ? plataformaForzada
-                : _plataformaActual;
-            Vector3 deltaPlataforma = plataformaMovimiento != null
-                ? plataformaMovimiento.FrameDelta
-                : Vector3.zero;
+            PlataformaCircular plataformaMovimiento =
+                plataformaForzada != null ? plataformaForzada : _plataformaActual;
+            Vector3 deltaPlataforma =
+                plataformaMovimiento != null ? plataformaMovimiento.FrameDelta : Vector3.zero;
 
-            Vector3 desplazamiento = (intent.Velocity * dt) + DesplazamientoDeEmpuje(dt) + deltaPlataforma;
+            Vector3 desplazamiento =
+                (intent.Velocity * dt) + DesplazamientoDeEmpuje(dt) + deltaPlataforma;
             _cc.Move(desplazamiento);
 
             if (!_cc.isGrounded)
@@ -103,14 +106,17 @@ namespace TDOM.Unity.Locomotion
             float radioCast = Mathf.Max(0.1f, _cc.radius * 0.85f);
             float distanciaCast = Mathf.Max(0.05f, _cc.bounds.extents.y + 0.2f - radioCast);
 
-            if (Physics.SphereCast(
+            if (
+                Physics.SphereCast(
                     _cc.bounds.center,
                     radioCast,
                     Vector3.down,
                     out RaycastHit hit,
                     distanciaCast,
                     Physics.DefaultRaycastLayers,
-                    QueryTriggerInteraction.Ignore))
+                    QueryTriggerInteraction.Ignore
+                )
+            )
             {
                 _plataformaActual = hit.collider.GetComponentInParent<PlataformaCircular>();
             }

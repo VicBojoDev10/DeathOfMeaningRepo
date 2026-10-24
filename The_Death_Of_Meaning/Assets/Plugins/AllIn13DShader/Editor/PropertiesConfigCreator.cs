@@ -4,136 +4,167 @@ using UnityEngine;
 
 namespace AllIn13DShader
 {
-	public class PropertiesConfigCreator
-	{
-		private const string KEY_PROPERTIES_CONFIG_CREATED_FIRST_TIME = "AllIn13DShader_PropertiesConfigCreatedFirstTime";
-		
-		private const string ASSET_NAME = "PropertiesConfigCollection.asset";
+    public class PropertiesConfigCreator
+    {
+        private const string KEY_PROPERTIES_CONFIG_CREATED_FIRST_TIME =
+            "AllIn13DShader_PropertiesConfigCreatedFirstTime";
 
-		private static PropertiesConfigCollection propertiesCollection;
+        private const string ASSET_NAME = "PropertiesConfigCollection.asset";
 
-		private static EffectGroupGlobalConfigCollection effectGroupGlobalConfigCollection;
-		private static EffectsExtraData effectsExtraData;
+        private static PropertiesConfigCollection propertiesCollection;
 
+        private static EffectGroupGlobalConfigCollection effectGroupGlobalConfigCollection;
+        private static EffectsExtraData effectsExtraData;
 
-		public static PropertiesConfigCollection CreateConfig()
-		{
-			propertiesCollection = CreatePropertiesCollection();
-			effectGroupGlobalConfigCollection = GetEffectGroupGlobalConfigCollection();
-			effectsExtraData = GetEffectsExtraData();
+        public static PropertiesConfigCollection CreateConfig()
+        {
+            propertiesCollection = CreatePropertiesCollection();
+            effectGroupGlobalConfigCollection = GetEffectGroupGlobalConfigCollection();
+            effectsExtraData = GetEffectsExtraData();
 
-			CreatePropertiesConfig(propertiesCollection, Constants.SHADER_NAME_ALLIN13D_OUTLINE);
-			
-			EditorUtility.SetDirty(propertiesCollection);
-			AssetDatabase.SaveAssets();
-			AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+            CreatePropertiesConfig(propertiesCollection, Constants.SHADER_NAME_ALLIN13D_OUTLINE);
 
-			Debug.LogWarning("Creating data...");
+            EditorUtility.SetDirty(propertiesCollection);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
 
-			return propertiesCollection;
-		}
+            Debug.LogWarning("Creating data...");
 
-		private static PropertiesConfigCollection CreatePropertiesCollection()
-		{
-			PropertiesConfigCollection res = FindPropertiesCollection();
-			string path = AssetDatabase.GetAssetPath(res);
+            return propertiesCollection;
+        }
 
-			if (!File.Exists(path))
-			{
-				string propertiesCollectionPath = Path.Combine(GlobalConfiguration.instance.GlobalConfigFolderPath, ASSET_NAME);
-				res = ScriptableObject.CreateInstance<PropertiesConfigCollection>();
-				AssetDatabase.CreateAsset(res, propertiesCollectionPath);
-				AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
-			}
+        private static PropertiesConfigCollection CreatePropertiesCollection()
+        {
+            PropertiesConfigCollection res = FindPropertiesCollection();
+            string path = AssetDatabase.GetAssetPath(res);
 
-			return res;
-		}
+            if (!File.Exists(path))
+            {
+                string propertiesCollectionPath = Path.Combine(
+                    GlobalConfiguration.instance.GlobalConfigFolderPath,
+                    ASSET_NAME
+                );
+                res = ScriptableObject.CreateInstance<PropertiesConfigCollection>();
+                AssetDatabase.CreateAsset(res, propertiesCollectionPath);
+                AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+            }
 
-		private static EffectGroupGlobalConfigCollection GetEffectGroupGlobalConfigCollection()
-		{
-			string[] guids = AssetDatabase.FindAssets("t:EffectGroupGlobalConfigCollection");
-			string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+            return res;
+        }
 
-			EffectGroupGlobalConfigCollection res = AssetDatabase.LoadAssetAtPath<EffectGroupGlobalConfigCollection>(path);
-			return res;
-		}
+        private static EffectGroupGlobalConfigCollection GetEffectGroupGlobalConfigCollection()
+        {
+            string[] guids = AssetDatabase.FindAssets("t:EffectGroupGlobalConfigCollection");
+            string path = AssetDatabase.GUIDToAssetPath(guids[0]);
 
-		private static EffectsExtraData GetEffectsExtraData()
-		{
-			EffectsExtraData res = null;
+            EffectGroupGlobalConfigCollection res =
+                AssetDatabase.LoadAssetAtPath<EffectGroupGlobalConfigCollection>(path);
+            return res;
+        }
 
-			res = EditorUtils.FindAsset<EffectsExtraData>("EffectsExtraData");
+        private static EffectsExtraData GetEffectsExtraData()
+        {
+            EffectsExtraData res = null;
 
-			return res;
-		}
+            res = EditorUtils.FindAsset<EffectsExtraData>("EffectsExtraData");
 
-		private static void CreatePropertiesConfig(PropertiesConfigCollection propertiesCollection, string shaderName)
-		{
-			string shaderNameWithExtension = shaderName + ".shader";
-			string assetPath = Path.Combine(Constants.SHADERS_GENERIC_FOLDER_PATH, shaderNameWithExtension);
+            return res;
+        }
 
-			Shader shader = AssetDatabase.LoadAssetAtPath<Shader>(assetPath);
+        private static void CreatePropertiesConfig(
+            PropertiesConfigCollection propertiesCollection,
+            string shaderName
+        )
+        {
+            string shaderNameWithExtension = shaderName + ".shader";
+            string assetPath = Path.Combine(
+                Constants.SHADERS_GENERIC_FOLDER_PATH,
+                shaderNameWithExtension
+            );
 
-			PropertiesConfig propertiesConfig = new PropertiesConfig();
-			propertiesConfig.shader = shader;
+            Shader shader = AssetDatabase.LoadAssetAtPath<Shader>(assetPath);
 
-			propertiesConfig.CreateConfig(effectGroupGlobalConfigCollection, effectsExtraData);
+            PropertiesConfig propertiesConfig = new PropertiesConfig();
+            propertiesConfig.shader = shader;
 
-			propertiesCollection.AddConfig(propertiesConfig);
-		}
+            propertiesConfig.CreateConfig(effectGroupGlobalConfigCollection, effectsExtraData);
 
-		public static PropertiesConfigCollection FindPropertiesCollection()
-		{
-			PropertiesConfigCollection res = null;
+            propertiesCollection.AddConfig(propertiesConfig);
+        }
 
-			string[] guids = AssetDatabase.FindAssets("t:PropertiesConfigCollection");
-			if (guids.Length > 0)
-			{
-				string assetPath = AssetDatabase.GUIDToAssetPath(guids[0]);
-				res = AssetDatabase.LoadAssetAtPath<PropertiesConfigCollection>(assetPath);
-			}
+        public static PropertiesConfigCollection FindPropertiesCollection()
+        {
+            PropertiesConfigCollection res = null;
 
-			return res;
-		}
+            string[] guids = AssetDatabase.FindAssets("t:PropertiesConfigCollection");
+            if (guids.Length > 0)
+            {
+                string assetPath = AssetDatabase.GUIDToAssetPath(guids[0]);
+                res = AssetDatabase.LoadAssetAtPath<PropertiesConfigCollection>(assetPath);
+            }
 
-		public static PropertiesConfigCollection InitIfNeeded(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths, bool didDomainReload)
-		{
-			PropertiesConfigCollection res = FindPropertiesCollection();
+            return res;
+        }
 
-			bool assetDeleted = false;
-			assetDeleted = EditorUtils.ConstainsFileName(deletedAssets, ASSET_NAME);
-			
-			bool configCreatedFirstTime = SessionState.GetBool(KEY_PROPERTIES_CONFIG_CREATED_FIRST_TIME, false);
+        public static PropertiesConfigCollection InitIfNeeded(
+            string[] importedAssets,
+            string[] deletedAssets,
+            string[] movedAssets,
+            string[] movedFromAssetPaths,
+            bool didDomainReload
+        )
+        {
+            PropertiesConfigCollection res = FindPropertiesCollection();
 
-			if (!configCreatedFirstTime)
-			{
+            bool assetDeleted = false;
+            assetDeleted = EditorUtils.ConstainsFileName(deletedAssets, ASSET_NAME);
+
+            bool configCreatedFirstTime = SessionState.GetBool(
+                KEY_PROPERTIES_CONFIG_CREATED_FIRST_TIME,
+                false
+            );
+
+            if (!configCreatedFirstTime)
+            {
 #if UNITY_WEBGL
-				URPSettingsController.DisableFeature("ALLIN1_DOTS_INSTANCING_SUPPORT");
+                URPSettingsController.DisableFeature("ALLIN1_DOTS_INSTANCING_SUPPORT");
 #endif
-			}
+            }
 
 #if !ALLIN13DSHADER_DEVELOP
-			configCreatedFirstTime = true;
+            configCreatedFirstTime = true;
 #endif
 
-			bool shadersDeleted = EditorUtils.ContainsAnyFolowingFileNames(deletedAssets, Constants.SHADERS_NAMES, "shader");
-			bool shadersImported = false;
-			if (!shadersDeleted)
-			{
-				shadersImported = EditorUtils.ContainsAnyFolowingFileNames(importedAssets, Constants.SHADERS_NAMES, "shader");
-			}
+            bool shadersDeleted = EditorUtils.ContainsAnyFolowingFileNames(
+                deletedAssets,
+                Constants.SHADERS_NAMES,
+                "shader"
+            );
+            bool shadersImported = false;
+            if (!shadersDeleted)
+            {
+                shadersImported = EditorUtils.ContainsAnyFolowingFileNames(
+                    importedAssets,
+                    Constants.SHADERS_NAMES,
+                    "shader"
+                );
+            }
 
-			if (res == null || !configCreatedFirstTime || assetDeleted || shadersDeleted /*|| shadersImported*/)
-			{
-				SessionState.SetBool(KEY_PROPERTIES_CONFIG_CREATED_FIRST_TIME, true);
-				ShadersCreatorTool.BuildShaderFiles();
-				res = CreateConfig();
-			}
+            if (
+                res == null
+                || !configCreatedFirstTime
+                || assetDeleted
+                || shadersDeleted /*|| shadersImported*/
+            )
+            {
+                SessionState.SetBool(KEY_PROPERTIES_CONFIG_CREATED_FIRST_TIME, true);
+                ShadersCreatorTool.BuildShaderFiles();
+                res = CreateConfig();
+            }
 
+            SessionState.SetBool(KEY_PROPERTIES_CONFIG_CREATED_FIRST_TIME, true);
 
-			SessionState.SetBool(KEY_PROPERTIES_CONFIG_CREATED_FIRST_TIME, true);
-
-			return res;
-		}
-	}
+            return res;
+        }
+    }
 }

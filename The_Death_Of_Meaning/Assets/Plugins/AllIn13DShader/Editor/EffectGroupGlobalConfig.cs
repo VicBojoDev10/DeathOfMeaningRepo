@@ -2,10 +2,10 @@ using UnityEngine;
 
 namespace AllIn13DShader
 {
-	public class EffectGroupGlobalConfig : ScriptableObject
-	{
-		public string groupID;
-		public string displayName;
-		public string libraryFileName;
-	}
+    public class EffectGroupGlobalConfig : ScriptableObject
+    {
+        public string groupID;
+        public string displayName;
+        public string libraryFileName;
+    }
 }
