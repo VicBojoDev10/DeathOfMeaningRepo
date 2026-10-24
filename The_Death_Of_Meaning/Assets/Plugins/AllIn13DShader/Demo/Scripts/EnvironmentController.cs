@@ -3,8 +3,6 @@ using UnityEngine;
 using UnityEditor.SceneManagement;
 #endif
 
-
-
 namespace AllIn13DShader
 {
     public class EnvironmentController : MonoBehaviour
