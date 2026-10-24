@@ -3,8 +3,6 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-
-
 namespace AllIn13DShader
 {
     [ExecuteInEditMode]

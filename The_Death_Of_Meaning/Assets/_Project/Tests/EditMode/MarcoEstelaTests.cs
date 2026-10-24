@@ -41,9 +41,15 @@ namespace TDOM.Tests.EditMode
         [Test]
         public void el_eje_z_sigue_el_recorrido_y_el_eje_y_es_la_normal_de_la_cinta()
         {
-            Assert.IsTrue(MarcoEstela.Calcular(TajoHorizontal(5), 0.3f, out _, out Quaternion rotacion));
+            Assert.IsTrue(
+                MarcoEstela.Calcular(TajoHorizontal(5), 0.3f, out _, out Quaternion rotacion)
+            );
             Assert.AreEqual(1f, Vector3.Dot(rotacion * Vector3.forward, Vector3.right), Delta);
-            Assert.AreEqual(1f, Mathf.Abs(Vector3.Dot(rotacion * Vector3.up, Vector3.forward)), Delta);
+            Assert.AreEqual(
+                1f,
+                Mathf.Abs(Vector3.Dot(rotacion * Vector3.up, Vector3.forward)),
+                Delta
+            );
         }
 
         [Test]
