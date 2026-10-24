@@ -12,6 +12,8 @@ namespace TDOM.Gameplay.Core
 
     public class HealthPool
     {
+        private const float DuracionMinimaAbatido = 0.1f;
+        private const int MinimoJugadoresParaDerrotaPorAbatimiento = 2;
         public float Max { get; private set; }
         public float Current { get; private set; }
         public float BaseMax { get; }
@@ -30,7 +32,7 @@ namespace TDOM.Gameplay.Core
             BaseMax = Math.Max(0f, baseMax);
             Max = BaseMax;
             Current = Max;
-            DownedDuration = Math.Max(0.1f, downedDuration);
+            DownedDuration = Math.Max(DuracionMinimaAbatido, downedDuration);
             DownedRemainingTime = DownedDuration;
             State = PlayerLifeState.Vivo;
             ReviveProgress = 0f;
@@ -63,7 +65,7 @@ namespace TDOM.Gameplay.Core
 
         public bool Revive(float health)
         {
-            if (State != PlayerLifeState.Abatido)
+            if (State != PlayerLifeState.Abatido || health <= 0f || float.IsNaN(health))
                 return false;
 
             State = PlayerLifeState.Vivo;
@@ -92,7 +94,12 @@ namespace TDOM.Gameplay.Core
 
         public bool ProgressRevive(float dt, float requiredDuration, float reviveHealth)
         {
-            if (State != PlayerLifeState.Abatido || dt <= 0f || requiredDuration <= 0f)
+            if (
+                State != PlayerLifeState.Abatido
+                || dt <= 0f
+                || requiredDuration <= 0f
+                || reviveHealth <= 0f
+            )
                 return false;
 
             _reviveTimeElapsed += dt;
@@ -100,8 +107,7 @@ namespace TDOM.Gameplay.Core
 
             if (_reviveTimeElapsed >= requiredDuration)
             {
-                Revive(reviveHealth);
-                return true;
+                return Revive(reviveHealth);
             }
 
             return false;
@@ -111,6 +117,26 @@ namespace TDOM.Gameplay.Core
         {
             _reviveTimeElapsed = 0f;
             ReviveProgress = 0f;
+        }
+
+        public void TickDowned(
+            float dt,
+            bool companionInRange,
+            float reviveDuration,
+            float reviveHealth
+        )
+        {
+            if (State != PlayerLifeState.Abatido || dt <= 0f)
+                return;
+
+            if (companionInRange && reviveDuration > 0f && reviveHealth > 0f)
+            {
+                ProgressRevive(dt, reviveDuration, reviveHealth);
+                return;
+            }
+
+            CancelRevive();
+            Tick(dt);
         }
 
         public static bool CheckGameOver(HealthPool player1, HealthPool player2)
@@ -149,7 +175,8 @@ namespace TDOM.Gameplay.Core
                     downedOrDeadCount++;
             }
 
-            return downedOrDeadCount >= players.Count;
+            return players.Count >= MinimoJugadoresParaDerrotaPorAbatimiento
+                && downedOrDeadCount >= players.Count;
         }
     }
 }

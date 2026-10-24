@@ -104,6 +104,7 @@ namespace TDOM.Unity.Player
         );
 
         private HealthPool _healthPool;
+        private readonly List<HealthPool> _vidasJugadores = new List<HealthPool>();
 
         private FeedbackDirector _feedback;
         private CharacterIds _characterId = CharacterIds.None;
@@ -111,20 +112,41 @@ namespace TDOM.Unity.Player
         private bool _originResetLogged;
         private Vector3 _initialSpawnPosition;
         private Vector3 _lastObservedPosition;
-        public bool AtaqueActivo => MovimientoBloqueado || ModoPistola;
+        public bool AtaqueActivo =>
+            MovimientoBloqueado || ModoPistola || (_combat != null && _combat.AtaqueActivo);
         private bool ModoPistola => _combat != null && _combat.DisparoActivo;
         private bool PuedeApuntar => _definition != null && _definition.Ranged != null;
+
+        // En el aire el combo congela la caida: solo en tierra deja caminar.
+        private bool BloqueoPorAtaqueAereo =>
+            _combat != null && _combat.MovimientoLimitado && !_locomocion.State.IsGrounded;
+
         private bool MovimientoBloqueado =>
             (_combat != null && _combat.BloqueaMovimiento)
             || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
 
         public CharacterIds CharacterId => _characterId;
+        public float CostoEnergiaPendiente => _combat != null ? _combat.CostoCargaPendiente : 0f;
+
+        /// <summary>
+        /// Empujon corto hacia el frente con cada golpe de combo. El saltito vertical solo se
+        /// da en el aire: en el suelo solo avanza.
+        /// </summary>
+        public void EmpujarPorCombo(float adelante, float arriba, float duracion)
+        {
+            if (_motor == null)
+                return;
+
+            bool enElAire = _locomocion != null && !_locomocion.State.IsGrounded;
+            _motor.Empujar(transform.forward, adelante, enElAire ? arriba : 0f, duracion);
+        }
+
         public float EnergiaMaxima => _definition?.Energy != null ? _definition.Energy.Max : 0f;
-        public float VidaMaxima => _definition != null ? _definition.MaxHealth : 100f;
-        public float DuracionAbatido => _definition != null ? _definition.DownedDuration : 15f;
-        public float VidaAlRevivir => _definition != null ? _definition.ReviveHealth : 50f;
-        public float DuracionRevivir => _definition != null ? _definition.ReviveDuration : 3f;
-        public float RadioRevivir => _definition != null ? _definition.ReviveRadius : 3.5f;
+        public float VidaMaxima => _definition.MaxHealth;
+        public float DuracionAbatido => _definition.DownedDuration;
+        public float VidaAlRevivir => _definition.ReviveHealth;
+        public float DuracionRevivir => _definition.ReviveDuration;
+        public float RadioRevivir => _definition.ReviveRadius;
         public float TiempoAbatidoNormalizado =>
             DuracionAbatido > 0f
                 ? Mathf.Clamp01(TiempoAbatidoRestante.Value / DuracionAbatido)
@@ -182,15 +204,13 @@ namespace TDOM.Unity.Player
 
             if (IsServer)
             {
-                float maxHealth = _definition != null ? _definition.MaxHealth : 100f;
-                float downedDuration = _definition != null ? _definition.DownedDuration : 15f;
-                _healthPool = new HealthPool(maxHealth, downedDuration);
-                Vida.Value = _healthPool.Current;
-                EstadoVida.Value = _healthPool.State;
-                TiempoAbatidoRestante.Value = _healthPool.DownedRemainingTime;
-                ProgresoRevivir.Value = 0f;
+                _healthPool = new HealthPool(VidaMaxima, DuracionAbatido);
+                SincronizarVidaEnRed();
                 BossController.ObservarJefe(NetworkManager, OnBossSpawned);
             }
+
+            EstadoVida.OnValueChanged += OnEstadoVidaChanged;
+            AplicarEstadoVida();
 
             _characterId = GetCharacterId();
 
@@ -207,8 +227,22 @@ namespace TDOM.Unity.Player
             _jefe = jefe;
         }
 
+        private void OnEstadoVidaChanged(PlayerLifeState anterior, PlayerLifeState actual)
+        {
+            AplicarEstadoVida();
+        }
+
+        private void AplicarEstadoVida()
+        {
+            _combat?.EstablecerIncapacitado(EstaAbatidoOMuerto);
+            _anchorLauncher?.EstablecerIncapacitado(EstaAbatidoOMuerto);
+        }
+
         public override void OnNetworkDespawn()
         {
+            EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
+            _healthPool = null;
+            _vidasJugadores.Clear();
             if (IsServer)
             {
                 BossController.DejarDeObservarJefe(OnBossSpawned);
@@ -218,6 +252,7 @@ namespace TDOM.Unity.Player
 
         public override void OnDestroy()
         {
+            EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
             if (IsServer)
             {
                 BossController.DejarDeObservarJefe(OnBossSpawned);
@@ -577,14 +612,17 @@ namespace TDOM.Unity.Player
                     IntentarGanchoApuntado();
             }
 
-            var intent = _locomocion.Tick(
-                input,
-                _look.YawRotation,
-                dt,
-                MovimientoBloqueado,
-                transform.position,
-                ModoPistola
-            );
+            var intent = EstaAbatidoOMuerto
+                ? _locomocion.TickIncapacitado(dt)
+                : _locomocion.Tick(
+                    input,
+                    _look.YawRotation,
+                    dt,
+                    MovimientoBloqueado || BloqueoPorAtaqueAereo,
+                    transform.position,
+                    ModoPistola,
+                    _combat != null ? _combat.MultiplicadorVelocidadAtaque : 1f
+                );
             if (_aylaAnimator != null)
                 _aylaAnimator.SetSprintState(_locomocion.Corriendo);
             if (_characterId == CharacterIds.Zendre)
@@ -602,7 +640,12 @@ namespace TDOM.Unity.Player
                 intent = new MotionIntent(Vector3.zero, ignoreGravity: true);
             }
             _motor.Apply(intent, dt);
-            _facing.Tick(_locomocion.State.Velocity, _look.Yaw, apuntando || ModoPistola, dt);
+            _facing.Tick(
+                _locomocion.State.Velocity,
+                _look.Yaw,
+                apuntando || ModoPistola || (_combat != null && _combat.MovimientoLimitado),
+                dt
+            );
             transform.rotation = _facing.Rotacion;
             AplicarMiradaACamara();
 
@@ -683,10 +726,7 @@ namespace TDOM.Unity.Player
                 _healthPool.TakeDamage(cantidad);
             }
 
-            Vida.Value = _healthPool.Current;
-            EstadoVida.Value = _healthPool.State;
-            TiempoAbatidoRestante.Value = _healthPool.DownedRemainingTime;
-
+            SincronizarVidaEnRed();
             VerificarGameOverEnServidor();
         }
 
@@ -696,39 +736,19 @@ namespace TDOM.Unity.Player
         private void ActualizarEstadoAbatidoEnServidor(float dt)
         {
             PlayerRoot companeroVivo = ObtenerCompaneroVivoCercano(RadioRevivir);
-
-            if (companeroVivo != null)
-            {
-                float duracionRevivir = DuracionRevivir;
-                float vidaAlRevivir = VidaAlRevivir;
-                bool revivio = _healthPool.ProgressRevive(dt, duracionRevivir, vidaAlRevivir);
-                ProgresoRevivir.Value = _healthPool.ReviveProgress;
-
-                if (revivio)
-                {
-                    EstadoVida.Value = _healthPool.State;
-                    Vida.Value = _healthPool.Current;
-                    TiempoAbatidoRestante.Value = 0f;
-                    ProgresoRevivir.Value = 0f;
-                }
-
-                return;
-            }
-
-            if (_healthPool.ReviveProgress > 0f)
-            {
-                _healthPool.CancelRevive();
-                ProgresoRevivir.Value = 0f;
-            }
-
-            _healthPool.Tick(dt);
-            TiempoAbatidoRestante.Value = _healthPool.DownedRemainingTime;
+            _healthPool.TickDowned(dt, companeroVivo != null, DuracionRevivir, VidaAlRevivir);
+            SincronizarVidaEnRed();
 
             if (_healthPool.State == PlayerLifeState.Muerto)
-            {
-                EstadoVida.Value = PlayerLifeState.Muerto;
                 VerificarGameOverEnServidor();
-            }
+        }
+
+        private void SincronizarVidaEnRed()
+        {
+            Vida.Value = _healthPool.Current;
+            TiempoAbatidoRestante.Value = _healthPool.DownedRemainingTime;
+            ProgresoRevivir.Value = _healthPool.ReviveProgress;
+            EstadoVida.Value = _healthPool.State;
         }
 
         private PlayerRoot ObtenerCompaneroVivoCercano(float distanciaMaxima)
@@ -778,32 +798,22 @@ namespace TDOM.Unity.Player
             if (NetworkManager == null || NetworkManager.SpawnManager == null)
                 return;
 
-            bool todosAbatidosOMuertos = true;
-            bool algunMuerto = false;
-            int totalJugadores = 0;
-
+            _vidasJugadores.Clear();
             foreach (var objeto in NetworkManager.SpawnManager.SpawnedObjectsList)
             {
-                if (objeto != null && objeto.TryGetComponent(out PlayerRoot jugador))
+                if (
+                    objeto != null
+                    && objeto.IsSpawned
+                    && objeto.TryGetComponent(out PlayerRoot jugador)
+                    && jugador._healthPool != null
+                )
                 {
-                    totalJugadores++;
-                    if (jugador.EstadoVida.Value == PlayerLifeState.Muerto)
-                    {
-                        algunMuerto = true;
-                        break;
-                    }
-
-                    if (jugador.EstadoVida.Value != PlayerLifeState.Abatido)
-                    {
-                        todosAbatidosOMuertos = false;
-                    }
+                    _vidasJugadores.Add(jugador._healthPool);
                 }
             }
 
-            if (totalJugadores > 0 && (algunMuerto || todosAbatidosOMuertos))
-            {
+            if (HealthPool.CheckGameOver(_vidasJugadores))
                 DispararGameOverEnServidor();
-            }
         }
 
         private void DispararGameOverEnServidor()
@@ -820,8 +830,14 @@ namespace TDOM.Unity.Player
                 return;
             }
 
-            var pauseManager = FindFirstObjectByType<PauseManager>();
-            pauseManager?.EstablecerResultadoDesdeServidor(ResultadoPartida.Derrota);
+            foreach (var objeto in NetworkManager.SpawnManager.SpawnedObjectsList)
+            {
+                if (objeto != null && objeto.TryGetComponent(out PauseManager pauseManager))
+                {
+                    pauseManager.EstablecerResultadoDesdeServidor(ResultadoPartida.Derrota);
+                    return;
+                }
+            }
         }
 
         private GameSessionManager ObtenerGameSessionManager()
@@ -835,7 +851,7 @@ namespace TDOM.Unity.Player
                 }
             }
 
-            return FindFirstObjectByType<GameSessionManager>();
+            return null;
         }
     }
 }

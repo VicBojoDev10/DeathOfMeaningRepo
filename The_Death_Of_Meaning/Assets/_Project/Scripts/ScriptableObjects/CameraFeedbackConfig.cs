@@ -28,6 +28,16 @@ namespace TDOM.Data
         [Header("Golpe conectado y disparo")]
         public int golpeHitstopFrames = 3;
 
+        [Header("Golpe de combo conectado (zoom)")]
+        [Tooltip("Grados de FOV del zoom-in (negativo = acerca). 0 = sin zoom.")]
+        public float comboZoomFov = -4f;
+
+        [Tooltip("Segundos que tarda en llegar al zoom maximo.")]
+        public float comboZoomSubida = 0.05f;
+
+        [Tooltip("Segundos que tarda en volver al FOV normal.")]
+        public float comboZoomBajada = 0.14f;
+
         [Header("Golpe recibido de un enemigo")]
         public float golpeRecibidoImpulso = 1f;
 
