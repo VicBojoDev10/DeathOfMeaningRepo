@@ -21,9 +21,12 @@ namespace TDOM.Unity
         public Button startClientButton;
         public Button startMatchButton;
         public Button joinTest;
+        [SerializeField]
+        private CancelHostUI cancelHostPrefab;
 
         private float _lastKeyboardCloseTime = -1f;
         private bool _connectionAttemptStarted;
+        private CancelHostUI _cancelHostUI;
 
         private void Awake()
         {
@@ -79,6 +82,24 @@ namespace TDOM.Unity
                 );
             }
 
+            _cancelHostUI = FindFirstObjectByType<CancelHostUI>(FindObjectsInactive.Include);
+            if (_cancelHostUI == null && cancelHostPrefab != null)
+            {
+                _cancelHostUI = Instantiate(cancelHostPrefab, Vector3.zero, Quaternion.identity);
+                _cancelHostUI.Initialize();
+            }
+            var cancelCanvas = _cancelHostUI != null
+                ? _cancelHostUI.GetComponentInChildren<Canvas>(true)
+                : null;
+            if (cancelCanvas != null)
+            {
+                cancelCanvas.overrideSorting = true;
+                cancelCanvas.sortingOrder = 100;
+            }
+
+            if (ConnectionManager != null)
+                ActualizarTextoEstado(ConnectionManager.EstadoActual);
+
             GameFlowNetwork.Spawned += SuscribirseAGameFlow;
             if (GameFlowNetwork.Instance != null)
                 SuscribirseAGameFlow();
@@ -93,6 +114,9 @@ namespace TDOM.Unity
         private void OnDisable()
         {
             SceneManager.sceneLoaded -= AlCargarEscena;
+
+            if (_cancelHostUI != null && _cancelHostUI.IsOpen)
+                _cancelHostUI.Hide();
 
             startHostButton.onClick.RemoveListener(StartHostButton_OnClick);
             startClientButton.onClick.RemoveListener(StartClientButton_OnClick);
@@ -232,6 +256,8 @@ namespace TDOM.Unity
         private void IrASeleccionDePersonaje()
         {
             CerrarTecladoVirtual();
+            if (_cancelHostUI != null && _cancelHostUI.IsOpen)
+                _cancelHostUI.Hide();
             UiManager.Instance.SwitchWindow(WindowId, WindowsIds.ChSelectionUI);
         }
 
@@ -258,7 +284,23 @@ namespace TDOM.Unity
             startMatchButton.gameObject.SetActive(habilitado);
 
             if (habilitado)
+            {
                 SetInteractable(true);
+                _connectionAttemptStarted = false;
+                if (_cancelHostUI != null && _cancelHostUI.IsOpen)
+                    _cancelHostUI.Hide();
+                RestaurarFocoControl();
+            }
+            else if (
+                esHost
+                && ConnectionManager != null
+                && ConnectionManager.EstadoActual == EstadoSesion.Listo
+                && _cancelHostUI != null
+                && !_cancelHostUI.IsOpen
+            )
+            {
+                _cancelHostUI.Show();
+            }
         }
 
         private void MostrarMotivoRechazo(string motivo)
@@ -276,38 +318,74 @@ namespace TDOM.Unity
         {
             _connectionAttemptStarted = true;
             ConnectionManager.OnCrearPartida();
-            hostIpDisplayText.text = $"IP: {ConnectionManager.GetLocalIPAddress()}";
-            startHostButton.interactable = false;
-            startClientButton.interactable = false;
+            if (hostIpDisplayText != null)
+                hostIpDisplayText.text = $"IP: {ConnectionManager.GetLocalIPAddress()}";
         }
 
         private void StartClientButton_OnClick()
         {
             _connectionAttemptStarted = true;
             ConnectionManager.OnUnirse(ipInputField.text.Trim());
-            startHostButton.interactable = false;
-            startClientButton.interactable = false;
         }
 
         private void ActualizarTextoEstado(EstadoSesion estado)
         {
-            _connectionAttemptStarted =
-                estado != EstadoSesion.Desconectado && estado != EstadoSesion.Error;
+            _connectionAttemptStarted = estado == EstadoSesion.Conectando
+                || estado == EstadoSesion.Listo
+                || estado == EstadoSesion.EsperandoJugador;
             CerrarTecladoVirtual();
 
-            statusText.text = estado switch
+            if (statusText != null)
+                statusText.text = estado switch
             {
                 EstadoSesion.Conectando => "Conectando...",
                 EstadoSesion.Listo => "Listo",
                 EstadoSesion.Desconectado => "Desconectado",
                 EstadoSesion.Error => "Error de conexión",
+                EstadoSesion.Cancelada => "Conexión cancelada",
                 _ => estado.ToString(),
             };
 
-            if (estado == EstadoSesion.Desconectado || estado == EstadoSesion.Error)
+            bool activo = estado == EstadoSesion.Conectando || estado == EstadoSesion.Listo
+                || estado == EstadoSesion.EsperandoJugador;
+            if (startHostButton != null)
+                startHostButton.interactable = !activo;
+            if (startClientButton != null)
+                startClientButton.interactable = !activo;
+
+            if (_cancelHostUI != null)
             {
-                startHostButton.interactable = true;
-                startClientButton.interactable = true;
+                bool esperandoConexion = estado == EstadoSesion.Conectando
+                    || (estado == EstadoSesion.Listo
+                        && NetworkManager.Singleton != null
+                        && NetworkManager.Singleton.IsHost
+                        && NetworkManager.Singleton.ConnectedClientsList.Count < 2);
+
+                if (esperandoConexion && !_cancelHostUI.IsOpen)
+                    _cancelHostUI.Show();
+                else if (!esperandoConexion && _cancelHostUI.IsOpen)
+                    _cancelHostUI.Hide();
+            }
+
+            if (!activo)
+            {
+                _connectionAttemptStarted = false;
+                if (
+                    ipInputField != null
+                    && estado == EstadoSesion.Cancelada
+                    && ConnectionManager != null
+                    && !ConnectionManager.UltimoIntentoFueCliente
+                )
+                    ipInputField.text = string.Empty;
+                if (
+                    hostIpDisplayText != null
+                    && estado == EstadoSesion.Cancelada
+                    && ConnectionManager != null
+                    && !ConnectionManager.UltimoIntentoFueCliente
+                )
+                    hostIpDisplayText.text = string.Empty;
+                if (EventSystem.current != null)
+                    RestaurarFocoControl();
             }
         }
     }
