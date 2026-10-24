@@ -422,6 +422,7 @@ namespace TDOM.Unity.Player
                 return;
 
             _locomocion?.Reiniciar();
+            _motor?.ResetPlataforma();
 
             var characterController = GetComponent<CharacterController>();
 
@@ -717,6 +718,13 @@ namespace TDOM.Unity.Player
                     _locomocion.SaltoEnCurso,
                     _locomocion.CayendoEnSalto
                 );
+            var plataformaAnclada =
+                _anchorLauncher != null
+                && _anchorLauncher.AnclaActiva
+                && _anchorLauncher.AnclaActual != null
+                && _anchorLauncher.AnclaActual.Pegada.Value
+                    ? _anchorLauncher.AnclaActual.PlataformaAnclada
+                    : null;
             if (
                 _anchorLauncher != null
                 && _anchorLauncher.AnclaActiva
@@ -726,7 +734,7 @@ namespace TDOM.Unity.Player
             {
                 intent = new MotionIntent(Vector3.zero, ignoreGravity: true);
             }
-            _motor.Apply(intent, dt);
+            _motor.Apply(intent, dt, plataformaAnclada);
             _facing.Tick(
                 _locomocion.State.Velocity,
                 _look.Yaw,

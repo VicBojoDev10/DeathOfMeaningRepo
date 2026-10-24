@@ -1,6 +1,7 @@
 using System;
 using TDOM.Data;
 using TDOM.Gameplay.Combat;
+using TDOM.Unity.Level;
 using TDOM.Unity.Player;
 using Unity.Netcode;
 using UnityEngine;
@@ -15,6 +16,7 @@ namespace TDOM.Unity.Combat
         private LineRenderer _lineRenderer;
 
         private NetworkVariable<ulong> _duenoId = new NetworkVariable<ulong>();
+        private NetworkVariable<bool> _ancladaAPlataforma = new NetworkVariable<bool>();
 
         public NetworkVariable<bool> Pegada = new NetworkVariable<bool>();
         public bool PegadaEnOjo { get; private set; }
@@ -27,6 +29,10 @@ namespace TDOM.Unity.Combat
         private float _radio = 0.2f;
         private OjosArek _ojosAnclados;
         private HitZone _ojoAnclado;
+        private PlataformaCircular _plataformaAnclada;
+        private Vector3 _puntoLocalPlataforma;
+
+        public PlataformaCircular PlataformaAnclada => _plataformaAnclada;
 
         private readonly RaycastHit[] _hitsBuffer = new RaycastHit[MaximoContactos];
         private readonly ContactoAncla[] _contactos = new ContactoAncla[MaximoContactos];
@@ -64,6 +70,8 @@ namespace TDOM.Unity.Combat
         {
             if (IsServer)
                 UpdateServer();
+            else if (_ancladaAPlataforma.Value && _plataformaAnclada == null)
+                ResolverPlataformaLocal();
 
             UpdateClientVisuals();
         }
@@ -77,6 +85,13 @@ namespace TDOM.Unity.Combat
 
             if (Pegada.Value)
             {
+                // Las plataformas se siguen solo cuando el impacto fue una superficie
+                // circular. El anclaje a ojos conserva su flujo independiente.
+                if (_plataformaAnclada != null)
+                    transform.position = _plataformaAnclada.transform.TransformPoint(
+                        _puntoLocalPlataforma
+                    );
+
                 if (_ojoAnclado != null && !_ojosAnclados.AdmiteAncla(_ojoAnclado))
                 {
                     Despegar();
@@ -143,9 +158,35 @@ namespace TDOM.Unity.Combat
 
             if (_contactos[indice].Tipo == TipoContactoAncla.OjoValido)
                 FijarOjo(_ojosPorContacto[indice], _zonasPorContacto[indice]);
+            else if (_contactos[indice].Tipo == TipoContactoAncla.Superficie)
+                FijarPlataforma(_hitsBuffer[indice].collider);
 
             Pegada.Value = true;
             _tiempoPegada = 0f;
+        }
+
+        private void FijarPlataforma(Collider collider)
+        {
+            _plataformaAnclada = collider.GetComponentInParent<PlataformaCircular>();
+            _ancladaAPlataforma.Value = _plataformaAnclada != null;
+            if (_plataformaAnclada != null)
+                _puntoLocalPlataforma = _plataformaAnclada.transform.InverseTransformPoint(
+                    transform.position
+                );
+        }
+
+        private void ResolverPlataformaLocal()
+        {
+            var colliders = Physics.OverlapSphere(transform.position, _radio + 0.15f);
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                var plataforma = colliders[i].GetComponentInParent<PlataformaCircular>();
+                if (plataforma == null)
+                    continue;
+
+                _plataformaAnclada = plataforma;
+                return;
+            }
         }
 
         private void Volar(float paso)

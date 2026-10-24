@@ -1,3 +1,5 @@
+using TDOM.Unity.Level;
+using TDOM.Unity.Locomotion;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -19,6 +21,8 @@ namespace TDOM.Unity
 
         [SerializeField]
         private CharacterController _characterController;
+
+        private PlayerMotor _playerMotor;
 
         [Header("Umbrales de Velocidad (m/s)")]
         [SerializeField]
@@ -43,6 +47,7 @@ namespace TDOM.Unity
                 _animator = GetComponentInChildren<Animator>();
             if (_characterController == null)
                 _characterController = GetComponent<CharacterController>();
+            _playerMotor = GetComponentInParent<PlayerMotor>();
         }
 
         public void SetAimState(bool aiming)
@@ -87,7 +92,13 @@ namespace TDOM.Unity
                 return;
 
             Vector3 pos = transform.position;
-            Vector3 v = (pos - _ultimaPos) / dt;
+            Vector3 desplazamiento = pos - _ultimaPos;
+            PlataformaCircular plataforma =
+                _playerMotor != null ? _playerMotor.PlataformaActual : null;
+            if (plataforma != null)
+                desplazamiento -= plataforma.FrameDelta;
+
+            Vector3 v = desplazamiento / dt;
             float velY = v.y;
             v.y = 0f;
             _rawSpeed = v.magnitude;

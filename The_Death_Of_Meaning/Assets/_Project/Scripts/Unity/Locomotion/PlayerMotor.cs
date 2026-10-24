@@ -1,4 +1,5 @@
 using TDOM.Contracts;
+using TDOM.Unity.Level;
 using UnityEngine;
 
 namespace TDOM.Unity.Locomotion
@@ -40,9 +41,30 @@ namespace TDOM.Unity.Locomotion
             _empujeTiempo = 0f;
         }
 
-        public void Apply(MotionIntent intent, float dt)
+        private PlataformaCircular _plataformaActual;
+
+        public PlataformaCircular PlataformaActual => _plataformaActual;
+
+        public void Apply(
+            MotionIntent intent,
+            float dt,
+            PlataformaCircular plataformaForzada = null
+        )
         {
-            _cc.Move(intent.Velocity * dt + DesplazamientoDeEmpuje(dt));
+            if (_cc == null)
+                return;
+
+            PlataformaCircular plataformaMovimiento =
+                plataformaForzada != null ? plataformaForzada : _plataformaActual;
+            Vector3 deltaPlataforma =
+                plataformaMovimiento != null ? plataformaMovimiento.FrameDelta : Vector3.zero;
+
+            Vector3 desplazamiento =
+                (intent.Velocity * dt) + DesplazamientoDeEmpuje(dt) + deltaPlataforma;
+            _cc.Move(desplazamiento);
+
+            if (!_cc.isGrounded)
+                _plataformaActual = null;
         }
 
         private Vector3 DesplazamientoDeEmpuje(float dt)
@@ -69,7 +91,54 @@ namespace TDOM.Unity.Locomotion
 
         public void ProbeGround(LocomotionState estado)
         {
+            if (_cc == null)
+                return;
+
             estado.IsGrounded = _cc.isGrounded;
+            if (!estado.IsGrounded)
+            {
+                _plataformaActual = null;
+                return;
+            }
+
+            // Usamos SphereCast para cubrir toda la base del CharacterController
+            // y evitar perder la plataforma si el jugador se para cerca del borde.
+            float radioCast = Mathf.Max(0.1f, _cc.radius * 0.85f);
+            float distanciaCast = Mathf.Max(0.05f, _cc.bounds.extents.y + 0.2f - radioCast);
+
+            if (
+                Physics.SphereCast(
+                    _cc.bounds.center,
+                    radioCast,
+                    Vector3.down,
+                    out RaycastHit hit,
+                    distanciaCast,
+                    Physics.DefaultRaycastLayers,
+                    QueryTriggerInteraction.Ignore
+                )
+            )
+            {
+                _plataformaActual = hit.collider.GetComponentInParent<PlataformaCircular>();
+            }
+            else
+            {
+                _plataformaActual = null;
+            }
         }
+
+        private void OnControllerColliderHit(ControllerColliderHit hit)
+        {
+            // Si el jugador aterriza sobre una plataforma circular desde arriba
+            if (hit.normal.y > 0.5f)
+            {
+                var plataforma = hit.collider.GetComponentInParent<PlataformaCircular>();
+                if (plataforma != null)
+                {
+                    _plataformaActual = plataforma;
+                }
+            }
+        }
+
+        public void ResetPlataforma() => _plataformaActual = null;
     }
 }

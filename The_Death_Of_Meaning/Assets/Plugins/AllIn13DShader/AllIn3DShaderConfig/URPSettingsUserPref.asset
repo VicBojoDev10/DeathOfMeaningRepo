@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18225d53cd7719c49b6df4340a1549ff, type: 3}
+  m_Name: URPSettingsUserPref
+  m_EditorClassIdentifier: AllIn13DShaderAssemebly.Editor::AllIn13DShader.URPSettingsUserPref
+  preferences:
+  - id: ALLIN1_GPU_INSTANCING_SUPPORT
+    enabled: 1
+  - id: ALLIN1_DOTS_INSTANCING_SUPPORT
+    enabled: 0
+  - id: ALLIN1_FOG_SUPPORT
+    enabled: 1
+  - id: ALLIN1_LIGHTMAPS_SUPPORT
+    enabled: 1
+  - id: ALLIN1_ADDITIONAL_LIGHTS_SUPPORT
+    enabled: 1
+  - id: ALLIN1_CAST_SHADOWS_SUPPORT
+    enabled: 1
+  - id: ALLIN1_SHADOW_MASK_SUPPORT
+    enabled: 1
+  - id: ALLIN1_FORWARD_PLUS_SUPPORT_UNITY6
+    enabled: 1
+  - id: ALLIN1_REFLECTIONS_PROBES_SUPPORT_UNITY6
+    enabled: 0
+  - id: ALLIN1_ADAPTATIVE_PROBE_VOLUMES_UNITY6
+    enabled: 1
+  - id: ALLIN1_SSO_SUPPORT
+    enabled: 1
+  - id: ALLIN1_LIGHT_LAYERS_SUPPORT
+    enabled: 0
+  - id: ALLIN1_DECALS_SUPPORT
+    enabled: 0
+  - id: ALLIN1_LIGHT_COOKIES_SUPPORT
+    enabled: 0
+  - id: ALLIN1_LODCROSSFADE_SUPPORT
+    enabled: 0
