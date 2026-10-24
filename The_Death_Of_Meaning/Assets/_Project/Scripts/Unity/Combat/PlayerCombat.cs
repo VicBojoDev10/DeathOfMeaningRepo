@@ -94,6 +94,18 @@ namespace TDOM.Unity.Combat
         private VfxBase[] _vfxCargadoPorEtapa = new VfxBase[0];
 
         [SerializeField]
+        [Tooltip("Siluetas grandes que salen además de la normal, una por etapa de color.")]
+        private VfxBase[] _vfxCargadoGrandePorEtapa = new VfxBase[0];
+
+        [SerializeField]
+        [Tooltip("Inclinación de cada silueta grande al soltar el cargado.")]
+        private Vector3[] _girosCargadoGrande =
+        {
+            new Vector3(0f, 0f, 45f),
+            new Vector3(0f, 0f, -45f),
+        };
+
+        [SerializeField]
         [Tooltip("Inclinación de cada silueta que sale en los cortes del cargado de giros.")]
         private Vector3 _giroCorteGiro = new Vector3(0f, 0f, 90f);
 
@@ -615,16 +627,35 @@ namespace TDOM.Unity.Combat
             VfxGolpeLigero ajuste = _vfxCargado;
             ajuste.Efecto = EfectoCargado(progreso);
             StartCoroutine(LanzarVfxGolpeLigeroConRetardo(ajuste, espejo));
+            LanzarVfxCargadoGrande(progreso, espejo);
+        }
+
+        private void LanzarVfxCargadoGrande(float progreso, bool espejo)
+        {
+            VfxBase grande = EfectoPorEtapa(_vfxCargadoGrandePorEtapa, progreso);
+            if (grande == null)
+                return;
+
+            foreach (Vector3 giro in _girosCargadoGrande)
+            {
+                VfxGolpeLigero ajuste = _vfxCargado;
+                ajuste.Efecto = grande;
+                ajuste.Giro = giro;
+                ajuste.GiroEspejo = giro;
+                StartCoroutine(LanzarVfxGolpeLigeroConRetardo(ajuste, espejo));
+            }
         }
 
         private VfxBase EfectoCargado(float progreso)
         {
+            VfxBase efecto = EfectoPorEtapa(_vfxCargadoPorEtapa, progreso);
+            return efecto != null ? efecto : _vfxCargado.Efecto;
+        }
+
+        private VfxBase EfectoPorEtapa(VfxBase[] efectos, float progreso)
+        {
             int etapa = _cargaArma != null ? _cargaArma.EtapaDe(progreso) : EtapasCarga.SinEtapa;
-            bool hayEfecto =
-                etapa >= 0
-                && etapa < _vfxCargadoPorEtapa.Length
-                && _vfxCargadoPorEtapa[etapa] != null;
-            return hayEfecto ? _vfxCargadoPorEtapa[etapa] : _vfxCargado.Efecto;
+            return etapa >= 0 && etapa < efectos.Length ? efectos[etapa] : null;
         }
 
         private void LanzarVfxCorteGiro()
