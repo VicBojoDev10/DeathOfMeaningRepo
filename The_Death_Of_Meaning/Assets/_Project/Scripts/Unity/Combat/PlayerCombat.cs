@@ -106,8 +106,13 @@ namespace TDOM.Unity.Combat
         private float _adelantoCargadoCentral = 0.6f;
 
         [SerializeField]
-        [Tooltip("Inclinación de cada silueta que sale en los cortes del cargado de giros.")]
-        private Vector3 _giroCorteGiro = new Vector3(0f, 0f, 90f);
+        [Tooltip("Una silueta por inclinación en cada corte del cargado de giros.")]
+        private Vector3[] _girosCorteGiro =
+        {
+            new Vector3(0f, 0f, 90f),
+            new Vector3(0f, 0f, 45f),
+            new Vector3(0f, 0f, -45f),
+        };
 
         private const float EtapaCompleta = 1f;
 
@@ -666,7 +671,8 @@ namespace TDOM.Unity.Combat
             Vector3 avance = MarcoTajo.Avance(posicion - transform.position, _avanceVfxGolpeLigero);
             Quaternion rumbo =
                 avance.sqrMagnitude > 0f ? Quaternion.LookRotation(avance) : transform.rotation;
-            _vfxRed.Lanzar(efecto, posicion, rumbo * Quaternion.Euler(_giroCorteGiro), avance);
+            foreach (Vector3 giro in _girosCorteGiro)
+                _vfxRed.Lanzar(efecto, posicion, rumbo * Quaternion.Euler(giro), avance);
         }
 
         private IEnumerator LanzarVfxGolpeLigeroConRetardo(
