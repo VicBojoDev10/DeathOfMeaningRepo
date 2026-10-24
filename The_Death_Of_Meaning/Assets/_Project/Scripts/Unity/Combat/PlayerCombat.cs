@@ -81,6 +81,18 @@ namespace TDOM.Unity.Combat
             },
         };
 
+        [Header("Vfx en red del cargado")]
+        [SerializeField]
+        private VfxGolpeLigero _vfxCargado = new VfxGolpeLigero
+        {
+            Giro = new Vector3(0f, 0f, 45f),
+            GiroEspejo = new Vector3(0f, 0f, -45f),
+        };
+
+        [SerializeField]
+        [Tooltip("Silueta que sale al soltar, una por etapa de color de la carga.")]
+        private VfxBase[] _vfxCargadoPorEtapa = new VfxBase[0];
+
         private IOrigenVfxGolpe _origenHoja;
         private ICargaVfx _cargaArma;
 
@@ -572,8 +584,14 @@ namespace TDOM.Unity.Combat
 
         private void LanzarVfxGolpeLigero(AttackEvent evento, bool cargado, bool espejo)
         {
-            if (_vfxRed == null || _vfxGolpeLigero == null || cargado)
+            if (_vfxRed == null || _vfxGolpeLigero == null)
                 return;
+
+            if (cargado)
+            {
+                LanzarVfxCargado(evento.ChargeRatio, espejo);
+                return;
+            }
 
             if (evento.ComboIndex < 0 || evento.ComboIndex >= _vfxPorGolpeLigero.Length)
                 return;
@@ -581,6 +599,23 @@ namespace TDOM.Unity.Combat
             StartCoroutine(
                 LanzarVfxGolpeLigeroConRetardo(_vfxPorGolpeLigero[evento.ComboIndex], espejo)
             );
+        }
+
+        private void LanzarVfxCargado(float progreso, bool espejo)
+        {
+            VfxGolpeLigero ajuste = _vfxCargado;
+            ajuste.Efecto = EfectoCargado(progreso);
+            StartCoroutine(LanzarVfxGolpeLigeroConRetardo(ajuste, espejo));
+        }
+
+        private VfxBase EfectoCargado(float progreso)
+        {
+            int etapa = _cargaArma != null ? _cargaArma.EtapaDe(progreso) : EtapasCarga.SinEtapa;
+            bool hayEfecto =
+                etapa >= 0
+                && etapa < _vfxCargadoPorEtapa.Length
+                && _vfxCargadoPorEtapa[etapa] != null;
+            return hayEfecto ? _vfxCargadoPorEtapa[etapa] : _vfxCargado.Efecto;
         }
 
         private IEnumerator LanzarVfxGolpeLigeroConRetardo(VfxGolpeLigero ajuste, bool espejo)
@@ -918,7 +953,10 @@ namespace TDOM.Unity.Combat
         {
             if (_vfx != null)
                 _vfx.Carga(activa);
-            _cargaArma?.SetCarga(activa);
+
+            ComboProfile melee = _definition != null ? _definition.Melee : null;
+            if (melee != null)
+                _cargaArma?.SetCarga(activa, melee.HoldThreshold, melee.MaxChargeTime);
         }
 
         [Rpc(SendTo.NotOwner)]
