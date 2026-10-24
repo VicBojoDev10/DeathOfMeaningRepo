@@ -93,6 +93,12 @@ namespace TDOM.Unity.Combat
         [Tooltip("Silueta que sale al soltar, una por etapa de color de la carga.")]
         private VfxBase[] _vfxCargadoPorEtapa = new VfxBase[0];
 
+        [SerializeField]
+        [Tooltip("Inclinación de cada silueta que sale en los cortes del cargado de giros.")]
+        private Vector3 _giroCorteGiro = new Vector3(0f, 0f, 90f);
+
+        private const float EtapaCompleta = 1f;
+
         private IOrigenVfxGolpe _origenHoja;
         private ICargaVfx _cargaArma;
 
@@ -408,6 +414,7 @@ namespace TDOM.Unity.Combat
 
             _poseGirosActiva = pose;
             _combatAnimator.PoseCargaGiros(pose);
+            _cargaArma?.ForzarEtapaFinal(pose);
             PoseGirosRpc(pose);
         }
 
@@ -419,6 +426,7 @@ namespace TDOM.Unity.Combat
 
             if (_combatAnimator != null)
                 _combatAnimator.PoseCargaGiros(activa);
+            _cargaArma?.ForzarEtapaFinal(activa);
         }
 
         private void ProcesarCambiosDeFase(ComboPhase prevMeleePhase, ComboPhase prevDisparoPhase)
@@ -589,7 +597,8 @@ namespace TDOM.Unity.Combat
 
             if (cargado)
             {
-                LanzarVfxCargado(evento.ChargeRatio, espejo);
+                if (!_girosEnCurso)
+                    LanzarVfxCargado(evento.ChargeRatio, espejo);
                 return;
             }
 
@@ -616,6 +625,19 @@ namespace TDOM.Unity.Combat
                 && etapa < _vfxCargadoPorEtapa.Length
                 && _vfxCargadoPorEtapa[etapa] != null;
             return hayEfecto ? _vfxCargadoPorEtapa[etapa] : _vfxCargado.Efecto;
+        }
+
+        private void LanzarVfxCorteGiro()
+        {
+            VfxBase efecto = EfectoCargado(EtapaCompleta);
+            if (_vfxRed == null || efecto == null)
+                return;
+
+            Vector3 posicion = PosicionVfxGolpeLigero();
+            Vector3 avance = MarcoTajo.Avance(posicion - transform.position, _avanceVfxGolpeLigero);
+            Quaternion rumbo =
+                avance.sqrMagnitude > 0f ? Quaternion.LookRotation(avance) : transform.rotation;
+            _vfxRed.Lanzar(efecto, posicion, rumbo * Quaternion.Euler(_giroCorteGiro), avance);
         }
 
         private IEnumerator LanzarVfxGolpeLigeroConRetardo(VfxGolpeLigero ajuste, bool espejo)
@@ -710,7 +732,11 @@ namespace TDOM.Unity.Combat
 
         private void AlImpactoGiro(int indice, bool esFinal)
         {
-            if (!IsOwner || _incapacitado || !_girosEnCurso || _hitbox == null)
+            if (!IsOwner || _incapacitado || !_girosEnCurso)
+                return;
+
+            LanzarVfxCorteGiro();
+            if (_hitbox == null)
                 return;
 
             float factor = esFinal ? _factorDanioFinal : _factorDanioGiro;

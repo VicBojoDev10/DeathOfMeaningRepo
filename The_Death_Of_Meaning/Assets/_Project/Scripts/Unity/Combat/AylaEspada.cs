@@ -146,6 +146,7 @@ namespace TDOM.Unity.Combat
         private float _segundosCargados;
         private float _segundosMaximos;
         private float _transcurridoCarga;
+        private bool _forzarEtapaFinal;
         private float[] _iniciosEtapa = new float[0];
         private float _emisionBaseCuerpo;
         private int[] _hashesAtaque;
@@ -363,6 +364,11 @@ namespace TDOM.Unity.Combat
 
         public int EtapaDe(float progreso) => EtapasCarga.Indice(_iniciosEtapa, progreso);
 
+        public void ForzarEtapaFinal(bool activa) => _forzarEtapaFinal = activa;
+
+        private int EtapaActual(float progreso) =>
+            _forzarEtapaFinal ? _iniciosEtapa.Length - 1 : EtapaDe(progreso);
+
         private void ActualizarCarga()
         {
             if (!_cargaActiva)
@@ -374,7 +380,7 @@ namespace TDOM.Unity.Combat
                 _transcurridoCarga,
                 _segundosMaximos
             );
-            PintarSilueta(EtapaDe(progreso));
+            PintarSilueta(EtapaActual(progreso));
             EscalarEmisionCuerpo(progreso);
         }
 

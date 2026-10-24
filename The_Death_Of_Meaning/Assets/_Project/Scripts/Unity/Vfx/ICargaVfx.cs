@@ -5,5 +5,7 @@ namespace TDOM.Unity.Vfx
         void SetCarga(bool activa, float segundosCargados, float segundosMaximos);
 
         int EtapaDe(float progreso);
+
+        void ForzarEtapaFinal(bool activa);
     }
 }
