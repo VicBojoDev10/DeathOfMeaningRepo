@@ -98,10 +98,12 @@ namespace TDOM.Unity.Combat
         private VfxBase[] _vfxCargadoGrandePorEtapa = new VfxBase[0];
 
         [SerializeField]
-        [Tooltip(
-            "Metros a la derecha (+) o izquierda (-) de la silueta normal, una por silueta grande."
-        )]
-        private float[] _desplazamientosCargadoGrande = { -1.2f, 1.2f };
+        [Tooltip("Metros a la derecha (+) o izquierda (-) del centro, una por silueta lateral.")]
+        private float[] _desplazamientosCargadoLaterales = { -1.2f, 1.2f };
+
+        [SerializeField, Min(0f)]
+        [Tooltip("Metros que la silueta grande del centro sale por delante de las laterales.")]
+        private float _adelantoCargadoCentral = 0.6f;
 
         [SerializeField]
         [Tooltip("Inclinación de cada silueta que sale en los cortes del cargado de giros.")]
@@ -622,22 +624,24 @@ namespace TDOM.Unity.Combat
 
         private void LanzarVfxCargado(float progreso, bool espejo)
         {
-            VfxGolpeLigero ajuste = _vfxCargado;
-            ajuste.Efecto = EfectoCargado(progreso);
-            StartCoroutine(LanzarVfxGolpeLigeroConRetardo(ajuste, espejo));
-            LanzarVfxCargadoGrande(progreso, espejo);
-        }
+            VfxGolpeLigero lateral = _vfxCargado;
+            lateral.Efecto = EfectoCargado(progreso);
+            foreach (float desplazamiento in _desplazamientosCargadoLaterales)
+                StartCoroutine(
+                    LanzarVfxGolpeLigeroConRetardo(lateral, espejo, Vector3.right * desplazamiento)
+                );
 
-        private void LanzarVfxCargadoGrande(float progreso, bool espejo)
-        {
             VfxBase grande = EfectoPorEtapa(_vfxCargadoGrandePorEtapa, progreso);
-            if (grande == null)
-                return;
-
-            VfxGolpeLigero ajuste = _vfxCargado;
-            ajuste.Efecto = grande;
-            foreach (float lateral in _desplazamientosCargadoGrande)
-                StartCoroutine(LanzarVfxGolpeLigeroConRetardo(ajuste, espejo, lateral));
+            VfxGolpeLigero central = lateral;
+            if (grande != null)
+                central.Efecto = grande;
+            StartCoroutine(
+                LanzarVfxGolpeLigeroConRetardo(
+                    central,
+                    espejo,
+                    Vector3.forward * _adelantoCargadoCentral
+                )
+            );
         }
 
         private VfxBase EfectoCargado(float progreso)
@@ -668,7 +672,7 @@ namespace TDOM.Unity.Combat
         private IEnumerator LanzarVfxGolpeLigeroConRetardo(
             VfxGolpeLigero ajuste,
             bool espejo,
-            float lateral = 0f
+            Vector3 desplazamientoLocal = default
         )
         {
             yield return new WaitForSeconds(ajuste.Retardo);
@@ -678,7 +682,7 @@ namespace TDOM.Unity.Combat
             Vector3 giro = espejo ? ajuste.GiroEspejo : ajuste.Giro;
             _vfxRed.Lanzar(
                 ajuste.Efecto != null ? ajuste.Efecto : _vfxGolpeLigero,
-                PosicionVfxGolpeLigero() + transform.right * lateral,
+                PosicionVfxGolpeLigero() + transform.rotation * desplazamientoLocal,
                 transform.rotation * Quaternion.Euler(giro),
                 MarcoTajo.Avance(transform.forward, _avanceVfxGolpeLigero)
             );
