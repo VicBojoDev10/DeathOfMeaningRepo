@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using TDOM.Contracts;
 using TDOM.Data;
@@ -10,6 +11,7 @@ using TDOM.Unity.Player;
 using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace TDOM.Unity.Combat
 {
@@ -37,27 +39,46 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private CombatVfx _vfx;
 
-        [Header("Vfx en red del primer golpe")]
+        [Serializable]
+        private struct VfxGolpeLigero
+        {
+            public Vector3 Giro;
+            public Vector3 GiroEspejo;
+
+            [Min(0f)]
+            public float Retardo;
+        }
+
+        [Header("Vfx en red de los golpes ligeros")]
         [SerializeField]
         private VfxRed _vfxRed;
 
-        [SerializeField]
-        private VfxBase _vfxPrimerGolpe;
+        [SerializeField, FormerlySerializedAs("_vfxPrimerGolpe")]
+        private VfxBase _vfxGolpeLigero;
+
+        [SerializeField, FormerlySerializedAs("_origenVfxPrimerGolpe")]
+        private Transform _origenVfxGolpeLigero;
+
+        [SerializeField, FormerlySerializedAs("_avanceVfxPrimerGolpe")]
+        [Min(0f)]
+        private float _avanceVfxGolpeLigero;
 
         [SerializeField]
-        private Transform _origenVfxPrimerGolpe;
-
-        [SerializeField]
-        private Vector3 _giroVfxPrimerGolpe = new Vector3(0f, 0f, 45f);
-
-        [SerializeField]
-        private Vector3 _giroVfxPrimerGolpeEspejo = new Vector3(0f, 0f, -45f);
-
-        [SerializeField, Min(0f)]
-        private float _retardoVfxPrimerGolpe = 0.12f;
-
-        [SerializeField, Min(0f)]
-        private float _avanceVfxPrimerGolpe = 3f;
+        private VfxGolpeLigero[] _vfxPorGolpeLigero =
+        {
+            new VfxGolpeLigero
+            {
+                Giro = new Vector3(0f, 0f, 45f),
+                GiroEspejo = new Vector3(0f, 0f, -45f),
+                Retardo = 0.12f,
+            },
+            new VfxGolpeLigero
+            {
+                Giro = new Vector3(0f, 0f, -45f),
+                GiroEspejo = new Vector3(0f, 0f, 45f),
+                Retardo = 0.12f,
+            },
+        };
 
         private IOrigenVfxGolpe _origenHoja;
 
@@ -526,7 +547,7 @@ namespace TDOM.Unity.Combat
                 );
             if (_vfx != null)
                 _vfx.Golpe(evento.ComboIndex, cargado, evento.ChargeRatio);
-            LanzarVfxPrimerGolpe(evento, cargado, espejo);
+            LanzarVfxGolpeLigero(evento, cargado, espejo);
             _debugFeedback?.FlashActive(0.1f);
 
             if (!giros)
@@ -547,35 +568,40 @@ namespace TDOM.Unity.Combat
             );
         }
 
-        private void LanzarVfxPrimerGolpe(AttackEvent evento, bool cargado, bool espejo)
+        private void LanzarVfxGolpeLigero(AttackEvent evento, bool cargado, bool espejo)
         {
-            if (_vfxRed == null || _vfxPrimerGolpe == null || cargado || evento.ComboIndex != 0)
+            if (_vfxRed == null || _vfxGolpeLigero == null || cargado)
                 return;
 
-            StartCoroutine(LanzarVfxPrimerGolpeConRetardo(espejo));
-        }
+            if (evento.ComboIndex < 0 || evento.ComboIndex >= _vfxPorGolpeLigero.Length)
+                return;
 
-        private IEnumerator LanzarVfxPrimerGolpeConRetardo(bool espejo)
-        {
-            yield return new WaitForSeconds(_retardoVfxPrimerGolpe);
-            if (_incapacitado)
-                yield break;
-
-            Vector3 giro = espejo ? _giroVfxPrimerGolpeEspejo : _giroVfxPrimerGolpe;
-            _vfxRed.Lanzar(
-                _vfxPrimerGolpe,
-                PosicionVfxPrimerGolpe(),
-                transform.rotation * Quaternion.Euler(giro),
-                MarcoTajo.Avance(transform.forward, _avanceVfxPrimerGolpe)
+            StartCoroutine(
+                LanzarVfxGolpeLigeroConRetardo(_vfxPorGolpeLigero[evento.ComboIndex], espejo)
             );
         }
 
-        private Vector3 PosicionVfxPrimerGolpe()
+        private IEnumerator LanzarVfxGolpeLigeroConRetardo(VfxGolpeLigero ajuste, bool espejo)
+        {
+            yield return new WaitForSeconds(ajuste.Retardo);
+            if (_incapacitado)
+                yield break;
+
+            Vector3 giro = espejo ? ajuste.GiroEspejo : ajuste.Giro;
+            _vfxRed.Lanzar(
+                _vfxGolpeLigero,
+                PosicionVfxGolpeLigero(),
+                transform.rotation * Quaternion.Euler(giro),
+                MarcoTajo.Avance(transform.forward, _avanceVfxGolpeLigero)
+            );
+        }
+
+        private Vector3 PosicionVfxGolpeLigero()
         {
             if (_origenHoja != null && _origenHoja.Hoja(out Vector3 baseHoja, out Vector3 punta))
                 return MarcoTajo.Centro(baseHoja, punta);
 
-            Transform origen = _origenVfxPrimerGolpe != null ? _origenVfxPrimerGolpe : transform;
+            Transform origen = _origenVfxGolpeLigero != null ? _origenVfxGolpeLigero : transform;
             return origen.position;
         }
 
