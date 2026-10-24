@@ -7,6 +7,7 @@ namespace TDOM.Gameplay.Core
         EsperandoJugador,
         Listo,
         Error,
+        Cancelada,
     }
 
     public sealed class SessionStatus
