@@ -109,6 +109,18 @@ namespace TDOM.Unity.Combat
         [Tooltip("Tornado de siluetas que sale en cada corte del cargado de giros.")]
         private VfxBase _vfxTornadoGiro;
 
+        [SerializeField]
+        [Tooltip("Arco grande que envuelve el cuerpo en cada corte del cargado de giros.")]
+        private VfxBase _vfxArcoGiro;
+
+        [SerializeField]
+        [Tooltip("Inclinación de cada arco grande, en grados sobre el frente de Ayla.")]
+        private float[] _inclinacionesArcoGiro = { 45f, -45f, 60f, -60f };
+
+        [SerializeField, Min(0f)]
+        [Tooltip("Altura en metros desde los pies a la que giran los arcos grandes.")]
+        private float _alturaArcoGiro = 1f;
+
         private IOrigenVfxGolpe _origenHoja;
         private ICargaVfx _cargaArma;
 
@@ -656,10 +668,26 @@ namespace TDOM.Unity.Combat
 
         private void LanzarVfxTornadoGiro()
         {
-            if (_vfxRed == null || _vfxTornadoGiro == null)
+            if (_vfxRed == null)
                 return;
 
-            _vfxRed.Lanzar(_vfxTornadoGiro, transform.position, transform.rotation);
+            if (_vfxTornadoGiro != null)
+                _vfxRed.Lanzar(_vfxTornadoGiro, transform.position, transform.rotation);
+            LanzarArcosGiro();
+        }
+
+        private void LanzarArcosGiro()
+        {
+            if (_vfxArcoGiro == null)
+                return;
+
+            Vector3 centro = transform.position + Vector3.up * _alturaArcoGiro;
+            foreach (float inclinacion in _inclinacionesArcoGiro)
+                _vfxRed.Lanzar(
+                    _vfxArcoGiro,
+                    centro,
+                    transform.rotation * Quaternion.Euler(0f, 0f, inclinacion)
+                );
         }
 
         private IEnumerator LanzarVfxGolpeLigeroConRetardo(
