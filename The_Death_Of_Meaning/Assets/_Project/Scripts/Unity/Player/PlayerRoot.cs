@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TDOM.Contracts;
 using TDOM.Data;
@@ -68,6 +69,7 @@ namespace TDOM.Unity.Player
         [SerializeField]
         private float _alturaMaxima = 80f;
         private bool _respawnPorAlturaSolicitado;
+        private bool _respawnEnCurso;
 
         public NetworkVariable<float> Energia = new NetworkVariable<float>(
             0,
@@ -289,6 +291,31 @@ namespace TDOM.Unity.Player
         {
             if (IsOwner && _feedback != null)
                 _feedback.OnGolpeRecibido();
+        }
+
+        public void RespawnConFundido(Vector3 position, Quaternion rotation)
+        {
+            if (!IsOwner || _respawnEnCurso)
+                return;
+
+            StartCoroutine(RespawnConFundidoRutina(position, rotation));
+        }
+
+        private IEnumerator RespawnConFundidoRutina(Vector3 position, Quaternion rotation)
+        {
+            _respawnEnCurso = true;
+            var transicion = UiManager.Instance != null ? UiManager.Instance.TransitionManager : null;
+
+            if (transicion != null)
+                yield return transicion.FadeOut(0.25f);
+
+            Respawn(position, rotation);
+            yield return new WaitForSecondsRealtime(0.1f);
+
+            if (transicion != null)
+                yield return transicion.FadeIn(0.35f);
+
+            _respawnEnCurso = false;
         }
 
         public void Respawn(Vector3 position, Quaternion rotation)
@@ -810,3 +837,5 @@ namespace TDOM.Unity.Player
         }
     }
 }
+
+
