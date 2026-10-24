@@ -96,6 +96,40 @@ namespace TDOM.Unity.Combat
         private string[] _estadosDeAtaque = { "Attack", "1i", "2IC", "Charged", "1iCargado" };
 
         [Serializable]
+        private struct PerfilEstelaPorEstado
+        {
+            [Tooltip("Nombre del estado del Animator.")]
+            public string Estado;
+
+            [Tooltip("Id del perfil en el componente EstelaEspada (vacio = el de por defecto).")]
+            public string IdPerfil;
+        }
+
+        [Header("Estela")]
+        [
+            SerializeField,
+            Tooltip(
+                "Perfil de estela por estado de ataque. Los estados que no estan aqui usan el "
+                    + "perfil por defecto. La estela se dibuja sola mientras Ayla ataca y la "
+                    + "espada se mueve rapido (umbrales en el componente EstelaEspada)."
+            )
+        ]
+        private PerfilEstelaPorEstado[] _perfilesEstela =
+        {
+            new PerfilEstelaPorEstado { Estado = "Charged", IdPerfil = "Cargado" },
+        };
+
+        [
+            SerializeField,
+            Tooltip(
+                "Pone la base y la punta de la estela en los extremos de la malla de la hoja al "
+                    + "crear la espada. Si se desactiva (o no encuentra la hoja) se usan los "
+                    + "marcadores EstelaBase y EstelaPunta del prefab."
+            )
+        ]
+        private bool _ajustarEstelaALaHoja = true;
+
+        [Serializable]
         private struct AjusteEstado
         {
             [Tooltip("Nombre del estado del Animator.")]
@@ -151,6 +185,8 @@ namespace TDOM.Unity.Combat
         private float _emisionBaseCuerpo;
         private int[] _hashesAtaque;
         private int[] _hashesAjuste;
+        private int[] _hashesPerfilEstela;
+        private int _ultimoEstadoObjetivo;
         private Quaternion _rotacionExtraActual = Quaternion.identity;
         private Vector3 _ejeHoja = Vector3.up;
         private Vector3 _posicionExtraActual = Vector3.zero;
@@ -169,6 +205,10 @@ namespace TDOM.Unity.Combat
             _hashesAjuste = new int[_ajustesPorEstado.Length];
             for (int i = 0; i < _ajustesPorEstado.Length; i++)
                 _hashesAjuste[i] = Animator.StringToHash(_ajustesPorEstado[i].Estado);
+
+            _hashesPerfilEstela = new int[_perfilesEstela.Length];
+            for (int i = 0; i < _perfilesEstela.Length; i++)
+                _hashesPerfilEstela[i] = Animator.StringToHash(_perfilesEstela[i].Estado);
 
             PrepararCarga();
         }
@@ -267,6 +307,33 @@ namespace TDOM.Unity.Combat
                     break;
                 }
             }
+
+            AjustarEstelaALaHoja();
+        }
+
+        // Los extremos de la estela se sacan de la malla de la hoja (su lado mas largo), para
+        // que la estela cubra todo el filo sin depender de marcadores puestos a mano. La base
+        // es el extremo mas cercano al mango.
+        private void AjustarEstelaALaHoja()
+        {
+            if (!_ajustarEstelaALaHoja || _estela == null || string.IsNullOrEmpty(_nombreHoja))
+                return;
+
+            Vector3 centroMango = _socket.position;
+            MeshFilter hoja = null;
+            foreach (Renderer r in _visual.GetComponentsInChildren<Renderer>(true))
+            {
+                if (r.name == _nombreMango)
+                    centroMango = r.bounds.center;
+                else if (r.name == _nombreHoja)
+                    hoja = r.GetComponent<MeshFilter>();
+            }
+
+            if (!_estela.AjustarAHoja(hoja, centroMango))
+                Debug.LogWarning(
+                    "[AylaEspada] No se pudo ajustar la estela a la hoja; se usan los marcadores del prefab.",
+                    this
+                );
         }
 
         // El eje de la espada se saca de la malla de la hoja (su dimension mas larga), en vez
@@ -312,6 +379,7 @@ namespace TDOM.Unity.Combat
 
             ActualizarSocket();
             ActualizarCarga();
+            ActualizarEstela();
 
             if (!_soloVisibleAtacando)
             {
@@ -326,22 +394,52 @@ namespace TDOM.Unity.Combat
             else
             {
                 _visibleRestante -= Time.deltaTime;
-                EstelaOff();
             }
 
             AplicarVisibilidad(_visibleRestante > 0f);
         }
 
-        public void EstelaOn(string idPerfil)
+        // Eventos de animacion antiguos (EstelaOn / EstelaOff en los clips). La estela ahora
+        // depende del estado de ataque y de la velocidad de la hoja, asi que ya no hacen nada;
+        // se dejan para que los clips no avisen de un metodo inexistente. Se pueden quitar de
+        // los clips cuando convenga.
+        public void EstelaOn(string idPerfil) { }
+
+        public void EstelaOff() { }
+
+        private void ActualizarEstela()
         {
-            if (_estela != null)
-                _estela.Encender(idPerfil);
+            if (_estela == null)
+                return;
+
+            int estado = HashEstadoObjetivo();
+            if (estado != _ultimoEstadoObjetivo)
+            {
+                // Cambio de estado (combo, cancelacion): el tramo nuevo no se une al anterior.
+                _ultimoEstadoObjetivo = estado;
+                _estela.Cortar();
+            }
+
+            _estela.Permitir(EnAtaque(), IdPerfilEstela(estado));
         }
 
-        public void EstelaOff()
+        private string IdPerfilEstela(int hashEstado)
         {
-            if (_estela != null && _estela.Encendida)
-                _estela.Apagar();
+            for (int i = 0; i < _hashesPerfilEstela.Length; i++)
+                if (_hashesPerfilEstela[i] == hashEstado)
+                    return _perfilesEstela[i].IdPerfil;
+            return string.Empty;
+        }
+
+        // Estado al que va el Animator (si esta en transicion, el de destino).
+        private int HashEstadoObjetivo()
+        {
+            if (_animator == null || _animator.layerCount == 0)
+                return 0;
+
+            return _animator.IsInTransition(0)
+                ? _animator.GetNextAnimatorStateInfo(0).shortNameHash
+                : _animator.GetCurrentAnimatorStateInfo(0).shortNameHash;
         }
 
         public void SetCarga(bool activa, float segundosCargados, float segundosMaximos)
@@ -447,6 +545,16 @@ namespace TDOM.Unity.Combat
 
             baseHoja = Vector3.zero;
             punta = Vector3.zero;
+            return false;
+        }
+
+        public bool Estela(out Vector3 centro, out Quaternion rotacion)
+        {
+            if (_estela != null)
+                return _estela.Marco(out centro, out rotacion);
+
+            centro = Vector3.zero;
+            rotacion = Quaternion.identity;
             return false;
         }
 
