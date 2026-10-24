@@ -42,6 +42,7 @@ namespace TDOM.Unity.Combat
         [Serializable]
         private struct VfxGolpeLigero
         {
+            public VfxBase Efecto;
             public Vector3 Giro;
             public Vector3 GiroEspejo;
 
@@ -589,7 +590,7 @@ namespace TDOM.Unity.Combat
 
             Vector3 giro = espejo ? ajuste.GiroEspejo : ajuste.Giro;
             _vfxRed.Lanzar(
-                _vfxGolpeLigero,
+                ajuste.Efecto != null ? ajuste.Efecto : _vfxGolpeLigero,
                 PosicionVfxGolpeLigero(),
                 transform.rotation * Quaternion.Euler(giro),
                 MarcoTajo.Avance(transform.forward, _avanceVfxGolpeLigero)
