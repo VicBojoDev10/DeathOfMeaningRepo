@@ -18,17 +18,16 @@ Material:
   - _COLORRAMPLIGHTINGSTAGE_AFTERLIGHTING
   - _FADEUVSET_UV1
   - _FOG_ON
+  - _GLITCH_ON
   - _GREYSCALESTAGE_BEFORELIGHTING
   - _HEIGHTGRADIENTPOSITIONSPACE_LOCAL
-  - _HIGHLIGHTS_ON
-  - _HOLOGRAM_ON
   - _LIGHTMODEL_FAKEGI
   - _MATCAPBLENDMODE_MULTIPLY
   - _OUTLINETYPE_NONE
   - _RECEIVEDSHADOWSTYPE_CLASSIC
   - _RECEIVE_SHADOWS_ON
   - _REFLECTIONS_CLASSIC
-  - _RIMLIGHTINGSTAGE_BEFORELIGHTINGLAST
+  - _RIMLIGHTINGSTAGE_AFTERLIGHTING
   - _SHADINGMODEL_PBR
   - _SPECULARMODEL_CLASSIC
   - _TEXTUREBLENDINGMODE_RGB
@@ -145,7 +144,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _VertexDistortionNoiseTex:
         m_Texture: {fileID: 2800000, guid: fcb69fdadf254834880fe3c443965278, type: 3}
-        m_Scale: {x: 0.63, y: 0.35}
+        m_Scale: {x: 13.1, y: 0.01}
         m_Offset: {x: 0.1, y: 0.09}
     m_Ints: []
     m_Floats:
@@ -210,8 +209,8 @@ Material:
     - _FlatNormalsEnabled: 0
     - _FogOn: 1
     - _GeneralAlpha: 1
-    - _Glitch: 0
-    - _GlitchAmount: 0.5
+    - _Glitch: 1
+    - _GlitchAmount: 0.1
     - _GlitchSpeed: 2.5
     - _GlitchTiling: 5
     - _GlitchWorldSpace: 1
@@ -228,12 +227,12 @@ Material:
     - _HeightGradientPositionSpace: 0
     - _HighlightCutoff: 0.5
     - _HighlightSmoothness: 0.5
-    - _Highlights: 1
+    - _Highlights: 0
     - _HighlightsStrength: 1
     - _Hit: 0
     - _HitBlend: 0.959
     - _HitGlow: 58.7
-    - _Hologram: 1
+    - _Hologram: 0
     - _HologramAccentAlpha: 0.808
     - _HologramAccentFrequency: 1.87
     - _HologramAccentSpeed: 0.5
@@ -266,13 +265,13 @@ Material:
     - _MaxFadeDistance: 218.3
     - _MaxGradientHeight: 0.75
     - _MaxInflate: 0.2
-    - _MaxRim: 0.427
+    - _MaxRim: 0.449
     - _Metallic: 0
     - _MetallicMapOn: 0
     - _MinDistanceToFade: 0
     - _MinGradientHeight: 0
     - _MinInflate: 0
-    - _MinRim: 1
+    - _MinRim: 0.474
     - _NearFade: 0
     - _NormalInfluence: 0.5
     - _NormalMapEnabled: 0
@@ -281,7 +280,7 @@ Material:
     - _OutlineThickness: 54.5
     - _OutlineType: 0
     - _Pixelate: 0
-    - _PixelateSize: 32
+    - _PixelateSize: 4
     - _Posterize: 0
     - _PosterizeGamma: 0.93
     - _PosterizeNumColors: 8
@@ -291,9 +290,9 @@ Material:
     - _Reflections: 1
     - _ReflectionsAtten: 0.5
     - _RenderPreset: 1
-    - _RimAttenuation: 0.454
+    - _RimAttenuation: 0.73
     - _RimLighting: 0
-    - _RimLightingStage: 1
+    - _RimLightingStage: 2
     - _SSSAtten: 1
     - _SSSFrontAtten: 0.3
     - _SSSFrontPower: 3
@@ -336,14 +335,14 @@ Material:
     - _UseCustomTime: 0
     - _UseVerticalMask: 1
     - _VertexColorBlending: 1
-    - _VertexDistortionAmount: 0.018
-    - _VertexDistortionNoiseSpeedX: -10
-    - _VertexDistortionNoiseSpeedY: -3.49
+    - _VertexDistortionAmount: 0.01
+    - _VertexDistortionNoiseSpeedX: -4.3
+    - _VertexDistortionNoiseSpeedY: -4.3
     - _VertexDistortionOn: 0
     - _VertexInflate: 0
     - _VertexShakeOn: 0
     - _VoxelBlend: 1
-    - _VoxelSize: 500
+    - _VoxelSize: 0.1
     - _Voxelize: 0
     - _WaveAmount: 7
     - _WaveSpeed: 10
@@ -359,7 +358,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _AOColor: {r: 0, g: 0, b: 0, a: 0}
-    - _Color: {r: 0.3982734, g: 0.43498576, b: 0.4716981, a: 1}
+    - _Color: {r: 0.13207549, g: 0.13207549, b: 0.13207549, a: 1}
     - _CustomAmbientColor: {r: 1, g: 1, b: 1, a: 1}
     - _DepthGlowColor: {r: 1, g: 0.9869999, b: 0.6, a: 1}
     - _EmissionColor: {r: 0.20754719, g: 0.20754719, b: 0.20754719, a: 1}
@@ -374,7 +373,7 @@ Material:
     - _HologramColor: {r: 0.31132078, g: 0.31132078, b: 0.31132078, a: 1}
     - _HologramLineDirection: {r: 0, g: 1, b: 0, a: 0}
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
-    - _RimColor: {r: 1, g: 0, b: 0, a: 1}
+    - _RimColor: {r: 8, g: 5.8385386, b: 0, a: 1}
     - _RimOffset: {r: 0, g: 0, b: 0, a: 0}
     - _SSSColor: {r: 1, g: 1, b: 1, a: 1}
     - _ShakeMaxDisplacement: {r: 0.1, g: 0.1, b: 0.1, a: 0}
