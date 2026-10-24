@@ -23,9 +23,6 @@ namespace TDOM.Unity
         public Button startMatchButton;
         public Button joinTest;
 
-        [SerializeField]
-        private CancelHostUI cancelHostPrefab;
-
         private float _lastKeyboardCloseTime = -1f;
         private bool _connectionAttemptStarted;
         private bool _inicializado;
@@ -94,27 +91,7 @@ namespace TDOM.Unity
                 );
             }
 
-            _cancelHostUI = FindFirstObjectByType<CancelHostUI>(FindObjectsInactive.Include);
-            if (_cancelHostUI == null && cancelHostPrefab != null)
-            {
-                _cancelHostUI = Instantiate(cancelHostPrefab, Vector3.zero, Quaternion.identity);
-                _cancelHostUI.Initialize();
-            }
-            var cancelCanvas =
-                _cancelHostUI != null ? _cancelHostUI.GetComponentInChildren<Canvas>(true) : null;
-            if (cancelCanvas != null)
-            {
-                cancelCanvas.overrideSorting = true;
-                cancelCanvas.sortingOrder = 100;
-                if (cancelCanvas.GetComponentInParent<GraphicRaycaster>(true) == null)
-                    cancelCanvas.gameObject.AddComponent<GraphicRaycaster>();
-            }
-
-            if (_cancelHostUI != null)
-            {
-                _cancelHostUI.OnCancelarSolicitado -= SolicitarCancelar;
-                _cancelHostUI.OnCancelarSolicitado += SolicitarCancelar;
-            }
+            ResolverCancelHostUI();
 
             if (ConnectionManager != null)
             {
@@ -386,12 +363,40 @@ namespace TDOM.Unity
             }
         }
 
+        private CancelHostUI ResolverCancelHostUI()
+        {
+            if (_cancelHostUI == null && UiManager.Instance != null)
+            {
+                _cancelHostUI =
+                    UiManager.Instance.GetWindow(WindowsIds.CancelHostUI) as CancelHostUI;
+
+                var cancelCanvas =
+                    _cancelHostUI != null
+                        ? _cancelHostUI.GetComponentInChildren<Canvas>(true)
+                        : null;
+                if (cancelCanvas != null)
+                {
+                    cancelCanvas.overrideSorting = true;
+                    cancelCanvas.sortingOrder = 100;
+                    if (cancelCanvas.GetComponentInParent<GraphicRaycaster>(true) == null)
+                        cancelCanvas.gameObject.AddComponent<GraphicRaycaster>();
+                }
+            }
+
+            if (_cancelHostUI != null)
+            {
+                _cancelHostUI.OnCancelarSolicitado -= SolicitarCancelar;
+                _cancelHostUI.OnCancelarSolicitado += SolicitarCancelar;
+            }
+            return _cancelHostUI;
+        }
+
         private void SincronizarVentanaCancelar(int jugadores = -1)
         {
             bool mostrar = DebeMostrarCancelar(jugadores);
             _connectionAttemptStarted = mostrar;
 
-            if (_cancelHostUI == null)
+            if (_cancelHostUI == null && ResolverCancelHostUI() == null)
                 return;
 
             if (mostrar && !_cancelHostUI.IsOpen)
@@ -428,6 +433,7 @@ namespace TDOM.Unity
             var boton = _cancelHostUI != null ? _cancelHostUI.cancelButton : null;
             if (boton == null || EventSystem.current == null || !_cancelHostUI.IsOpen)
                 return;
+
             foreach (var grupo in boton.GetComponentsInParent<CanvasGroup>(true))
             {
                 grupo.interactable = true;
@@ -515,6 +521,7 @@ namespace TDOM.Unity
             if (!activo)
             {
                 _navegandoAPersonaje = false;
+
                 if (_inicializado)
                     SetInteractable(true);
 
