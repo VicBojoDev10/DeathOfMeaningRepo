@@ -82,6 +82,7 @@ namespace TDOM.Unity.Combat
         };
 
         private IOrigenVfxGolpe _origenHoja;
+        private ICargaVfx _cargaArma;
 
         [SerializeField]
         private bool _logCombo = true;
@@ -183,7 +184,7 @@ namespace TDOM.Unity.Combat
             _girosEnCurso = false;
             _poseGirosActiva = false;
             _cargaVisibleMelee = false;
-            _vfx?.Carga(false);
+            MostrarCarga(false);
             _combatAnimator?.CancelarAtaque(false);
         }
 
@@ -252,6 +253,7 @@ namespace TDOM.Unity.Combat
         {
             _root = GetComponentInParent<PlayerRoot>();
             _origenHoja = GetComponentInChildren<IOrigenVfxGolpe>(true);
+            _cargaArma = GetComponentInChildren<ICargaVfx>(true);
 
             if (_vfx == null)
                 Debug.LogWarning($"[PlayerCombat] _vfx no asignado en {name}");
@@ -369,7 +371,7 @@ namespace TDOM.Unity.Combat
                 if (visible != _cargaVisibleMelee)
                 {
                     _cargaVisibleMelee = visible;
-                    _vfx?.Carga(visible);
+                    MostrarCarga(visible);
                     CargaRpc(visible);
                 }
             }
@@ -421,8 +423,7 @@ namespace TDOM.Unity.Combat
                 bool estaCargando = _disparo.Fase == ComboPhase.Charging;
                 if (estabaCargando != estaCargando)
                 {
-                    if (_vfx != null)
-                        _vfx.Carga(estaCargando);
+                    MostrarCarga(estaCargando);
                     CargaRpc(estaCargando);
                 }
             }
@@ -910,8 +911,14 @@ namespace TDOM.Unity.Combat
             if (_incapacitado && activa)
                 return;
 
+            MostrarCarga(activa);
+        }
+
+        private void MostrarCarga(bool activa)
+        {
             if (_vfx != null)
                 _vfx.Carga(activa);
+            _cargaArma?.SetCarga(activa);
         }
 
         [Rpc(SendTo.NotOwner)]

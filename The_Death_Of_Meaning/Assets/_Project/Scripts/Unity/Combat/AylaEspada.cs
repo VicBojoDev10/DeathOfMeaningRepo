@@ -16,7 +16,7 @@ namespace TDOM.Unity.Combat
     /// ajustar con el juego corriendo.
     /// </summary>
     [DisallowMultipleComponent]
-    public class AylaEspada : MonoBehaviour, IOrigenVfxGolpe
+    public class AylaEspada : MonoBehaviour, IOrigenVfxGolpe, ICargaVfx
     {
         [Header("Referencias")]
         [SerializeField]
@@ -66,6 +66,13 @@ namespace TDOM.Unity.Combat
             )
         ]
         private string _nombreHoja = "OjaPrincipalEspada";
+
+        [Header("Ataque cargado")]
+        [SerializeField, Tooltip("Hijo de la espada con el brillo de carga (apagado por defecto).")]
+        private string _nombreCarga = "Carga";
+
+        [SerializeField, Tooltip("Hijo de la espada con la ráfaga al soltar el cargado.")]
+        private string _nombreLiberacion = "Liberacion";
 
         [Header("Visibilidad")]
         [SerializeField, Tooltip("Si está activo, la espada solo se ve mientras Ayla ataca.")]
@@ -117,6 +124,9 @@ namespace TDOM.Unity.Combat
         private Transform _socket;
         private GameObject _visual;
         private EstelaEspada _estela;
+        private GameObject _carga;
+        private ParticleSystem _liberacion;
+        private bool _cargaActiva;
         private int[] _hashesAtaque;
         private int[] _hashesAjuste;
         private Quaternion _rotacionExtraActual = Quaternion.identity;
@@ -191,6 +201,10 @@ namespace TDOM.Unity.Combat
             _visual.transform.localScale = Vector3.one;
 
             _estela = _visual.GetComponentInChildren<EstelaEspada>(true);
+            _carga = BuscarHijo(_nombreCarga)?.gameObject;
+            _liberacion = BuscarHijo(_nombreLiberacion)?.GetComponent<ParticleSystem>();
+            if (_carga != null)
+                _carga.SetActive(_cargaActiva);
             foreach (Collider c in _visual.GetComponentsInChildren<Collider>(true))
                 c.enabled = false;
             foreach (Transform t in _visual.GetComponentsInChildren<Transform>(true))
@@ -262,7 +276,7 @@ namespace TDOM.Unity.Combat
                 return;
             }
 
-            if (EnAtaque())
+            if (_cargaActiva || EnAtaque())
             {
                 _visibleRestante = _retrasoOcultar;
             }
@@ -285,6 +299,38 @@ namespace TDOM.Unity.Combat
         {
             if (_estela != null && _estela.Encendida)
                 _estela.Apagar();
+        }
+
+        public void SetCarga(bool activa)
+        {
+            _cargaActiva = activa;
+            if (_carga != null)
+                _carga.SetActive(activa);
+            if (!activa || _visual == null)
+                return;
+
+            _visibleRestante = _retrasoOcultar;
+            AplicarVisibilidad(true);
+        }
+
+        public void EspadaBurst()
+        {
+            if (_liberacion == null)
+                return;
+
+            _liberacion.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            _liberacion.Play(true);
+        }
+
+        private Transform BuscarHijo(string nombre)
+        {
+            if (string.IsNullOrEmpty(nombre))
+                return null;
+
+            foreach (Transform t in _visual.GetComponentsInChildren<Transform>(true))
+                if (t.name == nombre)
+                    return t;
+            return null;
         }
 
         public bool Hoja(out Vector3 baseHoja, out Vector3 punta)
