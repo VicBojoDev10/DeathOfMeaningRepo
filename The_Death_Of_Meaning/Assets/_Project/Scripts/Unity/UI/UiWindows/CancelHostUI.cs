@@ -1,14 +1,14 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 namespace TDOM.Unity
 {
     public class CancelHostUI : UIWindow
     {
         public Button cancelButton;
-        public TextMeshProUGUI timerText; 
+        public TextMeshProUGUI timerText;
         public event Action OnCancelarSolicitado;
 
         private void Awake()

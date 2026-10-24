@@ -76,7 +76,6 @@ namespace TDOM.Unity
 
         private void OnDisable()
         {
-
             _cerrandoRed = false;
             DesuscribirEventosNetwork();
         }
@@ -110,7 +109,10 @@ namespace TDOM.Unity
                 && JugadoresConectados() < 2
             )
             {
-                CancelarConexion("Se agotó el tiempo de espera. Puedes crear la partida de nuevo.", true);
+                CancelarConexion(
+                    "Se agotó el tiempo de espera. Puedes crear la partida de nuevo.",
+                    true
+                );
             }
         }
 
@@ -243,7 +245,6 @@ namespace TDOM.Unity
             var networkManager = NetworkManager.Singleton;
             if (_cerrandoRed || (networkManager != null && networkManager.IsListening))
             {
-
                 Debug.LogWarning(
                     "[ConnectionManager] Intento ignorado: la red está activa o cerrándose todavía."
                 );
@@ -320,14 +321,21 @@ namespace TDOM.Unity
             StartCoroutine(CerrarRedCoroutine(estadoFinal, mensaje, diferir));
         }
 
-        private IEnumerator CerrarRedCoroutine(EstadoSesion estadoFinal, string mensaje, bool diferir)
+        private IEnumerator CerrarRedCoroutine(
+            EstadoSesion estadoFinal,
+            string mensaje,
+            bool diferir
+        )
         {
-
             if (diferir)
                 yield return null;
 
             var networkManager = NetworkManager.Singleton;
-            if (networkManager != null && networkManager.IsListening && !networkManager.ShutdownInProgress)
+            if (
+                networkManager != null
+                && networkManager.IsListening
+                && !networkManager.ShutdownInProgress
+            )
             {
                 if (networkManager.IsServer)
                     DespawnGameFlow();
@@ -460,7 +468,6 @@ namespace TDOM.Unity
 
             if (networkManager.IsServer)
             {
-
                 int jugadores = JugadoresConectados(clientId);
                 if (jugadores < 2)
                     IniciarTemporizadorHost();

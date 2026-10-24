@@ -22,6 +22,7 @@ namespace TDOM.Unity
         public Button startClientButton;
         public Button startMatchButton;
         public Button joinTest;
+
         [SerializeField]
         private CancelHostUI cancelHostPrefab;
 
@@ -99,9 +100,8 @@ namespace TDOM.Unity
                 _cancelHostUI = Instantiate(cancelHostPrefab, Vector3.zero, Quaternion.identity);
                 _cancelHostUI.Initialize();
             }
-            var cancelCanvas = _cancelHostUI != null
-                ? _cancelHostUI.GetComponentInChildren<Canvas>(true)
-                : null;
+            var cancelCanvas =
+                _cancelHostUI != null ? _cancelHostUI.GetComponentInChildren<Canvas>(true) : null;
             if (cancelCanvas != null)
             {
                 cancelCanvas.overrideSorting = true;
@@ -211,6 +211,7 @@ namespace TDOM.Unity
 
             RestaurarFocoControl();
         }
+
         private void HabilitarAccionCancelar()
         {
             if (_cancelAction == null)
@@ -376,9 +377,7 @@ namespace TDOM.Unity
                     if (networkManager.IsServer)
                     {
                         int cantidad =
-                            jugadores >= 0
-                                ? jugadores
-                                : networkManager.ConnectedClientsList.Count;
+                            jugadores >= 0 ? jugadores : networkManager.ConnectedClientsList.Count;
                         return cantidad < 2;
                     }
                     return networkManager.IsClient;
@@ -494,14 +493,14 @@ namespace TDOM.Unity
 
             if (statusText != null)
                 statusText.text = estado switch
-            {
-                EstadoSesion.Conectando => "Conectando...",
-                EstadoSesion.Listo => "Listo",
-                EstadoSesion.Desconectado => "Desconectado",
-                EstadoSesion.Error => "Error de conexión",
-                EstadoSesion.Cancelada => "Conexión cancelada",
-                _ => estado.ToString(),
-            };
+                {
+                    EstadoSesion.Conectando => "Conectando...",
+                    EstadoSesion.Listo => "Listo",
+                    EstadoSesion.Desconectado => "Desconectado",
+                    EstadoSesion.Error => "Error de conexión",
+                    EstadoSesion.Cancelada => "Conexión cancelada",
+                    _ => estado.ToString(),
+                };
 
             bool activo = ConnectionManager.EstadoEsActivo(estado);
             if (startHostButton != null)
@@ -519,7 +518,8 @@ namespace TDOM.Unity
                 if (_inicializado)
                     SetInteractable(true);
 
-                bool eraHost = ConnectionManager != null && !ConnectionManager.UltimoIntentoFueCliente;
+                bool eraHost =
+                    ConnectionManager != null && !ConnectionManager.UltimoIntentoFueCliente;
                 if (eraHost && hostIpDisplayText != null)
                     hostIpDisplayText.text = string.Empty;
                 if (eraHost && estado == EstadoSesion.Cancelada && ipInputField != null)
