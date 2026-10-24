@@ -45,13 +45,16 @@ namespace TDOM.Unity.Locomotion
 
         public PlataformaCircular PlataformaActual => _plataformaActual;
 
-        public void Apply(MotionIntent intent, float dt)
+        public void Apply(MotionIntent intent, float dt, PlataformaCircular plataformaForzada = null)
         {
             if (_cc == null)
                 return;
 
-            Vector3 deltaPlataforma = _plataformaActual != null
-                ? _plataformaActual.FrameDelta
+            PlataformaCircular plataformaMovimiento = plataformaForzada != null
+                ? plataformaForzada
+                : _plataformaActual;
+            Vector3 deltaPlataforma = plataformaMovimiento != null
+                ? plataformaMovimiento.FrameDelta
                 : Vector3.zero;
 
             Vector3 desplazamiento = (intent.Velocity * dt) + DesplazamientoDeEmpuje(dt) + deltaPlataforma;
