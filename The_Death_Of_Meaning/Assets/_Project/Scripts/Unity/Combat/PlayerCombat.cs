@@ -264,6 +264,15 @@ namespace TDOM.Unity.Combat
 
         public float MultiplicadorVelocidadAtaque => MovimientoLimitado ? _velocidadEnCombo : 1f;
 
+        /// <summary>
+        /// Hay un ataque cuerpo a cuerpo en curso o su animacion sigue sonando (incluida la
+        /// cola despues del ultimo golpe). Sirve para reducir la gravedad en el aire solo
+        /// durante el ataque.
+        /// </summary>
+        public bool GravedadReducidaPorAtaque =>
+            (_melee?.AtaqueEnCurso ?? false)
+            || (_combatAnimator != null && _combatAnimator.AtaqueAnimandose);
+
         public bool DisparoActivo => _disparo?.AtaqueEnCurso ?? false;
         public bool AtaqueActivo => (_melee?.AtaqueEnCurso ?? false) || DisparoActivo;
 
@@ -785,6 +794,9 @@ namespace TDOM.Unity.Combat
 
             // El empujon sale con cada golpe de combo; si no toca a nadie es mas suave. El zoom
             // de camara solo sale al conectar.
+            if (esDeCombo && _feedback != null)
+                _feedback.OnComboGolpe();
+
             if (esDeCombo && _root != null)
             {
                 float factor = huboImpacto ? 1f : _factorEmpujeSinImpacto;

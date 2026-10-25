@@ -5160,6 +5160,8 @@ MonoBehaviour:
   _vfxRed: {fileID: 2102127513358069341}
   _vfxGolpeLigero: {fileID: 2884108901446239930, guid: 24f306be62a0ff54fb88dc60829ecdbc, type: 3}
   _origenVfxGolpeLigero: {fileID: 1955049811738589453}
+  _vfxSigueLaEstela: 1
+  _giroVfxEnEstela: {x: 0, y: -45, z: 0}
   _avanceVfxGolpeLigero: 0
   _vfxPorGolpeLigero:
   - Efecto: {fileID: 0}
@@ -5442,8 +5444,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Locomotion.GrappleVisual
   ShowTopMostFoldoutHeaderGroup: 1
   _lineRenderer: {fileID: 8501239841203941201}
-  _manoTransform: {fileID: 0}
-  _offset: {x: 0, y: 1.2, z: 0}
+  _manoTransform: {fileID: 6200000000000000001}
+  _offset: {x: 0, y: 0, z: 0}
 --- !u!114 &1793130870331789386
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5462,6 +5464,8 @@ MonoBehaviour:
   _walkThreshold: 0.5
   _walkBlendMaxSpeed: 10
   _runBlendMaxSpeed: 20
+  _velocidadDobleSalto: 0.5
+  _duracionClipDobleSalto: 0.375
 --- !u!114 &6057063955198916791
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21971,6 +21975,15 @@ MonoBehaviour:
   _nombreLiberacion: Liberacion
   _perfilCarga: {fileID: 11400000, guid: 544112f2d74c11345a22f8978f136930, type: 2}
   _particulasCuerpo: {fileID: 6251455761682789970}
+  _partesConBrillo:
+  - OjaPrincipalEspada
+  - HojaSecundariaEspada
+  - NavajaEspada
+  _rimReposo: 0.15
+  _rimCargando: 1
+  _emisionCargando: 2
+  _multiplicadorRim: 3
+  _velocidadBrillo: 10
   _soloVisibleAtacando: 1
   _retrasoOcultar: 0.3
   _estadosDeAtaque:
@@ -21979,6 +21992,10 @@ MonoBehaviour:
   - 2IC
   - Charged
   - 1iCargado
+  _perfilesEstela:
+  - Estado: Charged
+    IdPerfil: Cargado
+  _ajustarEstelaALaHoja: 1
   _ajustesPorEstado:
   - Estado: 1i
     GiroSobreEjeHoja: -90
@@ -22073,4 +22090,9 @@ MonoBehaviour:
 Transform:
   m_CorrespondingSourceObject: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
   m_PrefabInstance: {fileID: 9094838142294137057}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6200000000000000001 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7506329043828920700, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
+  m_PrefabInstance: {fileID: 9074774098523907290}
   m_PrefabAsset: {fileID: 0}

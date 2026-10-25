@@ -709,10 +709,16 @@ namespace TDOM.Unity.Player
                     MovimientoBloqueado || BloqueoPorAtaqueAereo,
                     transform.position,
                     ModoPistola,
-                    _combat != null ? _combat.MultiplicadorVelocidadAtaque : 1f
+                    _combat != null ? _combat.MultiplicadorVelocidadAtaque : 1f,
+                    _combat != null && _combat.GravedadReducidaPorAtaque
                 );
             if (_aylaAnimator != null)
+            {
                 _aylaAnimator.SetSprintState(_locomocion.Corriendo);
+                // La pose del gancho dura mientras el jalon siga activo y no se ataque.
+                // Saltar cancela el gancho en la locomocion, asi que tambien la apaga.
+                _aylaAnimator.SetGanchoState(_locomocion.GanchoActivo && !AtaqueActivo);
+            }
             if (_characterId == CharacterIds.Zendre)
                 _zendreLocomotionAnimator?.ActualizarSalto(
                     _locomocion.SaltoEnCurso,
@@ -745,6 +751,12 @@ namespace TDOM.Unity.Player
             AplicarMiradaACamara();
 
             DispararFeedbackDeLocomocion();
+            if (
+                _locomocion.SaltoAereo
+                && _characterId == CharacterIds.Ayla
+                && _aylaAnimator != null
+            )
+                _aylaAnimator.IniciarDobleSalto();
             if (_locomocion.DashIniciado)
                 DashEmbestidaIniciada?.Invoke();
             RegistrarDesplazamientoLateralEnCamara(input.Move);

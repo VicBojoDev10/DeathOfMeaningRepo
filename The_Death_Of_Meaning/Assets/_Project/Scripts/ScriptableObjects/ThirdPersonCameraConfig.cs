@@ -18,6 +18,26 @@ namespace TDOM.Data
         [Header("Combate")]
         public CameraStanceValues Combat = new CameraStanceValues(3.3f, 0.8f, 0.6f, 37f);
 
+        [Header("Zoom de combate (pulso)")]
+        [Tooltip(
+            "Apagado: el combate ya no deja la camara acercada (usa la distancia y el FOV de "
+                + "exploracion). El acercamiento sale como un pulso al golpear."
+        )]
+        public bool CombatZoomSostenido = false;
+
+        [Tooltip(
+            "Fuerza del pulso respecto a la diferencia Exploracion -> Combate. 0.5 = la mitad "
+                + "del zoom que antes se quedaba fijo. 0 = sin pulso."
+        )]
+        [Range(0f, 1f)]
+        public float CombatPulsoFactor = 0.5f;
+
+        [Tooltip("Segundos que tarda el pulso en llegar al maximo.")]
+        public float CombatPulsoSubida = 0.06f;
+
+        [Tooltip("Segundos que tarda en volver al encuadre normal.")]
+        public float CombatPulsoBajada = 0.22f;
+
         [Header("Apuntado (L2)")]
         public CameraStanceValues Aim = new CameraStanceValues(2f, 0.5f, 0.6f, 27f);
 

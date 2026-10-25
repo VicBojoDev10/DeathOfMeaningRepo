@@ -58,6 +58,13 @@ namespace TDOM.Unity.Camera
             IniciarHitstop(_config.golpeHitstopFrames);
         }
 
+        /// <summary>Pulso de zoom (acerca y regresa) en cada golpe de combo, conecte o no.</summary>
+        public void OnComboGolpe()
+        {
+            if (_cameraRig != null)
+                _cameraRig.PulsoCombate();
+        }
+
         /// <summary>Zoom-in y zoom-out rapido al conectar un golpe de combo.</summary>
         public void OnComboConectado()
         {

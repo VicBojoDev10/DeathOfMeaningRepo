@@ -77,6 +77,14 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5544537461021724893, guid: 3ca91bf5d2c20204c8bdab81cad25033, type: 3}
+      propertyPath: VelocityModule.x.minMaxState
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5544537461021724893, guid: 3ca91bf5d2c20204c8bdab81cad25033, type: 3}
+      propertyPath: VelocityModule.z.minMaxState
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5544537461021724893, guid: 3ca91bf5d2c20204c8bdab81cad25033, type: 3}
       propertyPath: VelocityModule.orbitalY.scalar
       value: 11
       objectReference: {fileID: 0}
@@ -126,6 +134,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6925086890666635124, guid: 3ca91bf5d2c20204c8bdab81cad25033, type: 3}
       propertyPath: VelocityModule.y.minMaxState
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6925086890666635124, guid: 3ca91bf5d2c20204c8bdab81cad25033, type: 3}
+      propertyPath: VelocityModule.x.minMaxState
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6925086890666635124, guid: 3ca91bf5d2c20204c8bdab81cad25033, type: 3}
+      propertyPath: VelocityModule.z.minMaxState
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6925086890666635124, guid: 3ca91bf5d2c20204c8bdab81cad25033, type: 3}
