@@ -5444,7 +5444,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Locomotion.GrappleVisual
   ShowTopMostFoldoutHeaderGroup: 1
   _lineRenderer: {fileID: 8501239841203941201}
-  _manoTransform: {fileID: 6200000000000000001}
+  _manoTransform: {fileID: 1575068585774036390}
   _offset: {x: 0, y: 0, z: 0}
 --- !u!114 &1793130870331789386
 MonoBehaviour:
@@ -5466,6 +5466,11 @@ MonoBehaviour:
   _runBlendMaxSpeed: 20
   _velocidadDobleSalto: 0.5
   _duracionClipDobleSalto: 0.375
+  _inclinacionDash: 45
+  _tiempoInclinar: 0.06
+  _tiempoEnderezar: 0.2
+  _alturaPivoteInclinacion: 0.8
+  _retencionDash: 0.08
 --- !u!114 &6057063955198916791
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5621,6 +5626,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4026500297177568966}
     m_Modifications:
+    - target: {fileID: 3607470957840643935, guid: 74f51f0cde35aaa4992a2e34a5fb7423, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3607470957840643935, guid: 74f51f0cde35aaa4992a2e34a5fb7423, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7230940549405842864, guid: 74f51f0cde35aaa4992a2e34a5fb7423, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -21935,6 +21948,11 @@ Animator:
   m_CorrespondingSourceObject: {fileID: 8229209229538670824, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
   m_PrefabInstance: {fileID: 9074774098523907290}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &1575068585774036390 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7506329043828920700, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
+  m_PrefabInstance: {fileID: 9074774098523907290}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1866025965018480206 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7211782858631420564, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
@@ -21968,7 +21986,7 @@ MonoBehaviour:
   _nombreHuesoRespaldo: DEF-hand.R
   _posicion: {x: 0, y: 0, z: 0}
   _rotacion: {x: 0, y: 0, z: 0}
-  _escala: 0.5
+  _escala: 1
   _nombreMango: MangoEspada
   _nombreHoja: OjaPrincipalEspada
   _nombreCarga: Carga
@@ -21979,12 +21997,13 @@ MonoBehaviour:
   - OjaPrincipalEspada
   - HojaSecundariaEspada
   - NavajaEspada
-  _rimReposo: 0.15
+  _rimReposo: 0.5
+  _emisionReposo: 0.35
   _rimCargando: 1
   _emisionCargando: 2
   _multiplicadorRim: 3
   _velocidadBrillo: 10
-  _soloVisibleAtacando: 1
+  _soloVisibleAtacando: 0
   _retrasoOcultar: 0.3
   _estadosDeAtaque:
   - Attack
@@ -21996,6 +22015,46 @@ MonoBehaviour:
   - Estado: Charged
     IdPerfil: Cargado
   _ajustarEstelaALaHoja: 1
+  _colocaciones:
+  - Estado: Reposo
+    Modo: 0
+    Posicion: {x: -0.15, y: 0, z: -0.4}
+    DireccionHoja: {x: 0.35, y: 1, z: -0.2}
+    GiroHoja: 0
+    OscilacionAltura: 0.025
+    OscilacionVelocidad: 0.8
+  - Estado: Movimiento
+    Modo: 1
+    Posicion: {x: -0.4, y: 0, z: 0}
+    DireccionHoja: {x: 0, y: -0.35, z: -1}
+    GiroHoja: 0
+    OscilacionAltura: 0
+    OscilacionVelocidad: 0
+  - Estado: Jump
+    Modo: 0
+    Posicion: {x: 0.55, y: 1, z: -0.1}
+    DireccionHoja: {x: 0.2, y: 1, z: -0.3}
+    GiroHoja: 0
+    OscilacionAltura: 0
+    OscilacionVelocidad: 0
+  - Estado: DobleSalto
+    Modo: 0
+    Posicion: {x: 0.55, y: 1, z: -0.1}
+    DireccionHoja: {x: 0.2, y: 1, z: -0.3}
+    GiroHoja: 0
+    OscilacionAltura: 0
+    OscilacionVelocidad: 0
+  - Estado: Dash
+    Modo: 0
+    Posicion: {x: 0.55, y: 1, z: -0.1}
+    DireccionHoja: {x: 0.2, y: 1, z: -0.3}
+    GiroHoja: 0
+    OscilacionAltura: 0
+    OscilacionVelocidad: 0
+  _estadoLocomocion: Locomotion
+  _parametroVelocidad: Speed
+  _umbralMovimiento: 0.05
+  _tiempoCambioColocacion: 0.15
   _ajustesPorEstado:
   - Estado: 1i
     GiroSobreEjeHoja: -90
@@ -22090,9 +22149,4 @@ MonoBehaviour:
 Transform:
   m_CorrespondingSourceObject: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
   m_PrefabInstance: {fileID: 9094838142294137057}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &6200000000000000001 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7506329043828920700, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
-  m_PrefabInstance: {fileID: 9074774098523907290}
   m_PrefabAsset: {fileID: 0}

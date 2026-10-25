@@ -19,6 +19,7 @@ namespace TDOM.Unity.Combat
     /// ajustar con el juego corriendo.
     /// </summary>
     [DisallowMultipleComponent]
+    [DefaultExecutionOrder(50)]
     public class AylaEspada : MonoBehaviour, IOrigenVfxGolpe, ICargaVfx
     {
         [Header("Referencias")]
@@ -50,7 +51,7 @@ namespace TDOM.Unity.Combat
             Min(0.01f),
             Tooltip("Tamaño relativo al del modelo original (1 = tal cual el FBX).")
         ]
-        private float _escala = 0.5f;
+        private float _escala = 1f;
 
         [Header("Agarre")]
         [
@@ -102,7 +103,10 @@ namespace TDOM.Unity.Combat
         };
 
         [SerializeField, Range(0f, 1f), Tooltip("Rim (borde luminoso) de la hoja en reposo.")]
-        private float _rimReposo = 0.15f;
+        private float _rimReposo = 0.5f;
+
+        [SerializeField, Min(0f), Tooltip("Emision de la hoja en reposo (el filo rojo).")]
+        private float _emisionReposo = 0.35f;
 
         [SerializeField, Range(0f, 1f), Tooltip("Rim de la hoja con la carga al maximo.")]
         private float _rimCargando = 1f;
@@ -126,7 +130,7 @@ namespace TDOM.Unity.Combat
 
         [Header("Visibilidad")]
         [SerializeField, Tooltip("Si está activo, la espada solo se ve mientras Ayla ataca.")]
-        private bool _soloVisibleAtacando = true;
+        private bool _soloVisibleAtacando = false;
 
         [SerializeField, Min(0f), Tooltip("Segundos que sigue visible tras salir del ataque.")]
         private float _retrasoOcultar = 0.3f;
@@ -167,6 +171,109 @@ namespace TDOM.Unity.Combat
             )
         ]
         private bool _ajustarEstelaALaHoja = true;
+
+        private enum ModoColocacion
+        {
+            // Fija al cuerpo (espalda, costado): la posicion se mide desde el modelo de Ayla.
+            Cuerpo,
+
+            // Parte del punto medio entre las dos manos (por ejemplo, al correr).
+            AmbasManos,
+        }
+
+        [Serializable]
+        private struct ColocacionEstado
+        {
+            [Tooltip(
+                "Reposo y Movimiento son los dos casos del estado Locomotion (quieta / en "
+                    + "marcha: walk y run). Cualquier otro valor es el nombre de un estado del "
+                    + "Animator (Jump, DobleSalto, Dash...)."
+            )]
+            public string Estado;
+
+            public ModoColocacion Modo;
+
+            [Tooltip(
+                "Metros, en ejes del cuerpo de Ayla: X derecha, Y arriba, Z adelante. En "
+                    + "AmbasManos es el desplazamiento desde el punto medio de las manos."
+            )]
+            public Vector3 Posicion;
+
+            [Tooltip("Hacia donde apunta la hoja, en ejes del cuerpo (se normaliza).")]
+            public Vector3 DireccionHoja;
+
+            [Tooltip("Giro de la espada sobre su propia hoja, en grados.")]
+            public float GiroHoja;
+
+            [Tooltip("Cuanto sube y baja (metros). 0 = quieta.")]
+            public float OscilacionAltura;
+
+            [Tooltip("Subidas y bajadas por segundo.")]
+            public float OscilacionVelocidad;
+        }
+
+        [Header("Colocacion por estado (editable en Play)")]
+        [
+            SerializeField,
+            Tooltip(
+                "Estados en los que la espada NO esta en la mano sino en el cuerpo. Los estados "
+                    + "que no estan aqui (ataques, gancho, guardia) usan la mano derecha."
+            )
+        ]
+        private ColocacionEstado[] _colocaciones =
+        {
+            // Quieta: en la espalda (0.4 hacia atras), con un balanceo muy pequeno.
+            new ColocacionEstado
+            {
+                Estado = "Reposo",
+                Modo = ModoColocacion.Cuerpo,
+                Posicion = new Vector3(0.15f, 1.05f, -0.4f),
+                DireccionHoja = new Vector3(0.35f, 1f, -0.2f),
+                OscilacionAltura = 0.025f,
+                OscilacionVelocidad = 0.8f,
+            },
+            // Caminando / corriendo: mango en las dos manos, hoja hacia atras como arrastrando.
+            new ColocacionEstado
+            {
+                Estado = "Movimiento",
+                Modo = ModoColocacion.AmbasManos,
+                DireccionHoja = new Vector3(0f, -0.35f, -1f),
+            },
+            // Salto, doble salto y dash: detras de ella pero hacia su derecha.
+            new ColocacionEstado
+            {
+                Estado = "Jump",
+                Modo = ModoColocacion.Cuerpo,
+                Posicion = new Vector3(0.55f, 1f, -0.1f),
+                DireccionHoja = new Vector3(0.2f, 1f, -0.3f),
+            },
+            new ColocacionEstado
+            {
+                Estado = "DobleSalto",
+                Modo = ModoColocacion.Cuerpo,
+                Posicion = new Vector3(0.55f, 1f, -0.1f),
+                DireccionHoja = new Vector3(0.2f, 1f, -0.3f),
+            },
+            new ColocacionEstado
+            {
+                Estado = "Dash",
+                Modo = ModoColocacion.Cuerpo,
+                Posicion = new Vector3(0.55f, 1f, -0.1f),
+                DireccionHoja = new Vector3(0.2f, 1f, -0.3f),
+            },
+        };
+
+        [SerializeField, Tooltip("Estado del Animator que mezcla quieta / caminar / correr.")]
+        private string _estadoLocomocion = "Locomotion";
+
+        [SerializeField, Tooltip("Parametro float del Animator con la velocidad de locomocion.")]
+        private string _parametroVelocidad = "Speed";
+
+        [SerializeField, Min(0f), Tooltip("Por encima de este valor se considera en marcha.")]
+        private float _umbralMovimiento = 0.05f;
+
+        [SerializeField, Min(0f), Tooltip("Segundos que tarda en pasar de la mano al cuerpo.")]
+        private float _tiempoCambioColocacion = 0.15f;
 
         [Serializable]
         private struct AjusteEstado
@@ -227,6 +334,23 @@ namespace TDOM.Unity.Combat
         private int[] _hashesPerfilEstela;
         private int _ultimoEstadoObjetivo;
         private Quaternion _rotacionExtraActual = Quaternion.identity;
+        private int[] _hashesColocacion = new int[0];
+        private int _hashLocomocion;
+        private int _hashReposo;
+        private int _hashMovimiento;
+        private int _hashVelocidad;
+        private Transform _huesoIzquierdo;
+        private Vector3 _dirHojaSocket = Vector3.up;
+        private bool _dirHojaListo;
+        private float _pesoColocacion;
+        private float _mezclaManos;
+        private bool _colocacionIniciada;
+        private Vector3 _posColocacionActual;
+        private Vector3 _dirColocacionActual = Vector3.up;
+        private float _giroColocacionActual;
+        private float _amplitudOscilacionActual;
+        private float _frecuenciaOscilacionActual;
+        private float _faseOscilacion;
         private Vector3 _ejeHoja = Vector3.up;
         private Vector3 _posicionExtraActual = Vector3.zero;
         private float _visibleRestante;
@@ -235,7 +359,7 @@ namespace TDOM.Unity.Combat
         private float _brillo;
         private float _brilloAplicado = -1f;
         private float _progresoCarga;
-        private Color _colorBrillo = new Color(1f, 0.8f, 0.4f, 1f);
+        private Color _colorBrillo = new Color(1f, 0.1f, 0.05f, 1f);
         private static readonly int RimColorId = Shader.PropertyToID("_RimColor");
         private static readonly int RimAtenuacionId = Shader.PropertyToID("_RimAttenuation");
         private static readonly int EmisionColorId = Shader.PropertyToID("_EmissionColor");
@@ -253,6 +377,14 @@ namespace TDOM.Unity.Combat
             _hashesAjuste = new int[_ajustesPorEstado.Length];
             for (int i = 0; i < _ajustesPorEstado.Length; i++)
                 _hashesAjuste[i] = Animator.StringToHash(_ajustesPorEstado[i].Estado);
+
+            _hashesColocacion = new int[_colocaciones.Length];
+            for (int i = 0; i < _colocaciones.Length; i++)
+                _hashesColocacion[i] = Animator.StringToHash(_colocaciones[i].Estado);
+            _hashLocomocion = Animator.StringToHash(_estadoLocomocion);
+            _hashReposo = Animator.StringToHash("Reposo");
+            _hashMovimiento = Animator.StringToHash("Movimiento");
+            _hashVelocidad = Animator.StringToHash(_parametroVelocidad);
 
             _hashesPerfilEstela = new int[_perfilesEstela.Length];
             for (int i = 0; i < _perfilesEstela.Length; i++)
@@ -293,6 +425,7 @@ namespace TDOM.Unity.Combat
                 return;
             }
 
+            _huesoIzquierdo = BuscarHuesoIzquierdo();
             Crear();
             AplicarVisibilidad(!_soloVisibleAtacando);
         }
@@ -311,6 +444,21 @@ namespace TDOM.Unity.Combat
 
             foreach (Transform t in _animator.GetComponentsInChildren<Transform>(true))
                 if (t.name == _nombreHuesoRespaldo)
+                    return t;
+            return null;
+        }
+
+        private Transform BuscarHuesoIzquierdo()
+        {
+            if (_animator.isHuman)
+            {
+                Transform t = _animator.GetBoneTransform(HumanBodyBones.LeftHand);
+                if (t != null)
+                    return t;
+            }
+
+            foreach (Transform t in _animator.GetComponentsInChildren<Transform>(true))
+                if (t.name == "DEF-hand.L")
                     return t;
             return null;
         }
@@ -357,7 +505,50 @@ namespace TDOM.Unity.Combat
             }
 
             AjustarEstelaALaHoja();
+            DetectarDireccionHoja();
             PrepararBrillo();
+        }
+
+        // Hacia donde apunta la hoja desde el mango, en ejes del socket. Sirve para colocar la
+        // espada "mirando" hacia una direccion del cuerpo (espalda, arrastrando...).
+        private void DetectarDireccionHoja()
+        {
+            _dirHojaListo = false;
+            Renderer mango = null;
+            Renderer hoja = null;
+            foreach (Renderer r in _visual.GetComponentsInChildren<Renderer>(true))
+            {
+                if (r.name == _nombreMango)
+                    mango = r;
+                else if (r.name == _nombreHoja)
+                    hoja = r;
+            }
+
+            if (mango != null && hoja != null)
+            {
+                Vector3 mundo = CentroMalla(hoja) - CentroMalla(mango);
+                Vector3 local = _socket.InverseTransformDirection(mundo);
+                if (local.sqrMagnitude > 1e-8f)
+                {
+                    _dirHojaSocket = local.normalized;
+                    _dirHojaListo = true;
+                    return;
+                }
+            }
+
+            // Sin mango/hoja: se usa el eje largo de la hoja detectado antes.
+            _dirHojaSocket = _socket
+                .InverseTransformDirection(_visual.transform.TransformDirection(_ejeHoja))
+                .normalized;
+            _dirHojaListo = _dirHojaSocket.sqrMagnitude > 0.5f;
+        }
+
+        private static Vector3 CentroMalla(Renderer r)
+        {
+            MeshFilter mf = r.GetComponent<MeshFilter>();
+            if (mf != null && mf.sharedMesh != null)
+                return r.transform.TransformPoint(mf.sharedMesh.bounds.center);
+            return r.bounds.center;
         }
 
         // Cada parte que brilla usa su propia copia del material (r.material) para poder
@@ -399,7 +590,7 @@ namespace TDOM.Unity.Combat
         private void AplicarBrillo()
         {
             float rim = BrilloCarga.Mezclar(_rimReposo, _rimCargando, _brillo);
-            float emision = BrilloCarga.Mezclar(0f, _emisionCargando, _brillo);
+            float emision = BrilloCarga.Mezclar(_emisionReposo, _emisionCargando, _brillo);
             Color rimColor = _colorBrillo * _multiplicadorRim;
             rimColor.a = 1f;
 
@@ -686,6 +877,107 @@ namespace TDOM.Unity.Combat
             // La rotacion extra se aplica sobre el eje de la propia espada (despues de la base).
             _socket.localRotation = Quaternion.Euler(_rotacion) * _rotacionExtraActual;
             _socket.localPosition = Vector3.Scale(_posicion + _posicionExtraActual, inv);
+
+            AplicarColocacion(Time.deltaTime);
+        }
+
+        // Mezcla la pose de la mano (la de arriba) con la del cuerpo cuando el estado actual
+        // tiene una colocacion propia (espalda, costado, ambas manos).
+        private void AplicarColocacion(float dt)
+        {
+            if (!_dirHojaListo || _animator == null)
+                return;
+
+            int indice = ResolverColocacion();
+            float k =
+                dt > 0f && _tiempoCambioColocacion > 0f
+                    ? 1f - Mathf.Exp(-dt / (_tiempoCambioColocacion * 0.35f))
+                    : 1f;
+            _pesoColocacion = Mathf.Lerp(_pesoColocacion, indice >= 0 ? 1f : 0f, k);
+
+            if (indice >= 0)
+            {
+                ColocacionEstado c = _colocaciones[indice];
+                Vector3 dir =
+                    c.DireccionHoja.sqrMagnitude > 1e-6f ? c.DireccionHoja.normalized : Vector3.up;
+                if (!_colocacionIniciada)
+                {
+                    _colocacionIniciada = true;
+                    _posColocacionActual = c.Posicion;
+                    _dirColocacionActual = dir;
+                    _giroColocacionActual = c.GiroHoja;
+                    _amplitudOscilacionActual = c.OscilacionAltura;
+                    _frecuenciaOscilacionActual = c.OscilacionVelocidad;
+                }
+                else
+                {
+                    _posColocacionActual = Vector3.Lerp(_posColocacionActual, c.Posicion, k);
+                    _dirColocacionActual = Vector3.Slerp(_dirColocacionActual, dir, k);
+                    _giroColocacionActual = Mathf.Lerp(_giroColocacionActual, c.GiroHoja, k);
+                    _amplitudOscilacionActual = Mathf.Lerp(
+                        _amplitudOscilacionActual,
+                        c.OscilacionAltura,
+                        k
+                    );
+                    _frecuenciaOscilacionActual = Mathf.Lerp(
+                        _frecuenciaOscilacionActual,
+                        c.OscilacionVelocidad,
+                        k
+                    );
+                }
+                _mezclaManos = Mathf.Lerp(
+                    _mezclaManos,
+                    c.Modo == ModoColocacion.AmbasManos ? 1f : 0f,
+                    k
+                );
+            }
+
+            if (_pesoColocacion < 0.001f || !_colocacionIniciada)
+                return;
+
+            _faseOscilacion += dt * _frecuenciaOscilacionActual * Mathf.PI * 2f;
+            Transform cuerpo = _animator.transform;
+            Quaternion rotCuerpo = cuerpo.rotation;
+            Vector3 ancla = cuerpo.position;
+            if (_huesoIzquierdo != null && _mezclaManos > 0.001f)
+                ancla = Vector3.Lerp(
+                    ancla,
+                    (_hueso.position + _huesoIzquierdo.position) * 0.5f,
+                    _mezclaManos
+                );
+
+            Vector3 desplazamiento =
+                _posColocacionActual
+                + (Vector3.up * (Mathf.Sin(_faseOscilacion) * _amplitudOscilacionActual));
+            Vector3 posCuerpo = ancla + (rotCuerpo * desplazamiento);
+            Vector3 dirMundo = rotCuerpo * _dirColocacionActual;
+            Quaternion rotCuerpoEspada =
+                Quaternion.AngleAxis(_giroColocacionActual, dirMundo)
+                * Quaternion.FromToRotation(_dirHojaSocket, dirMundo);
+
+            _socket.SetPositionAndRotation(
+                Vector3.Lerp(_socket.position, posCuerpo, _pesoColocacion),
+                Quaternion.Slerp(_socket.rotation, rotCuerpoEspada, _pesoColocacion)
+            );
+        }
+
+        // Indice de la colocacion del estado al que va el Animator, o -1 si va en la mano.
+        private int ResolverColocacion()
+        {
+            if (_animator.layerCount == 0 || _hashesColocacion.Length == 0)
+                return -1;
+
+            int hash = HashEstadoObjetivo();
+            if (hash == _hashLocomocion)
+                hash =
+                    _animator.GetFloat(_hashVelocidad) > _umbralMovimiento
+                        ? _hashMovimiento
+                        : _hashReposo;
+
+            for (int i = 0; i < _hashesColocacion.Length; i++)
+                if (_hashesColocacion[i] == hash)
+                    return i;
+            return -1;
         }
 
         // Ajuste del estado al que va el Animator (si esta en transicion, el de destino).

@@ -31,6 +31,8 @@ namespace TDOM.Unity.Camera
         private Transform _cuerpo;
         private float _fovExtra;
         private float _pulsoNivel;
+        private float _dashNivel;
+        private float _dashCercaHasta;
         private Coroutine _rutinaPulso;
         private float _dutchBase;
         private float _dutchExtra;
@@ -70,8 +72,31 @@ namespace TDOM.Unity.Camera
             transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
         }
 
+        /// <summary>
+        /// Acerca la camara mientras dura el dash. Se llama cada frame; si deja de llamarse
+        /// (por ejemplo, el jugador cae abatido) la camara vuelve sola.
+        /// </summary>
+        public void SetDashCerca(bool activo)
+        {
+            if (activo)
+                _dashCercaHasta = Time.time + 0.1f;
+        }
+
+        private void ActualizarDashCerca(float dt)
+        {
+            if (_config == null)
+                return;
+
+            bool cerca = Time.time < _dashCercaHasta;
+            float tiempo = cerca
+                ? Mathf.Max(0.01f, _config.DashAcercamientoSubida)
+                : Mathf.Max(0.01f, _config.DashAcercamientoBajada);
+            _dashNivel = Mathf.MoveTowards(_dashNivel, cerca ? 1f : 0f, dt / tiempo);
+        }
+
         public void ActualizarEncuadre(bool apuntando, bool atacando, bool corriendo, float dt)
         {
+            ActualizarDashCerca(dt);
             _stances.Tick(apuntando, atacando, corriendo, dt);
             AplicarEncuadre();
         }
@@ -90,7 +115,9 @@ namespace TDOM.Unity.Camera
             if (_seguimiento == null)
                 return;
 
-            _seguimiento.CameraDistance = encuadre.Distance + (_pulsoNivel * DistanciaPulso());
+            float acercamientoDash = _config != null ? _dashNivel * _config.DashAcercamiento : 0f;
+            _seguimiento.CameraDistance =
+                encuadre.Distance + (_pulsoNivel * DistanciaPulso()) - acercamientoDash;
             _seguimiento.CameraSide = _stances.CameraSide;
             Vector3 hombro = _seguimiento.ShoulderOffset;
             hombro.x = encuadre.ShoulderOffset;
