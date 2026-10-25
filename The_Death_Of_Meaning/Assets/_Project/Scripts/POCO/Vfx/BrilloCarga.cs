@@ -8,12 +8,7 @@ namespace TDOM.Gameplay.Vfx
     /// </summary>
     public static class BrilloCarga
     {
-        public static float Suavizar(
-            float actual,
-            float objetivo,
-            float segundos,
-            float velocidad
-        )
+        public static float Suavizar(float actual, float objetivo, float segundos, float velocidad)
         {
             float objetivoLimitado = Mathf.Clamp01(objetivo);
             if (velocidad <= 0f || segundos <= 0f)

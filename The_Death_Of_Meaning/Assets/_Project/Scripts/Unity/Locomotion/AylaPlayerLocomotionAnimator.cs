@@ -45,7 +45,9 @@ namespace TDOM.Unity
         private float _velocidadDobleSalto = 0.5f;
 
         [SerializeField, Min(0.05f)]
-        [Tooltip("Duracion del clip del doble salto en segundos (frames 1 a 10 = 9 frames a 24 fps).")]
+        [Tooltip(
+            "Duracion del clip del doble salto en segundos (frames 1 a 10 = 9 frames a 24 fps)."
+        )]
         private float _duracionClipDobleSalto = 9f / 24f;
 
         private Vector3 _ultimaPos;
