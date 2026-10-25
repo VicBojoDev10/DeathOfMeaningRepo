@@ -77,5 +77,97 @@ namespace TDOM.Tests.EditMode
 
             Assert.AreEqual(0, muestras.Cantidad);
         }
+
+        [Test]
+        public void la_primera_muestra_no_se_une_a_ninguna_anterior()
+        {
+            var muestras = new MuestrasEstela(8);
+            muestras.Agregar(Vector3.zero, Vector3.up, 0f);
+
+            Assert.IsFalse(muestras[0].ConectaConAnterior);
+        }
+
+        [Test]
+        public void las_muestras_seguidas_se_unen_a_la_anterior()
+        {
+            var muestras = new MuestrasEstela(8);
+            muestras.Agregar(Vector3.zero, Vector3.up, 0f);
+            muestras.Agregar(Vector3.right, Vector3.right + Vector3.up, 0f);
+
+            Assert.IsTrue(muestras[1].ConectaConAnterior);
+        }
+
+        [Test]
+        public void tras_cortar_la_siguiente_muestra_empieza_un_tramo_nuevo()
+        {
+            var muestras = new MuestrasEstela(8);
+            muestras.Agregar(Vector3.zero, Vector3.up, 0f);
+            muestras.Agregar(Vector3.right, Vector3.right + Vector3.up, 0f);
+            muestras.Cortar();
+
+            Assert.IsTrue(muestras.Agregar(new Vector3(5f, 0f, 0f), new Vector3(5f, 1f, 0f), 0f));
+            Assert.AreEqual(3, muestras.Cantidad);
+            Assert.IsFalse(muestras[2].ConectaConAnterior);
+        }
+
+        [Test]
+        public void el_tramo_nuevo_se_agrega_aunque_este_cerca_de_la_ultima_muestra()
+        {
+            var muestras = new MuestrasEstela(8);
+            muestras.Agregar(Vector3.zero, Vector3.up, 0.5f);
+            muestras.Cortar();
+
+            Assert.IsTrue(muestras.Agregar(new Vector3(0.1f, 0f, 0f), Vector3.up, 0.5f));
+            Assert.IsFalse(muestras[1].ConectaConAnterior);
+        }
+
+        [Test]
+        public void despues_del_tramo_nuevo_las_muestras_vuelven_a_unirse()
+        {
+            var muestras = new MuestrasEstela(8);
+            muestras.Agregar(Vector3.zero, Vector3.up, 0f);
+            muestras.Cortar();
+            muestras.Agregar(Vector3.right, Vector3.right + Vector3.up, 0f);
+            muestras.Agregar(new Vector3(2f, 0f, 0f), new Vector3(2f, 1f, 0f), 0f);
+
+            Assert.IsFalse(muestras[1].ConectaConAnterior);
+            Assert.IsTrue(muestras[2].ConectaConAnterior);
+        }
+
+        [Test]
+        public void cortar_no_borra_las_muestras_existentes()
+        {
+            var muestras = new MuestrasEstela(8);
+            muestras.Agregar(Vector3.zero, Vector3.up, 0f);
+            muestras.Agregar(Vector3.right, Vector3.right + Vector3.up, 0f);
+
+            muestras.Cortar();
+
+            Assert.AreEqual(2, muestras.Cantidad);
+        }
+
+        [Test]
+        public void envejecer_conserva_la_marca_de_tramo()
+        {
+            var muestras = new MuestrasEstela(8);
+            muestras.Agregar(Vector3.zero, Vector3.up, 0f);
+            muestras.Cortar();
+            muestras.Agregar(Vector3.right, Vector3.right + Vector3.up, 0f);
+
+            muestras.Envejecer(Dt, 1f);
+
+            Assert.IsFalse(muestras[1].ConectaConAnterior);
+        }
+
+        [Test]
+        public void vaciar_reinicia_el_tramo()
+        {
+            var muestras = new MuestrasEstela(8);
+            muestras.Agregar(Vector3.zero, Vector3.up, 0f);
+            muestras.Vaciar();
+            muestras.Agregar(Vector3.right, Vector3.right + Vector3.up, 0f);
+
+            Assert.IsFalse(muestras[0].ConectaConAnterior);
+        }
     }
 }

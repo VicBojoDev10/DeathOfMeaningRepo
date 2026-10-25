@@ -11,6 +11,7 @@ namespace TDOM.Unity.Vfx
 
         private readonly List<VfxBase> _prefabs = new List<VfxBase>();
         private readonly List<List<VfxBase>> _instancias = new List<List<VfxBase>>();
+        private readonly List<int> _maximos = new List<int>();
         private Transform _contenedor;
 
         public VfxCatalogo Catalogo => _catalogo;
@@ -28,12 +29,16 @@ namespace TDOM.Unity.Vfx
                 var lista = new List<VfxBase>();
                 _prefabs.Add(prefab);
                 _instancias.Add(lista);
+                _maximos.Add(
+                    prefab != null && prefab.Perfil != null
+                        ? Mathf.Max(1, prefab.Perfil.tamanoPool)
+                        : 1
+                );
 
-                if (prefab == null)
-                    continue;
-
-                int cantidad = prefab.Perfil != null ? Mathf.Max(1, prefab.Perfil.tamanoPool) : 1;
-                for (int i = 0; i < cantidad; i++)
+                // Solo se precrea una instancia por efecto: las demas se crean cuando hacen
+                // falta, hasta el maximo del perfil (tamanoPool). Asi no se llena la escena de
+                // clones de efectos que casi nunca se solapan.
+                if (prefab != null)
                     lista.Add(Crear(prefab));
             }
         }
@@ -53,6 +58,15 @@ namespace TDOM.Unity.Vfx
 
                 if (masViejo == null || instancia.Tiempo > masViejo.Tiempo)
                     masViejo = instancia;
+            }
+
+            // Todas estan en uso: se crea otra si el perfil lo permite; si no, se reutiliza la
+            // que lleva mas tiempo sonando.
+            if (_prefabs[indice] != null && _instancias[indice].Count < _maximos[indice])
+            {
+                VfxBase nueva = Crear(_prefabs[indice]);
+                _instancias[indice].Add(nueva);
+                return nueva;
             }
 
             return masViejo;

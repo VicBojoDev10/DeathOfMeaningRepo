@@ -28,14 +28,14 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 0.6
-      value: 1
-      inSlope: 0
-      outSlope: 0
+      time: 0.22132176
+      value: 0.5611059
+      inSlope: -1.4935272
+      outSlope: -1.4935272
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0
-      outWeight: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
     - serializedVersion: 3
       time: 1
       value: 0
@@ -48,6 +48,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  escalaAncho: 1
+  opacidadMinima: 0.35
   gradienteColor:
     serializedVersion: 2
     key0: {r: 1, g: 0.857, b: 0.506, a: 1}

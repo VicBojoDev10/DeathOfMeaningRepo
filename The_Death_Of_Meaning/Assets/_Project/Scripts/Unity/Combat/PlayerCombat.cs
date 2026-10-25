@@ -60,6 +60,22 @@ namespace TDOM.Unity.Combat
         [SerializeField, FormerlySerializedAs("_origenVfxPrimerGolpe")]
         private Transform _origenVfxGolpeLigero;
 
+        [SerializeField]
+        [Tooltip(
+            "Si la espada tiene estela reciente, los vfx de golpe salen en su centro y con su "
+                + "rotacion (el plano que barre la hoja) en vez de en el centro de la hoja con "
+                + "el giro fijo de cada golpe."
+        )]
+        private bool _vfxSigueLaEstela = true;
+
+        [SerializeField]
+        [Tooltip(
+            "Giro (grados) que se suma a la rotacion de la estela. Por defecto cancela el giro de "
+                + "45 grados en Y que traen las siluetas, para que su lado largo siga el tajo. Si "
+                + "salen cruzadas, prueba con 0, 45 o 90 en Y."
+        )]
+        private Vector3 _giroVfxEnEstela = new Vector3(0f, -45f, 0f);
+
         [SerializeField, FormerlySerializedAs("_avanceVfxPrimerGolpe")]
         [Min(0f)]
         private float _avanceVfxGolpeLigero;
@@ -701,10 +717,22 @@ namespace TDOM.Unity.Combat
                 yield break;
 
             Vector3 giro = espejo ? ajuste.GiroEspejo : ajuste.Giro;
+            Vector3 posicion = PosicionVfxGolpeLigero();
+            Quaternion rotacion = transform.rotation * Quaternion.Euler(giro);
+            if (
+                _vfxSigueLaEstela
+                && _origenHoja != null
+                && _origenHoja.Estela(out Vector3 centroEstela, out Quaternion rotacionEstela)
+            )
+            {
+                posicion = centroEstela;
+                rotacion = rotacionEstela * Quaternion.Euler(_giroVfxEnEstela);
+            }
+
             _vfxRed.Lanzar(
                 ajuste.Efecto != null ? ajuste.Efecto : _vfxGolpeLigero,
-                PosicionVfxGolpeLigero() + transform.rotation * desplazamientoLocal,
-                transform.rotation * Quaternion.Euler(giro),
+                posicion + transform.rotation * desplazamientoLocal,
+                rotacion,
                 MarcoTajo.Avance(transform.forward, _avanceVfxGolpeLigero)
             );
         }
