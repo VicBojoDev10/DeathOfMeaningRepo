@@ -889,9 +889,10 @@ namespace TDOM.Unity.Combat
                 return;
 
             int indice = ResolverColocacion();
-            float k = dt > 0f && _tiempoCambioColocacion > 0f
-                ? 1f - Mathf.Exp(-dt / (_tiempoCambioColocacion * 0.35f))
-                : 1f;
+            float k =
+                dt > 0f && _tiempoCambioColocacion > 0f
+                    ? 1f - Mathf.Exp(-dt / (_tiempoCambioColocacion * 0.35f))
+                    : 1f;
             _pesoColocacion = Mathf.Lerp(_pesoColocacion, indice >= 0 ? 1f : 0f, k);
 
             if (indice >= 0)
