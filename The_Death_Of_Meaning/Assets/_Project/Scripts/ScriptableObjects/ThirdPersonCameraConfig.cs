@@ -38,6 +38,16 @@ namespace TDOM.Data
         [Tooltip("Segundos que tarda en volver al encuadre normal.")]
         public float CombatPulsoBajada = 0.22f;
 
+        [Header("Dash de Ayla")]
+        [Tooltip("Metros que se acerca la camara durante el dash.")]
+        public float DashAcercamiento = 0.9f;
+
+        [Tooltip("Segundos que tarda la camara en acercarse al empezar el dash.")]
+        public float DashAcercamientoSubida = 0.06f;
+
+        [Tooltip("Segundos que tarda en volver a su sitio al terminar.")]
+        public float DashAcercamientoBajada = 0.3f;
+
         [Header("Apuntado (L2)")]
         public CameraStanceValues Aim = new CameraStanceValues(2f, 0.5f, 0.6f, 27f);
 

@@ -31,6 +31,7 @@ namespace TDOM.Gameplay.Locomotion
 
         public bool Corriendo => _run != null && _run.Corriendo;
         public bool GanchoActivo => _grapple != null && _grapple.Activo;
+        public bool DashActivo => _dash != null && _dash.Activo;
         public Vector3 PuntoGancho => _grapple != null ? _grapple.Punto : Vector3.zero;
         private float _escalaGravedadAtaqueAereo = 1f;
         public bool SaltoDisponible => _jump != null && _jump.PuedeSaltar(State);
@@ -184,6 +185,10 @@ namespace TDOM.Gameplay.Locomotion
                 if (_dash.TryIniciar(dir))
                 {
                     DashIniciado = true;
+                    // En el suelo, el dash termina directamente en carrera (no vuelve a caminar).
+                    // Si no hay direccion de movimiento, ActualizarCarrera lo apaga solo.
+                    if (State.IsGrounded)
+                        _run.Corriendo = true;
                 }
             }
 

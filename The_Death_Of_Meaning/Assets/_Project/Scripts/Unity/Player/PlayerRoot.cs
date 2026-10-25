@@ -718,7 +718,11 @@ namespace TDOM.Unity.Player
                 // La pose del gancho dura mientras el jalon siga activo y no se ataque.
                 // Saltar cancela el gancho en la locomocion, asi que tambien la apaga.
                 _aylaAnimator.SetGanchoState(_locomocion.GanchoActivo && !AtaqueActivo);
+                // Pose del dash (y camara mas cerca) mientras dura el desplazamiento.
+                _aylaAnimator.SetDashState(_locomocion.DashActivo);
             }
+            if (_camera != null)
+                _camera.SetDashCerca(_characterId == CharacterIds.Ayla && _locomocion.DashActivo);
             if (_characterId == CharacterIds.Zendre)
                 _zendreLocomotionAnimator?.ActualizarSalto(
                     _locomocion.SaltoEnCurso,

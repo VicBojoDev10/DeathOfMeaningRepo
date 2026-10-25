@@ -16,6 +16,7 @@ namespace TDOM.Unity
         private static readonly int JumpHash = Animator.StringToHash("jump");
         private static readonly int DobleSaltoHash = Animator.StringToHash("DobleSalto");
         private static readonly int GanchoHash = Animator.StringToHash("Gancho");
+        private static readonly int DashHash = Animator.StringToHash("Dash");
         private static readonly int DobleSaltoTiempoHash = Animator.StringToHash(
             "DobleSaltoTiempo"
         );
@@ -50,6 +51,33 @@ namespace TDOM.Unity
         )]
         private float _duracionClipDobleSalto = 9f / 24f;
 
+        [Header("Dash")]
+        [SerializeField, Range(0f, 80f)]
+        [Tooltip("Cuanto se inclina el modelo hacia adelante durante el dash (grados).")]
+        private float _inclinacionDash = 45f;
+
+        [SerializeField, Min(0.01f)]
+        [Tooltip("Segundos que tarda en inclinarse al empezar el dash.")]
+        private float _tiempoInclinar = 0.06f;
+
+        [SerializeField, Min(0.01f)]
+        [Tooltip("Segundos que tarda en enderezarse al terminar el dash.")]
+        private float _tiempoEnderezar = 0.2f;
+
+        [SerializeField, Min(0f)]
+        [Tooltip(
+            "Altura (metros desde los pies) alrededor de la que gira el modelo al inclinarse. "
+                + "Cerca de la cadera para que no se separe del suelo."
+        )]
+        private float _alturaPivoteInclinacion = 0.8f;
+
+        [SerializeField, Min(0f)]
+        [Tooltip(
+            "Segundos que la pose del dash sigue puesta tras acabar el desplazamiento "
+                + "(el dash dura muy poco y asi se alcanza a ver)."
+        )]
+        private float _retencionDash = 0.08f;
+
         private Vector3 _ultimaPos;
         private float _rawSpeed;
         private float _smoothSpeed;
@@ -58,6 +86,11 @@ namespace TDOM.Unity
         private bool _aimState;
         private bool _isSprinting;
         private bool _ganchoAnimando;
+        private bool _dashAnimando;
+        private float _dashHasta;
+        private float _inclinacionActual;
+        private Vector3 _posLocalBase;
+        private Quaternion _rotLocalBase = Quaternion.identity;
         private float _dobleSaltoTiempo;
 
         private void Awake()
@@ -67,6 +100,11 @@ namespace TDOM.Unity
             if (_characterController == null)
                 _characterController = GetComponent<CharacterController>();
             _playerMotor = GetComponentInParent<PlayerMotor>();
+            if (_animator != null)
+            {
+                _posLocalBase = _animator.transform.localPosition;
+                _rotLocalBase = _animator.transform.localRotation;
+            }
         }
 
         public void SetAimState(bool aiming)
@@ -134,6 +172,69 @@ namespace TDOM.Unity
                 _animator.SetBool(GanchoHash, activo);
         }
 
+        /// <summary>
+        /// Activa la pose del dash (frames 0 a 8 del salto, y se queda en el 8) mientras dura
+        /// el desplazamiento. Se llama cada frame; la pose se mantiene un instante mas
+        /// (_retencionDash). Solo el dueno la llama; el resto de clientes la reciben por RPC.
+        /// </summary>
+        public void SetDashState(bool activo)
+        {
+            if (!IsSpawned || !IsOwner)
+                return;
+
+            if (activo)
+                _dashHasta = Time.time + _retencionDash;
+
+            bool efectivo = Time.time < _dashHasta;
+            if (efectivo == _dashAnimando)
+                return;
+
+            _dashAnimando = efectivo;
+            ApplyDashState(efectivo);
+            SyncDashStateRpc(efectivo);
+        }
+
+        private void ApplyDashState(bool activo)
+        {
+            if (_animator != null)
+                _animator.SetBool(DashHash, activo);
+        }
+
+        // Inclina el modelo hacia adelante mientras el Animator esta en el dash, girando
+        // alrededor de la cadera. Lee el parametro del Animator, que existe en todos los
+        // clientes.
+        private void LateUpdate()
+        {
+            if (_animator == null || _inclinacionDash <= 0f)
+                return;
+
+            Transform modelo = _animator.transform;
+            bool dash = _animator.GetBool(DashHash);
+            float objetivo = dash ? _inclinacionDash : 0f;
+            float tiempo = dash ? _tiempoInclinar : _tiempoEnderezar;
+            _inclinacionActual = Mathf.MoveTowards(
+                _inclinacionActual,
+                objetivo,
+                _inclinacionDash * Time.deltaTime / tiempo
+            );
+
+            if (_inclinacionActual < 0.01f)
+            {
+                if (dash)
+                    return;
+                _inclinacionActual = 0f;
+                modelo.SetLocalPositionAndRotation(_posLocalBase, _rotLocalBase);
+                return;
+            }
+
+            Quaternion giro = Quaternion.AngleAxis(_inclinacionActual, Vector3.right);
+            Vector3 pivote = Vector3.up * _alturaPivoteInclinacion;
+            modelo.SetLocalPositionAndRotation(
+                pivote + (giro * (_posLocalBase - pivote)),
+                giro * _rotLocalBase
+            );
+        }
+
         public void SetSprintState(bool sprinting)
         {
             if (!IsSpawned || !IsOwner || sprinting == _isSprinting)
@@ -157,9 +258,12 @@ namespace TDOM.Unity
             _aimState = false;
             _isSprinting = false;
             _ganchoAnimando = false;
+            _dashAnimando = false;
+            _dashHasta = 0f;
             _dobleSaltoTiempo = 0f;
             ApplyAimState(false);
             ApplyGanchoState(false);
+            ApplyDashState(false);
         }
 
         private void Update()
@@ -264,6 +368,13 @@ namespace TDOM.Unity
         {
             _ganchoAnimando = activo;
             ApplyGanchoState(activo);
+        }
+
+        [Rpc(SendTo.NotOwner)]
+        private void SyncDashStateRpc(bool activo)
+        {
+            _dashAnimando = activo;
+            ApplyDashState(activo);
         }
 
         [Rpc(SendTo.NotOwner)]
