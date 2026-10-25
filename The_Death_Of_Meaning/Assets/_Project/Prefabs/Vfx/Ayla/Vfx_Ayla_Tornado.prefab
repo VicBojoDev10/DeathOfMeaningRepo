@@ -93,6 +93,22 @@ PrefabInstance:
       value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 197302556210440729, guid: 957ffe9343a4360439de413544697c92, type: 3}
+      propertyPath: VelocityModule.x.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 197302556210440729, guid: 957ffe9343a4360439de413544697c92, type: 3}
+      propertyPath: VelocityModule.z.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 197302556210440729, guid: 957ffe9343a4360439de413544697c92, type: 3}
+      propertyPath: VelocityModule.orbitalX.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 197302556210440729, guid: 957ffe9343a4360439de413544697c92, type: 3}
+      propertyPath: VelocityModule.orbitalZ.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 197302556210440729, guid: 957ffe9343a4360439de413544697c92, type: 3}
       propertyPath: InitialModule.startLifetime.minScalar
       value: 0.35
       objectReference: {fileID: 0}
@@ -322,6 +338,22 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3338305348025898416, guid: 957ffe9343a4360439de413544697c92, type: 3}
       propertyPath: VelocityModule.orbitalY.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3338305348025898416, guid: 957ffe9343a4360439de413544697c92, type: 3}
+      propertyPath: VelocityModule.x.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3338305348025898416, guid: 957ffe9343a4360439de413544697c92, type: 3}
+      propertyPath: VelocityModule.z.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3338305348025898416, guid: 957ffe9343a4360439de413544697c92, type: 3}
+      propertyPath: VelocityModule.orbitalX.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3338305348025898416, guid: 957ffe9343a4360439de413544697c92, type: 3}
+      propertyPath: VelocityModule.orbitalZ.minMaxState
       value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 3338305348025898416, guid: 957ffe9343a4360439de413544697c92, type: 3}

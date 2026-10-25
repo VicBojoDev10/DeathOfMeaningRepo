@@ -14,6 +14,11 @@ namespace TDOM.Unity
         private static readonly int WalkHash = Animator.StringToHash("walk");
         private static readonly int RunHash = Animator.StringToHash("run");
         private static readonly int JumpHash = Animator.StringToHash("jump");
+        private static readonly int DobleSaltoHash = Animator.StringToHash("DobleSalto");
+        private static readonly int GanchoHash = Animator.StringToHash("Gancho");
+        private static readonly int DobleSaltoTiempoHash = Animator.StringToHash(
+            "DobleSaltoTiempo"
+        );
 
         [Header("Referencias")]
         [SerializeField]
@@ -33,6 +38,16 @@ namespace TDOM.Unity
 
         [SerializeField]
         private float _runBlendMaxSpeed = 20.0f;
+
+        [Header("Doble salto")]
+        [SerializeField, Range(0.1f, 3f)]
+        [Tooltip("Velocidad de la animacion (0.5 = 50% mas lenta). Se reproduce al reves.")]
+        private float _velocidadDobleSalto = 0.5f;
+
+        [SerializeField, Min(0.05f)]
+        [Tooltip("Duracion del clip del doble salto en segundos (frames 1 a 10 = 9 frames a 24 fps).")]
+        private float _duracionClipDobleSalto = 9f / 24f;
+
         private Vector3 _ultimaPos;
         private float _rawSpeed;
         private float _smoothSpeed;
@@ -40,6 +55,8 @@ namespace TDOM.Unity
         private bool _isJumpingPrevio;
         private bool _aimState;
         private bool _isSprinting;
+        private bool _ganchoAnimando;
+        private float _dobleSaltoTiempo;
 
         private void Awake()
         {
@@ -58,6 +75,61 @@ namespace TDOM.Unity
             _aimState = aiming;
             ApplyAimState(aiming);
             SyncAimStateRpc(aiming);
+        }
+
+        /// <summary>
+        /// Lanza la animacion del doble salto. Solo el dueno la llama; el resto de
+        /// clientes la reciben por RPC para que el companero tambien la vea.
+        /// </summary>
+        public void IniciarDobleSalto()
+        {
+            if (!IsSpawned || !IsOwner)
+                return;
+
+            AplicarDobleSalto();
+            DobleSaltoRpc();
+        }
+
+        private void AplicarDobleSalto()
+        {
+            // El estado DobleSalto lee su tiempo de este parametro: arranca en 1 (final del
+            // clip) y baja a 0 en Update, asi se reproduce de atras hacia adelante.
+            _dobleSaltoTiempo = 1f;
+            if (_animator == null)
+                return;
+
+            _animator.SetFloat(DobleSaltoTiempoHash, _dobleSaltoTiempo);
+            _animator.SetTrigger(DobleSaltoHash);
+        }
+
+        private void ActualizarDobleSalto(float dt)
+        {
+            if (_dobleSaltoTiempo <= 0f || _animator == null)
+                return;
+
+            float duracion = _duracionClipDobleSalto / Mathf.Max(0.01f, _velocidadDobleSalto);
+            _dobleSaltoTiempo = Mathf.Max(0f, _dobleSaltoTiempo - dt / duracion);
+            _animator.SetFloat(DobleSaltoTiempoHash, _dobleSaltoTiempo);
+        }
+
+        /// <summary>
+        /// Activa la pose del gancho (frame 24 del clip y luego bucle 28-29) mientras dura
+        /// el jalon. Solo el dueno la llama; el resto de clientes la reciben por RPC.
+        /// </summary>
+        public void SetGanchoState(bool activo)
+        {
+            if (!IsSpawned || !IsOwner || activo == _ganchoAnimando)
+                return;
+
+            _ganchoAnimando = activo;
+            ApplyGanchoState(activo);
+            SyncGanchoStateRpc(activo);
+        }
+
+        private void ApplyGanchoState(bool activo)
+        {
+            if (_animator != null)
+                _animator.SetBool(GanchoHash, activo);
         }
 
         public void SetSprintState(bool sprinting)
@@ -82,7 +154,10 @@ namespace TDOM.Unity
             _tiempoEnAire = 0f;
             _aimState = false;
             _isSprinting = false;
+            _ganchoAnimando = false;
+            _dobleSaltoTiempo = 0f;
             ApplyAimState(false);
+            ApplyGanchoState(false);
         }
 
         private void Update()
@@ -127,6 +202,16 @@ namespace TDOM.Unity
                 }
             }
 
+            // El trigger no se queda "armado" si el salto termina sin consumirlo
+            // (por ejemplo, si se estaba atacando en el aire).
+            if (!isJumping && _animator != null)
+            {
+                _animator.ResetTrigger(DobleSaltoHash);
+                _dobleSaltoTiempo = 0f;
+                _animator.SetFloat(DobleSaltoTiempoHash, 0f);
+            }
+            ActualizarDobleSalto(dt);
+
             bool isRunning = !isJumping && _isSprinting;
             bool isWalking = !isJumping && _smoothSpeed >= _walkThreshold && !isRunning;
 
@@ -164,6 +249,19 @@ namespace TDOM.Unity
         private void SyncJumpStateRpc(bool isJumping)
         {
             _isJumpingPrevio = isJumping;
+        }
+
+        [Rpc(SendTo.NotOwner)]
+        private void DobleSaltoRpc()
+        {
+            AplicarDobleSalto();
+        }
+
+        [Rpc(SendTo.NotOwner)]
+        private void SyncGanchoStateRpc(bool activo)
+        {
+            _ganchoAnimando = activo;
+            ApplyGanchoState(activo);
         }
 
         [Rpc(SendTo.NotOwner)]

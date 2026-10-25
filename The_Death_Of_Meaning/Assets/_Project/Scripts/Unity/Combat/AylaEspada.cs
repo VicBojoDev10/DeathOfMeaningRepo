@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using TDOM.Data;
 using TDOM.Gameplay.Vfx;
 using TDOM.Unity.Vfx;
@@ -84,6 +85,44 @@ namespace TDOM.Unity.Combat
 
         [SerializeField, Tooltip("Partículas alrededor del cuerpo de Ayla mientras carga.")]
         private ParticleSystem _particulasCuerpo;
+
+        [Header("Brillo de la hoja")]
+        [
+            SerializeField,
+            Tooltip(
+                "Partes del modelo de la espada que brillan al cargar. Necesitan un material con "
+                    + "el shader AllIn13DShader con Rim y Emission activados (EspadaAylaAllIn1)."
+            )
+        ]
+        private string[] _partesConBrillo =
+        {
+            "OjaPrincipalEspada",
+            "HojaSecundariaEspada",
+            "NavajaEspada",
+        };
+
+        [SerializeField, Range(0f, 1f), Tooltip("Rim (borde luminoso) de la hoja en reposo.")]
+        private float _rimReposo = 0.15f;
+
+        [SerializeField, Range(0f, 1f), Tooltip("Rim de la hoja con la carga al maximo.")]
+        private float _rimCargando = 1f;
+
+        [SerializeField, Min(0f), Tooltip("Emision de la hoja con la carga al maximo.")]
+        private float _emisionCargando = 2f;
+
+        [
+            SerializeField,
+            Min(0f),
+            Tooltip("Multiplica el color de la etapa para que el rim sea HDR (se vea brillante).")
+        ]
+        private float _multiplicadorRim = 3f;
+
+        [
+            SerializeField,
+            Min(0f),
+            Tooltip("Que tan rapido sube y baja el brillo (mayor = mas rapido).")
+        ]
+        private float _velocidadBrillo = 10f;
 
         [Header("Visibilidad")]
         [SerializeField, Tooltip("Si está activo, la espada solo se ve mientras Ayla ataca.")]
@@ -192,6 +231,15 @@ namespace TDOM.Unity.Combat
         private Vector3 _posicionExtraActual = Vector3.zero;
         private float _visibleRestante;
         private bool _visibleActual = true;
+        private Material[] _materialesBrillo = new Material[0];
+        private float _brillo;
+        private float _brilloAplicado = -1f;
+        private float _progresoCarga;
+        private Color _colorBrillo = new Color(1f, 0.8f, 0.4f, 1f);
+        private static readonly int RimColorId = Shader.PropertyToID("_RimColor");
+        private static readonly int RimAtenuacionId = Shader.PropertyToID("_RimAttenuation");
+        private static readonly int EmisionColorId = Shader.PropertyToID("_EmissionColor");
+        private static readonly int EmisionIntensidadId = Shader.PropertyToID("_EmissionSelfGlow");
 
         private void Awake()
         {
@@ -309,6 +357,64 @@ namespace TDOM.Unity.Combat
             }
 
             AjustarEstelaALaHoja();
+            PrepararBrillo();
+        }
+
+        // Cada parte que brilla usa su propia copia del material (r.material) para poder
+        // cambiar el rim y la emision sin afectar al resto de la espada.
+        private void PrepararBrillo()
+        {
+            var materiales = new List<Material>();
+            foreach (Renderer r in _visual.GetComponentsInChildren<Renderer>(true))
+            {
+                if (Array.IndexOf(_partesConBrillo, r.name) < 0)
+                    continue;
+
+                Material copia = r.material;
+                if (copia.HasProperty(RimAtenuacionId) && copia.HasProperty(EmisionIntensidadId))
+                    materiales.Add(copia);
+            }
+
+            _materialesBrillo = materiales.ToArray();
+            _brilloAplicado = -1f;
+            AplicarBrillo();
+        }
+
+        private void ActualizarBrillo(float dt)
+        {
+            if (_materialesBrillo.Length == 0)
+                return;
+
+            float objetivo = 0f;
+            if (_cargaActiva)
+                objetivo = _forzarEtapaFinal ? 1f : Mathf.Max(_progresoCarga, 0.25f);
+
+            _brillo = BrilloCarga.Suavizar(_brillo, objetivo, dt, _velocidadBrillo);
+            if (!_cargaActiva && Mathf.Abs(_brillo - _brilloAplicado) < 0.0005f)
+                return;
+
+            AplicarBrillo();
+        }
+
+        private void AplicarBrillo()
+        {
+            float rim = BrilloCarga.Mezclar(_rimReposo, _rimCargando, _brillo);
+            float emision = BrilloCarga.Mezclar(0f, _emisionCargando, _brillo);
+            Color rimColor = _colorBrillo * _multiplicadorRim;
+            rimColor.a = 1f;
+
+            foreach (Material material in _materialesBrillo)
+            {
+                if (material == null)
+                    continue;
+
+                material.SetColor(RimColorId, rimColor);
+                material.SetFloat(RimAtenuacionId, rim);
+                material.SetColor(EmisionColorId, _colorBrillo);
+                material.SetFloat(EmisionIntensidadId, emision);
+            }
+
+            _brilloAplicado = _brillo;
         }
 
         // Los extremos de la estela se sacan de la malla de la hoja (su lado mas largo), para
@@ -379,6 +485,7 @@ namespace TDOM.Unity.Combat
 
             ActualizarSocket();
             ActualizarCarga();
+            ActualizarBrillo(Time.deltaTime);
             ActualizarEstela();
 
             if (!_soloVisibleAtacando)
@@ -478,6 +585,7 @@ namespace TDOM.Unity.Combat
                 _transcurridoCarga,
                 _segundosMaximos
             );
+            _progresoCarga = progreso;
             PintarSilueta(EtapaActual(progreso));
             EscalarEmisionCuerpo(progreso);
         }
@@ -488,6 +596,7 @@ namespace TDOM.Unity.Combat
                 return;
 
             CargaEspadaProfile.Etapa datos = _perfilCarga.etapas[etapa];
+            _colorBrillo = datos.color;
             foreach (Renderer r in _renderersCarga)
             {
                 r.GetPropertyBlock(_bloqueCarga);
@@ -636,6 +745,10 @@ namespace TDOM.Unity.Combat
 
         private void OnDestroy()
         {
+            foreach (Material material in _materialesBrillo)
+                if (material != null)
+                    Destroy(material);
+
             if (_socket != null)
                 Destroy(_socket.gameObject);
         }

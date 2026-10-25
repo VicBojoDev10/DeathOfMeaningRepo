@@ -30,6 +30,8 @@ namespace TDOM.Unity.Camera
         private CameraStanceResolver _stances;
         private Transform _cuerpo;
         private float _fovExtra;
+        private float _pulsoNivel;
+        private Coroutine _rutinaPulso;
         private float _dutchBase;
         private float _dutchExtra;
         private int _prioridadBase;
@@ -88,7 +90,7 @@ namespace TDOM.Unity.Camera
             if (_seguimiento == null)
                 return;
 
-            _seguimiento.CameraDistance = encuadre.Distance;
+            _seguimiento.CameraDistance = encuadre.Distance + (_pulsoNivel * DistanciaPulso());
             _seguimiento.CameraSide = _stances.CameraSide;
             Vector3 hombro = _seguimiento.ShoulderOffset;
             hombro.x = encuadre.ShoulderOffset;
@@ -97,10 +99,23 @@ namespace TDOM.Unity.Camera
 
         private static CameraStanceSettings CrearAjustes(ThirdPersonCameraConfig config)
         {
+            // Sin zoom sostenido, el combate conserva hombro y altura pero no acerca la camara:
+            // el acercamiento llega solo como pulso (ver PulsoCombate).
+            CameraStanceValues combate = config.Combat;
+            if (!config.CombatZoomSostenido)
+            {
+                combate = new CameraStanceValues(
+                    config.Exploration.Distance,
+                    config.Combat.ShoulderOffsetX,
+                    config.Combat.PivotHeight,
+                    config.Exploration.FieldOfView
+                );
+            }
+
             return new CameraStanceSettings(
                 CrearEncuadre(config.Exploration),
                 CrearEncuadre(config.Sprint),
-                CrearEncuadre(config.Combat),
+                CrearEncuadre(combate),
                 CrearEncuadre(config.Aim),
                 config.TransitionSpeed,
                 config.CombatLingerSeconds,
@@ -203,9 +218,62 @@ namespace TDOM.Unity.Camera
                 return;
 
             var lente = _camara.Lens;
-            lente.FieldOfView = _stances.Framing.FieldOfView + _fovExtra;
+            lente.FieldOfView =
+                _stances.Framing.FieldOfView + _fovExtra + (_pulsoNivel * FovPulso());
             lente.Dutch = _dutchBase + _dutchExtra;
             _camara.Lens = lente;
+        }
+
+        // Cuanto se acerca la camara en el pulso: la mitad (CombatPulsoFactor) de lo que antes
+        // se quedaba fijo en combate. Negativo = acerca.
+        private float DistanciaPulso()
+        {
+            if (_config == null)
+                return 0f;
+            return (_config.Combat.Distance - _config.Exploration.Distance)
+                * _config.CombatPulsoFactor;
+        }
+
+        private float FovPulso()
+        {
+            if (_config == null)
+                return 0f;
+            return (_config.Combat.FieldOfView - _config.Exploration.FieldOfView)
+                * _config.CombatPulsoFactor;
+        }
+
+        /// <summary>
+        /// Acerca la camara un instante y la regresa (zoom in-out). Si llega otro pulso en
+        /// pleno movimiento continua desde el nivel actual, sin saltos.
+        /// </summary>
+        public void PulsoCombate()
+        {
+            if (_config == null || _config.CombatPulsoFactor <= 0f)
+                return;
+
+            if (_rutinaPulso != null)
+                StopCoroutine(_rutinaPulso);
+            _rutinaPulso = StartCoroutine(RutinaPulso());
+        }
+
+        private IEnumerator RutinaPulso()
+        {
+            float subida = Mathf.Max(0.01f, _config.CombatPulsoSubida);
+            float bajada = Mathf.Max(0.01f, _config.CombatPulsoBajada);
+
+            while (_pulsoNivel < 1f)
+            {
+                _pulsoNivel = Mathf.Min(1f, _pulsoNivel + (Time.deltaTime / subida));
+                yield return null;
+            }
+
+            while (_pulsoNivel > 0f)
+            {
+                _pulsoNivel = Mathf.Max(0f, _pulsoNivel - (Time.deltaTime / bajada));
+                yield return null;
+            }
+
+            _rutinaPulso = null;
         }
 
         private IEnumerator RutinaTilt(float grados, float duracion)

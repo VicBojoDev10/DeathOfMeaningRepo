@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: EspadaAylaAllIn1
+  m_Shader: {fileID: 4800000, guid: 0dde7f0097aeb2541aea684ca0ad0e3c, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _ALBEDOVERTEXCOLORMODE_REPLACE
+  - _ALPHA_CUTOFF_ON
+  - _CAST_SHADOWS_ON
+  - _COLORRAMPLIGHTINGSTAGE_BEFORELIGHTING
+  - _EMISSION_ON
+  - _FADEUVSET_UV1
+  - _GREYSCALESTAGE_BEFORELIGHTING
+  - _HEIGHTGRADIENTPOSITIONSPACE_LOCAL
+  - _LIGHTMODEL_CLASSIC
+  - _MATCAPBLENDMODE_MULTIPLY
+  - _METALLIC_MAP_ON
+  - _NORMAL_MAP_ON
+  - _OUTLINETYPE_NONE
+  - _RECEIVEDSHADOWSTYPE_CLASSIC
+  - _RECEIVE_SHADOWS_ON
+  - _REFLECTIONS_CLASSIC
+  - _RIMLIGHTINGSTAGE_AFTERLIGHTING
+  - _RIM_LIGHTING_ON
+  - _SHADINGMODEL_PBR
+  - _SPECULARMODEL_NONE
+  - _TEXTUREBLENDINGMODE_RGB
+  - _TEXTUREBLENDINGSOURCE_VERTEXCOLOR
+  - _TRIPLANARNORMALSPACE_WORLD
+  - _USE_WIND_VERTICAL_MASK
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 1
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: fc28b2f56bcb35f458616bca5ae2dddd, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicMap:
+        m_Texture: {fileID: 2800000, guid: be10b7a0b0679364a843f9167be57209, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 2800000, guid: 54d70828deae14b42b3df0ec60e59372, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _CastShadowsOn: 1
+    - _EmissionEnabled: 1
+    - _EmissionSelfGlow: 0
+    - _LightModel: 1
+    - _MaxRim: 1
+    - _Metallic: 1
+    - _MetallicMapOn: 1
+    - _MinRim: 0
+    - _NormalMapEnabled: 1
+    - _NormalStrength: 1
+    - _ReceiveShadows: 1
+    - _Reflections: 1
+    - _ReflectionsAtten: 0.5
+    - _RimAttenuation: 0.15
+    - _RimLighting: 1
+    - _RimLightingStage: 2
+    - _ShadingModel: 1
+    - _Smoothness: 0.8
+    - _SpecularModel: 0
+    m_Colors:
+    - _Color: {r: 0.9063317, g: 0.9063317, b: 0.9063317, a: 1}
+    - _EmissionColor: {r: 1, g: 0.75, b: 0.3, a: 1}
+    - _RimColor: {r: 4, g: 2.6, b: 0.6, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

@@ -108,7 +108,8 @@ namespace TDOM.Gameplay.Locomotion
             bool blockMove = false,
             Vector3 posicion = default,
             bool modoPistola = false,
-            float multiplicadorAtaque = 1f
+            float multiplicadorAtaque = 1f,
+            bool gravedadReducida = false
         )
         {
             DashIniciado = false;
@@ -132,7 +133,8 @@ namespace TDOM.Gameplay.Locomotion
                 blockMove,
                 posicion,
                 modoPistola,
-                multiplicadorAtaque
+                multiplicadorAtaque,
+                gravedadReducida
             );
 
             CayendoEnSalto = SaltoEnCurso && State.Velocity.y <= 0f;
@@ -150,7 +152,8 @@ namespace TDOM.Gameplay.Locomotion
             bool blockMove,
             Vector3 posicion,
             bool modoPistola,
-            float multiplicadorAtaque
+            float multiplicadorAtaque,
+            bool gravedadReducida
         )
         {
             ActualizarCarrera(input, modoPistola);
@@ -204,6 +207,10 @@ namespace TDOM.Gameplay.Locomotion
                 }
                 int saltosAntes = State.JumpsUsed;
                 _jump.Tick(State, input, dt);
+                // Cola de la animacion de un ataque aereo: el movimiento ya no esta bloqueado
+                // pero la gravedad sigue reducida hasta que la animacion termine.
+                if (gravedadReducida && !State.IsGrounded)
+                    escalaGravedad = _escalaGravedadAtaqueAereo;
                 if (State.JumpsUsed > saltosAntes && State.Velocity.y > 0f)
                     SaltoEnCurso = true;
                 if (State.JumpsUsed > saltosAntes && State.JumpsUsed > 1)
