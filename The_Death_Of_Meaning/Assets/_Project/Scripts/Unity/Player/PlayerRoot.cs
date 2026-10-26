@@ -762,7 +762,11 @@ namespace TDOM.Unity.Player
             )
                 _aylaAnimator.IniciarDobleSalto();
             if (_locomocion.DashIniciado)
+            {
+                if (_characterId == CharacterIds.Zendre)
+                    _zendreLocomotionAnimator?.IniciarAssault();
                 DashEmbestidaIniciada?.Invoke();
+            }
             RegistrarDesplazamientoLateralEnCamara(input.Move);
 
             bool ganchoActivoActual = _locomocion != null && _locomocion.GanchoActivo;

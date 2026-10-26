@@ -13,6 +13,8 @@ namespace TDOM.Unity
         private static readonly int JumpHash = Animator.StringToHash("Jump");
         private static readonly int FallingHash = Animator.StringToHash("Falling");
         private static readonly int ShootHash = Animator.StringToHash("Shoot");
+        private static readonly int AssaultHash = Animator.StringToHash("assault");
+        private static readonly int AssaultStandStateHash = Animator.StringToHash("AssaultStand");
         private const float SpeedDampTime = 0.1f;
 
         [Header("Referencias")]
@@ -44,8 +46,14 @@ namespace TDOM.Unity
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Owner
         );
+        private readonly NetworkVariable<bool> _assault = new(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Owner
+        );
 
         private Vector3 _ultimaPos;
+        private bool _assaultAutoReleasePending;
 
         private void Awake()
         {
@@ -62,6 +70,7 @@ namespace TDOM.Unity
                 AplicarModos(false, false, Vector2.zero);
                 _animator.SetBool(JumpHash, _jumping.Value);
                 _animator.SetBool(FallingHash, _falling.Value);
+                _animator.SetBool(AssaultHash, _assault.Value);
             }
         }
 
@@ -95,6 +104,20 @@ namespace TDOM.Unity
             AplicarSalto(saltando, cayendo);
         }
 
+        public void IniciarAssault()
+        {
+            if (!IsOwner)
+                return;
+
+            if (_assault.Value)
+                return;
+
+            _assault.Value = true;
+            _assaultAutoReleasePending = true;
+            if (_animator != null)
+                _animator.SetBool(AssaultHash, _assault.Value);
+        }
+
         private void Update()
         {
             float dt = Time.deltaTime;
@@ -105,6 +128,13 @@ namespace TDOM.Unity
             {
                 AplicarModos(_aiming.Value, _guarding.Value, _aimMove.Value);
                 AplicarSalto(_jumping.Value, _falling.Value);
+                _animator.SetBool(AssaultHash, _assault.Value);
+            }
+            else if (_assaultAutoReleasePending && LlegoAAssaultStand())
+            {
+                _assault.Value = false;
+                _assaultAutoReleasePending = false;
+                _animator.SetBool(AssaultHash, false);
             }
 
             Vector3 posicionActual = transform.position;
@@ -113,6 +143,18 @@ namespace TDOM.Unity
             _ultimaPos = posicionActual;
 
             _animator.SetFloat(SpeedHash, velocidad.magnitude, SpeedDampTime, dt);
+        }
+
+        private bool LlegoAAssaultStand()
+        {
+            if (_animator.layerCount == 0)
+                return false;
+
+            if (_animator.GetCurrentAnimatorStateInfo(0).shortNameHash == AssaultStandStateHash)
+                return true;
+
+            return _animator.IsInTransition(0)
+                && _animator.GetNextAnimatorStateInfo(0).shortNameHash == AssaultStandStateHash;
         }
 
         private void AplicarModos(bool apuntando, bool guardia, Vector2 movimiento)
