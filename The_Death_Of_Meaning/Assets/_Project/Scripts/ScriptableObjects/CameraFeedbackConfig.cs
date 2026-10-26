@@ -46,5 +46,21 @@ namespace TDOM.Data
 
         [Header("Cambio de fase del jefe")]
         public float cambioDeFaseImpulso = 3f;
+
+        [Header("Zoom de dash de Ayla (metros de acercamiento)")]
+        public float zoomAmount = 0.9f;
+        public float tiempoEntrada = 0.06f;
+        public float tiempoSalida = 0.3f;
+        public AnimationCurve curvaZoom = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+        [Header("Zoom de embestida de Zendre (metros de acercamiento)")]
+        public float embestidaZoomAmount = 1.2f;
+        public float embestidaTiempoEntrada = 0.08f;
+        public float embestidaTiempoSalida = 0.4f;
+        public AnimationCurve embestidaCurvaZoom = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+        [Header("Accesibilidad")]
+        [Range(0f, 1f)]
+        public float multiplicadorEfectosCamara = 1f;
     }
 }
