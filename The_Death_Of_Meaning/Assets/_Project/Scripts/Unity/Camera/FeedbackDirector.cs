@@ -29,18 +29,42 @@ namespace TDOM.Unity.Camera
         private void OnDisable()
         {
             DetenerHitstop();
+            if (_cameraRig != null && _config != null)
+                _cameraRig.SetDashFeedback(
+                    false,
+                    0f,
+                    0f,
+                    _config.tiempoSalida,
+                    _config.curvaZoom,
+                    0f
+                );
         }
 
         public void OnDashAyla()
         {
-            _cameraRig.PunchFov(_config.dashFov, _config.dashFovDuracion);
+            if (_config == null || _cameraRig == null)
+                return;
             _cameraRig.Tilt(_config.dashTilt, _config.dashTiltDuracion);
             Rumble(_config.dashRumbleBajo, _config.dashRumbleAlto, _config.dashRumbleDuracion);
         }
 
         public void OnEmbestidaZendre()
         {
-            _cameraRig.PunchFovSostenido(_config.embestidaFov, _config.embestidaDuracion);
+            // El zoom de embestida se anima mientras el estado DashActivo siga vigente.
+        }
+
+        public void ActualizarZoomDash(bool activo, bool esZendre)
+        {
+            if (_cameraRig == null || _config == null)
+                return;
+            _cameraRig.SetDashFeedback(
+                activo,
+                esZendre ? _config.embestidaZoomAmount : _config.zoomAmount,
+                esZendre ? _config.embestidaTiempoEntrada : _config.tiempoEntrada,
+                esZendre ? _config.embestidaTiempoSalida : _config.tiempoSalida,
+                esZendre ? _config.embestidaCurvaZoom : _config.curvaZoom,
+                _config.multiplicadorEfectosCamara
+            );
         }
 
         public void OnDobleSalto()
