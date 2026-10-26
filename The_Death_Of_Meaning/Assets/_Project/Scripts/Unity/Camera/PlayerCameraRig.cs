@@ -32,7 +32,12 @@ namespace TDOM.Unity.Camera
         private float _fovExtra;
         private float _pulsoNivel;
         private float _dashNivel;
-        private float _dashCercaHasta;
+        private float _dashZoomObjetivo;
+        private float _dashZoomInicio;
+        private float _dashZoomTiempo;
+        private float _dashZoomDuracion = 0.1f;
+        private float _dashZoomAmount;
+        private AnimationCurve _dashZoomCurva;
         private Coroutine _rutinaPulso;
         private float _dutchBase;
         private float _dutchExtra;
@@ -72,14 +77,25 @@ namespace TDOM.Unity.Camera
             transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
         }
 
-        /// <summary>
-        /// Acerca la camara mientras dura el dash. Se llama cada frame; si deja de llamarse
-        /// (por ejemplo, el jugador cae abatido) la camara vuelve sola.
-        /// </summary>
-        public void SetDashCerca(bool activo)
+        public void SetDashFeedback(
+            bool activo,
+            float amount,
+            float entrada,
+            float salida,
+            AnimationCurve curva,
+            float multiplicador
+        )
         {
-            if (activo)
-                _dashCercaHasta = Time.time + 0.1f;
+            float objetivo = activo ? 1f : 0f;
+            if (!Mathf.Approximately(objetivo, _dashZoomObjetivo))
+            {
+                _dashZoomInicio = _dashNivel;
+                _dashZoomObjetivo = objetivo;
+                _dashZoomTiempo = 0f;
+                _dashZoomDuracion = Mathf.Max(0.01f, activo ? entrada : salida);
+            }
+            _dashZoomAmount = Mathf.Max(0f, amount) * Mathf.Clamp01(multiplicador);
+            _dashZoomCurva = curva;
         }
 
         private void ActualizarDashCerca(float dt)
@@ -87,11 +103,12 @@ namespace TDOM.Unity.Camera
             if (_config == null)
                 return;
 
-            bool cerca = Time.time < _dashCercaHasta;
-            float tiempo = cerca
-                ? Mathf.Max(0.01f, _config.DashAcercamientoSubida)
-                : Mathf.Max(0.01f, _config.DashAcercamientoBajada);
-            _dashNivel = Mathf.MoveTowards(_dashNivel, cerca ? 1f : 0f, dt / tiempo);
+            if (Mathf.Approximately(_dashNivel, _dashZoomObjetivo))
+                return;
+            _dashZoomTiempo += dt;
+            float t = Mathf.Clamp01(_dashZoomTiempo / _dashZoomDuracion);
+            float eased = _dashZoomCurva != null ? Mathf.Clamp01(_dashZoomCurva.Evaluate(t)) : t;
+            _dashNivel = Mathf.Lerp(_dashZoomInicio, _dashZoomObjetivo, eased);
         }
 
         public void ActualizarEncuadre(bool apuntando, bool atacando, bool corriendo, float dt)
@@ -115,7 +132,7 @@ namespace TDOM.Unity.Camera
             if (_seguimiento == null)
                 return;
 
-            float acercamientoDash = _config != null ? _dashNivel * _config.DashAcercamiento : 0f;
+            float acercamientoDash = _dashNivel * _dashZoomAmount;
             _seguimiento.CameraDistance =
                 encuadre.Distance + (_pulsoNivel * DistanciaPulso()) - acercamientoDash;
             _seguimiento.CameraSide = _stances.CameraSide;
@@ -126,8 +143,6 @@ namespace TDOM.Unity.Camera
 
         private static CameraStanceSettings CrearAjustes(ThirdPersonCameraConfig config)
         {
-            // Sin zoom sostenido, el combate conserva hombro y altura pero no acerca la camara:
-            // el acercamiento llega solo como pulso (ver PulsoCombate).
             CameraStanceValues combate = config.Combat;
             if (!config.CombatZoomSostenido)
             {
@@ -251,8 +266,6 @@ namespace TDOM.Unity.Camera
             _camara.Lens = lente;
         }
 
-        // Cuanto se acerca la camara en el pulso: la mitad (CombatPulsoFactor) de lo que antes
-        // se quedaba fijo en combate. Negativo = acerca.
         private float DistanciaPulso()
         {
             if (_config == null)
@@ -269,10 +282,6 @@ namespace TDOM.Unity.Camera
                 * _config.CombatPulsoFactor;
         }
 
-        /// <summary>
-        /// Acerca la camara un instante y la regresa (zoom in-out). Si llega otro pulso en
-        /// pleno movimiento continua desde el nivel actual, sin saltos.
-        /// </summary>
         public void PulsoCombate()
         {
             if (_config == null || _config.CombatPulsoFactor <= 0f)
