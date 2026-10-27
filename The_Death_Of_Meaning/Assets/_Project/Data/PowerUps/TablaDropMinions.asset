@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 892cfd26e2244abab6af213e9c262829, type: 3}
+  m_Name: TablaDropMinions
+  m_EditorClassIdentifier: 
+  Entradas:
+  - Perfil: {fileID: 11400000, guid: 4133739ce9924fc9832eba4173abfc37, type: 2}
+    Peso: 70
+  - Perfil: {fileID: 11400000, guid: 97a7578a8b6b4d0db060694564f7386a, type: 2}
+    Peso: 30
+  ProbabilidadDrop: 0.3
+  MuertesParaGarantizado: 4
+  MaxVivos: 4

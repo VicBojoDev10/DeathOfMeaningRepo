@@ -860,6 +860,52 @@ namespace TDOM.Unity.Player
         public void AplicarDanioEnServidor(float cantidad, bool esInstaKill = false) =>
             RecibirDanio(cantidad, esInstaKill);
 
+        /// <summary>
+        /// Solo servidor: si el jugador se beneficiaría de ese efecto ahora mismo. Curar: está
+        /// vivo y con la vida incompleta. Los tickets de power-ups siguientes agregan casos.
+        /// </summary>
+        public bool NecesitaPowerUp(TipoEfectoPowerUp efecto)
+        {
+            if (!IsServer || _healthPool == null)
+                return false;
+
+            switch (efecto)
+            {
+                case TipoEfectoPowerUp.Curar:
+                    return _healthPool.State == PlayerLifeState.Vivo
+                        && _healthPool.Current < _healthPool.Max;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>Solo servidor: aplica el efecto del perfil. False si no lo necesitaba.</summary>
+        public bool AplicarPowerUp(PowerUpProfile perfil)
+        {
+            if (perfil == null || !NecesitaPowerUp(perfil.Efecto))
+                return false;
+
+            switch (perfil.Efecto)
+            {
+                case TipoEfectoPowerUp.Curar:
+                    _healthPool.Heal(perfil.Magnitud);
+                    SincronizarVidaEnRed();
+                    break;
+                default:
+                    return false;
+            }
+
+            PowerUpAplicadoRpc();
+            return true;
+        }
+
+        [Rpc(SendTo.Owner)]
+        private void PowerUpAplicadoRpc()
+        {
+            if (_feedback != null)
+                _feedback.OnPowerUpRecibido();
+        }
+
         private void ActualizarEstadoAbatidoEnServidor(float dt)
         {
             PlayerRoot companeroVivo = ObtenerCompaneroVivoCercano(RadioRevivir);
