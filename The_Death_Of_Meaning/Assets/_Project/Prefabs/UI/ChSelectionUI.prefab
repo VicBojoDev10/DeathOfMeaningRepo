@@ -1356,7 +1356,6 @@ MonoBehaviour:
   canvas: {fileID: 3620664904965895607}
   canvasGroup: {fileID: 531752863832880868}
   hideOnStart: 1
-  duration: 1
   easeIn: 26
   easeOut: 27
   firstSelectedObject: {fileID: 4250253610156881163}
@@ -1366,6 +1365,8 @@ MonoBehaviour:
   readyButtonText: {fileID: 111508242501200832}
   statusText: {fileID: 3185645428996373435}
   colorDisponible: {r: 1, g: 1, b: 1, a: 1}
+  colorHover: {r: 0.9608, g: 0.9608, b: 0.9608, a: 1}
+  colorEnFoco: {r: 0.9451, g: 0.8902, b: 0.1569, a: 1}
   colorElegidoPorMi: {r: 0.3, g: 0.7, b: 1, a: 1}
   colorBloqueado: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!1 &8861964951785912728
