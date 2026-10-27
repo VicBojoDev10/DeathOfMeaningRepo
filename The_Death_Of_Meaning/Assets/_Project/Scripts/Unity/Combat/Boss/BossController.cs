@@ -432,10 +432,12 @@ namespace TDOM.Unity.Combat
         private Renderer[] BuscarRenderersCuerpo()
         {
             var encontrados = new List<Renderer>();
+            var ojosVisual = GetComponent<OjosArekVisual>();
             foreach (var r in GetComponentsInChildren<Renderer>())
             {
                 bool esMalla = r is MeshRenderer || r is SkinnedMeshRenderer;
-                if (esMalla && r.enabled && r.GetComponent<HitZone>() == null)
+                bool esOjo = ojosVisual != null && ojosVisual.UsaRenderer(r);
+                if (esMalla && r.enabled && !esOjo && r.GetComponent<HitZone>() == null)
                     encontrados.Add(r);
             }
             return encontrados.ToArray();
