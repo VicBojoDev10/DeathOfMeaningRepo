@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 77d731c2572299343b02657a5ac4eed5
+guid: 0d4f1c0620f10ed48a68e2a5363f780d
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
@@ -32,11 +32,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: ZendreHit
+      name: ZendreLigero
       takeName: Action
       internalID: 7176209919637214875
       firstFrame: 0
-      lastFrame: 141
+      lastFrame: 15
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -65,7 +65,7 @@ ModelImporter:
       takeName: ZendreRigg|Action
       internalID: 8860301551848580695
       firstFrame: 0
-      lastFrame: 141
+      lastFrame: 32
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -94,7 +94,7 @@ ModelImporter:
       takeName: ZendreRigg|rigAction
       internalID: 1440321595853945430
       firstFrame: 0
-      lastFrame: 1140
+      lastFrame: 987
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -187,7 +187,8 @@ ModelImporter:
     hasTranslationDoF: 0
     hasExtraRoot: 0
     skeletonHasParents: 1
-  lastHumanDescriptionAvatarSource: {fileID: 9000000, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
+  lastHumanDescriptionAvatarSource: {fileID: 9000000, guid: 4f73b805bf8760546b44abbe0983d52b,
+    type: 3}
   autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 2
   humanoidOversampling: 1
