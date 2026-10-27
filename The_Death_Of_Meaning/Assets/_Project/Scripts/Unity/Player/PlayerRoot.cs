@@ -224,6 +224,10 @@ namespace TDOM.Unity.Player
                 _inputReader.ActivarPersonaje(_characterId);
                 if (_camera != null)
                     _feedback = _camera.GetComponent<FeedbackDirector>();
+                if (_feedback != null && _feedback.Config != null)
+                    _locomocion.VelocidadMinimaAterrizaje = _feedback
+                        .Config
+                        .aterrizajeVelocidadMinima;
             }
         }
 
@@ -516,7 +520,14 @@ namespace TDOM.Unity.Player
             if (_locomocion.SaltoAereo)
                 _feedback.OnDobleSalto();
             if (_locomocion.Aterrizaje)
-                _feedback.OnAterrizajeFuerte();
+            {
+                bool hayOtraAccionDeCamara =
+                    _locomocion.DashActivo
+                    || _locomocion.SaltoAereo
+                    || _locomocion.GanchoActivo
+                    || _ganchoActivoPrevio;
+                _feedback.OnAterrizajeFuerte(_locomocion.VelocidadImpacto, hayOtraAccionDeCamara);
+            }
         }
 
         private void AplicarMiradaACamara()
@@ -618,7 +629,10 @@ namespace TDOM.Unity.Player
                 return;
 
             if (_locomocion.IntentarGancho(transform.position, apuntado.TargetPoint))
+            {
                 _camera.PunchFov(8f, 0.2f);
+                _feedback?.RegistrarAccionCamara(0.2f);
+            }
         }
 
         private void Update()
