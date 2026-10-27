@@ -23,6 +23,8 @@ namespace TDOM.Gameplay.Locomotion
         public bool DashIniciado { get; private set; }
         public bool SaltoAereo { get; private set; }
         public bool Aterrizaje { get; private set; }
+        public float VelocidadImpacto { get; private set; }
+        public float VelocidadMinimaAterrizaje { get; set; } = -UmbralAterrizajeFuerte;
         public bool SaltoEnCurso { get; private set; }
         public bool CayendoEnSalto { get; private set; }
 
@@ -116,10 +118,12 @@ namespace TDOM.Gameplay.Locomotion
             DashIniciado = false;
             SaltoAereo = false;
             Aterrizaje = false;
+            VelocidadImpacto = 0f;
 
-            if (State.IsGrounded && !_groundedPrevio && _velYPrevia < UmbralAterrizajeFuerte)
+            if (State.IsGrounded && !_groundedPrevio && -_velYPrevia >= VelocidadMinimaAterrizaje)
             {
                 Aterrizaje = true;
+                VelocidadImpacto = -_velYPrevia;
             }
 
             // Mantener el bool de salto sincronizado con el contacto real con el
