@@ -12,6 +12,15 @@ namespace TDOM.POCO.ScriptableObjects
         [Min(0f)]
         public float Cooldown = 5f;
 
+        [Tooltip(
+            "Segundos que un ojo brilla sin que Ayla lo golpee antes de cerrarse y encenderse otro. 0 = no caduca."
+        )]
+        [Min(0f)]
+        public float DuracionBrillando = 12f;
+
+        [Tooltip(
+            "0 = aleatoria en cada partida. Distinto de 0 = semilla fija (para reproducir un bug o depurar)."
+        )]
         public int Semilla;
 
         [Header("Ojos activos por fase (uno por BossPhaseProfile)")]
@@ -25,5 +34,9 @@ namespace TDOM.POCO.ScriptableObjects
         public Color ColorAbierto = Color.red;
 
         public Color ColorEnfriando = Color.blue;
+
+        [Header("Glow de los ojos del modelo (OjoLow)")]
+        [Min(0f)]
+        public float IntensidadGlow = 2f;
     }
 }

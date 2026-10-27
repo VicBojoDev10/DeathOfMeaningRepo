@@ -224,6 +224,10 @@ namespace TDOM.Unity.Player
                 _inputReader.ActivarPersonaje(_characterId);
                 if (_camera != null)
                     _feedback = _camera.GetComponent<FeedbackDirector>();
+                if (_feedback != null && _feedback.Config != null)
+                    _locomocion.VelocidadMinimaAterrizaje = _feedback
+                        .Config
+                        .aterrizajeVelocidadMinima;
             }
         }
 
@@ -516,7 +520,14 @@ namespace TDOM.Unity.Player
             if (_locomocion.SaltoAereo)
                 _feedback.OnDobleSalto();
             if (_locomocion.Aterrizaje)
-                _feedback.OnAterrizajeFuerte();
+            {
+                bool hayOtraAccionDeCamara =
+                    _locomocion.DashActivo
+                    || _locomocion.SaltoAereo
+                    || _locomocion.GanchoActivo
+                    || _ganchoActivoPrevio;
+                _feedback.OnAterrizajeFuerte(_locomocion.VelocidadImpacto, hayOtraAccionDeCamara);
+            }
         }
 
         private void AplicarMiradaACamara()
@@ -618,7 +629,10 @@ namespace TDOM.Unity.Player
                 return;
 
             if (_locomocion.IntentarGancho(transform.position, apuntado.TargetPoint))
+            {
                 _camera.PunchFov(8f, 0.2f);
+                _feedback?.RegistrarAccionCamara(0.2f);
+            }
         }
 
         private void Update()
@@ -849,6 +863,52 @@ namespace TDOM.Unity.Player
 
         public void AplicarDanioEnServidor(float cantidad, bool esInstaKill = false) =>
             RecibirDanio(cantidad, esInstaKill);
+
+        /// <summary>
+        /// Solo servidor: si el jugador se beneficiaría de ese efecto ahora mismo. Curar: está
+        /// vivo y con la vida incompleta. Los tickets de power-ups siguientes agregan casos.
+        /// </summary>
+        public bool NecesitaPowerUp(TipoEfectoPowerUp efecto)
+        {
+            if (!IsServer || _healthPool == null)
+                return false;
+
+            switch (efecto)
+            {
+                case TipoEfectoPowerUp.Curar:
+                    return _healthPool.State == PlayerLifeState.Vivo
+                        && _healthPool.Current < _healthPool.Max;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>Solo servidor: aplica el efecto del perfil. False si no lo necesitaba.</summary>
+        public bool AplicarPowerUp(PowerUpProfile perfil)
+        {
+            if (perfil == null || !NecesitaPowerUp(perfil.Efecto))
+                return false;
+
+            switch (perfil.Efecto)
+            {
+                case TipoEfectoPowerUp.Curar:
+                    _healthPool.Heal(perfil.Magnitud);
+                    SincronizarVidaEnRed();
+                    break;
+                default:
+                    return false;
+            }
+
+            PowerUpAplicadoRpc();
+            return true;
+        }
+
+        [Rpc(SendTo.Owner)]
+        private void PowerUpAplicadoRpc()
+        {
+            if (_feedback != null)
+                _feedback.OnPowerUpRecibido();
+        }
 
         private void ActualizarEstadoAbatidoEnServidor(float dt)
         {

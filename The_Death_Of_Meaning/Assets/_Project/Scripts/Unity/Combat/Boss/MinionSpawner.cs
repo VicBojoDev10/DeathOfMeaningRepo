@@ -28,9 +28,22 @@ namespace TDOM.Unity
         [SerializeField]
         private BossController _jefe;
 
+        [Header("Drops de power-ups (TW-276)")]
+        [SerializeField]
+        private TablaDropProfile _tablaDrop;
+
+        [Tooltip("Debe ser el mismo catálogo que usa PowerUpPickup.prefab.")]
+        [SerializeField]
+        private PowerUpCatalogo _catalogo;
+
+        [SerializeField]
+        private GameObject _prefabPickup;
+
         // Solo servidor.
         private MinionSpawnRule _regla;
         private readonly List<MinionController> _vivos = new List<MinionController>();
+        private ReglaDropPowerUp _reglaDrop;
+        private readonly List<PowerUpPickup> _pickupsVivos = new List<PowerUpPickup>();
 
         public override void OnNetworkSpawn()
         {
@@ -51,6 +64,7 @@ namespace TDOM.Unity
             }
 
             _regla = new MinionSpawnRule();
+            PrepararDrops();
             _ataques.AtaqueEjecutado += AlEjecutarAtaque;
             _jefe.OnFaseChanged += AlCambiarFase;
 
@@ -87,6 +101,39 @@ namespace TDOM.Unity
                     minion.Murio -= AlMorirMinion;
             }
             _vivos.Clear();
+
+            foreach (var pickup in _pickupsVivos)
+            {
+                if (pickup != null)
+                    pickup.Despawneado -= AlDespawnearPickup;
+            }
+            _pickupsVivos.Clear();
+        }
+
+        // La regla de drops solo existe si están asignadas la tabla, el catálogo y el prefab.
+        private void PrepararDrops()
+        {
+            if (_tablaDrop == null || _catalogo == null || _prefabPickup == null)
+            {
+                Debug.LogWarning(
+                    "[MinionSpawner] Sin tabla de drops, catálogo o prefab de pickup: los minions no sueltan power-ups."
+                );
+                return;
+            }
+
+            var pesos = new float[_tablaDrop.Entradas.Length];
+            for (int i = 0; i < pesos.Length; i++)
+            {
+                bool enCatalogo = _catalogo.IndiceDe(_tablaDrop.Entradas[i].Perfil) >= 0;
+                pesos[i] = enCatalogo ? _tablaDrop.Entradas[i].Peso : 0f;
+            }
+
+            _reglaDrop = new ReglaDropPowerUp(
+                _tablaDrop.ProbabilidadDrop,
+                _tablaDrop.MuertesParaGarantizado,
+                _tablaDrop.MaxVivos,
+                pesos
+            );
         }
 
         // Los vivos de la fase anterior se quedan; el siguiente Especial spawnea los de la nueva fase.
@@ -237,6 +284,56 @@ namespace TDOM.Unity
             _vivos.Remove(minion);
             _regla.RegistrarMuerte();
             Debug.Log($"[MinionSpawner] Murió un minion. Vivos: {_regla.Vivos}");
+
+            if (!_jefe.Pausado)
+                IntentarSoltarPowerUp(minion.transform.position);
+        }
+
+        private void IntentarSoltarPowerUp(Vector3 posicionMinion)
+        {
+            if (_reglaDrop == null)
+                return;
+
+            int? entrada = _reglaDrop.Elegir(Random.value, Random.value, _pickupsVivos.Count);
+            if (!entrada.HasValue)
+                return;
+
+            var perfil = _tablaDrop.Entradas[entrada.Value].Perfil;
+            int indiceCatalogo = _catalogo.IndiceDe(perfil);
+            if (indiceCatalogo < 0)
+                return;
+
+            // Excepción aprobada a la regla de Instantiate: misma ruta de spawn en red que los minions.
+            GameObject go = Instantiate(
+                _prefabPickup,
+                BajarAlPiso(posicionMinion),
+                Quaternion.identity
+            );
+
+            var pickup = go.GetComponent<PowerUpPickup>();
+            var no = go.GetComponent<NetworkObject>();
+            if (pickup == null || no == null)
+            {
+                Debug.LogError(
+                    "[MinionSpawner] El prefab del pickup necesita PowerUpPickup y NetworkObject."
+                );
+                Destroy(go);
+                return;
+            }
+
+            pickup.Preparar(indiceCatalogo);
+            pickup.Despawneado += AlDespawnearPickup;
+            _pickupsVivos.Add(pickup);
+            no.Spawn();
+            Debug.Log(
+                $"[MinionSpawner] Drop: {perfil.Nombre} (pickups vivos: {_pickupsVivos.Count})."
+            );
+        }
+
+        private void AlDespawnearPickup(PowerUpPickup pickup)
+        {
+            pickup.Despawneado -= AlDespawnearPickup;
+            _pickupsVivos.Remove(pickup);
         }
     }
 }

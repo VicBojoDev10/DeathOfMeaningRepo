@@ -18,6 +18,7 @@ namespace TDOM.Unity.Camera
 
         [SerializeField]
         private CinemachineImpulseSource _impulso;
+        private CinemachineImpulseSource _impulsoAterrizaje;
 
         [SerializeField]
         private ThirdPersonCameraConfig _config;
@@ -53,6 +54,7 @@ namespace TDOM.Unity.Camera
         {
             _cuerpo = transform.root;
             _stances = new CameraStanceResolver(CrearAjustes(_config));
+            CrearFuenteImpulsoAterrizaje();
             LeerValoresBaseDeCamara();
             AplicarEncuadre();
         }
@@ -233,6 +235,30 @@ namespace TDOM.Unity.Camera
         }
 
         public void Impacto(float fuerza) => _impulso.GenerateImpulse(fuerza);
+
+        public void ImpactoAterrizaje(float fuerza, float duracion)
+        {
+            if (_impulsoAterrizaje == null || _impulsoAterrizaje.ImpulseDefinition == null)
+                return;
+
+            _impulsoAterrizaje.ImpulseDefinition.ImpulseDuration = Mathf.Max(0.01f, duracion);
+            _impulsoAterrizaje.GenerateImpulse(fuerza);
+        }
+
+        private void CrearFuenteImpulsoAterrizaje()
+        {
+            _impulsoAterrizaje = gameObject.AddComponent<CinemachineImpulseSource>();
+            var definicion = _impulsoAterrizaje.ImpulseDefinition;
+            definicion.ImpulseChannel =
+                _impulso != null && _impulso.ImpulseDefinition != null
+                    ? _impulso.ImpulseDefinition.ImpulseChannel
+                    : 1;
+            definicion.ImpulseShape = CinemachineImpulseDefinition.ImpulseShapes.Bump;
+            definicion.ImpulseType = CinemachineImpulseDefinition.ImpulseTypes.Uniform;
+            definicion.DissipationDistance = 100f;
+            definicion.ImpulseDuration = 0.14f;
+            _impulsoAterrizaje.DefaultVelocity = Vector3.down;
+        }
 
         private IEnumerator RutinaFov(float grados, float duracion)
         {

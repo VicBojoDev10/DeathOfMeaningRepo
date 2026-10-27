@@ -101,12 +101,16 @@ namespace TDOM.Unity.Combat
                 return false;
             }
 
+            int semilla = ResolverSemilla();
+            Debug.Log($"[OjosArek] Semilla: {semilla}");
+
             var ojos = new WeakPointStateMachine(
                 zonas.Length,
                 _perfil.DuracionAbierto,
                 _perfil.Cooldown,
-                _perfil.Semilla,
-                _perfil.OjosActivosPorFase
+                semilla,
+                _perfil.OjosActivosPorFase,
+                _perfil.DuracionBrillando
             );
             _danio = new BossWeakPointDamage(ojos, fases);
             _zonas = zonas;
@@ -143,6 +147,14 @@ namespace TDOM.Unity.Combat
         {
             _danio.Tick(dt);
             Sincronizar();
+        }
+
+        private int ResolverSemilla()
+        {
+            if (_perfil.Semilla != 0)
+                return _perfil.Semilla;
+
+            return Environment.TickCount ^ Guid.NewGuid().GetHashCode();
         }
 
         private void Sincronizar()

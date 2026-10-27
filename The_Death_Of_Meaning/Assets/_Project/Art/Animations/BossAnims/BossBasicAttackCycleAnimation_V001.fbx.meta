@@ -3,7 +3,17 @@ guid: 1d2b0d5ba373b5e478519f0ae2a72afc
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MaterialOjosArtefactosBocaMonstruo
+    second: {fileID: 2100000, guid: 43c4138429a2c074dbb795fdb7ab6efd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material_CuerpoMonstruo
+    second: {fileID: 2100000, guid: 2dfe37b14ca729d47ad40c426570aa1d, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -43,8 +53,8 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 1
+      loopTime: 0
+      loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 1
       loopBlendPositionXZ: 1
