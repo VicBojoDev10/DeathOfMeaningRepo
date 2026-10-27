@@ -64,6 +64,7 @@ namespace TDOM.Unity
 
             float tiempoFinal = Mathf.Max(0f, Time.time - _inicioCronometro);
             PauseManager.Instance?.EstablecerResultadoDesdeServidor(ResultadoPartida.Victoria);
+            LimpiarMinionsEnServidor();
             _cronometroActivo = false;
             Debug.Log($"[GameSessionManager] Partida terminada en {tiempoFinal:F1} segundos.");
             MostrarVictoriaClientRpc(tiempoFinal);
@@ -383,6 +384,7 @@ namespace TDOM.Unity
                 return;
 
             PauseManager.Instance?.RestablecerResultadoDesdeServidor();
+            LimpiarMinionsEnServidor();
             _inicioPartidaEnProceso = true;
             var objetosSpawneados = new List<NetworkObject>(
                 NetworkManager.SpawnManager.SpawnedObjectsList
@@ -404,6 +406,23 @@ namespace TDOM.Unity
             _inicioPartidaEnProceso = false;
             VerificarInicioPartida();
             IniciarCronometro();
+        }
+
+        // TW-278: al ganar, perder o reiniciar no deben quedar minions ni orbes de la partida.
+        private void LimpiarMinionsEnServidor()
+        {
+            if (!IsServer || NetworkManager == null || NetworkManager.SpawnManager == null)
+                return;
+
+            // Se busca primero y se limpia después: despawnear modifica SpawnedObjectsList.
+            MinionSpawner spawner = null;
+            foreach (var objeto in NetworkManager.SpawnManager.SpawnedObjectsList)
+            {
+                if (objeto != null && objeto.TryGetComponent(out spawner))
+                    break;
+            }
+
+            spawner?.LimpiarTodos();
         }
 
         public void PrepararSalidaAlMenu() => _cerrandoSesionPorSalida = true;
@@ -451,6 +470,7 @@ namespace TDOM.Unity
 
             _cronometroActivo = false;
             PauseManager.Instance?.EstablecerResultadoDesdeServidor(ResultadoPartida.Derrota);
+            LimpiarMinionsEnServidor();
             Debug.Log($"[GameSessionManager] Derrota registrada en la fase {fase}.");
             MostrarDerrotaClientRpc(fase);
         }

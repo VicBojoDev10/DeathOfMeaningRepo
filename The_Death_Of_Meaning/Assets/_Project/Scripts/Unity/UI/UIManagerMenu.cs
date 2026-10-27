@@ -22,7 +22,7 @@ namespace TDOM.Unity
         private void EnsureMainMenu()
         {
             if (_mainMenu == null)
-                _mainMenu = FindFirstObjectByType<MainMenuUI>(FindObjectsInactive.Include);
+                _mainMenu = FindAnyObjectByType<MainMenuUI>(FindObjectsInactive.Include);
 
             if (_mainMenu == null && _mainMenuPrefab != null)
                 _mainMenu = Instantiate(_mainMenuPrefab, transform);

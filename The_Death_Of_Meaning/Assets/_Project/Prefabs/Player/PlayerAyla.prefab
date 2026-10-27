@@ -4919,6 +4919,7 @@ GameObject:
   - component: {fileID: 6057063955198916791}
   - component: {fileID: 2102127513358069341}
   - component: {fileID: 5756340313008821684}
+  - component: {fileID: 4092464067334334174}
   m_Layer: 0
   m_Name: PlayerAyla
   m_TagString: Player
@@ -4945,6 +4946,7 @@ Transform:
   - {fileID: 1866025965018480206}
   - {fileID: 8212632726660078027}
   - {fileID: 4571251578767638599}
+  - {fileID: 1219787376790169299}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &5884450346086718015
@@ -5516,6 +5518,28 @@ MonoBehaviour:
   _fillImage: {fileID: 237506179095695175}
   _canvas: {fileID: 2833608773177654247}
   _profile: {fileID: 11400000, guid: bb7adef1e27e4dd4b94be56a46ba3e3d, type: 2}
+--- !u!114 &4092464067334334174
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2229917530308356307}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ebe8d5cc0bd04f2b95bb2740cb9a37a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Vfx.VfxAylaGanchoViento
+  _gancho: {fileID: 0}
+  _intensidad: 1
+  _longitud: 8
+  _opacidad: 0.8
+  _color: {r: 0.85, g: 0.95, b: 1, a: 1}
+  _velocidadReferencia: 25
+  _suavizadoVelocidad: 12
+  _tiempoSubida: 0.15
+  _tiempoBajada: 0.4
+  _capas: []
 --- !u!1 &5167135693431690079
 GameObject:
   m_ObjectHideFlags: 0
@@ -5754,6 +5778,68 @@ MonoBehaviour:
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7230940549405842864, guid: 74f51f0cde35aaa4992a2e34a5fb7423, type: 3}
   m_PrefabInstance: {fileID: 1558342148638622843}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1801713522877556462
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 4026500297177568966}
+    m_Modifications:
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3954326398918770387, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_Name
+      value: Vfx_AylaGanchoViento
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+--- !u!4 &1219787376790169299 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+  m_PrefabInstance: {fileID: 1801713522877556462}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &5188998373210228190
 PrefabInstance:

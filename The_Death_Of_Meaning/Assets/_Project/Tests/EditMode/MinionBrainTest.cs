@@ -204,5 +204,98 @@ namespace TDOM.Tests.EditMode
             Assert.IsFalse(MinionBrain.TryElegirMasCercano(new List<BossTargetCandidate>(), out _));
             Assert.IsFalse(MinionBrain.TryElegirMasCercano(null, out _));
         }
+
+        [Test]
+        public void con_un_abatido_elige_al_vivo()
+        {
+            var candidatos = new List<MinionCandidato>
+            {
+                new MinionCandidato(1, 2f, false),
+                new MinionCandidato(2, 9f, true),
+            };
+
+            bool hay = MinionBrain.TryElegirObjetivoVivo(candidatos, out ulong objetivo);
+
+            Assert.IsTrue(hay);
+            Assert.AreEqual(2UL, objetivo);
+        }
+
+        [Test]
+        public void el_vivo_lejano_gana_al_abatido_cercano()
+        {
+            var candidatos = new List<MinionCandidato>
+            {
+                new MinionCandidato(1, 0.5f, false),
+                new MinionCandidato(2, 40f, true),
+            };
+
+            Assert.IsTrue(MinionBrain.TryElegirObjetivoVivo(candidatos, out ulong objetivo));
+            Assert.AreEqual(2UL, objetivo);
+        }
+
+        [Test]
+        public void con_ambos_abatidos_no_elige_a_nadie()
+        {
+            var candidatos = new List<MinionCandidato>
+            {
+                new MinionCandidato(1, 2f, false),
+                new MinionCandidato(2, 9f, false),
+            };
+
+            Assert.IsFalse(MinionBrain.TryElegirObjetivoVivo(candidatos, out ulong objetivo));
+            Assert.AreEqual(0UL, objetivo);
+        }
+
+        [Test]
+        public void con_ambos_vivos_elige_al_mas_cercano()
+        {
+            var candidatos = new List<MinionCandidato>
+            {
+                new MinionCandidato(1, 8f, true),
+                new MinionCandidato(2, 3f, true),
+            };
+
+            Assert.IsTrue(MinionBrain.TryElegirObjetivoVivo(candidatos, out ulong objetivo));
+            Assert.AreEqual(2UL, objetivo);
+        }
+
+        [Test]
+        public void al_caer_el_objetivo_la_siguiente_eleccion_cambia_al_companero()
+        {
+            var candidatos = new List<MinionCandidato>
+            {
+                new MinionCandidato(1, 2f, true),
+                new MinionCandidato(2, 9f, true),
+            };
+            MinionBrain.TryElegirObjetivoVivo(candidatos, out ulong antes);
+
+            candidatos[0] = new MinionCandidato(1, 2f, false);
+            MinionBrain.TryElegirObjetivoVivo(candidatos, out ulong despues);
+
+            Assert.AreEqual(1UL, antes);
+            Assert.AreEqual(2UL, despues);
+        }
+
+        [Test]
+        public void un_jugador_revivido_vuelve_a_ser_candidato()
+        {
+            var candidatos = new List<MinionCandidato>
+            {
+                new MinionCandidato(1, 2f, false),
+                new MinionCandidato(2, 9f, true),
+            };
+
+            candidatos[0] = new MinionCandidato(1, 2f, true);
+
+            Assert.IsTrue(MinionBrain.TryElegirObjetivoVivo(candidatos, out ulong objetivo));
+            Assert.AreEqual(1UL, objetivo);
+        }
+
+        [Test]
+        public void sin_candidatos_no_hay_objetivo_vivo()
+        {
+            Assert.IsFalse(MinionBrain.TryElegirObjetivoVivo(new List<MinionCandidato>(), out _));
+            Assert.IsFalse(MinionBrain.TryElegirObjetivoVivo(null, out _));
+        }
     }
 }
