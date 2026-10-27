@@ -95,19 +95,49 @@ namespace TDOM.Unity
                 }
             }
 
-            foreach (var minion in _vivos)
+            LimpiarTodos();
+        }
+
+        /// <summary>
+        /// Solo servidor (TW-278): despawnea los minions vivos y los pickups sueltos, vacía las
+        /// listas y deja la regla de spawn como nueva (Vivos = 0). Lo llama GameSessionManager al
+        /// ganar, perder o reiniciar, y OnNetworkDespawn (el jefe despawneado se lleva a sus
+        /// minions). Durante el apagado de la red solo suelta las referencias: Netcode ya
+        /// despawnea todo por su cuenta.
+        /// </summary>
+        public void LimpiarTodos()
+        {
+            if (!IsServer)
+                return;
+
+            bool puedeDespawnear = NetworkManager != null && !NetworkManager.ShutdownInProgress;
+
+            // Copias: despawnear dispara Murio/Despawneado, que modifican las listas originales.
+            foreach (var minion in _vivos.ToArray())
             {
-                if (minion != null)
-                    minion.Murio -= AlMorirMinion;
+                if (minion == null)
+                    continue;
+
+                minion.Murio -= AlMorirMinion;
+                if (puedeDespawnear && minion.IsSpawned)
+                    minion.NetworkObject.Despawn(true);
             }
             _vivos.Clear();
 
-            foreach (var pickup in _pickupsVivos)
+            foreach (var pickup in _pickupsVivos.ToArray())
             {
-                if (pickup != null)
-                    pickup.Despawneado -= AlDespawnearPickup;
+                if (pickup == null)
+                    continue;
+
+                pickup.Despawneado -= AlDespawnearPickup;
+                if (puedeDespawnear && pickup.IsSpawned)
+                    pickup.NetworkObject.Despawn();
             }
             _pickupsVivos.Clear();
+
+            // Si OnNetworkSpawn no llegó a crearla (faltan referencias), no hay nada que reiniciar.
+            if (_regla != null)
+                _regla = new MinionSpawnRule();
         }
 
         // La regla de drops solo existe si están asignadas la tabla, el catálogo y el prefab.
