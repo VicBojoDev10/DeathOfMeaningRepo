@@ -22,7 +22,9 @@ namespace TDOM.Unity.Combat
         private Animator _animator;
 
         [Header("Caminar")]
-        [Tooltip("El jefe solo camina desde esta fase (en la fase 1 siempre está en Idle y atacando).")]
+        [Tooltip(
+            "El jefe solo camina desde esta fase (en la fase 1 siempre está en Idle y atacando)."
+        )]
         [SerializeField]
         private int _faseMinimaCaminar = 2;
 

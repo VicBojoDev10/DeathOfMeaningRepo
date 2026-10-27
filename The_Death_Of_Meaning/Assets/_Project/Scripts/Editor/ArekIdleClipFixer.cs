@@ -95,10 +95,7 @@ namespace TDOM.EditorTools
                 AnimationClip candidato = null;
                 foreach (var objeto in AssetDatabase.LoadAllAssetsAtPath(ruta))
                 {
-                    if (
-                        objeto is AnimationClip clip
-                        && !clip.name.StartsWith("__preview__")
-                    )
+                    if (objeto is AnimationClip clip && !clip.name.StartsWith("__preview__"))
                     {
                         if (clip.name == "BossIdle")
                             return clip;

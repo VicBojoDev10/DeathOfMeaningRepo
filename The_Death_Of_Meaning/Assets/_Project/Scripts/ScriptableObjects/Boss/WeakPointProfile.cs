@@ -25,5 +25,9 @@ namespace TDOM.POCO.ScriptableObjects
         public Color ColorAbierto = Color.red;
 
         public Color ColorEnfriando = Color.blue;
+
+        [Header("Glow de los ojos del modelo (OjoLow)")]
+        [Min(0f)]
+        public float IntensidadGlow = 2f;
     }
 }
