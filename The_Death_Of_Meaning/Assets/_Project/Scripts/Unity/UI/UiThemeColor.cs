@@ -1,4 +1,4 @@
-using TDOM.POCO.ScriptableObjects;
+using TDOM.Data;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,22 +6,22 @@ namespace TDOM.Unity.UI
 {
     public enum UiThemeColorName
     {
-        tinta950,
-        tinta900,
-        tinta800,
-        tinta700,
-        acero600,
-        acero400,
-        niebla300,
-        hueso100,
-        oro300,
-        oro500,
-        oro700,
-        carmesi300,
-        carmesi500,
-        carmesi700,
-        luna300,
-        luna500,
+        Tinta950,
+        Tinta900,
+        Tinta800,
+        Tinta700,
+        Acero600,
+        Acero400,
+        Niebla300,
+        Hueso100,
+        Oro300,
+        Oro500,
+        Oro700,
+        Carmesi300,
+        Carmesi500,
+        Carmesi700,
+        Luna300,
+        Luna500,
     }
 
     [ExecuteAlways]
@@ -52,38 +52,38 @@ namespace TDOM.Unity.UI
         {
             switch (name)
             {
-                case UiThemeColorName.tinta950:
-                    return source.tinta950;
-                case UiThemeColorName.tinta900:
-                    return source.tinta900;
-                case UiThemeColorName.tinta800:
-                    return source.tinta800;
-                case UiThemeColorName.tinta700:
-                    return source.tinta700;
-                case UiThemeColorName.acero600:
-                    return source.acero600;
-                case UiThemeColorName.acero400:
-                    return source.acero400;
-                case UiThemeColorName.niebla300:
-                    return source.niebla300;
-                case UiThemeColorName.hueso100:
-                    return source.hueso100;
-                case UiThemeColorName.oro300:
-                    return source.oro300;
-                case UiThemeColorName.oro500:
-                    return source.oro500;
-                case UiThemeColorName.oro700:
-                    return source.oro700;
-                case UiThemeColorName.carmesi300:
-                    return source.carmesi300;
-                case UiThemeColorName.carmesi500:
-                    return source.carmesi500;
-                case UiThemeColorName.carmesi700:
-                    return source.carmesi700;
-                case UiThemeColorName.luna300:
-                    return source.luna300;
-                case UiThemeColorName.luna500:
-                    return source.luna500;
+                case UiThemeColorName.Tinta950:
+                    return source.Tinta950;
+                case UiThemeColorName.Tinta900:
+                    return source.Tinta900;
+                case UiThemeColorName.Tinta800:
+                    return source.Tinta800;
+                case UiThemeColorName.Tinta700:
+                    return source.Tinta700;
+                case UiThemeColorName.Acero600:
+                    return source.Acero600;
+                case UiThemeColorName.Acero400:
+                    return source.Acero400;
+                case UiThemeColorName.Niebla300:
+                    return source.Niebla300;
+                case UiThemeColorName.Hueso100:
+                    return source.Hueso100;
+                case UiThemeColorName.Oro300:
+                    return source.Oro300;
+                case UiThemeColorName.Oro500:
+                    return source.Oro500;
+                case UiThemeColorName.Oro700:
+                    return source.Oro700;
+                case UiThemeColorName.Carmesi300:
+                    return source.Carmesi300;
+                case UiThemeColorName.Carmesi500:
+                    return source.Carmesi500;
+                case UiThemeColorName.Carmesi700:
+                    return source.Carmesi700;
+                case UiThemeColorName.Luna300:
+                    return source.Luna300;
+                case UiThemeColorName.Luna500:
+                    return source.Luna500;
                 default:
                     return Color.white;
             }

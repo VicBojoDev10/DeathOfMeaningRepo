@@ -1,37 +1,36 @@
-using System;
 using UnityEngine;
 
-namespace TDOM.POCO.ScriptableObjects
+namespace TDOM.Data
 {
     [CreateAssetMenu(fileName = "UiTheme", menuName = "TDOM/UI/Theme")]
     public class UiTheme : ScriptableObject
     {
         [Header("Tinta")]
-        public Color tinta950;
-        public Color tinta900;
-        public Color tinta800;
-        public Color tinta700;
+        public Color Tinta950;
+        public Color Tinta900;
+        public Color Tinta800;
+        public Color Tinta700;
 
         [Header("Acero")]
-        public Color acero600;
-        public Color acero400;
+        public Color Acero600;
+        public Color Acero400;
 
         [Header("Niebla / Hueso")]
-        public Color niebla300;
-        public Color hueso100;
+        public Color Niebla300;
+        public Color Hueso100;
 
         [Header("Oro")]
-        public Color oro300;
-        public Color oro500;
-        public Color oro700;
+        public Color Oro300;
+        public Color Oro500;
+        public Color Oro700;
 
         [Header("Carmesí")]
-        public Color carmesi300;
-        public Color carmesi500;
-        public Color carmesi700;
+        public Color Carmesi300;
+        public Color Carmesi500;
+        public Color Carmesi700;
 
         [Header("Luna")]
-        public Color luna300;
-        public Color luna500;
+        public Color Luna300;
+        public Color Luna500;
     }
 }
