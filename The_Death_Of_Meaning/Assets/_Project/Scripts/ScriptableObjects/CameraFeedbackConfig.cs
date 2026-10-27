@@ -35,8 +35,28 @@ namespace TDOM.Data
         [Header("Golpe recibido de un enemigo")]
         public float golpeRecibidoImpulso = 1f;
 
-        [Header("Aterrizaje fuerte")]
-        public float aterrizajeImpulso = 0.4f;
+        [Header("Shake de aterrizaje")]
+        [Tooltip(
+            "Intensidad base al alcanzar la velocidad mínima; reducida a la mitad del valor anterior."
+        )]
+        [Min(0f)]
+        public float aterrizajeImpulso = 0.2f;
+
+        [Tooltip("Velocidad vertical descendente mínima, en m/s, para generar shake.")]
+        [Min(0f)]
+        public float aterrizajeVelocidadMinima = 16f;
+
+        [Tooltip("Velocidad descendente a la que se alcanza el tope, en m/s.")]
+        [Min(0.01f)]
+        public float aterrizajeVelocidadMaxima = 35f;
+
+        [Tooltip("Tope de intensidad del shake para caídas rápidas.")]
+        [Min(0f)]
+        public float aterrizajeImpulsoMaximo = 0.4f;
+
+        [Tooltip("Duración de la sacudida, en segundos.")]
+        [Min(0.01f)]
+        public float aterrizajeDuracion = 0.14f;
 
         [Header("Cambio de fase del jefe")]
         public float cambioDeFaseImpulso = 3f;
