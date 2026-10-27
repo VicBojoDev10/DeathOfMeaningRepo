@@ -1,5 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
+using TDOM.Unity.Player;
 
 namespace TDOM.Unity
 {
@@ -15,6 +16,10 @@ namespace TDOM.Unity
         private static readonly int ShootHash = Animator.StringToHash("Shoot");
         private static readonly int AssaultHash = Animator.StringToHash("assault");
         private static readonly int AssaultStandStateHash = Animator.StringToHash("AssaultStand");
+        private static readonly int DamageHash = Animator.StringToHash("Damage");
+        private static readonly int DamageStateHash = Animator.StringToHash("Base Layer.Damage");
+        private const float DamageBlendMaximum = 50f;
+        private const float DamageTransitionDuration = 0.1f;
         private const float SpeedDampTime = 0.1f;
 
         [Header("Referencias")]
@@ -54,6 +59,7 @@ namespace TDOM.Unity
 
         private Vector3 _ultimaPos;
         private bool _assaultAutoReleasePending;
+        private PlayerRoot _playerRoot;
 
         private void Awake()
         {
@@ -64,14 +70,41 @@ namespace TDOM.Unity
         public override void OnNetworkSpawn()
         {
             _ultimaPos = transform.position;
+            _playerRoot = GetComponentInParent<PlayerRoot>();
+            if (_playerRoot != null)
+                _playerRoot.Vida.OnValueChanged += AlCambiarVida;
+
             if (_animator != null)
             {
                 _animator.SetFloat(SpeedHash, 0f);
+                _animator.SetFloat(DamageHash, 0f);
                 AplicarModos(false, false, Vector2.zero);
                 _animator.SetBool(JumpHash, _jumping.Value);
                 _animator.SetBool(FallingHash, _falling.Value);
                 _animator.SetBool(AssaultHash, _assault.Value);
             }
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            if (_playerRoot != null)
+                _playerRoot.Vida.OnValueChanged -= AlCambiarVida;
+
+            _playerRoot = null;
+            base.OnNetworkDespawn();
+        }
+
+        private void AlCambiarVida(float vidaAnterior, float vidaActual)
+        {
+            if (_animator == null)
+                return;
+
+            float danioRecibido = vidaAnterior - vidaActual;
+            if (danioRecibido <= 0f)
+                return;
+
+            _animator.SetFloat(DamageHash, Mathf.Clamp(danioRecibido, 0f, DamageBlendMaximum));
+            _animator.CrossFade(DamageStateHash, DamageTransitionDuration, 0, 0f);
         }
 
         public void ActualizarApuntado(bool apuntando, bool guardia, Vector2 movimiento)
