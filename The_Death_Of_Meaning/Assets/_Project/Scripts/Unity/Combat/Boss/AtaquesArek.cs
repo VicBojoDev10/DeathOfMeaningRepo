@@ -99,6 +99,9 @@ namespace TDOM.Unity
         private readonly TDOM.Gameplay.Combat.BossMovement _logicaMovimiento =
             new TDOM.Gameplay.Combat.BossMovement();
 
+        // La Mano alterna el sentido del barrido en cada ataque (TW-180).
+        private readonly AlternadorDireccionMano _alternadorMano = new AlternadorDireccionMano();
+
         // Solo servidor: columnas vivas, de la más vieja a la más nueva.
         private struct ColumnaViva
         {
@@ -116,6 +119,7 @@ namespace TDOM.Unity
                 return;
 
             _agro = new BossAggroTracker(0f);
+            _alternadorMano.Reiniciar();
             _zonas = GetComponentsInChildren<HitZone>(true);
             foreach (var zona in _zonas)
                 zona.DanioRecibido += AlRecibirDanio;
@@ -366,7 +370,7 @@ namespace TDOM.Unity
 
         private void LanzarAtaqueMano()
         {
-            Vector3 pos = _puntoOrigenMano != null ? _puntoOrigenMano.position : transform.position;
+            Vector3 centro = CentroMano();
             Quaternion rot =
                 _puntoOrigenMano != null ? _puntoOrigenMano.rotation : transform.rotation;
 
@@ -376,13 +380,63 @@ namespace TDOM.Unity
                 && TryPosicionJugador(ObjetivoActual.Value, out Vector3 posicionObjetivo)
             )
             {
-                Vector3 hacia = posicionObjetivo - pos;
+                Vector3 hacia = posicionObjetivo - centro;
                 hacia.y = 0f;
                 if (hacia.sqrMagnitude > 0.0001f)
                     rot = Quaternion.LookRotation(hacia.normalized, Vector3.up);
             }
 
-            Spawnear(_prefabAtaqueMano, "_prefabAtaqueMano", pos, rot);
+            // El eje centro -> objetivo (rot) fija la dirección; el origen nace en el borde.
+            int sentido = _alternadorMano.Siguiente();
+            Spawnear(
+                _prefabAtaqueMano,
+                "_prefabAtaqueMano",
+                OrigenMano(centro, rot),
+                rot,
+                go =>
+                {
+                    var mano = go.GetComponent<AtaqueMano>();
+                    if (mano != null)
+                        mano.AsignarSentido(sentido);
+                }
+            );
+        }
+
+        // _puntoOrigenMano si está asignado; si no, el pivote del jefe más el desfase del perfil.
+        private Vector3 CentroMano()
+        {
+            if (_puntoOrigenMano != null)
+                return _puntoOrigenMano.position;
+
+            Vector3 desfase = _perfilMano != null ? _perfilMano.desfaseOrigen : Vector3.zero;
+            return transform.TransformPoint(desfase);
+        }
+
+        // Punto donde nacen la burbuja y la raíz de la columna: el cruce entre el eje centro ->
+        // objetivo y el borde de la silueta del jefe, un poco adentro (perfil). El sentido del
+        // barrido no lo cambia. Con _puntoOrigenMano asignado o el borde apagado, es el centro.
+        private Vector3 OrigenMano(Vector3 centro, Quaternion rot)
+        {
+            if (
+                _puntoOrigenMano != null
+                || _perfilMano == null
+                || !_perfilMano.origenEnBordeDelJefe
+            )
+                return centro;
+
+            Vector3 direccion = rot * Vector3.forward;
+            direccion.y = 0f;
+            if (direccion.sqrMagnitude < 0.0001f)
+                return centro;
+
+            direccion.Normalize();
+            float borde = SiluetaJefe.DistanciaAlBorde(
+                transform,
+                centro,
+                direccion,
+                _perfilMano.radioBorde
+            );
+            return centro + direccion * Mathf.Max(0f, borde - _perfilMano.adentroBorde);
         }
 
         // Se spawnea en la posición y rotación del jefe; AtaqueMortero elige los 3 puntos al spawnear.
@@ -433,7 +487,13 @@ namespace TDOM.Unity
                 no.Spawn();
         }
 
-        private void Spawnear(GameObject prefab, string nombreCampo, Vector3 pos, Quaternion rot)
+        private void Spawnear(
+            GameObject prefab,
+            string nombreCampo,
+            Vector3 pos,
+            Quaternion rot,
+            Action<GameObject> antesDeSpawn = null
+        )
         {
             if (prefab == null)
             {
@@ -446,6 +506,8 @@ namespace TDOM.Unity
             var ataque = go.GetComponent<AtaqueArekBase>();
             if (ataque != null)
                 ataque.AsignarLanzador(this);
+
+            antesDeSpawn?.Invoke(go);
 
             var no = go.GetComponent<NetworkObject>();
             if (no != null)

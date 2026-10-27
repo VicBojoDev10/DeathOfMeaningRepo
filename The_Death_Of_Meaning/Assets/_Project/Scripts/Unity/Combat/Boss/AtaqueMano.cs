@@ -1,16 +1,29 @@
 using System.Collections.Generic;
 using TDOM.Data;
+using TDOM.Gameplay.Combat;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
+using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace TDOM.Unity
 {
+    /// <summary>
+    /// Ataque Mano (Básico) de AREK. Una burbuja de lava aparece en el origen y la columna sale
+    /// del jefe hasta estirarse por completo; entonces barre 180° (en un sentido que alterna en
+    /// cada ataque) y se retrae rápido. El abanico de aviso queda fijo en el piso cubriendo todo
+    /// el barrido. La estela del barrido es solo visual: el daño lo hace la columna, y solo
+    /// mientras barre.
+    /// El servidor manda la rotación (NetworkTransform) y el daño; cada máquina corre la misma
+    /// línea de tiempo (LineaTiempoManotazo) para la columna, la burbuja y la estela.
+    /// </summary>
     public class AtaqueMano : AtaqueArekBase
     {
+        private const int SegmentosArco = 36;
+
         [Header("Visuales")]
         [SerializeField]
         private Renderer _manoRenderer;
@@ -25,25 +38,44 @@ namespace TDOM.Unity
         [SerializeField]
         private AvisoParpadeo _avisoParpadeo;
 
-        private enum FaseMano
-        {
-            Aviso,
-            Barrido,
-            Retirada,
-            Despawn,
-        }
+        [Header("Burbuja y estela (TW-180)")]
+        [SerializeField]
+        private BurbujaLava _burbuja;
+
+        [SerializeField]
+        private EstelaEspada _estela;
+
+        [SerializeField]
+        private Transform _baseEstela;
+
+        [SerializeField]
+        private Transform _puntaEstela;
 
         // Tuning: lo lee de AtaquesArek (BossArek.prefab) al spawnear.
         private AtaqueManoProfile _perfil;
+        private LineaTiempoManotazo _lineaTiempo;
 
-        private FaseMano _fase = FaseMano.Aviso;
-        private float _tiempoEnFase = 0f;
+        private float _tiempo;
+        private bool _iniciado;
+        private bool _terminado;
+        private bool _estelaPermitida;
+        private int _sentido = 1;
         private Quaternion _rotacionBase = Quaternion.identity;
         private readonly HashSet<ulong> _jugadoresGolpeados = new HashSet<ulong>();
 
         // Flash de pantalla en el cliente golpeado
         private static float _flashRojoTimer = 0f;
+
+        // Todos los clientes: abanico de aviso en el piso, fuera de la jerarquía porque la
+        // columna rota y el abanico debe quedarse fijo.
+        private GameObject _arco;
         private LineRenderer _arcLineRenderer;
+
+        /// <summary>Solo servidor: sentido del barrido (+1 o -1), antes del Spawn.</summary>
+        public void AsignarSentido(int sentido)
+        {
+            _sentido = sentido < 0 ? -1 : 1;
+        }
 
         private void Awake()
         {
@@ -57,17 +89,63 @@ namespace TDOM.Unity
                 _avisoParpadeo = GetComponent<AvisoParpadeo>();
         }
 
-        private void ConfigurarGeometriaVisual()
+        // La columna sale del pivote: su largo crece de 0 al radio del perfil y el brazo conserva
+        // sus proporciones (grosor según el largo, con tope). Solo es visual: el daño usa
+        // ancho, alto y radio del perfil.
+        private void ActualizarColumna(float longitud)
         {
+            float largo = longitud * _perfil.radio;
+            bool visible = largo > 0.01f;
+
+            if (_manoRenderer != null && _manoRenderer.enabled != visible)
+                _manoRenderer.enabled = visible;
+
+            float grosorAncho = GeometriaManotazo.Grosor(
+                largo,
+                GeometriaManotazo.ProporcionAncho,
+                _perfil.grosorBrazo,
+                _perfil.ancho * _perfil.grosorMaximo
+            );
+            float grosorAlto = GeometriaManotazo.Grosor(
+                largo,
+                GeometriaManotazo.ProporcionAlto,
+                _perfil.grosorBrazo,
+                _perfil.alto * _perfil.grosorMaximo
+            );
+
             if (_manoVisual != null)
             {
-                _manoVisual.localScale = new Vector3(_perfil.ancho, _perfil.alto, _perfil.radio);
-                _manoVisual.localPosition = new Vector3(
-                    0f,
-                    _perfil.alto * 0.5f,
-                    _perfil.radio * 0.5f
+                _manoVisual.localScale = new Vector3(
+                    Mathf.Max(grosorAncho, 0.001f),
+                    Mathf.Max(grosorAlto, 0.001f),
+                    Mathf.Max(largo, 0.001f)
                 );
+                _manoVisual.localPosition = new Vector3(0f, grosorAlto * 0.5f, largo * 0.5f);
             }
+
+            // La estela va por el centro del brazo.
+            if (_baseEstela != null)
+                _baseEstela.localPosition = new Vector3(0f, grosorAlto * 0.5f, 0f);
+            if (_puntaEstela != null)
+                _puntaEstela.localPosition = new Vector3(0f, grosorAlto * 0.5f, largo);
+        }
+
+        private void ActualizarVisual(EstadoManotazo estado)
+        {
+            ActualizarColumna(estado.Longitud);
+
+            if (_burbuja != null)
+                _burbuja.Establecer(estado.Burbuja);
+
+            // La estela solo deja rastro mientras barre; al salir del barrido se corta el tramo.
+            bool barriendo = estado.Fase == FaseManotazo.Barrido;
+            if (_estela != null)
+            {
+                _estela.Permitir(barriendo);
+                if (_estelaPermitida && !barriendo)
+                    _estela.Cortar();
+            }
+            _estelaPermitida = barriendo;
         }
 
         protected override void AlSpawnear()
@@ -79,24 +157,50 @@ namespace TDOM.Unity
                 return;
             }
 
-            ConfigurarGeometriaVisual();
-            CrearArcoTelegraph();
+            _lineaTiempo = new LineaTiempoManotazo(
+                _perfil.aviso,
+                _perfil.fraccionBurbuja,
+                _perfil.barrido,
+                _perfil.retirada
+            );
+
+            if (_burbuja != null)
+                _burbuja.Configurar(_perfil.tamanoBurbuja);
+            ActualizarVisual(_lineaTiempo.Evaluar(0f, _sentido));
 
             if (IsServer)
             {
-                // Sale a la altura del piso, no a la del pivote del jefe (que puede estar arriba).
+                // Sale a la altura del piso (más alturaOrigen), no a la del pivote del jefe.
                 Vector3 origen = transform.position;
-                origen.y = AlturaDelPiso(origen);
+                float piso = AlturaDelPiso(origen);
+                origen.y = piso + _perfil.alturaOrigen;
                 transform.position = origen;
 
-                _fase = FaseMano.Aviso;
-                _tiempoEnFase = 0f;
+                _tiempo = 0f;
+                _iniciado = true;
                 _rotacionBase = transform.rotation;
-                transform.rotation = _rotacionBase * Quaternion.Euler(0f, -90f, 0f);
+                transform.rotation = _rotacionBase * Quaternion.Euler(0f, -90f * _sentido, 0f);
                 _jugadoresGolpeados.Clear();
 
-                AvisoRpc();
+                AvisoRpc(origen, piso, _rotacionBase, _sentido);
             }
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            DestruirArco();
+            base.OnNetworkDespawn();
+        }
+
+        private void OnDestroy()
+        {
+            DestruirArco();
+        }
+
+        private void DestruirArco()
+        {
+            if (_arco != null)
+                Destroy(_arco);
         }
 
         // Busca el piso debajo del punto; si hay varios golpes (jefe, jugadores), el más bajo es el piso.
@@ -127,61 +231,49 @@ namespace TDOM.Unity
                 || (PauseManager.ResultadoGlobal != ResultadoPartida.EnCurso)
             )
                 return;
-            if (!IsServer || _perfil == null)
+            if (!_iniciado || _perfil == null)
                 return;
 
-            float dt = Time.deltaTime;
-            _tiempoEnFase += dt;
+            _tiempo += Time.deltaTime;
+            EstadoManotazo estado = _lineaTiempo.Evaluar(_tiempo, _sentido);
+            ActualizarVisual(estado);
 
-            switch (_fase)
+            if (!IsServer)
+                return;
+
+            transform.rotation = _rotacionBase * Quaternion.Euler(0f, estado.Angulo, 0f);
+
+            // Daño solo en el barrido, con la columna completa.
+            if (estado.DanoActivo)
+                DetectarImpactos();
+
+            // Tras retraerse espera a que la estela se desvanezca antes de despawnear.
+            if (!_terminado && _tiempo >= _lineaTiempo.Duracion + _perfil.retrasoDespawn)
             {
-                case FaseMano.Aviso:
-                    transform.rotation = _rotacionBase * Quaternion.Euler(0f, -90f, 0f);
-                    if (_tiempoEnFase >= _perfil.aviso)
-                    {
-                        _fase = FaseMano.Barrido;
-                        _tiempoEnFase = 0f;
-                    }
-                    break;
-
-                case FaseMano.Barrido:
-                    float t = Mathf.Clamp01(_tiempoEnFase / _perfil.barrido);
-                    float angulo = Mathf.Lerp(-90f, 90f, t);
-                    transform.rotation = _rotacionBase * Quaternion.Euler(0f, angulo, 0f);
-
-                    DetectarImpactos();
-
-                    if (_tiempoEnFase >= _perfil.barrido)
-                    {
-                        _fase = FaseMano.Retirada;
-                        _tiempoEnFase = 0f;
-                    }
-                    break;
-
-                case FaseMano.Retirada:
-                    if (_tiempoEnFase >= _perfil.retirada)
-                    {
-                        _fase = FaseMano.Despawn;
-                        var no = GetComponent<NetworkObject>();
-                        if (no != null && no.IsSpawned)
-                            no.Despawn(true);
-                        else
-                            Destroy(gameObject);
-                    }
-                    break;
+                _terminado = true;
+                var no = GetComponent<NetworkObject>();
+                if (no != null && no.IsSpawned)
+                    no.Despawn(true);
+                else
+                    Destroy(gameObject);
             }
         }
 
+        // Caja de daño (ver GeometriaManotazo.BandaDano): a ras del piso o pared, según el perfil.
+        private Vector3 MitadCajaDano() =>
+            new Vector3(_perfil.ancho * 0.5f, Banda().Mitad, _perfil.radio * 0.5f);
+
+        private Vector3 CentroCajaDano() =>
+            transform.position
+            + transform.rotation * new Vector3(0f, Banda().Centro, _perfil.radio * 0.5f);
+
+        private (float Centro, float Mitad) Banda() =>
+            GeometriaManotazo.BandaDano(_perfil.alto, _perfil.alturaOrigen, _perfil.danoAlPiso);
+
         private void DetectarImpactos()
         {
-            Vector3 halfExtents = new Vector3(
-                _perfil.ancho * 0.5f,
-                _perfil.alto * 0.5f,
-                _perfil.radio * 0.5f
-            );
-            Vector3 center =
-                transform.position
-                + transform.rotation * new Vector3(0f, _perfil.alto * 0.5f, _perfil.radio * 0.5f);
+            Vector3 halfExtents = MitadCajaDano();
+            Vector3 center = CentroCajaDano();
             Quaternion orientation = transform.rotation;
 
             Collider[] hits = Physics.OverlapBox(
@@ -211,26 +303,36 @@ namespace TDOM.Unity
             }
         }
 
+        // Llega a todas las máquinas con lo que necesitan para dibujar el aviso y llevar la
+        // misma línea de tiempo: origen, piso (el abanico va ahí), rotación base y sentido.
         [Rpc(SendTo.ClientsAndHost)]
-        private void AvisoRpc()
+        private void AvisoRpc(Vector3 origen, float piso, Quaternion rotacionBase, int sentido)
         {
-            if (_manoRenderer != null)
+            if (_perfil == null)
+                return;
+
+            _sentido = sentido;
+
+            if (!IsServer)
             {
+                _rotacionBase = rotacionBase;
+                _tiempo = 0f;
+                _iniciado = true;
+            }
+
+            // El brazo usa el material del jefe (Shader Graph): solo se tiñe si tiene _Color.
+            if (_manoRenderer != null && _manoRenderer.sharedMaterial.HasProperty("_Color"))
                 _manoRenderer.material.color = Color.red;
-            }
 
-            if (_arcLineRenderer != null)
-            {
-                _arcLineRenderer.enabled = true;
+            CrearArcoTelegraph(new Vector3(origen.x, piso, origen.z), rotacionBase);
 
-                if (_avisoParpadeo != null && _perfil != null)
-                    _avisoParpadeo.Iniciar(
-                        Lanzador.PerfilAviso,
-                        _perfil.aviso,
-                        new Renderer[] { _arcLineRenderer },
-                        AvisoParpadeo.Forma.FranjaV
-                    );
-            }
+            if (_avisoParpadeo != null && _perfil != null)
+                _avisoParpadeo.Iniciar(
+                    Lanzador.PerfilAviso,
+                    _perfil.aviso,
+                    new Renderer[] { _arcLineRenderer },
+                    AvisoParpadeo.Forma.FranjaV
+                );
         }
 
         [Rpc(SendTo.SpecifiedInParams)]
@@ -240,40 +342,36 @@ namespace TDOM.Unity
             NotificarGolpeAlJugadorLocal();
         }
 
-        private void CrearArcoTelegraph()
+        // Abanico de -90° a +90° sobre el piso, en coordenadas del mundo: no rota con la columna.
+        private void CrearArcoTelegraph(Vector3 origen, Quaternion rotacionBase)
         {
-            GameObject arcObj = new GameObject("FloorArcTelegraph");
-            arcObj.transform.SetParent(transform, false);
-            arcObj.transform.localPosition = new Vector3(0f, 0.05f, 0f);
+            DestruirArco();
 
-            _arcLineRenderer = arcObj.AddComponent<LineRenderer>();
-            _arcLineRenderer.useWorldSpace = false;
+            _arco = new GameObject("ArcoAvisoMano");
+            _arcLineRenderer = _arco.AddComponent<LineRenderer>();
+            _arcLineRenderer.useWorldSpace = true;
             _arcLineRenderer.loop = false;
             _arcLineRenderer.startWidth = 0.4f;
             _arcLineRenderer.endWidth = 0.4f;
 
-            int segmentos = 36;
-            _arcLineRenderer.positionCount = segmentos + 2;
+            Vector3 piso = origen + Vector3.up * 0.05f;
+            Vector3[] posiciones = new Vector3[SegmentosArco + 2];
+            posiciones[0] = piso;
 
-            Vector3[] posiciones = new Vector3[segmentos + 2];
-            posiciones[0] = Vector3.zero;
-
-            for (int i = 0; i <= segmentos; i++)
+            for (int i = 0; i <= SegmentosArco; i++)
             {
-                float anguloRad = Mathf.Deg2Rad * Mathf.Lerp(-90f, 90f, (float)i / segmentos);
-                float x = Mathf.Sin(anguloRad) * _perfil.radio;
-                float z = Mathf.Cos(anguloRad) * _perfil.radio;
-                posiciones[i + 1] = new Vector3(x, 0f, z);
+                float angulo = Mathf.Lerp(-90f, 90f, (float)i / SegmentosArco);
+                Quaternion giro = rotacionBase * Quaternion.Euler(0f, angulo, 0f);
+                posiciones[i + 1] = piso + giro * Vector3.forward * _perfil.radio;
             }
 
+            _arcLineRenderer.positionCount = posiciones.Length;
             _arcLineRenderer.SetPositions(posiciones);
 
             if (_materialAviso != null)
                 _arcLineRenderer.sharedMaterial = _materialAviso;
             else
                 Debug.LogWarning("[AtaqueMano] Falta asignar _materialAviso (AvisoAtaque.mat).");
-
-            _arcLineRenderer.enabled = false;
         }
 
         private void OnGUI()
@@ -297,18 +395,9 @@ namespace TDOM.Unity
                 return;
 
             Gizmos.color = Color.red;
-            Vector3 halfExtents = new Vector3(
-                _perfil.ancho * 0.5f,
-                _perfil.alto * 0.5f,
-                _perfil.radio * 0.5f
-            );
-            Vector3 center =
-                transform.position
-                + transform.rotation * new Vector3(0f, _perfil.alto * 0.5f, _perfil.radio * 0.5f);
-
             Matrix4x4 prev = Gizmos.matrix;
-            Gizmos.matrix = Matrix4x4.TRS(center, transform.rotation, Vector3.one);
-            Gizmos.DrawWireCube(Vector3.zero, halfExtents * 2f);
+            Gizmos.matrix = Matrix4x4.TRS(CentroCajaDano(), transform.rotation, Vector3.one);
+            Gizmos.DrawWireCube(Vector3.zero, MitadCajaDano() * 2f);
             Gizmos.matrix = prev;
         }
     }

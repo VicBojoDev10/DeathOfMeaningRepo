@@ -14,7 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.AtaqueManoProfile
   aviso: 1.5
   barrido: 0.5
-  retirada: 0.3
+  retirada: 0.18
+  fraccionBurbuja: 0.6
+  retrasoDespawn: 0.3
+  desfaseOrigen: {x: 0, y: 0, z: 0}
+  alturaOrigen: 0
+  danoAlPiso: 1
+  origenEnBordeDelJefe: 1
+  radioBorde: 12
+  adentroBorde: 2
+  tamanoBurbuja: 4
   radio: 30
   alto: 2
   ancho: 2
+  grosorBrazo: 1
+  grosorMaximo: 2
+  dano: 20
