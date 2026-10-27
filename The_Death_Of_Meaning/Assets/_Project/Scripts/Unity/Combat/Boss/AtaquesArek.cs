@@ -547,7 +547,7 @@ namespace TDOM.Unity
             // Los botones de debug lanzan el ataque sin revisar su rango (ver EjecutarDebug).
             // Ubicado en la esquina superior derecha para no solapar el debug UI de la izquierda
             GUILayout.BeginArea(
-                new Rect(Screen.width - 180, 20, 160, 215),
+                new Rect(Screen.width - 180, 120, 160, 215),
                 "Boss Attacks Host",
                 GUI.skin.window
             );

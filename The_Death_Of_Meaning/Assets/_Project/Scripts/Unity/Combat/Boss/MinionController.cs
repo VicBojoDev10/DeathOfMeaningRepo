@@ -57,7 +57,7 @@ namespace TDOM.Unity
         private int _golpeDelCombo;
         private readonly HashSet<ulong> _golpeados = new HashSet<ulong>();
         private readonly List<PlayerRoot> _jugadores = new List<PlayerRoot>();
-        private readonly List<BossTargetCandidate> _candidatos = new List<BossTargetCandidate>();
+        private readonly List<MinionCandidato> _candidatos = new List<MinionCandidato>();
 
         private void Awake()
         {
@@ -155,7 +155,7 @@ namespace TDOM.Unity
             }
         }
 
-        // Distancia en XZ al jugador más cercano, entre los jugadores spawneados.
+        // Distancia en XZ al jugador vivo más cercano; los abatidos o muertos no son objetivo.
         private bool TryObjetivoMasCercano(out PlayerRoot objetivo, out float distancia)
         {
             objetivo = null;
@@ -170,13 +170,12 @@ namespace TDOM.Unity
 
                 Vector3 hacia = jugador.transform.position - transform.position;
                 hacia.y = 0f;
+                bool vivo = !jugador.EstaAbatidoOMuerto;
                 _jugadores.Add(jugador);
-                _candidatos.Add(
-                    new BossTargetCandidate(jugador.OwnerClientId, hacia.magnitude, 0f)
-                );
+                _candidatos.Add(new MinionCandidato(jugador.OwnerClientId, hacia.magnitude, vivo));
             }
 
-            if (!MinionBrain.TryElegirMasCercano(_candidatos, out ulong id))
+            if (!MinionBrain.TryElegirObjetivoVivo(_candidatos, out ulong id))
                 return false;
 
             for (int i = 0; i < _jugadores.Count; i++)
@@ -218,7 +217,11 @@ namespace TDOM.Unity
             foreach (var hit in hits)
             {
                 var jugador = hit.GetComponentInParent<PlayerRoot>();
-                if (jugador == null || !_golpeados.Add(jugador.OwnerClientId))
+                if (
+                    jugador == null
+                    || jugador.EstaAbatidoOMuerto
+                    || !_golpeados.Add(jugador.OwnerClientId)
+                )
                     continue;
 
                 Debug.Log(
