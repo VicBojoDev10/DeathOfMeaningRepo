@@ -99,6 +99,9 @@ namespace TDOM.Unity
         private readonly TDOM.Gameplay.Combat.BossMovement _logicaMovimiento =
             new TDOM.Gameplay.Combat.BossMovement();
 
+        // La Mano alterna el sentido del barrido en cada ataque (TW-180).
+        private readonly AlternadorDireccionMano _alternadorMano = new AlternadorDireccionMano();
+
         // Solo servidor: columnas vivas, de la más vieja a la más nueva.
         private struct ColumnaViva
         {
@@ -110,12 +113,32 @@ namespace TDOM.Unity
         private int _ataquesLanzados;
         private BossController _jefe;
 
+        // Solo servidor: el jefe no rota ni se traslada mientras hay un ataque en curso (desde
+        // el aviso hasta que su NetworkObject se despawnea) ni durante la espera posterior.
+        private BloqueoMovimientoAtaque _bloqueo = new BloqueoMovimientoAtaque();
+        private readonly List<NetworkObject> _ataquesEnCurso = new List<NetworkObject>();
+
+        /// <summary>
+        /// Solo servidor: el jefe puede rotar o trasladarse (sin ataque en curso y con la espera
+        /// posterior cumplida). Lo consultan BossGiroHaciaObjetivo y BossMovement.
+        /// </summary>
+        public bool MovimientoPermitido => _bloqueo.PuedeMoverse;
+
         public override void OnNetworkSpawn()
         {
             if (!IsServer)
                 return;
 
             _agro = new BossAggroTracker(0f);
+            _alternadorMano.Reiniciar();
+            _ataquesEnCurso.Clear();
+            _bloqueo =
+                _perfilObjetivo != null
+                    ? new BloqueoMovimientoAtaque(
+                        _perfilObjetivo.esperaTrasAtaque,
+                        _perfilObjetivo.tiempoMaximoAtaque
+                    )
+                    : new BloqueoMovimientoAtaque();
             _zonas = GetComponentsInChildren<HitZone>(true);
             foreach (var zona in _zonas)
                 zona.DanioRecibido += AlRecibirDanio;
@@ -128,6 +151,8 @@ namespace TDOM.Unity
         public override void OnNetworkDespawn()
         {
             _logicaMovimiento.ResetearObjetivo();
+            _ataquesEnCurso.Clear();
+            _bloqueo.Reiniciar();
             if (_jefe != null)
                 _jefe.OnFaseChanged -= AlCambiarFase;
 
@@ -136,6 +161,52 @@ namespace TDOM.Unity
 
             foreach (var zona in _zonas)
                 zona.DanioRecibido -= AlRecibirDanio;
+        }
+
+        private void Update()
+        {
+            if (!IsServer || !IsSpawned)
+                return;
+
+            // El tiempo (espera y límite de seguridad) no corre en pausa ni con la partida
+            // terminada; el fin de los ataques sí se detecta siempre.
+            if (_jefe == null || !_jefe.Pausado)
+            {
+                if (_bloqueo.Tick(Time.deltaTime))
+                {
+                    Debug.LogWarning(
+                        "[AtaquesArek] Un ataque superó tiempoMaximoAtaque sin terminar; "
+                            + "se libera el movimiento del jefe."
+                    );
+                    _ataquesEnCurso.Clear();
+                }
+            }
+
+            PodarAtaquesTerminados();
+        }
+
+        // Un ataque terminó cuando su NetworkObject se despawneó (o se destruyó).
+        private void PodarAtaquesTerminados()
+        {
+            for (int i = _ataquesEnCurso.Count - 1; i >= 0; i--)
+            {
+                NetworkObject ataque = _ataquesEnCurso[i];
+                if (ataque != null && ataque.IsSpawned)
+                    continue;
+
+                _ataquesEnCurso.RemoveAt(i);
+                _bloqueo.Terminar();
+            }
+        }
+
+        // Un ataque spawneado bloquea el movimiento del jefe hasta que se despawnee.
+        private void RegistrarAtaqueEnCurso(NetworkObject ataque)
+        {
+            if (ataque == null || !ataque.IsSpawned)
+                return;
+
+            _ataquesEnCurso.Add(ataque);
+            _bloqueo.Iniciar();
         }
 
         private void AlRecibirDanio(ulong atacanteId, float cantidad)
@@ -366,7 +437,7 @@ namespace TDOM.Unity
 
         private void LanzarAtaqueMano()
         {
-            Vector3 pos = _puntoOrigenMano != null ? _puntoOrigenMano.position : transform.position;
+            Vector3 centro = CentroMano();
             Quaternion rot =
                 _puntoOrigenMano != null ? _puntoOrigenMano.rotation : transform.rotation;
 
@@ -376,13 +447,63 @@ namespace TDOM.Unity
                 && TryPosicionJugador(ObjetivoActual.Value, out Vector3 posicionObjetivo)
             )
             {
-                Vector3 hacia = posicionObjetivo - pos;
+                Vector3 hacia = posicionObjetivo - centro;
                 hacia.y = 0f;
                 if (hacia.sqrMagnitude > 0.0001f)
                     rot = Quaternion.LookRotation(hacia.normalized, Vector3.up);
             }
 
-            Spawnear(_prefabAtaqueMano, "_prefabAtaqueMano", pos, rot);
+            // El eje centro -> objetivo (rot) fija la dirección; el origen nace en el borde.
+            int sentido = _alternadorMano.Siguiente();
+            Spawnear(
+                _prefabAtaqueMano,
+                "_prefabAtaqueMano",
+                OrigenMano(centro, rot),
+                rot,
+                go =>
+                {
+                    var mano = go.GetComponent<AtaqueMano>();
+                    if (mano != null)
+                        mano.AsignarSentido(sentido);
+                }
+            );
+        }
+
+        // _puntoOrigenMano si está asignado; si no, el pivote del jefe más el desfase del perfil.
+        private Vector3 CentroMano()
+        {
+            if (_puntoOrigenMano != null)
+                return _puntoOrigenMano.position;
+
+            Vector3 desfase = _perfilMano != null ? _perfilMano.desfaseOrigen : Vector3.zero;
+            return transform.TransformPoint(desfase);
+        }
+
+        // Punto donde nacen la burbuja y la raíz de la columna: el cruce entre el eje centro ->
+        // objetivo y el borde de la silueta del jefe, un poco adentro (perfil). El sentido del
+        // barrido no lo cambia. Con _puntoOrigenMano asignado o el borde apagado, es el centro.
+        private Vector3 OrigenMano(Vector3 centro, Quaternion rot)
+        {
+            if (
+                _puntoOrigenMano != null
+                || _perfilMano == null
+                || !_perfilMano.origenEnBordeDelJefe
+            )
+                return centro;
+
+            Vector3 direccion = rot * Vector3.forward;
+            direccion.y = 0f;
+            if (direccion.sqrMagnitude < 0.0001f)
+                return centro;
+
+            direccion.Normalize();
+            float borde = SiluetaJefe.DistanciaAlBorde(
+                transform,
+                centro,
+                direccion,
+                _perfilMano.radioBorde
+            );
+            return centro + direccion * Mathf.Max(0f, borde - _perfilMano.adentroBorde);
         }
 
         // Se spawnea en la posición y rotación del jefe; AtaqueMortero elige los 3 puntos al spawnear.
@@ -430,10 +551,19 @@ namespace TDOM.Unity
 
             var no = go.GetComponent<NetworkObject>();
             if (no != null)
+            {
                 no.Spawn();
+                RegistrarAtaqueEnCurso(no);
+            }
         }
 
-        private void Spawnear(GameObject prefab, string nombreCampo, Vector3 pos, Quaternion rot)
+        private void Spawnear(
+            GameObject prefab,
+            string nombreCampo,
+            Vector3 pos,
+            Quaternion rot,
+            Action<GameObject> antesDeSpawn = null
+        )
         {
             if (prefab == null)
             {
@@ -447,9 +577,14 @@ namespace TDOM.Unity
             if (ataque != null)
                 ataque.AsignarLanzador(this);
 
+            antesDeSpawn?.Invoke(go);
+
             var no = go.GetComponent<NetworkObject>();
             if (no != null)
+            {
                 no.Spawn();
+                RegistrarAtaqueEnCurso(no);
+            }
         }
 
         /// <summary>

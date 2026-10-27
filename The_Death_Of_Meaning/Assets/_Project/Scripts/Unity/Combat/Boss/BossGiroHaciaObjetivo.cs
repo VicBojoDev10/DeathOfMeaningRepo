@@ -48,6 +48,10 @@ namespace TDOM.Unity.Combat
 
             CambiarObjetivoMirado(objetivoId);
 
+            // Con un ataque en curso (y 0.5 s después) el jefe no rota.
+            if (_jefe != null && !_jefe.PuedeMoverse)
+                return;
+
             if (zendreAnclado)
                 return;
 

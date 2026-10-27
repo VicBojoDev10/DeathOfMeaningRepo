@@ -20,5 +20,18 @@ namespace TDOM.Data
 
         [Tooltip("Grados por segundo que gira el jefe en Y hacia su objetivo.")]
         public float velocidadGiro = 90f;
+
+        [Header("Bloqueo de movimiento durante los ataques")]
+        [Tooltip(
+            "Segundos que el jefe espera, tras terminar el flujo completo de un ataque, antes de volver a rotar (fase 1) o trasladarse (fase 2 en adelante). Durante el ataque no se mueve."
+        )]
+        [Min(0f)]
+        public float esperaTrasAtaque = 0.5f;
+
+        [Tooltip(
+            "Seguridad: si un ataque lleva este tiempo sin terminar (se destruyó o nunca avisó de su fin), el jefe se libera igualmente. Debe ser mayor que el ataque más largo (hoy ~2.6 s). 0 desactiva el límite."
+        )]
+        [Min(0f)]
+        public float tiempoMaximoAtaque = 15f;
     }
 }

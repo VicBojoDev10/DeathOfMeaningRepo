@@ -919,7 +919,24 @@ namespace TDOM.Unity.Combat
                         minDistance = dist;
                     }
                 }
-                return minDistance <= rangoPermitido;
+                if (minDistance <= rangoPermitido)
+                    return true;
+
+                // Golpes del prisma de la espada: el servidor no ve la espada animada de un
+                // cliente, asi que los valida con un radio generoso desde el personaje.
+                float extraPrisma = _hitbox != null ? _hitbox.ExtraValidacionPrisma : 0f;
+                if (extraPrisma <= 0f)
+                    return false;
+
+                Vector3 origen = _hitbox.PosicionOrigen;
+                float minDesdeOrigen = float.MaxValue;
+                foreach (var col in colliders)
+                {
+                    float dist = Vector3.Distance(origen, col.ClosestPoint(origen));
+                    if (dist < minDesdeOrigen)
+                        minDesdeOrigen = dist;
+                }
+                return minDesdeOrigen <= (alcanceCentro + radio + extraPrisma) * tolerancia;
             }
 
             float distancia = Vector3.Distance(centro, objetivo.transform.position);
