@@ -36,46 +36,16 @@ namespace TDOM.Unity.UI
         [SerializeField]
         private Graphic target;
 
-        private Color lastAppliedColor;
-        private Graphic lastTarget;
-        private UiTheme lastTheme;
-        private UiThemeColorName lastColorName;
-        private bool hasAppliedColor;
-
         private void Awake() => ApplyColor();
 
         private void OnValidate() => ApplyColor();
 
-        private void Update()
+        private void ApplyColor()
         {
             if (theme == null || target == null)
                 return;
 
-            Color color = GetColor(theme, colorName);
-            if (
-                !hasAppliedColor
-                || target != lastTarget
-                || theme != lastTheme
-                || colorName != lastColorName
-                || color != lastAppliedColor
-            )
-                ApplyColor();
-        }
-
-        private void ApplyColor()
-        {
-            if (theme == null)
-                return;
-
-            Color color = GetColor(theme, colorName);
-            if (target != null)
-                target.color = color;
-
-            lastAppliedColor = color;
-            lastTarget = target;
-            lastTheme = theme;
-            lastColorName = colorName;
-            hasAppliedColor = true;
+            target.color = GetColor(theme, colorName);
         }
 
         private static Color GetColor(UiTheme source, UiThemeColorName name)
