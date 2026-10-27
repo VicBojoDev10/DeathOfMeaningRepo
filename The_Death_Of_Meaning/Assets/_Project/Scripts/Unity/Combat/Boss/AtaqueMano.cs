@@ -192,9 +192,10 @@ namespace TDOM.Unity
             base.OnNetworkDespawn();
         }
 
-        private void OnDestroy()
+        public override void OnDestroy()
         {
             DestruirArco();
+            base.OnDestroy();
         }
 
         private void DestruirArco()
