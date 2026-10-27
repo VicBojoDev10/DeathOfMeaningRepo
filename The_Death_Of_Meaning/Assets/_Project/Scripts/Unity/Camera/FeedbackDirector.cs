@@ -158,6 +158,13 @@ namespace TDOM.Unity.Camera
             _cameraRig.Impacto(_config.cambioDeFaseImpulso);
         }
 
+        /// <summary>Destello de cámara al recibir un power-up (greybox: reutiliza el pulso de combate).</summary>
+        public void OnPowerUpRecibido()
+        {
+            if (_cameraRig != null)
+                _cameraRig.PulsoCombate();
+        }
+
         private void IniciarHitstop(int frames)
         {
             if (_animatorAtacante == null || frames <= 0)
