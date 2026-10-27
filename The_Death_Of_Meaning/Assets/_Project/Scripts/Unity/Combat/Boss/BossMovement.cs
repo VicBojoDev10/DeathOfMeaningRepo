@@ -66,6 +66,7 @@ namespace TDOM.Unity
                 && perfil != null
                 && perfil.VelocidadMovimiento > 0f
                 && !detenersePorAtaque
+                && _jefe.PuedeMoverse
                 && _ataques != null
                 && _ataques.TryObjetivoMovimiento(out ulong objetivoId, out bool zendreAnclado)
                 && _ataques.TryPosicionJugador(objetivoId, out Vector3 objetivo)

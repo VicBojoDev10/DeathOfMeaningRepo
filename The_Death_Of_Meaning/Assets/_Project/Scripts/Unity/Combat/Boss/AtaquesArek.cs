@@ -113,6 +113,17 @@ namespace TDOM.Unity
         private int _ataquesLanzados;
         private BossController _jefe;
 
+        // Solo servidor: el jefe no rota ni se traslada mientras hay un ataque en curso (desde
+        // el aviso hasta que su NetworkObject se despawnea) ni durante la espera posterior.
+        private BloqueoMovimientoAtaque _bloqueo = new BloqueoMovimientoAtaque();
+        private readonly List<NetworkObject> _ataquesEnCurso = new List<NetworkObject>();
+
+        /// <summary>
+        /// Solo servidor: el jefe puede rotar o trasladarse (sin ataque en curso y con la espera
+        /// posterior cumplida). Lo consultan BossGiroHaciaObjetivo y BossMovement.
+        /// </summary>
+        public bool MovimientoPermitido => _bloqueo.PuedeMoverse;
+
         public override void OnNetworkSpawn()
         {
             if (!IsServer)
@@ -120,6 +131,14 @@ namespace TDOM.Unity
 
             _agro = new BossAggroTracker(0f);
             _alternadorMano.Reiniciar();
+            _ataquesEnCurso.Clear();
+            _bloqueo =
+                _perfilObjetivo != null
+                    ? new BloqueoMovimientoAtaque(
+                        _perfilObjetivo.esperaTrasAtaque,
+                        _perfilObjetivo.tiempoMaximoAtaque
+                    )
+                    : new BloqueoMovimientoAtaque();
             _zonas = GetComponentsInChildren<HitZone>(true);
             foreach (var zona in _zonas)
                 zona.DanioRecibido += AlRecibirDanio;
@@ -132,6 +151,8 @@ namespace TDOM.Unity
         public override void OnNetworkDespawn()
         {
             _logicaMovimiento.ResetearObjetivo();
+            _ataquesEnCurso.Clear();
+            _bloqueo.Reiniciar();
             if (_jefe != null)
                 _jefe.OnFaseChanged -= AlCambiarFase;
 
@@ -140,6 +161,52 @@ namespace TDOM.Unity
 
             foreach (var zona in _zonas)
                 zona.DanioRecibido -= AlRecibirDanio;
+        }
+
+        private void Update()
+        {
+            if (!IsServer || !IsSpawned)
+                return;
+
+            // El tiempo (espera y límite de seguridad) no corre en pausa ni con la partida
+            // terminada; el fin de los ataques sí se detecta siempre.
+            if (_jefe == null || !_jefe.Pausado)
+            {
+                if (_bloqueo.Tick(Time.deltaTime))
+                {
+                    Debug.LogWarning(
+                        "[AtaquesArek] Un ataque superó tiempoMaximoAtaque sin terminar; "
+                            + "se libera el movimiento del jefe."
+                    );
+                    _ataquesEnCurso.Clear();
+                }
+            }
+
+            PodarAtaquesTerminados();
+        }
+
+        // Un ataque terminó cuando su NetworkObject se despawneó (o se destruyó).
+        private void PodarAtaquesTerminados()
+        {
+            for (int i = _ataquesEnCurso.Count - 1; i >= 0; i--)
+            {
+                NetworkObject ataque = _ataquesEnCurso[i];
+                if (ataque != null && ataque.IsSpawned)
+                    continue;
+
+                _ataquesEnCurso.RemoveAt(i);
+                _bloqueo.Terminar();
+            }
+        }
+
+        // Un ataque spawneado bloquea el movimiento del jefe hasta que se despawnee.
+        private void RegistrarAtaqueEnCurso(NetworkObject ataque)
+        {
+            if (ataque == null || !ataque.IsSpawned)
+                return;
+
+            _ataquesEnCurso.Add(ataque);
+            _bloqueo.Iniciar();
         }
 
         private void AlRecibirDanio(ulong atacanteId, float cantidad)
@@ -484,7 +551,10 @@ namespace TDOM.Unity
 
             var no = go.GetComponent<NetworkObject>();
             if (no != null)
+            {
                 no.Spawn();
+                RegistrarAtaqueEnCurso(no);
+            }
         }
 
         private void Spawnear(
@@ -511,7 +581,10 @@ namespace TDOM.Unity
 
             var no = go.GetComponent<NetworkObject>();
             if (no != null)
+            {
                 no.Spawn();
+                RegistrarAtaqueEnCurso(no);
+            }
         }
 
         /// <summary>

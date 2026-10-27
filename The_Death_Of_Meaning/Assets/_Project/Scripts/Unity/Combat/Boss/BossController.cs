@@ -96,6 +96,12 @@ namespace TDOM.Unity.Combat
 
         public bool HayOjoAbierto => _ojos != null && _ojos.HayOjoAbierto;
 
+        /// <summary>
+        /// Solo servidor: false mientras hay un ataque en curso (aviso incluido) y durante la
+        /// espera posterior. El jefe no rota (fase 1) ni se traslada (fase 2 en adelante).
+        /// </summary>
+        public bool PuedeMoverse => _ataques == null || _ataques.MovimientoPermitido;
+
         [SerializeField]
         private float _vidaMaxima = 1000f;
 
