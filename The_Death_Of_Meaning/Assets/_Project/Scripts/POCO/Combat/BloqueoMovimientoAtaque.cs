@@ -22,7 +22,8 @@ namespace TDOM.Gameplay.Combat
         /// </param>
         public BloqueoMovimientoAtaque(
             float esperaTrasAtaque = EsperaPorDefecto,
-            float tiempoMaximoAtaque = 0f)
+            float tiempoMaximoAtaque = 0f
+        )
         {
             EsperaTrasAtaque = esperaTrasAtaque < 0f ? 0f : esperaTrasAtaque;
             TiempoMaximoAtaque = tiempoMaximoAtaque < 0f ? 0f : tiempoMaximoAtaque;
