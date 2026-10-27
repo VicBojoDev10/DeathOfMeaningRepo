@@ -69,6 +69,12 @@ namespace TDOM.Unity
         /// <summary>Solo servidor: se lanzó un ataque (también desde los botones de debug). Lo usa MinionSpawner.</summary>
         public event Action<BossAttackKind> AtaqueEjecutado;
 
+        /// <summary>
+        /// Servidor y clientes: se lanzó un ataque de verdad (hubo objetivo en rango o fue debug).
+        /// Lo usa BossAnimationDriver para animar solo cuando el ataque sale.
+        /// </summary>
+        public event Action<BossAttackKind> AtaqueLanzado;
+
         /// <summary>Solo servidor: jugador elegido para el último ataque (null si nadie estaba en rango).</summary>
         public ulong? ObjetivoActual { get; private set; }
 
@@ -349,6 +355,13 @@ namespace TDOM.Unity
             }
 
             AtaqueEjecutado?.Invoke(tipo);
+            AtaqueLanzadoRpc(tipo);
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void AtaqueLanzadoRpc(BossAttackKind tipo)
+        {
+            AtaqueLanzado?.Invoke(tipo);
         }
 
         private void LanzarAtaqueMano()
