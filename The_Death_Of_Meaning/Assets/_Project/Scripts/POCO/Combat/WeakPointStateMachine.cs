@@ -36,8 +36,10 @@ namespace TDOM.Gameplay.Combat
         private readonly float[] _timers;
         private readonly float _duracionAbierto;
         private readonly float _cooldown;
+        private readonly float _duracionBrillando;
         private readonly Random _random;
         private readonly List<int> _candidatos = new List<int>();
+        private readonly List<int> _caducadosEnTick = new List<int>();
 
         private int _ojosActivosObjetivo;
 
@@ -46,7 +48,8 @@ namespace TDOM.Gameplay.Combat
             float duracionAbierto = 10f,
             float cooldown = 5f,
             int semilla = 0,
-            IReadOnlyList<int> ojosPorFase = null
+            IReadOnlyList<int> ojosPorFase = null,
+            float duracionBrillando = 0f
         )
         {
             if (totalOjos <= 0)
@@ -61,6 +64,11 @@ namespace TDOM.Gameplay.Combat
                 );
             if (cooldown < 0f)
                 throw new ArgumentOutOfRangeException(nameof(cooldown), "No puede ser negativo.");
+            if (duracionBrillando < 0f)
+                throw new ArgumentOutOfRangeException(
+                    nameof(duracionBrillando),
+                    "No puede ser negativo."
+                );
 
             _ojosPorFase = CopiarOjosPorFase(ojosPorFase ?? OjosPorFasePorDefecto);
 
@@ -68,6 +76,7 @@ namespace TDOM.Gameplay.Combat
             _timers = new float[totalOjos];
             _duracionAbierto = duracionAbierto;
             _cooldown = cooldown;
+            _duracionBrillando = duracionBrillando;
             _random = new Random(semilla);
         }
 
@@ -162,6 +171,21 @@ namespace TDOM.Gameplay.Combat
 
         private void AvanzarOjo(int ojo, float dt)
         {
+            if (_estados[ojo] == EstadoOjo.Brillando)
+            {
+                if (_duracionBrillando <= 0f)
+                    return;
+
+                _timers[ojo] += dt;
+                if (_timers[ojo] < _duracionBrillando - Tolerancia)
+                    return;
+
+                _estados[ojo] = EstadoOjo.Cerrado;
+                _timers[ojo] = 0f;
+                _caducadosEnTick.Add(ojo);
+                return;
+            }
+
             if (_estados[ojo] == EstadoOjo.Abierto)
             {
                 _timers[ojo] += dt;
@@ -191,13 +215,43 @@ namespace TDOM.Gameplay.Combat
             while (activos < _ojosActivosObjetivo)
             {
                 ReunirCandidatos(EstadoOjo.Cerrado);
+                ExcluirCaducadosDeCandidatos();
                 if (_candidatos.Count == 0)
-                    return;
+                    break;
 
                 int elegido = _candidatos[_random.Next(_candidatos.Count)];
                 _estados[elegido] = EstadoOjo.Brillando;
                 _timers[elegido] = 0f;
                 activos++;
+            }
+
+            _caducadosEnTick.Clear();
+        }
+
+        // Los ojos que acaban de caducar no se vuelven a encender en este mismo Tick,
+        // salvo que no quede ningún otro candidato.
+        private void ExcluirCaducadosDeCandidatos()
+        {
+            if (_caducadosEnTick.Count == 0)
+                return;
+
+            bool hayOtroCandidato = false;
+            foreach (int candidato in _candidatos)
+            {
+                if (!_caducadosEnTick.Contains(candidato))
+                {
+                    hayOtroCandidato = true;
+                    break;
+                }
+            }
+
+            if (!hayOtroCandidato)
+                return;
+
+            for (int i = _candidatos.Count - 1; i >= 0; i--)
+            {
+                if (_caducadosEnTick.Contains(_candidatos[i]))
+                    _candidatos.RemoveAt(i);
             }
         }
 
