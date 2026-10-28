@@ -5,13 +5,20 @@ namespace TDOM.Data
     /// <summary>
     /// Daño por tocar el cuerpo del jefe (TW-242). Valores iniciales, sujetos a balance.
     /// </summary>
-    [CreateAssetMenu(fileName = "ContactoJefeProfile", menuName = "TDOM/Boss/Contacto Jefe Profile")]
+    [CreateAssetMenu(
+        fileName = "ContactoJefeProfile",
+        menuName = "TDOM/Boss/Contacto Jefe Profile"
+    )]
     public sealed class ContactoJefeProfile : ScriptableObject
     {
         [Header("Daño")]
         [Min(0f)]
         [Tooltip("Vida que pierde el jugador por cada golpe de contacto.")]
         public float dano = 10f;
+
+        [Min(0f)]
+        [Tooltip("Vida que pierde Ayla por cada golpe de contacto (el resto usa Daño).")]
+        public float danoAyla = 5f;
 
         [Min(0f)]
         [Tooltip(
@@ -21,7 +28,9 @@ namespace TDOM.Data
 
         [Header("Empuje")]
         [Min(0f)]
-        [Tooltip("Metros que sale despedido el jugador, en sentido contrario al contacto. 0 = sin empuje.")]
+        [Tooltip(
+            "Metros que sale despedido el jugador, en sentido contrario al contacto. 0 = sin empuje."
+        )]
         public float empujeDistancia = 4f;
 
         [Min(0f)]

@@ -16,10 +16,7 @@ namespace TDOM.Gameplay.Combat
         public RegistroContactoJefe(float intervalo)
         {
             if (intervalo < 0f)
-                throw new ArgumentOutOfRangeException(
-                    nameof(intervalo),
-                    "No puede ser negativo."
-                );
+                throw new ArgumentOutOfRangeException(nameof(intervalo), "No puede ser negativo.");
 
             _intervalo = intervalo;
         }

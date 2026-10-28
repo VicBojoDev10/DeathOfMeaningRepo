@@ -652,7 +652,9 @@ namespace TDOM.Unity.Player
             if (!apuntado.HasHit || impactado.GetComponentInParent<PlayerRoot>() != null)
                 return;
 
-            if (_locomocion.IntentarGancho(transform.position, apuntado.TargetPoint))
+            // Contra el jefe el gancho engancha pero corta el jalón antes de tocarlo.
+            bool haciaJefe = impactado.GetComponentInParent<BossController>() != null;
+            if (_locomocion.IntentarGancho(transform.position, apuntado.TargetPoint, haciaJefe))
             {
                 _camera.PunchFov(8f, 0.2f);
                 _feedback?.RegistrarAccionCamara(0.2f);

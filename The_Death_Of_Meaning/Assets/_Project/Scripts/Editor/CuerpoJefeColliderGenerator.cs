@@ -115,9 +115,9 @@ namespace TDOM.EditorTools
             var tagManager = new SerializedObject(
                 AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]
             );
-            SerializedProperty capa = tagManager.FindProperty("layers").GetArrayElementAtIndex(
-                IndiceCapa
-            );
+            SerializedProperty capa = tagManager
+                .FindProperty("layers")
+                .GetArrayElementAtIndex(IndiceCapa);
 
             if (capa.stringValue == NombreCapa)
                 return true;
@@ -247,7 +247,12 @@ namespace TDOM.EditorTools
             float peso
         )
         {
-            if (peso < PesoMinimo || indice < 0 || indice >= huesos.Length || huesos[indice] == null)
+            if (
+                peso < PesoMinimo
+                || indice < 0
+                || indice >= huesos.Length
+                || huesos[indice] == null
+            )
                 return;
 
             if (EsHuesoDeOjo(huesos[indice]))
@@ -326,7 +331,12 @@ namespace TDOM.EditorTools
         // covarianza).
         private static Vector3 EjePrincipal(List<Vector3> puntos, Vector3 centro)
         {
-            float xx = 0f, xy = 0f, xz = 0f, yy = 0f, yz = 0f, zz = 0f;
+            float xx = 0f,
+                xy = 0f,
+                xz = 0f,
+                yy = 0f,
+                yz = 0f,
+                zz = 0f;
             foreach (Vector3 p in puntos)
             {
                 Vector3 d = p - centro;
@@ -459,12 +469,18 @@ namespace TDOM.EditorTools
                 Matrix4x4 aMundo = render.transform.localToWorldMatrix;
                 foreach (Vector3 v in horneada.vertices)
                 {
-                    Vector3 local = jefe.transform.InverseTransformPoint(aMundo.MultiplyPoint3x4(v));
+                    Vector3 local = jefe.transform.InverseTransformPoint(
+                        aMundo.MultiplyPoint3x4(v)
+                    );
                     float altura = local.y * jefe.transform.lossyScale.y;
                     if (altura < AlturaMinimaFalda)
                         continue;
 
-                    var punto = new Vector3(local.x * AcercarFalda, local.y, local.z * AcercarFalda);
+                    var punto = new Vector3(
+                        local.x * AcercarFalda,
+                        local.y,
+                        local.z * AcercarFalda
+                    );
                     puntos.Add(punto);
                     if (altura <= AlturaBordeFalda)
                     {

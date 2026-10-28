@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.Unity.Player;
@@ -77,7 +78,9 @@ namespace TDOM.Unity.Combat
                 if (!_registro.TryGolpear(jugador.NetworkObjectId, Time.time))
                     continue;
 
-                jugador.RecibirDanio(_perfil.dano);
+                float dano =
+                    jugador.CharacterId == CharacterIds.Ayla ? _perfil.danoAyla : _perfil.dano;
+                jugador.RecibirDanio(dano);
                 Empujar(jugador, puntoContacto);
             }
         }
