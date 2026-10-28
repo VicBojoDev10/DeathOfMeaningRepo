@@ -138,7 +138,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3941894389
+  GlobalObjectIdHash: 126803822
   InScenePlacedSourceGlobalObjectIdHash: 3093320301
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -350,6 +350,7 @@ MonoBehaviour:
   _logCombo: 1
   _radioHitbox: 1.5
   _alcanceHitbox: 1
+  _ventanaBarridoMelee: 0.35
   _factorDanioGiro: 0.4
   _factorDanioFinal: 0.8
   _velocidadEnCombo: 0
@@ -774,6 +775,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: ZendreBrazoDerecho
       objectReference: {fileID: 0}
+    - target: {fileID: 5924963109107301559, guid: fbe4153429b06154a92487248a12b59d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6445321918295975437, guid: fbe4153429b06154a92487248a12b59d, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.6526
@@ -814,6 +819,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6770350683786154559, guid: fbe4153429b06154a92487248a12b59d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 02e028da8f0ae804b8e79ac58f6bb95c, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1017,6 +1026,10 @@ PrefabInstance:
     - target: {fileID: 3351788197236472742, guid: f8e274d548c53e1449bb2a287a99f0d9, type: 3}
       propertyPath: m_Name
       value: ZendreBrazoIzquierdo (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 3351788197236472742, guid: f8e274d548c53e1449bb2a287a99f0d9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1270,6 +1283,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -3134267836146244807, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: ae9cebf1364361d45a7a81e1795eb8e6, type: 2}
     - target: {fileID: 919132149155446097, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
       propertyPath: m_Name
       value: ZendreModel
@@ -1301,8 +1318,18 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 903895387683885392}
+      addedObject: {fileID: 1751587795060100472}
   m_SourcePrefab: {fileID: 100100000, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
+--- !u!4 &2444213322411812234 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6733313896024196555, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
+  m_PrefabInstance: {fileID: 8978522072713748545}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2842387697460935106 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -2600777329537836669, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
+  m_PrefabInstance: {fileID: 8978522072713748545}
+  m_PrefabAsset: {fileID: 0}
 --- !u!95 &3310299557817736656 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
@@ -1313,7 +1340,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
   m_PrefabInstance: {fileID: 8978522072713748545}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &903895387683885392
+--- !u!114 &1751587795060100472
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1328,8 +1355,12 @@ MonoBehaviour:
   _animator: {fileID: 3310299557817736656}
   _brazoLeftPrefab: {fileID: 8586639550920780620}
   _brazoRightPrefab: {fileID: 7314711420201877068}
-  _leftHandHuesoHumanoide: 17
-  _rightHandHuesoHumanoide: 18
+  _leftHand: {fileID: 2842387697460935106}
+  _rightHand: {fileID: 2444213322411812234}
+  _leftPositionOffset: {x: 0, y: 0, z: 0}
+  _leftRotationOffset: {x: 0, y: 0, z: 0}
+  _rightPositionOffset: {x: 0, y: 0, z: 0}
+  _rightRotationOffset: {x: 0, y: 0, z: 0}
 --- !u!4 &8867771543483451306 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
