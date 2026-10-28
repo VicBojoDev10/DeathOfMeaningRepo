@@ -1,7 +1,7 @@
-using Unity.Netcode;
-using UnityEngine;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Player;
+using Unity.Netcode;
+using UnityEngine;
 
 namespace TDOM.Unity
 {
@@ -119,9 +119,13 @@ namespace TDOM.Unity
             _animator.CrossFade(DamageStateHash, DamageTransitionDuration, 0, 0f);
         }
 
-        private void AlCambiarEstadoVida(PlayerLifeState estadoAnterior, PlayerLifeState estadoActual)
+        private void AlCambiarEstadoVida(
+            PlayerLifeState estadoAnterior,
+            PlayerLifeState estadoActual
+        )
         {
-            bool iniciarRevive = estadoAnterior != PlayerLifeState.Vivo && estadoActual == PlayerLifeState.Vivo;
+            bool iniciarRevive =
+                estadoAnterior != PlayerLifeState.Vivo && estadoActual == PlayerLifeState.Vivo;
             AplicarEstadoVida(estadoActual, iniciarRevive);
         }
 

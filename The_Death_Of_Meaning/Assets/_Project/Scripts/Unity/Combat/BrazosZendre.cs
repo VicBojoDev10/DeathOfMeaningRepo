@@ -22,10 +22,16 @@ namespace TDOM.Unity
         [SerializeField, Tooltip("Modelo del brazo derecho. Se conserva su escala y materiales.")]
         private GameObject _brazoRightPrefab;
 
-        [SerializeField, Tooltip("Opcional. Si se deja vacío, se busca DEF-hand.L en el rig Generic.")]
+        [
+            SerializeField,
+            Tooltip("Opcional. Si se deja vacío, se busca DEF-hand.L en el rig Generic.")
+        ]
         private Transform _leftHand;
 
-        [SerializeField, Tooltip("Opcional. Si se deja vacío, se busca DEF-hand.R en el rig Generic.")]
+        [
+            SerializeField,
+            Tooltip("Opcional. Si se deja vacío, se busca DEF-hand.R en el rig Generic.")
+        ]
         private Transform _rightHand;
 
         [Header("Offsets locales de las manos")]
@@ -63,8 +69,18 @@ namespace TDOM.Unity
                 _rightHand = ResolveHand(_rightHand, RightHandBoneName);
             }
 
-            CacheAuthoredOffset(_leftHand, _leftArmTransform, out _leftAuthoredPositionOffset, out _leftAuthoredRotationOffset);
-            CacheAuthoredOffset(_rightHand, _rightArmTransform, out _rightAuthoredPositionOffset, out _rightAuthoredRotationOffset);
+            CacheAuthoredOffset(
+                _leftHand,
+                _leftArmTransform,
+                out _leftAuthoredPositionOffset,
+                out _leftAuthoredRotationOffset
+            );
+            CacheAuthoredOffset(
+                _rightHand,
+                _rightArmTransform,
+                out _rightAuthoredPositionOffset,
+                out _rightAuthoredRotationOffset
+            );
 
             SetArmsActive(false);
             if (_animator == null && !_reportedMissingRig)
@@ -85,7 +101,9 @@ namespace TDOM.Unity
                 return;
             }
 
-            bool attackActive = IsAttackState(_animator.GetCurrentAnimatorStateInfo(0).shortNameHash);
+            bool attackActive = IsAttackState(
+                _animator.GetCurrentAnimatorStateInfo(0).shortNameHash
+            );
             if (!attackActive && _animator.IsInTransition(0))
                 attackActive = IsAttackState(_animator.GetNextAnimatorStateInfo(0).shortNameHash);
 
