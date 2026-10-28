@@ -46,12 +46,13 @@ namespace TDOM.Unity.Input
             if (_personajeActivo == CharacterIds.Zendre)
             {
                 var m = _actions.Zendre;
+                bool dashPressed = m.Dash.WasPressedThisFrame();
                 return new InputSnapshot(
                     move: m.Move.ReadValue<Vector2>(),
                     look: m.Look.ReadValue<Vector2>(),
                     jumpPressed: m.Jump.WasPressedThisFrame(),
                     jumpHeld: m.Jump.IsPressed(),
-                    dashPressed: m.Dash.WasPressedThisFrame(),
+                    dashPressed: dashPressed,
                     sprintPressed: m.Sprint.WasPressedThisFrame(),
                     attackPressed: m.Attack.WasPressedThisFrame(),
                     attackHeld: m.Attack.IsPressed(),
