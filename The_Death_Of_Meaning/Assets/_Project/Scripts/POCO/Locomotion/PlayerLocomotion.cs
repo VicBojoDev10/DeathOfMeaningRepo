@@ -89,12 +89,12 @@ namespace TDOM.Gameplay.Locomotion
             return direction.normalized;
         }
 
-        public bool IntentarGancho(Vector3 origen, Vector3 punto)
+        public bool IntentarGancho(Vector3 origen, Vector3 punto, bool haciaJefe = false)
         {
             if (_grapple == null || State.Phase == LocomotionPhase.Attacking)
                 return false;
 
-            if (_grapple.TryIniciar(origen, punto))
+            if (_grapple.TryIniciar(origen, punto, haciaJefe))
             {
                 _dash?.Cancelar();
                 State.Phase = LocomotionPhase.Grappling;

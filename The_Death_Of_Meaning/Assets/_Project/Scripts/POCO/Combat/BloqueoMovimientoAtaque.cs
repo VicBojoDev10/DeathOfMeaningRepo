@@ -11,6 +11,9 @@ namespace TDOM.Gameplay.Combat
     {
         public const float EsperaPorDefecto = 0.5f;
 
+        // Los floats acumulan error al restar dt: un resto menor que esto ya cuenta como cero.
+        private const float Tolerancia = 1e-4f;
+
         private int _activos;
         private float _tiempoEnAtaque;
         private float _esperaRestante;
@@ -98,7 +101,7 @@ namespace TDOM.Gameplay.Combat
             if (_esperaRestante > 0f)
             {
                 _esperaRestante -= dt;
-                if (_esperaRestante < 0f)
+                if (_esperaRestante < Tolerancia)
                 {
                     _esperaRestante = 0f;
                 }
