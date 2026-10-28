@@ -33,5 +33,6 @@ MonoBehaviour:
     Damage: 15
     AnimTrigger: 
   HoldThreshold: 0.15
-  MaxChargeTime: 1.5
+  ReleaseChargeThreshold: 1
+  MaxChargeTime: 1
   BufferWindow: 0.25

@@ -145,6 +145,30 @@ namespace TDOM.Unity.Player
             _motor.Empujar(transform.forward, adelante, enElAire ? arriba : 0f, duracion);
         }
 
+        /// <summary>
+        /// Solo servidor: empuja al jugador en la dirección horizontal dada. El motor lo mueve su
+        /// dueño, así que el servidor se lo pide por RPC.
+        /// </summary>
+        public void EmpujarDesdeServidor(
+            Vector3 direccion,
+            float distancia,
+            float altura,
+            float duracion
+        )
+        {
+            if (!IsServer)
+                return;
+
+            EmpujarRpc(direccion, distancia, altura, duracion);
+        }
+
+        [Rpc(SendTo.Owner)]
+        private void EmpujarRpc(Vector3 direccion, float distancia, float altura, float duracion)
+        {
+            if (_motor != null)
+                _motor.Empujar(direccion, distancia, altura, duracion);
+        }
+
         public float EnergiaMaxima => _definition?.Energy != null ? _definition.Energy.Max : 0f;
         public float VidaMaxima => _definition.MaxHealth;
         public float DuracionAbatido => _definition.DownedDuration;
@@ -628,7 +652,9 @@ namespace TDOM.Unity.Player
             if (!apuntado.HasHit || impactado.GetComponentInParent<PlayerRoot>() != null)
                 return;
 
-            if (_locomocion.IntentarGancho(transform.position, apuntado.TargetPoint))
+            // Contra el jefe el gancho engancha pero corta el jalón antes de tocarlo.
+            bool haciaJefe = impactado.GetComponentInParent<BossController>() != null;
+            if (_locomocion.IntentarGancho(transform.position, apuntado.TargetPoint, haciaJefe))
             {
                 _camera.PunchFov(8f, 0.2f);
                 _feedback?.RegistrarAccionCamara(0.2f);
@@ -778,7 +804,11 @@ namespace TDOM.Unity.Player
             )
                 _aylaAnimator.IniciarDobleSalto();
             if (_locomocion.DashIniciado)
+            {
+                if (_characterId == CharacterIds.Zendre)
+                    _zendreLocomotionAnimator?.IniciarAssault();
                 DashEmbestidaIniciada?.Invoke();
+            }
             RegistrarDesplazamientoLateralEnCamara(input.Move);
 
             bool ganchoActivoActual = _locomocion != null && _locomocion.GanchoActivo;

@@ -19,6 +19,10 @@ namespace TDOM.Data
         public float radioArena = 25f;
         public int intentosPorPunto = 30;
         public float alturaCaida = 15f;
+
+        [Tooltip(
+            "Alto de la piedra (el conjunto de ojos) en metros; el ancho sale de su proporción (0.667)."
+        )]
         public float altoPiedra = 6f;
 
         [Header("Daño")]

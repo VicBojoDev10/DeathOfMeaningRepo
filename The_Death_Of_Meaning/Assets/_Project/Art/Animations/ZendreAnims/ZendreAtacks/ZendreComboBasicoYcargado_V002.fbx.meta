@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: be599fe9bcc31324988de2d584190969
+guid: 32b33af5a99a98544b21aee0f934e825
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
@@ -32,18 +32,18 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: ZendreRunLanding
+      name: ZendreComboBasicoYCargado
       takeName: Action
       internalID: 7176209919637214875
-      firstFrame: 0
-      lastFrame: 20
+      firstFrame: 36
+      lastFrame: 61
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 1
       loopBlendOrientation: 0
       loopBlendPositionY: 1
@@ -61,11 +61,11 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: ZendreRigg|Action
-      takeName: ZendreRigg|Action
-      internalID: 8860301551848580695
+      name: ComboBasico+cargado
+      takeName: ComboBasico+cargado
+      internalID: -6854620357679975054
       firstFrame: 0
-      lastFrame: 20
+      lastFrame: 107
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -90,11 +90,69 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: ZendreRigg|rigAction
-      takeName: ZendreRigg|rigAction
-      internalID: 1440321595853945430
+      name: ZendreRigg|Action
+      takeName: ZendreRigg|Action
+      internalID: 8860301551848580695
       firstFrame: 0
-      lastFrame: 779
+      lastFrame: 61
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: ZendreRigg|Action.001
+      takeName: ZendreRigg|Action.001
+      internalID: 8653645432774855667
+      firstFrame: 0
+      lastFrame: 107
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: ZendreRigg|ZendreRiggAction
+      takeName: ZendreRigg|ZendreRiggAction
+      internalID: 5966714932542474932
+      firstFrame: 0
+      lastFrame: 107
       wrapMode: 0
       orientationOffsetY: 0
       level: 0

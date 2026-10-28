@@ -33,6 +33,13 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private int _indiceMaterialGlow = 1;
 
+        [Header("Párpados")]
+        [Tooltip(
+            "Párpado animado de cada ojo, en el mismo orden que los HitZones de BossController. Un hueco = ese ojo sin párpado."
+        )]
+        [SerializeField]
+        private ParpadoOjo[] _parpados;
+
         private static readonly int IdColorBase = Shader.PropertyToID("_BaseColor");
 
         private struct OjoPintable
@@ -107,6 +114,9 @@ namespace TDOM.Unity.Combat
 
         private void Pintar(int ojo, EstadoOjo estado)
         {
+            if (_parpados != null && ojo >= 0 && ojo < _parpados.Length && _parpados[ojo] != null)
+                _parpados[ojo].Aplicar(estado);
+
             var perfil = _ojos.Perfil;
             if (perfil == null || ojo < 0 || ojo >= _pintables.Length)
                 return;

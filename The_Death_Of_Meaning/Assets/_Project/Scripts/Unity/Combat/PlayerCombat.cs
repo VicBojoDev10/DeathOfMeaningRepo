@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Combat;
@@ -150,6 +151,16 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private float _alcanceHitbox = 1.0f;
 
+        [SerializeField, Min(0f)]
+        [Tooltip(
+            "Segundos tras iniciar un golpe en los que el hitbox sigue detectando mientras la espada "
+                + "se mueve con la animacion. Cada zona se golpea una sola vez por golpe. "
+                + "0 = solo se detecta al iniciar el golpe, con la espada todavia en reposo."
+        )]
+        private float _ventanaBarridoMelee = 0.35f;
+
+        private const float IntervaloBarridoMelee = 0.05f;
+
         [Header("Cargado de giros (ab + ab + ac)")]
         [SerializeField, Min(0f)]
         [Tooltip("Daño de cada impacto de un giro, como fraccion del daño del cargado.")]
@@ -214,6 +225,9 @@ namespace TDOM.Unity.Combat
         private bool _poseGirosActiva;
         private AttackEvent _eventoGiros;
         private Coroutine _golpeDiferido;
+        private Coroutine _barridoMelee;
+        private readonly HashSet<(ulong, HitZone)> _zonasGolpeadas =
+            new HashSet<(ulong, HitZone)>();
 
         /// <summary>
         /// Energia que costara el cargado que se esta preparando (0 si no se esta cargando).
@@ -334,7 +348,8 @@ namespace TDOM.Unity.Combat
                     _definition.Melee.HoldThreshold,
                     _definition.Melee.MaxChargeTime,
                     _definition.Melee.BufferWindow,
-                    _definition.Melee.CooldownFinCombo
+                    _definition.Melee.CooldownFinCombo,
+                    _definition.Melee.ReleaseChargeThreshold
                 );
                 _melee.RetenerCargadoSi = ligeros =>
                     _combatAnimator != null && _combatAnimator.UsaGiros(ligeros);
@@ -622,10 +637,14 @@ namespace TDOM.Unity.Combat
             if (!giros)
             {
                 CancelarGolpeDiferido();
+                _zonasGolpeadas.Clear();
                 if (retardo > 0f)
                     _golpeDiferido = StartCoroutine(GolpeDiferido(evento, retardo, ligeros));
                 else
                     ImpactarMelee(evento, ligeros);
+
+                if (_ventanaBarridoMelee > 0f)
+                    _barridoMelee = StartCoroutine(BarridoMelee(evento, retardo, ligeros));
             }
             ReproducirGolpeRpc(
                 evento.ComboIndex,
@@ -767,6 +786,12 @@ namespace TDOM.Unity.Combat
 
         private void CancelarGolpeDiferido()
         {
+            if (_barridoMelee != null)
+            {
+                StopCoroutine(_barridoMelee);
+                _barridoMelee = null;
+            }
+
             if (_golpeDiferido == null)
                 return;
             StopCoroutine(_golpeDiferido);
@@ -784,6 +809,7 @@ namespace TDOM.Unity.Combat
                     if (imp.Objeto != null)
                     {
                         huboImpacto = true;
+                        _zonasGolpeadas.Add((imp.Objeto.NetworkObjectId, imp.Zona));
                         ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, ReferenciaZona(imp));
                     }
                 }
@@ -822,6 +848,48 @@ namespace TDOM.Unity.Combat
                 if (esDeCombo)
                     _feedback.OnComboConectado();
             }
+        }
+
+        // El golpe de ImpactarMelee se detecta cuando arranca la animacion, con la espada aun en
+        // reposo. Este barrido repite la deteccion mientras la espada se mueve, para que un ojo
+        // alcanzado a mitad del tajo cuente. Cada zona se reporta una sola vez por golpe (un
+        // segundo reporte sobre un ojo abierto seria un rebote, es decir, danio).
+        private IEnumerator BarridoMelee(AttackEvent evento, float retardo, int ligeros)
+        {
+            if (retardo > 0f)
+                yield return new WaitForSeconds(retardo);
+
+            var intervalo = new WaitForSeconds(IntervaloBarridoMelee);
+            bool esDeCombo = evento.Kind == AttackKind.Light || ligeros > 0;
+            float restante = _ventanaBarridoMelee;
+            while (restante > 0f)
+            {
+                yield return intervalo;
+                restante -= IntervaloBarridoMelee;
+                if (!IsOwner || _incapacitado || _hitbox == null)
+                    break;
+
+                bool huboNuevo = false;
+                foreach (var imp in _hitbox.DetectarImpactos(_radioHitbox, _alcanceHitbox))
+                {
+                    if (imp.Objeto == null)
+                        continue;
+                    if (!_zonasGolpeadas.Add((imp.Objeto.NetworkObjectId, imp.Zona)))
+                        continue;
+
+                    huboNuevo = true;
+                    ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, ReferenciaZona(imp));
+                }
+
+                if (huboNuevo && _feedback != null)
+                {
+                    _feedback.OnAtaquePropio();
+                    if (esDeCombo)
+                        _feedback.OnComboConectado();
+                }
+            }
+
+            _barridoMelee = null;
         }
 
         private void AlImpactoGiro(int indice, bool esFinal)

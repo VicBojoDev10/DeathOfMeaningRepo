@@ -16,9 +16,19 @@ namespace TDOM.Unity
         [SerializeField]
         private AtaqueMorteroProfile _perfil;
 
-        [Tooltip("Cilindro con el MeshCollider convexo; es lo que sube y se hunde.")]
+        [Tooltip(
+            "Cilindro con el MeshCollider convexo; es lo que sube y se hunde y lo que bloquea a "
+                + "los jugadores. Si hay Visual, el cilindro no se dibuja."
+        )]
         [SerializeField]
         private Transform _cuerpo;
+
+        [Tooltip(
+            "Lo que se ve de la columna: el conjunto de ojos (MorteroPiedraOjos), hermano de "
+                + "Cuerpo. Se ajusta al diámetro y la altura de la columna y sube y se hunde con él."
+        )]
+        [SerializeField]
+        private Transform _visual;
 
         [Tooltip("Disco plano opcional pegado al piso (grieta), sin collider.")]
         [SerializeField]
@@ -36,6 +46,9 @@ namespace TDOM.Unity
 
         // La elige el servidor antes de Spawn; llega a los clientes en el spawn.
         private readonly NetworkVariable<float> _altura = new NetworkVariable<float>();
+
+        // La malla de MorteroPiedraOjos mide 1 de alto y 0.667 de ancho con escala 1.
+        private const float AnchoMallaVisual = 0.667f;
 
         private Estado _estado = Estado.Subiendo;
         private float _tiempoEnEstado;
@@ -60,6 +73,15 @@ namespace TDOM.Unity
             if (_cuerpo != null)
                 // El cilindro primitivo de Unity mide 2 de alto con escala 1.
                 _cuerpo.localScale = new Vector3(diametro, altura * 0.5f, diametro);
+
+            if (_visual != null)
+            {
+                // Mismo diámetro y altura que el collider; cada columna gira distinto (igual en
+                // todas las máquinas, sale del id de red).
+                float ancho = diametro / AnchoMallaVisual;
+                _visual.localScale = new Vector3(ancho, altura, ancho);
+                _visual.localRotation = Quaternion.Euler(0f, NetworkObjectId * 137f % 360f, 0f);
+            }
 
             if (_grieta != null)
             {
@@ -221,7 +243,11 @@ namespace TDOM.Unity
                 return;
 
             float altura = _altura.Value;
-            _cuerpo.localPosition = Vector3.up * (altura * (salida - 0.5f));
+            Vector3 posicion = Vector3.up * (altura * (salida - 0.5f));
+            _cuerpo.localPosition = posicion;
+
+            if (_visual != null)
+                _visual.localPosition = posicion;
         }
     }
 }
