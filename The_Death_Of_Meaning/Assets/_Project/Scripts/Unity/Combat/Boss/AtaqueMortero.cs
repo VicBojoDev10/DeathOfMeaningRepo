@@ -5,6 +5,7 @@ using TDOM.Gameplay.Core;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
+using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -35,6 +36,16 @@ namespace TDOM.Unity
         [SerializeField]
         private ParticleSystem _polvo;
 
+        // TW-182: efectos de lava en red (los lanza el servidor con el VfxRed del jefe).
+        [Header("VFX de lava")]
+        [Tooltip("Una sola vez por ataque: la lava sale de la boca del jefe hacia los puntos.")]
+        [SerializeField]
+        private VfxBase _vfxLanzamiento;
+
+        [Tooltip("Una explosión por punto de impacto, del tamaño del radio del golpe.")]
+        [SerializeField]
+        private VfxBase _vfxCaida;
+
         private enum FaseMortero
         {
             Aviso,
@@ -58,6 +69,8 @@ namespace TDOM.Unity
         private readonly List<Transform> _piedras = new List<Transform>();
         private readonly List<Vector3> _puntosLocales = new List<Vector3>();
         private float _tiempoCaidaLocal = -1f;
+
+        private const float VelocidadGiroPiedra = 40f;
 
         private float _flashGolpe;
 
@@ -250,6 +263,7 @@ namespace TDOM.Unity
                 case FaseMortero.Aviso:
                     if (_tiempoEnFase >= _perfil.aviso)
                     {
+                        LanzarVfxLanzamiento();
                         CambiarFase(FaseMortero.Caida);
                         CaidaRpc();
                     }
@@ -261,6 +275,7 @@ namespace TDOM.Unity
                         DetectarImpactos();
                         SpawnearColumnas();
                         ImpactoRpc();
+                        LanzarVfxCaida();
                         CambiarFase(FaseMortero.Retirada);
                     }
                     break;
@@ -291,7 +306,11 @@ namespace TDOM.Unity
             float altura = Mathf.Lerp(_perfil.alturaCaida, 0f, t);
 
             for (int i = 0; i < _piedras.Count; i++)
+            {
+                // Cae girando despacio: el conjunto de ojos no es simétrico y se nota.
+                _piedras[i].Rotate(Vector3.up, VelocidadGiroPiedra * dt, Space.World);
                 ColocarPiedra(_piedras[i], _puntosLocales[i], altura);
+            }
         }
 
         // Coloca la base de la piedra a la altura indicada sobre su punto de impacto.
@@ -333,6 +352,44 @@ namespace TDOM.Unity
             }
         }
 
+        // TW-182: la lava sale de la boca del jefe hacia el centro de los puntos de impacto.
+        // Es un solo efecto por ataque, no uno por piedra.
+        private void LanzarVfxLanzamiento()
+        {
+            var vfx = VfxJefe;
+            if (
+                vfx == null
+                || _vfxLanzamiento == null
+                || _puntosServidor == null
+                || _puntosServidor.Length == 0
+            )
+                return;
+
+            Vector3 origen = Lanzador.PuntoBoca.position;
+            Vector3 centro = Vector3.zero;
+            foreach (var punto in _puntosServidor)
+                centro += punto;
+            centro /= _puntosServidor.Length;
+
+            Vector3 direccion = centro - origen;
+            if (direccion.sqrMagnitude < 0.01f)
+                direccion = Lanzador.PuntoBoca.forward;
+
+            vfx.Lanzar(_vfxLanzamiento, origen, Quaternion.LookRotation(direccion.normalized));
+        }
+
+        // TW-182: una explosión de lava por punto, al ras del piso. El tamaño lo da el radio del
+        // perfil de VFX (Vfx_JikotsuMorteroCaida), que debe ser igual a radioArea.
+        private void LanzarVfxCaida()
+        {
+            var vfx = VfxJefe;
+            if (vfx == null || _vfxCaida == null || _puntosServidor == null)
+                return;
+
+            foreach (var punto in _puntosServidor)
+                vfx.Lanzar(_vfxCaida, punto, Quaternion.identity);
+        }
+
         // TW-126: la columna queda con la base en el piso que ya se calculó para cada punto.
         private void SpawnearColumnas()
         {
@@ -367,8 +424,9 @@ namespace TDOM.Unity
                 if (_piedra != null)
                 {
                     var piedra = Instantiate(_piedra, transform);
-                    // El cilindro primitivo de Unity mide 2 de alto con escala 1.
-                    piedra.localScale = new Vector3(1.5f, _perfil.altoPiedra * 0.5f, 1.5f);
+                    // La malla de la piedra mide 1 de alto con escala 1: se escala por igual.
+                    piedra.localScale = Vector3.one * _perfil.altoPiedra;
+                    piedra.rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
                     ColocarPiedra(piedra, punto, _perfil.alturaCaida);
                     _piedras.Add(piedra);
                 }
