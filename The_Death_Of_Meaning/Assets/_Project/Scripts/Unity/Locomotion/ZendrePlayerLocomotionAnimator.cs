@@ -1,5 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
+using TDOM.Gameplay.Core;
 using TDOM.Unity.Player;
 
 namespace TDOM.Unity
@@ -18,6 +19,9 @@ namespace TDOM.Unity
         private static readonly int AssaultStandStateHash = Animator.StringToHash("AssaultStand");
         private static readonly int DamageHash = Animator.StringToHash("Damage");
         private static readonly int DamageStateHash = Animator.StringToHash("Base Layer.Damage");
+        private static readonly int DeadHash = Animator.StringToHash("Dead");
+        private static readonly int ReviveHash = Animator.StringToHash("Revive");
+        private static readonly int ReviveStateHash = Animator.StringToHash("Revive");
         private const float DamageBlendMaximum = 50f;
         private const float DamageTransitionDuration = 0.1f;
         private const float SpeedDampTime = 0.1f;
@@ -72,12 +76,17 @@ namespace TDOM.Unity
             _ultimaPos = transform.position;
             _playerRoot = GetComponentInParent<PlayerRoot>();
             if (_playerRoot != null)
+            {
                 _playerRoot.Vida.OnValueChanged += AlCambiarVida;
+                _playerRoot.EstadoVida.OnValueChanged += AlCambiarEstadoVida;
+            }
 
             if (_animator != null)
             {
                 _animator.SetFloat(SpeedHash, 0f);
                 _animator.SetFloat(DamageHash, 0f);
+                if (_playerRoot != null)
+                    AplicarEstadoVida(_playerRoot.EstadoVida.Value, false);
                 AplicarModos(false, false, Vector2.zero);
                 _animator.SetBool(JumpHash, _jumping.Value);
                 _animator.SetBool(FallingHash, _falling.Value);
@@ -88,7 +97,10 @@ namespace TDOM.Unity
         public override void OnNetworkDespawn()
         {
             if (_playerRoot != null)
+            {
                 _playerRoot.Vida.OnValueChanged -= AlCambiarVida;
+                _playerRoot.EstadoVida.OnValueChanged -= AlCambiarEstadoVida;
+            }
 
             _playerRoot = null;
             base.OnNetworkDespawn();
@@ -105,6 +117,21 @@ namespace TDOM.Unity
 
             _animator.SetFloat(DamageHash, Mathf.Clamp(danioRecibido, 0f, DamageBlendMaximum));
             _animator.CrossFade(DamageStateHash, DamageTransitionDuration, 0, 0f);
+        }
+
+        private void AlCambiarEstadoVida(PlayerLifeState estadoAnterior, PlayerLifeState estadoActual)
+        {
+            bool iniciarRevive = estadoAnterior != PlayerLifeState.Vivo && estadoActual == PlayerLifeState.Vivo;
+            AplicarEstadoVida(estadoActual, iniciarRevive);
+        }
+
+        private void AplicarEstadoVida(PlayerLifeState estado, bool iniciarRevive)
+        {
+            if (_animator == null)
+                return;
+
+            _animator.SetBool(DeadHash, estado != PlayerLifeState.Vivo);
+            _animator.SetBool(ReviveHash, iniciarRevive);
         }
 
         public void ActualizarApuntado(bool apuntando, bool guardia, Vector2 movimiento)
@@ -169,6 +196,9 @@ namespace TDOM.Unity
                 _assaultAutoReleasePending = false;
                 _animator.SetBool(AssaultHash, false);
             }
+
+            if (_animator.GetCurrentAnimatorStateInfo(0).shortNameHash == ReviveStateHash)
+                _animator.SetBool(ReviveHash, false);
 
             Vector3 posicionActual = transform.position;
             Vector3 velocidad = (posicionActual - _ultimaPos) / dt;
