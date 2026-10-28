@@ -27,17 +27,17 @@ namespace TDOM.Unity.Combat
         private bool _usarPrismaEspada = true;
 
         [SerializeField, Min(0.1f), Tooltip("Ancho total del prisma (metros), de lado a lado.")]
-        private float _anchoPrisma = 2.5f;
+        private float _anchoPrisma = 4f;
 
         [SerializeField, Min(0.1f), Tooltip("Alto total del prisma (metros).")]
-        private float _altoPrisma = 2.5f;
+        private float _altoPrisma = 4f;
 
         [
             SerializeField,
             Min(0f),
             Tooltip("Metros extra que el prisma sobresale por la punta y por el mango.")
         ]
-        private float _margenLargo = 0.75f;
+        private float _margenLargo = 1.5f;
 
         [
             SerializeField,
@@ -47,7 +47,7 @@ namespace TDOM.Unity.Combat
                     + "contados desde el personaje (el servidor no ve la espada animada)."
             )
         ]
-        private float _extraValidacionServidor = 2f;
+        private float _extraValidacionServidor = 3.5f;
 
         private AylaEspada _espada;
 

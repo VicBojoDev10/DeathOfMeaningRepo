@@ -11,15 +11,23 @@ namespace TDOM.Unity
 
         private readonly NetworkVariable<ulong> _lanzadorId = new NetworkVariable<ulong>();
 
+        private ulong _lanzadorPendiente;
+
         protected AtaquesArek Lanzador { get; private set; }
 
+        // Se llama antes de Spawn(): la NetworkVariable aun no conoce su NetworkBehaviour, asi que
+        // el id se guarda aparte y se escribe en OnNetworkSpawn, antes de que el spawn llegue a los
+        // clientes.
         public void AsignarLanzador(AtaquesArek lanzador)
         {
-            _lanzadorId.Value = lanzador.NetworkObjectId;
+            _lanzadorPendiente = lanzador.NetworkObjectId;
         }
 
         public override void OnNetworkSpawn()
         {
+            if (IsServer)
+                _lanzadorId.Value = _lanzadorPendiente;
+
             if (
                 NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(
                     _lanzadorId.Value,
