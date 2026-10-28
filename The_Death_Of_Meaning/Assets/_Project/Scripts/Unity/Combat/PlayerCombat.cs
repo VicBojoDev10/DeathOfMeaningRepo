@@ -334,7 +334,8 @@ namespace TDOM.Unity.Combat
                     _definition.Melee.HoldThreshold,
                     _definition.Melee.MaxChargeTime,
                     _definition.Melee.BufferWindow,
-                    _definition.Melee.CooldownFinCombo
+                    _definition.Melee.CooldownFinCombo,
+                    _definition.Melee.ReleaseChargeThreshold
                 );
                 _melee.RetenerCargadoSi = ligeros =>
                     _combatAnimator != null && _combatAnimator.UsaGiros(ligeros);
