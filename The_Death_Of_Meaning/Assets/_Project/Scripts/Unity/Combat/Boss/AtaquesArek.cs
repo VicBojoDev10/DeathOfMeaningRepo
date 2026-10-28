@@ -62,6 +62,15 @@ namespace TDOM.Unity
         public AtaqueManoProfile PerfilMano => _perfilMano;
         public AtaqueTentaculoProfile PerfilTentaculo => _perfilTentaculo;
         public AtaqueMorteroProfile PerfilMortero => _perfilMortero;
+
+        [Header("Efectos")]
+        [Tooltip(
+            "Boca del jefe: de ahí sale la lava del Mortero (TW-182). Si falta, sale del pivote."
+        )]
+        [SerializeField]
+        private Transform _puntoBoca;
+
+        public Transform PuntoBoca => _puntoBoca != null ? _puntoBoca : transform;
         public AtaqueRayoProfile PerfilRayo => _perfilRayo;
         public AvisoAtaqueProfile PerfilAviso => _perfilAviso;
         public BossTargetingProfile PerfilObjetivo => _perfilObjetivo;
