@@ -145,6 +145,30 @@ namespace TDOM.Unity.Player
             _motor.Empujar(transform.forward, adelante, enElAire ? arriba : 0f, duracion);
         }
 
+        /// <summary>
+        /// Solo servidor: empuja al jugador en la dirección horizontal dada. El motor lo mueve su
+        /// dueño, así que el servidor se lo pide por RPC.
+        /// </summary>
+        public void EmpujarDesdeServidor(
+            Vector3 direccion,
+            float distancia,
+            float altura,
+            float duracion
+        )
+        {
+            if (!IsServer)
+                return;
+
+            EmpujarRpc(direccion, distancia, altura, duracion);
+        }
+
+        [Rpc(SendTo.Owner)]
+        private void EmpujarRpc(Vector3 direccion, float distancia, float altura, float duracion)
+        {
+            if (_motor != null)
+                _motor.Empujar(direccion, distancia, altura, duracion);
+        }
+
         public float EnergiaMaxima => _definition?.Energy != null ? _definition.Energy.Max : 0f;
         public float VidaMaxima => _definition.MaxHealth;
         public float DuracionAbatido => _definition.DownedDuration;
