@@ -4,16 +4,17 @@ namespace TDOM.Unity
 {
     public class BrazosZendre : MonoBehaviour
     {
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start()
-        {
-        
-        }
 
-        // Update is called once per frame
-        void Update()
-        {
-        
-        }
+        [Header("Referencias")]
+        [SerializeField]
+        private Animator _animator;
+
+        [SerializeField, Tooltip("Prefabs del brazo izquierdo de Zendre")]
+        private GameObject _brazoLeftPrefab;
+        [SerializeField, Tooltip("Prefabs del brazo derecho de Zendre")]
+        private GameObject _brazoRightPrefab;
+
+        [Header("Hueso")] [SerializeField] private HumanBodyBones _leftHandHuesoHumanoide = HumanBodyBones.LeftHand;
+        [Header("Hueso")] [SerializeField] private HumanBodyBones _rightHandHuesoHumanoide = HumanBodyBones.RightHand;
     }
 }
