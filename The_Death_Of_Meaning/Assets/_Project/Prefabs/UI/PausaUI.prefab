@@ -618,7 +618,6 @@ GameObject:
   - component: {fileID: 5187967390785170125}
   - component: {fileID: 9066115029442222868}
   - component: {fileID: 224997005609861689}
-  - component: {fileID: 6178195518577856207}
   m_Layer: 0
   m_Name: Panel
   m_TagString: Untagged
@@ -666,7 +665,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.1254902, g: 0.14117648, b: 0.1764706, a: 1}
+  m_Color: {r: 0.1254902, g: 0.14117648, b: 0.1764706, a: 0.8784314}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -683,21 +682,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &6178195518577856207
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4234429689155385865}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0b56c7bc7400ab8469e8886758d7912b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.UiThemeColor
-  theme: {fileID: 11400000, guid: c341d16d73242714998ef9918f6b7424, type: 2}
-  colorName: 3
-  target: {fileID: 224997005609861689}
 --- !u!1 &4338950565248373202
 GameObject:
   m_ObjectHideFlags: 0
