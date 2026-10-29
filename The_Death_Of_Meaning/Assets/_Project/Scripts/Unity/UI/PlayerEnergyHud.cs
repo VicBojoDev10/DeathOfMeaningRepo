@@ -9,7 +9,6 @@ namespace TDOM.Unity.UI
     {
         [SerializeField]
         private Slider _energiaJugador;
-        public TextMeshProUGUI LabelText;
 
         [Header("Costo pendiente (cargado)")]
         [SerializeField]
@@ -49,9 +48,6 @@ namespace TDOM.Unity.UI
                 _energiaJugador.minValue = 0f;
                 _energiaJugador.maxValue = Mathf.Max(0f, _maxEnergy);
             }
-
-            if (LabelText != null)
-                LabelText.text = labelName;
 
             if (_targetRoot != null)
             {
