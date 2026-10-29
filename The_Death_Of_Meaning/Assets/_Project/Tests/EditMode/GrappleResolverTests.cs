@@ -218,6 +218,78 @@ namespace TDOM.Tests.EditMode
             Assert.IsFalse(grapple.Activo);
         }
 
+        private GrappleResolver CrearGrappleContraJefe() =>
+            new GrappleResolver(30f, 25f, 3f, 1.5f, 5f, 4f, 14f, 45f);
+
+        [Test]
+        public void Contra_el_jefe_el_jalon_se_corta_a_la_distancia_de_frenado()
+        {
+            var grapple = CrearGrappleContraJefe();
+            var estado = new LocomotionState();
+            Vector3 punto = new Vector3(0f, 0f, 10f);
+            grapple.TryIniciar(Vector3.zero, punto, haciaJefe: true);
+
+            grapple.Tick(estado, new Vector3(0f, 0f, 5.9f), 0.016f);
+            Assert.IsTrue(grapple.Activo);
+
+            grapple.Tick(estado, new Vector3(0f, 0f, 6.1f), 0.016f);
+            Assert.IsFalse(grapple.Activo);
+            Assert.AreEqual(LocomotionPhase.Airborne, estado.Phase);
+        }
+
+        [Test]
+        public void El_rebote_sale_hacia_atras_a_45_grados()
+        {
+            var grapple = CrearGrappleContraJefe();
+            var estado = new LocomotionState();
+            grapple.TryIniciar(Vector3.zero, new Vector3(0f, 0f, 10f), haciaJefe: true);
+
+            grapple.Tick(estado, new Vector3(0f, 0f, 6.5f), 0.016f);
+
+            Assert.Less(estado.Velocity.z, 0f);
+            Assert.Greater(estado.Velocity.y, 0f);
+            Assert.AreEqual(Mathf.Abs(estado.Velocity.z), estado.Velocity.y, 0.001f);
+            Assert.AreEqual(14f, estado.Velocity.magnitude, 0.001f);
+        }
+
+        [Test]
+        public void El_rebote_ignora_la_altura_al_calcular_hacia_atras()
+        {
+            var grapple = CrearGrappleContraJefe();
+            var estado = new LocomotionState();
+            grapple.TryIniciar(Vector3.zero, new Vector3(10f, 8f, 0f), haciaJefe: true);
+
+            grapple.Tick(estado, new Vector3(8f, 6f, 0f), 0.016f);
+
+            Assert.Less(estado.Velocity.x, 0f);
+            Assert.AreEqual(0f, estado.Velocity.z, 0.001f);
+        }
+
+        [Test]
+        public void Fuera_del_jefe_el_gancho_llega_hasta_el_punto()
+        {
+            var grapple = CrearGrappleContraJefe();
+            var estado = new LocomotionState();
+            grapple.TryIniciar(Vector3.zero, new Vector3(0f, 0f, 10f), haciaJefe: false);
+
+            grapple.Tick(estado, new Vector3(0f, 0f, 6.1f), 0.016f);
+
+            Assert.IsTrue(grapple.Activo);
+            Assert.AreEqual(LocomotionPhase.Grappling, estado.Phase);
+        }
+
+        [Test]
+        public void Sin_distancia_de_frenado_no_hay_rebote_aunque_apunte_al_jefe()
+        {
+            var grapple = CrearGrapple();
+            var estado = new LocomotionState();
+            grapple.TryIniciar(Vector3.zero, new Vector3(0f, 0f, 10f), haciaJefe: true);
+
+            grapple.Tick(estado, new Vector3(0f, 0f, 6f), 0.016f);
+
+            Assert.IsTrue(grapple.Activo);
+        }
+
         [Test]
         public void Constructor_desde_GrappleProfile_copia_valores_correctamente()
         {
