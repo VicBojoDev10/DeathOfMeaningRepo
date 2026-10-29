@@ -1,17 +1,28 @@
+using TDOM.Gameplay.Core;
+using TDOM.Unity.UI;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 namespace TDOM.Unity
 {
     public class CharacterSelUI : UIWindow
     {
+        private const string OtherSelectedMessage = "Jugador {0} eligió a {1}. Elige tu personaje.";
+        private const int HostPlayerNumber = 1;
+        private const int ClientPlayerNumber = 2;
+        private const string WaitingForHostMessage = "Esperando al anfitrión";
+
         [Header("Botones")]
         public Button zendreButton;
         public Button aylaButton;
         public Button ready;
+        public Button backButton;
+        public CharacterCardUI zendreCard;
+        public CharacterCardUI aylaCard;
 
         [Header("Textos de feedback (opcional)")]
         public TextMeshProUGUI readyButtonText;
@@ -43,6 +54,8 @@ namespace TDOM.Unity
 
         private void OnEnable()
         {
+            if (backButton != null)
+                backButton.onClick.AddListener(Volver);
             if (ready != null)
                 ready.interactable = false;
             if (zendreButton != null)
@@ -62,8 +75,29 @@ namespace TDOM.Unity
             EnlazarManager();
         }
 
+        public override void FocusFirstElement()
+        {
+            ConfigurarNavegacion();
+            RecuperarFocoSiHaceFalta();
+        }
+
+        private void Update()
+        {
+            if (!IsOpen)
+                return;
+            RecuperarFocoSiHaceFalta();
+            if (
+                EventSystem.current?.currentInputModule is InputSystemUIInputModule inputModule
+                && inputModule.cancel?.action != null
+                && inputModule.cancel.action.WasPressedThisFrame()
+            )
+                Volver();
+        }
+
         private void OnDisable()
         {
+            if (backButton != null)
+                backButton.onClick.RemoveListener(Volver);
             if (zendreButton != null)
                 zendreButton.onClick.RemoveListener(SeleccionarZendre);
             if (aylaButton != null)
@@ -114,6 +148,8 @@ namespace TDOM.Unity
 
         private void AplicarColorTemporal(CharacterIds id)
         {
+            if (zendreCard != null && aylaCard != null)
+                return;
             if (_zendreImg != null)
                 _zendreImg.color = id == CharacterIds.Zendre ? colorElegidoPorMi : colorDisponible;
             if (_aylaImg != null)
@@ -124,6 +160,12 @@ namespace TDOM.Unity
         {
             if (_manager != null)
                 _manager.MarcarListoRpc();
+        }
+
+        private void Volver()
+        {
+            ConnectionManager.Instance?.CancelarConexion();
+            UiManager.Instance?.SwitchWindow(WindowId, WindowsIds.ConnectionMenuUI);
         }
 
         private void MostrarMensajeDesconexion()
@@ -184,12 +226,30 @@ namespace TDOM.Unity
             if (ready != null)
                 ready.interactable = miPersonaje != CharacterIds.None && !yaListo;
             if (readyButtonText != null)
-                readyButtonText.text = yaListo ? "¡Listo!" : "Listo";
+            {
+                readyButtonText.text =
+                    yaListo && !_manager.IsHost ? WaitingForHostMessage
+                    : yaListo ? "¡Listo!"
+                    : "Listo";
+                readyButtonText.color =
+                    ready != null && ready.interactable ? Color.black : colorBloqueado;
+            }
             if (statusText != null)
                 statusText.text =
-                    yaListo ? "Esperando al otro jugador..."
+                    yaListo
+                        ? (_manager.IsHost ? "Esperando al otro jugador..." : WaitingForHostMessage)
                     : miPersonaje == CharacterIds.None ? "Elige tu personaje"
                     : "Presiona Listo para confirmar";
+            if (
+                statusText != null
+                && miPersonaje == CharacterIds.None
+                && (zendreTomadoPorOtro || aylaTomadoPorOtro)
+            )
+                statusText.text = string.Format(
+                    OtherSelectedMessage,
+                    _manager.IsHost ? ClientPlayerNumber : HostPlayerNumber,
+                    zendreTomadoPorOtro ? nameof(CharacterIds.Zendre) : nameof(CharacterIds.Ayla)
+                );
             ConfigurarNavegacion();
             RecuperarFocoSiHaceFalta();
         }
@@ -205,14 +265,14 @@ namespace TDOM.Unity
                 aylaAvailable ? aylaButton : null,
                 null,
                 readyAvailable ? ready : null,
-                null
+                backButton
             );
             ConfigurarBotonNavegacion(
                 aylaButton,
                 null,
                 zendreAvailable ? zendreButton : null,
                 readyAvailable ? ready : null,
-                null
+                backButton
             );
 
             Button personajeDisponible =
@@ -224,7 +284,16 @@ namespace TDOM.Unity
                 personajeDisponible,
                 personajeDisponible,
                 null,
-                personajeDisponible
+                personajeDisponible != null ? personajeDisponible : backButton
+            );
+            ConfigurarBotonNavegacion(
+                backButton,
+                null,
+                null,
+                personajeDisponible != null ? personajeDisponible
+                    : readyAvailable ? ready
+                    : null,
+                null
             );
         }
 
@@ -254,6 +323,8 @@ namespace TDOM.Unity
             var selected = EventSystem.current.currentSelectedGameObject;
             bool focusLost =
                 selected == null
+                || !selected.activeInHierarchy
+                || !selected.transform.IsChildOf(transform)
                 || (
                     zendreButton != null
                     && selected == zendreButton.gameObject
@@ -272,7 +343,7 @@ namespace TDOM.Unity
                 ready != null && ready.interactable ? ready
                 : zendreButton != null && zendreButton.interactable ? zendreButton
                 : aylaButton != null && aylaButton.interactable ? aylaButton
-                : null;
+                : backButton;
             if (target != null)
                 EventSystem.current.SetSelectedGameObject(target.gameObject);
         }
@@ -290,6 +361,18 @@ namespace TDOM.Unity
                 return;
             bool mineSelected = mine == character;
             bool blocked = !mineSelected && (takenByOther || readyState);
+            var card = character == CharacterIds.Zendre ? zendreCard : aylaCard;
+            if (card != null)
+            {
+                button.interactable = !mineSelected && !blocked;
+                card.Presentar(
+                    mineSelected,
+                    takenByOther,
+                    mine != CharacterIds.None,
+                    _manager.IsHost ? ClientPlayerNumber : HostPlayerNumber
+                );
+                return;
+            }
             Color color =
                 mineSelected ? colorElegidoPorMi
                 : blocked ? colorBloqueado
