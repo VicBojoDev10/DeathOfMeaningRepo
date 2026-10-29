@@ -52,11 +52,11 @@ namespace TDOM.Unity
         [SerializeField]
         [Tooltip("Color del fondo detras del icono mientras se llena el cooldown.")]
         private Color cooldownFondo = new Color(0f, 0f, 0f, 0.45f);
+
         [SerializeField]
         private Image buttonPlayerIcon;
 
         [Header("PlayerHealth")]
-
         [SerializeField]
         private Slider mainPlayerHealthSlider;
 
@@ -364,7 +364,6 @@ namespace TDOM.Unity
                     if (buttonPlayerIcon != null)
                         buttonPlayerIcon.sprite = aylaIcon;
                 }
-
                 else if (_localPlayer.CharacterId == CharacterIds.Zendre)
                 {
                     if (buttonPlayerIcon != null)
