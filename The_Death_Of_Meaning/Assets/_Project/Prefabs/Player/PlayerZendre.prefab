@@ -777,7 +777,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5924963109107301559, guid: fbe4153429b06154a92487248a12b59d, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6445321918295975437, guid: fbe4153429b06154a92487248a12b59d, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2.1466353
+      objectReference: {fileID: 0}
+    - target: {fileID: 6445321918295975437, guid: fbe4153429b06154a92487248a12b59d, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2.1466348
+      objectReference: {fileID: 0}
+    - target: {fileID: 6445321918295975437, guid: fbe4153429b06154a92487248a12b59d, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 2.1466348
       objectReference: {fileID: 0}
     - target: {fileID: 6445321918295975437, guid: fbe4153429b06154a92487248a12b59d, type: 3}
       propertyPath: m_LocalPosition.x
@@ -984,6 +996,18 @@ PrefabInstance:
     m_TransformParent: {fileID: 8867771543483451306}
     m_Modifications:
     - target: {fileID: 2722462498074665244, guid: f8e274d548c53e1449bb2a287a99f0d9, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2.3994656
+      objectReference: {fileID: 0}
+    - target: {fileID: 2722462498074665244, guid: f8e274d548c53e1449bb2a287a99f0d9, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2.3994653
+      objectReference: {fileID: 0}
+    - target: {fileID: 2722462498074665244, guid: f8e274d548c53e1449bb2a287a99f0d9, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 2.3994653
+      objectReference: {fileID: 0}
+    - target: {fileID: 2722462498074665244, guid: f8e274d548c53e1449bb2a287a99f0d9, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.55
       objectReference: {fileID: 0}
@@ -1029,7 +1053,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3351788197236472742, guid: f8e274d548c53e1449bb2a287a99f0d9, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1357,9 +1381,9 @@ MonoBehaviour:
   _brazoRightPrefab: {fileID: 7314711420201877068}
   _leftHand: {fileID: 2842387697460935106}
   _rightHand: {fileID: 2444213322411812234}
-  _leftPositionOffset: {x: 0, y: 0, z: 0}
+  _leftPositionOffset: {x: 0.003, y: 0.002, z: 0}
   _leftRotationOffset: {x: 0, y: 0, z: 0}
-  _rightPositionOffset: {x: 0, y: 0, z: 0}
+  _rightPositionOffset: {x: -0.003, y: 0.002, z: 0}
   _rightRotationOffset: {x: 0, y: 0, z: 0}
 --- !u!4 &8867771543483451306 stripped
 Transform:

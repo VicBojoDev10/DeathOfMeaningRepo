@@ -44,27 +44,24 @@ namespace TDOM.Unity
         private Color cooldownEnUso = new Color(0.35f, 0.35f, 0.35f, 1f);
 
         [SerializeField]
+        private Sprite zendreIcon;
+
+        [SerializeField]
+        private Sprite aylaIcon;
+
+        [SerializeField]
         [Tooltip("Color del fondo detras del icono mientras se llena el cooldown.")]
         private Color cooldownFondo = new Color(0f, 0f, 0f, 0.45f);
 
+        [SerializeField]
+        private Image buttonPlayerIcon;
+
         [Header("PlayerHealth")]
-        [SerializeField]
-        private Image mainPlayerIcon;
-
-        [SerializeField]
-        private Image secondaryPlayerIcon;
-
         [SerializeField]
         private Slider mainPlayerHealthSlider;
 
         [SerializeField]
         private Slider secondaryPlayerHealthSlider;
-
-        [SerializeField]
-        private Sprite zendreIcon;
-
-        [SerializeField]
-        private Sprite aylaIcon;
 
         [Header("Vida del Jefe")]
         [SerializeField]
@@ -364,24 +361,14 @@ namespace TDOM.Unity
             {
                 if (_localPlayer.CharacterId == CharacterIds.Ayla)
                 {
-                    if (mainPlayerIcon != null)
-                        mainPlayerIcon.sprite = aylaIcon;
-                    if (secondaryPlayerIcon != null && _otherPlayer == null)
-                        secondaryPlayerIcon.sprite = zendreIcon;
+                    if (buttonPlayerIcon != null)
+                        buttonPlayerIcon.sprite = aylaIcon;
                 }
                 else if (_localPlayer.CharacterId == CharacterIds.Zendre)
                 {
-                    if (mainPlayerIcon != null)
-                        mainPlayerIcon.sprite = zendreIcon;
-                    if (secondaryPlayerIcon != null && _otherPlayer == null)
-                        secondaryPlayerIcon.sprite = aylaIcon;
+                    if (buttonPlayerIcon != null)
+                        buttonPlayerIcon.sprite = zendreIcon;
                 }
-            }
-
-            if (_otherPlayer != null && secondaryPlayerIcon != null)
-            {
-                secondaryPlayerIcon.sprite =
-                    _otherPlayer.CharacterId == CharacterIds.Ayla ? aylaIcon : zendreIcon;
             }
         }
 
