@@ -438,7 +438,7 @@ MonoBehaviour:
   _perfil: {fileID: 11400000, guid: 32a21ea0b55fc9c4eb2c2eb2cbcd9640, type: 2}
   _capaCuerpo:
     serializedVersion: 2
-    m_Bits: 129
+    m_Bits: 1
   _margenContacto: 0.2
 --- !u!54 &3522281120686662003
 Rigidbody:
@@ -521,8 +521,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Radius: 1.6710743
+  m_Center: {x: 0.0000043469695, y: 1.06, z: 0.00000004240684}
 --- !u!114 &2000000000000045
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -610,8 +610,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Radius: 1.8
+  m_Center: {x: 0, y: 0.74, z: 0}
 --- !u!114 &2000000000000055
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -699,8 +699,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Radius: 1.3
+  m_Center: {x: 0, y: 0.3, z: 0}
 --- !u!114 &2000000000000065
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -788,8 +788,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Radius: 1.3
+  m_Center: {x: 0, y: 0.21, z: 0}
 --- !u!114 &2000000000000075
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -877,8 +877,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Radius: 1.2
+  m_Center: {x: 0, y: -0.14, z: 0}
 --- !u!114 &2000000000000085
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -966,8 +966,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Radius: 1.3
+  m_Center: {x: 0, y: 0.02, z: 0}
 --- !u!114 &2000000000000095
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1055,8 +1055,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Radius: 1.3
+  m_Center: {x: 0, y: 0.1, z: 0}
 --- !u!114 &2000000000000105
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1144,8 +1144,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Radius: 1.8
+  m_Center: {x: 0, y: 1.13, z: -0.43}
 --- !u!114 &2000000000000115
 MonoBehaviour:
   m_ObjectHideFlags: 0
