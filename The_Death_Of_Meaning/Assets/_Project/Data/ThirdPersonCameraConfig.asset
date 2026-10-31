@@ -15,10 +15,10 @@ MonoBehaviour:
   Exploration:
     Distance: 5
     ShoulderOffsetX: 0.8
-    PivotHeight: 0.6
+    PivotHeight: 0.8
     FieldOfView: 40
   Sprint:
-    Distance: 6
+    Distance: 5
     ShoulderOffsetX: 0.8
     PivotHeight: 0.5
     FieldOfView: 50
@@ -34,7 +34,7 @@ MonoBehaviour:
   Aim:
     Distance: 2
     ShoulderOffsetX: 0.5
-    PivotHeight: 0.6
+    PivotHeight: 0.8
     FieldOfView: 27
   TransitionSpeed: 12
   CombatLingerSeconds: 3
