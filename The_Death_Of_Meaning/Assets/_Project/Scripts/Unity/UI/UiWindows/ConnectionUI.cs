@@ -76,7 +76,9 @@ namespace TDOM.Unity
                 _createStartPosition = createHolder.anchoredPosition;
                 _createStartScale = createHolder.localScale;
                 _createStartSiblingIndex = createHolder.GetSiblingIndex();
-                _createGroup = createHolder.GetComponent<CanvasGroup>() ?? createHolder.gameObject.AddComponent<CanvasGroup>();
+                _createGroup =
+                    createHolder.GetComponent<CanvasGroup>()
+                    ?? createHolder.gameObject.AddComponent<CanvasGroup>();
                 _createImage = createHolder.GetComponent<Image>();
             }
             if (joinHolder != null)
@@ -84,7 +86,9 @@ namespace TDOM.Unity
                 _joinStartPosition = joinHolder.anchoredPosition;
                 _joinStartScale = joinHolder.localScale;
                 _joinStartSiblingIndex = joinHolder.GetSiblingIndex();
-                _joinGroup = joinHolder.GetComponent<CanvasGroup>() ?? joinHolder.gameObject.AddComponent<CanvasGroup>();
+                _joinGroup =
+                    joinHolder.GetComponent<CanvasGroup>()
+                    ?? joinHolder.gameObject.AddComponent<CanvasGroup>();
                 _joinImage = joinHolder.GetComponent<Image>();
             }
             if (firstSelectedObject == null && startHostButton != null)
@@ -677,7 +681,8 @@ namespace TDOM.Unity
                 joinColor = mode == ConnectionMode.Client ? selectedTint : dimmedTint;
             }
 
-            Vector2 createFrom = createHolder != null ? createHolder.anchoredPosition : createTarget;
+            Vector2 createFrom =
+                createHolder != null ? createHolder.anchoredPosition : createTarget;
             Vector2 joinFrom = joinHolder != null ? joinHolder.anchoredPosition : joinTarget;
             Vector3 createScaleFrom = createHolder != null ? createHolder.localScale : createScale;
             Vector3 joinScaleFrom = joinHolder != null ? joinHolder.localScale : joinScale;
@@ -693,25 +698,49 @@ namespace TDOM.Unity
                 elapsed += Time.unscaledDeltaTime;
                 float t = Mathf.Clamp01(elapsed / duration);
                 t = t * t * (3f - 2f * t);
-                if (createHolder != null) createHolder.anchoredPosition = Vector2.LerpUnclamped(createFrom, createTarget, t);
-                if (joinHolder != null) joinHolder.anchoredPosition = Vector2.LerpUnclamped(joinFrom, joinTarget, t);
-                if (createHolder != null) createHolder.localScale = Vector3.LerpUnclamped(createScaleFrom, createScale, t);
-                if (joinHolder != null) joinHolder.localScale = Vector3.LerpUnclamped(joinScaleFrom, joinScale, t);
-                if (_createGroup != null) _createGroup.alpha = Mathf.Lerp(createAlphaFrom, createAlpha, t);
-                if (_joinGroup != null) _joinGroup.alpha = Mathf.Lerp(joinAlphaFrom, joinAlpha, t);
-                if (_createImage != null) _createImage.color = Color.Lerp(createColorFrom, createColor, t);
-                if (_joinImage != null) _joinImage.color = Color.Lerp(joinColorFrom, joinColor, t);
+                if (createHolder != null)
+                    createHolder.anchoredPosition = Vector2.LerpUnclamped(
+                        createFrom,
+                        createTarget,
+                        t
+                    );
+                if (joinHolder != null)
+                    joinHolder.anchoredPosition = Vector2.LerpUnclamped(joinFrom, joinTarget, t);
+                if (createHolder != null)
+                    createHolder.localScale = Vector3.LerpUnclamped(
+                        createScaleFrom,
+                        createScale,
+                        t
+                    );
+                if (joinHolder != null)
+                    joinHolder.localScale = Vector3.LerpUnclamped(joinScaleFrom, joinScale, t);
+                if (_createGroup != null)
+                    _createGroup.alpha = Mathf.Lerp(createAlphaFrom, createAlpha, t);
+                if (_joinGroup != null)
+                    _joinGroup.alpha = Mathf.Lerp(joinAlphaFrom, joinAlpha, t);
+                if (_createImage != null)
+                    _createImage.color = Color.Lerp(createColorFrom, createColor, t);
+                if (_joinImage != null)
+                    _joinImage.color = Color.Lerp(joinColorFrom, joinColor, t);
                 yield return null;
             }
 
-            if (createHolder != null) createHolder.anchoredPosition = createTarget;
-            if (joinHolder != null) joinHolder.anchoredPosition = joinTarget;
-            if (createHolder != null) createHolder.localScale = createScale;
-            if (joinHolder != null) joinHolder.localScale = joinScale;
-            if (_createGroup != null) _createGroup.alpha = createAlpha;
-            if (_joinGroup != null) _joinGroup.alpha = joinAlpha;
-            if (_createImage != null) _createImage.color = createColor;
-            if (_joinImage != null) _joinImage.color = joinColor;
+            if (createHolder != null)
+                createHolder.anchoredPosition = createTarget;
+            if (joinHolder != null)
+                joinHolder.anchoredPosition = joinTarget;
+            if (createHolder != null)
+                createHolder.localScale = createScale;
+            if (joinHolder != null)
+                joinHolder.localScale = joinScale;
+            if (_createGroup != null)
+                _createGroup.alpha = createAlpha;
+            if (_joinGroup != null)
+                _joinGroup.alpha = joinAlpha;
+            if (_createImage != null)
+                _createImage.color = createColor;
+            if (_joinImage != null)
+                _joinImage.color = joinColor;
             _animacionSeleccion = null;
         }
 
@@ -721,10 +750,9 @@ namespace TDOM.Unity
                 return Vector2.zero;
 
             Rect rect = padre.rect;
-            Vector2 anchorRelativo = elemento.anchorMin + Vector2.Scale(
-                elemento.anchorMax - elemento.anchorMin,
-                elemento.pivot
-            );
+            Vector2 anchorRelativo =
+                elemento.anchorMin
+                + Vector2.Scale(elemento.anchorMax - elemento.anchorMin, elemento.pivot);
             Vector2 puntoAncla = rect.min + Vector2.Scale(rect.size, anchorRelativo);
             Vector2 posicionPivoteObjetivo = rect.center - elemento.rect.center;
             return posicionPivoteObjetivo - puntoAncla;
@@ -785,9 +813,7 @@ namespace TDOM.Unity
             if (networkManager.IsHost)
             {
                 int cantidad =
-                    jugadoresHost >= 0
-                        ? jugadoresHost
-                        : networkManager.ConnectedClientsList.Count;
+                    jugadoresHost >= 0 ? jugadoresHost : networkManager.ConnectedClientsList.Count;
                 return cantidad >= 2;
             }
 
