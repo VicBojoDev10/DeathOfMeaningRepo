@@ -576,11 +576,7 @@ namespace TDOM.Unity.Player
                 // gradualmente al horizonte para no dejar la vista apuntando al cielo.
                 _fijacion.Liberar();
                 ActualizarYawObjetivoGancho();
-                _look.Tick(
-                    new Vector2(input.Look.x, 0f),
-                    dt,
-                    MultiplicadorSensibilidadGancho
-                );
+                _look.Tick(new Vector2(input.Look.x, 0f), dt, MultiplicadorSensibilidadGancho);
                 _look.EstablecerOrientacion(
                     _hayYawObjetivoGancho
                         ? Mathf.SmoothDampAngle(
