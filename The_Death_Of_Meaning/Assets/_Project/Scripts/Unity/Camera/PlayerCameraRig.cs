@@ -76,6 +76,7 @@ namespace TDOM.Unity.Camera
 
         public void ApplyLook(float yaw, float pitch)
         {
+            // Rotacion absoluta en mundo: el yaw/pitch del jugador no se suma al de la camara.
             transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
         }
 
