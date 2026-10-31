@@ -18,13 +18,19 @@ namespace TDOM.Gameplay.Locomotion
             YawActual = yawInicial;
         }
 
-        public float Tick(Vector3 velocidadHorizontal, float yawCamara, bool apuntando, float dt)
+        public float Tick(
+            Vector3 velocidadHorizontal,
+            float yawCamara,
+            bool apuntando,
+            float dt,
+            float multiplicadorVelocidadGiro = 1f
+        )
         {
             float objetivo = YawObjetivo(velocidadHorizontal, yawCamara, apuntando);
             YawActual = Mathf.MoveTowardsAngle(
                 YawActual,
                 objetivo,
-                _velocidadGiroGradosPorSeg * dt
+                _velocidadGiroGradosPorSeg * Mathf.Max(0f, multiplicadorVelocidadGiro) * dt
             );
             return YawActual;
         }

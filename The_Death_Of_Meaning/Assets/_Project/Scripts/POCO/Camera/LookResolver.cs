@@ -32,11 +32,12 @@ namespace TDOM.Gameplay.Camera
             Pitch = pitch;
         }
 
-        public void Tick(Vector2 look, float dt)
+        public void Tick(Vector2 look, float dt, float multiplicadorSensibilidad = 1f)
         {
-            Yaw += look.x * _sensibilidad * dt;
+            float sensibilidad = _sensibilidad * Mathf.Max(0f, multiplicadorSensibilidad);
+            Yaw += look.x * sensibilidad * dt;
             Yaw = Mathf.Repeat(Yaw, 360f);
-            Pitch -= look.y * _sensibilidad * dt;
+            Pitch -= look.y * sensibilidad * dt;
             Pitch = Mathf.Clamp(Pitch, _pitchMin, _pitchMax);
         }
     }

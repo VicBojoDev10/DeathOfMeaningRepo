@@ -63,9 +63,15 @@ namespace TDOM.Unity.Player
         private GrappleVisual _grappleVisual;
 
         [SerializeField]
-        private float _sensitivity = 200f;
+        private float _sensitivity = 120f;
+
+        private const float MultiplicadorSensibilidadGancho = 0.35f;
 
         private bool _ganchoActivoPrevio;
+        private float _mantenerOrientacionGanchoHasta;
+        private bool _hayYawObjetivoGancho;
+        private float _yawObjetivoGancho;
+        private float _velocidadYawGancho;
 
         private BossController _jefe;
 
@@ -562,6 +568,42 @@ namespace TDOM.Unity.Player
 
         private void ActualizarMirada(InputSnapshot input, float dt)
         {
+            bool ganchoActivo = _locomocion != null && _locomocion.GanchoActivo;
+            if (ganchoActivo)
+            {
+                // La fijacion automatica puede arrastrar la camara mientras Ayla es jalada.
+                // Durante el gancho se conserva solo el control horizontal y el pitch vuelve
+                // gradualmente al horizonte para no dejar la vista apuntando al cielo.
+                _fijacion.Liberar();
+                ActualizarYawObjetivoGancho();
+                _look.Tick(new Vector2(input.Look.x, 0f), dt, MultiplicadorSensibilidadGancho);
+                _look.EstablecerOrientacion(
+                    _hayYawObjetivoGancho
+                        ? Mathf.SmoothDampAngle(
+                            _look.Yaw,
+                            _yawObjetivoGancho,
+                            ref _velocidadYawGancho,
+                            0.08f,
+                            1080f,
+                            dt
+                        )
+                        : _look.Yaw,
+                    Mathf.MoveTowards(_look.Pitch, 0f, 180f * dt)
+                );
+                return;
+            }
+
+            _hayYawObjetivoGancho = false;
+
+            if (_ganchoActivoPrevio || Time.time < _mantenerOrientacionGanchoHasta)
+            {
+                _look.EstablecerOrientacion(
+                    _look.Yaw,
+                    Mathf.MoveTowards(_look.Pitch, 0f, 180f * dt)
+                );
+                return;
+            }
+
             ActualizarFijacion(input.LockOnPressed, input.Look, dt);
 
             if (_fijacion.Activo)
@@ -656,9 +698,28 @@ namespace TDOM.Unity.Player
             bool haciaJefe = impactado.GetComponentInParent<BossController>() != null;
             if (_locomocion.IntentarGancho(transform.position, apuntado.TargetPoint, haciaJefe))
             {
+                ActualizarYawObjetivoGancho();
+                _velocidadYawGancho = 0f;
+                _fijacion.Liberar();
                 _camera.PunchFov(8f, 0.2f);
                 _feedback?.RegistrarAccionCamara(0.2f);
             }
+        }
+
+        private void ActualizarYawObjetivoGancho()
+        {
+            if (_locomocion == null || !_locomocion.GanchoActivo)
+                return;
+
+            // Reevaluar desde la posicion actual evita conservar un angulo obsoleto
+            // cuando Ayla inicia el gancho de lado o mirando en sentido contrario.
+            Vector3 haciaGancho = _locomocion.PuntoGancho - transform.position;
+            haciaGancho.y = 0f;
+            if (haciaGancho.sqrMagnitude <= 0.001f)
+                return;
+
+            _yawObjetivoGancho = Mathf.Atan2(haciaGancho.x, haciaGancho.z) * Mathf.Rad2Deg;
+            _hayYawObjetivoGancho = true;
         }
 
         private void Update()
@@ -752,6 +813,9 @@ namespace TDOM.Unity.Player
                     _combat != null ? _combat.MultiplicadorVelocidadAtaque : 1f,
                     _combat != null && _combat.GravedadReducidaPorAtaque
                 );
+            bool ganchoActivoActual = _locomocion.GanchoActivo;
+            if (_ganchoActivoPrevio && !ganchoActivoActual)
+                _mantenerOrientacionGanchoHasta = Time.time + 0.55f;
             if (_aylaAnimator != null)
             {
                 _aylaAnimator.SetSprintState(_locomocion.Corriendo);
@@ -787,11 +851,17 @@ namespace TDOM.Unity.Player
                 intent = new MotionIntent(Vector3.zero, ignoreGravity: true);
             }
             _motor.Apply(intent, dt, plataformaAnclada);
+            bool alineandoConGancho =
+                ganchoActivoActual || Time.time < _mantenerOrientacionGanchoHasta;
             _facing.Tick(
                 _locomocion.State.Velocity,
                 _look.Yaw,
-                apuntando || ModoPistola || (_combat != null && _combat.MovimientoLimitado),
-                dt
+                apuntando
+                    || ModoPistola
+                    || alineandoConGancho
+                    || (_combat != null && _combat.MovimientoLimitado),
+                dt,
+                alineandoConGancho ? 0.5f : 1f
             );
             transform.rotation = _facing.Rotacion;
             AplicarMiradaACamara();
@@ -811,7 +881,6 @@ namespace TDOM.Unity.Player
             }
             RegistrarDesplazamientoLateralEnCamara(input.Move);
 
-            bool ganchoActivoActual = _locomocion != null && _locomocion.GanchoActivo;
             if (ganchoActivoActual != _ganchoActivoPrevio)
             {
                 _ganchoActivoPrevio = ganchoActivoActual;
