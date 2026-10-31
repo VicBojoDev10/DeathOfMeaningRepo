@@ -13,20 +13,24 @@ MonoBehaviour:
   m_Name: ThirdPersonCameraConfig
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.ThirdPersonCameraConfig
   Exploration:
-    Distance: 4
+    Distance: 5
     ShoulderOffsetX: 0.8
     PivotHeight: 0.6
     FieldOfView: 40
   Sprint:
-    Distance: 5
+    Distance: 6
     ShoulderOffsetX: 0.8
     PivotHeight: 0.5
     FieldOfView: 50
   Combat:
-    Distance: 3.3
+    Distance: 4.3
     ShoulderOffsetX: 0.8
     PivotHeight: 0.6
     FieldOfView: 37
+  CombatZoomSostenido: 0
+  CombatPulsoFactor: 0.5
+  CombatPulsoSubida: 0.06
+  CombatPulsoBajada: 0.22
   Aim:
     Distance: 2
     ShoulderOffsetX: 0.5
@@ -40,6 +44,9 @@ MonoBehaviour:
   LockOnSmoothTime: 0.15
   LockOnPitchMin: -60
   LockOnPitchMax: 60
+  LockOnSwitchThreshold: 0.7
+  LockOnSwitchResetThreshold: 0.3
+  LockOnSwitchMaxAngle: 60
   PitchMin: -40
   PitchMax: 70
   AimMaxRange: 200
