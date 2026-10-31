@@ -3075,8 +3075,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.ConnectionManager
   dontDestroyOnLoad: 1
   gameFlowNetworkPrefab: {fileID: 8473628879619465374, guid: a18c5b45ca4dd3b4dbfdeb8c07419c3b, type: 3}
-  tiempoLimiteCliente: 10
-  tiempoEsperaHost: 20
+  tiempoLimiteCliente: 60
+  tiempoEsperaHost: 60
 --- !u!4 &1157696424
 Transform:
   m_ObjectHideFlags: 0
