@@ -1,5 +1,6 @@
 using TDOM.Gameplay.Combat;
 using TDOM.Unity;
+using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -18,6 +19,9 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private LayerMask _capas = (1 << 0) | (1 << 6);
+
+        [SerializeField]
+        private VfxBase _vfxImpactoAmbiente;
 
         private Vector3 _direccion;
         private float _daño;
@@ -101,6 +105,7 @@ namespace TDOM.Unity.Combat
                 else
                 {
                     hit.collider.GetComponentInParent<AtaquesArek>()?.RegistrarImpacto(_atacanteId);
+                    LanzarVfxImpacto(_vfxImpactoAmbiente, hit);
                 }
 
                 Debug.Log(
@@ -111,6 +116,29 @@ namespace TDOM.Unity.Combat
             }
 
             transform.position = pos + paso;
+        }
+
+        private void LanzarVfxImpacto(VfxBase efecto, RaycastHit hit)
+        {
+            if (efecto == null)
+                return;
+
+            RedDelAtacante()?.Lanzar(efecto, hit.point, Quaternion.LookRotation(hit.normal));
+        }
+
+        private VfxRed RedDelAtacante()
+        {
+            if (!NetworkManager.ConnectedClients.TryGetValue(_atacanteId, out var cliente))
+                return null;
+
+            foreach (var objeto in cliente.OwnedObjects)
+            {
+                var red = objeto.GetComponentInChildren<VfxRed>();
+                if (red != null)
+                    return red;
+            }
+
+            return null;
         }
 
         private void DespawnProyectil()
