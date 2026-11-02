@@ -85,7 +85,10 @@ namespace TDOM.Unity
 
             if (_prefabPowerUp == null)
             {
-                Debug.LogError("[PowerUpsSpawnController] Falta asignar el prefab de power-up.", this);
+                Debug.LogError(
+                    "[PowerUpsSpawnController] Falta asignar el prefab de power-up.",
+                    this
+                );
                 return;
             }
 
@@ -129,8 +132,8 @@ namespace TDOM.Unity
                 return;
             }
 
-            bool puedeDespawnear = NetworkManager.Singleton != null
-                && !NetworkManager.Singleton.ShutdownInProgress;
+            bool puedeDespawnear =
+                NetworkManager.Singleton != null && !NetworkManager.Singleton.ShutdownInProgress;
             foreach (var pickup in _orbesActivos.ToArray())
             {
                 if (pickup != null && puedeDespawnear && pickup.IsSpawned)
