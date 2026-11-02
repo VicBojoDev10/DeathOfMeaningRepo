@@ -825,6 +825,7 @@ namespace TDOM.Unity.Player
 
                 if (!_locomocion.ClimbActivo)
                 {
+                    // Dash cancela el combo en cualquier punto (solo si el dash está disponible).
                     if (
                         _combat != null
                         && input.DashPressed
@@ -834,6 +835,7 @@ namespace TDOM.Unity.Player
                     )
                         _combat.CancelarMeleePorDash();
 
+                    // Salto también cancela el combo (si hay salto disponible).
                     if (
                         _combat != null
                         && input.JumpPressed
