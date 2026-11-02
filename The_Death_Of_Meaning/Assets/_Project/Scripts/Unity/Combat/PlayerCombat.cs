@@ -422,13 +422,17 @@ namespace TDOM.Unity.Combat
             if (_melee == null && _disparo == null)
                 return;
 
-            bool meleeActivo = _melee != null && _melee.Fase != ComboPhase.Idle;
-            bool disparoActivo = _disparo != null && _disparo.Fase != ComboPhase.Idle;
+            var maquinaSeleccionada = SelectorMaquinaCombate.Seleccionar(
+                _melee != null,
+                _disparo != null,
+                _melee != null && _melee.Fase != ComboPhase.Idle,
+                _disparo != null && _disparo.Fase != ComboPhase.Idle
+            );
 
             var prevMeleePhase = _melee?.Fase ?? ComboPhase.Idle;
             var prevDisparoPhase = _disparo?.Fase ?? ComboPhase.Idle;
 
-            if (_melee != null && !disparoActivo)
+            if (_melee != null && maquinaSeleccionada == MaquinaCombateSeleccionada.Melee)
             {
                 var evento = _melee.Tick(input, dt);
                 if (evento.HasValue)
@@ -436,7 +440,7 @@ namespace TDOM.Unity.Combat
                 ActualizarPoseCarga();
             }
 
-            if (_disparo != null && !meleeActivo)
+            if (_disparo != null && maquinaSeleccionada == MaquinaCombateSeleccionada.Disparo)
             {
                 var evento = _disparo.Tick(ComoDisparo(input), dt);
                 if (evento.HasValue)
