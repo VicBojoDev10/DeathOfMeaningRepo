@@ -100,5 +100,6 @@ namespace TDOM.Contracts
         Dashing,
         Grappling,
         Attacking,
+        Climbing,
     }
 }

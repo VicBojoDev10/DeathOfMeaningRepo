@@ -71,7 +71,36 @@ namespace TDOM.Data
         public float PitchMin = -40f;
         public float PitchMax = 70f;
 
+        [Header("Sensibilidad de camara")]
+        [Min(0f)]
+        public float SensibilidadXPorDefecto = 120f;
+
+        [Min(0f)]
+        public float SensibilidadYPorDefecto = 120f;
+
+        [Min(0f)]
+        public float SensibilidadMinima = 10f;
+
+        [Min(0f)]
+        public float SensibilidadMaxima = 300f;
+
         [Header("Apuntado")]
         public float AimMaxRange = 200f;
+
+        private void OnValidate()
+        {
+            SensibilidadMinima = Mathf.Max(0f, SensibilidadMinima);
+            SensibilidadMaxima = Mathf.Max(SensibilidadMinima, SensibilidadMaxima);
+            SensibilidadXPorDefecto = Mathf.Clamp(
+                SensibilidadXPorDefecto,
+                SensibilidadMinima,
+                SensibilidadMaxima
+            );
+            SensibilidadYPorDefecto = Mathf.Clamp(
+                SensibilidadYPorDefecto,
+                SensibilidadMinima,
+                SensibilidadMaxima
+            );
+        }
     }
 }
