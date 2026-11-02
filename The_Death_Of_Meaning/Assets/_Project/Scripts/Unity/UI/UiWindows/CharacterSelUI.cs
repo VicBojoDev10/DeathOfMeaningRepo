@@ -54,6 +54,10 @@ namespace TDOM.Unity
 
         private void OnEnable()
         {
+            if (zendreCard != null)
+                zendreCard.FocusRequested += PrevisualizarPersonaje;
+            if (aylaCard != null)
+                aylaCard.FocusRequested += PrevisualizarPersonaje;
             if (backButton != null)
                 backButton.onClick.AddListener(Volver);
             if (ready != null)
@@ -96,6 +100,10 @@ namespace TDOM.Unity
 
         private void OnDisable()
         {
+            if (zendreCard != null)
+                zendreCard.FocusRequested -= PrevisualizarPersonaje;
+            if (aylaCard != null)
+                aylaCard.FocusRequested -= PrevisualizarPersonaje;
             if (backButton != null)
                 backButton.onClick.RemoveListener(Volver);
             if (zendreButton != null)
@@ -132,6 +140,15 @@ namespace TDOM.Unity
             _manager = null;
             if (ready != null)
                 ready.interactable = false;
+        }
+
+        private void PrevisualizarPersonaje(CharacterCardUI card)
+        {
+            var button = card == zendreCard ? zendreButton : aylaButton;
+            if (button == null || !button.IsInteractable())
+                return;
+            zendreCard?.Previsualizar(card == zendreCard);
+            aylaCard?.Previsualizar(card == aylaCard);
         }
 
         private void SeleccionarZendre() => ElegirPersonaje(CharacterIds.Zendre);

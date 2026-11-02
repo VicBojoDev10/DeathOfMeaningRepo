@@ -618,12 +618,12 @@ MonoBehaviour:
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
-  m_Transition: 2
+  m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_HighlightedColor: {r: 0.15, g: 1, b: 1, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.94509804, g: 0.8901961, b: 0.15686275, a: 1}
+    m_SelectedColor: {r: 0.15, g: 1, b: 1, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -1595,9 +1595,9 @@ MonoBehaviour:
   m_Transition: 0
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_HighlightedColor: {r: 0.15, g: 1, b: 1, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.94509804, g: 0.8901961, b: 0.15686275, a: 1}
+    m_SelectedColor: {r: 0.15, g: 1, b: 1, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -1658,7 +1658,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Outline
   m_EffectColor: {r: 0.9019608, g: 0.79607844, b: 0.5411765, a: 1}
-  m_EffectDistance: {x: 4, y: 4}
+  m_EffectDistance: {x: 10, y: 10}
   m_UseGraphicAlpha: 1
 --- !u!1 &4270901146118583161
 GameObject:
@@ -2964,9 +2964,9 @@ MonoBehaviour:
   m_Transition: 0
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_HighlightedColor: {r: 0.15, g: 1, b: 1, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.94509804, g: 0.8901961, b: 0.15686275, a: 1}
+    m_SelectedColor: {r: 0.15, g: 1, b: 1, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -3027,7 +3027,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Outline
   m_EffectColor: {r: 0.9019608, g: 0.79607844, b: 0.5411765, a: 1}
-  m_EffectDistance: {x: 4, y: 4}
+  m_EffectDistance: {x: 10, y: 10}
   m_UseGraphicAlpha: 1
 --- !u!1 &8227508256565234183
 GameObject:
@@ -3364,8 +3364,8 @@ MonoBehaviour:
   readyButtonText: {fileID: 3185645428996373435}
   statusText: {fileID: 111508242501200832}
   colorDisponible: {r: 1, g: 1, b: 1, a: 1}
-  colorHover: {r: 0.9608, g: 0.9608, b: 0.9608, a: 1}
-  colorEnFoco: {r: 0.9451, g: 0.8902, b: 0.1569, a: 1}
+  colorHover: {r: 0.15, g: 1, b: 1, a: 1}
+  colorEnFoco: {r: 0.15, g: 1, b: 1, a: 1}
   colorElegidoPorMi: {r: 0.3, g: 0.7, b: 1, a: 1}
   colorBloqueado: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!1 &8540747864247734102
@@ -3683,6 +3683,30 @@ PrefabInstance:
     - target: {fileID: 618053401058015109, guid: 0719eb3623f47ff4eab616129def3810, type: 3}
       propertyPath: m_Name
       value: BackButton
+      objectReference: {fileID: 0}
+    - target: {fileID: 4308120934579636210, guid: 0719eb3623f47ff4eab616129def3810, type: 3}
+      propertyPath: m_Colors.m_SelectedColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4308120934579636210, guid: 0719eb3623f47ff4eab616129def3810, type: 3}
+      propertyPath: m_Colors.m_SelectedColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4308120934579636210, guid: 0719eb3623f47ff4eab616129def3810, type: 3}
+      propertyPath: m_Colors.m_SelectedColor.r
+      value: 0.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 4308120934579636210, guid: 0719eb3623f47ff4eab616129def3810, type: 3}
+      propertyPath: m_Colors.m_HighlightedColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4308120934579636210, guid: 0719eb3623f47ff4eab616129def3810, type: 3}
+      propertyPath: m_Colors.m_HighlightedColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4308120934579636210, guid: 0719eb3623f47ff4eab616129def3810, type: 3}
+      propertyPath: m_Colors.m_HighlightedColor.r
+      value: 0.15
       objectReference: {fileID: 0}
     - target: {fileID: 4576726300149918631, guid: 0719eb3623f47ff4eab616129def3810, type: 3}
       propertyPath: m_Pivot.x
