@@ -165,5 +165,6 @@ namespace TDOM.Unity.UI
         public const string ExitPopUpUI = "exitpopupui";
         public const string DerrotaUI = "derrotaui";
         public const string CancelHostUI = "cancelhostui";
+        public const string ControllerReconnectUI = "controllerreconnectui";
     }
 }
