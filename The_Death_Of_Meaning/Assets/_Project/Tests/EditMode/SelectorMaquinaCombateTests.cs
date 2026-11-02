@@ -34,6 +34,23 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
+        public void solo_r2_con_las_dos_maquinas_en_idle_arranca_el_disparo()
+        {
+            var melee = CrearMaquina();
+            var disparo = CrearMaquina();
+
+            var seleccion = AvanzarMaquinas(
+                melee,
+                disparo,
+                new InputSnapshot { FirePressed = true, FireHeld = true }
+            );
+
+            Assert.AreEqual(MaquinaCombateSeleccionada.Disparo, seleccion);
+            Assert.AreEqual(ComboPhase.Idle, melee.Fase);
+            Assert.AreNotEqual(ComboPhase.Idle, disparo.Fase);
+        }
+
+        [Test]
         public void con_el_disparo_activo_el_melee_no_avanza()
         {
             var melee = CrearMaquina();
