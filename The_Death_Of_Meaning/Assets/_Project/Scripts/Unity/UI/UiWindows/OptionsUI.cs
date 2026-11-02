@@ -13,6 +13,9 @@ namespace TDOM.Unity
         private Button volumeCustomButton;
 
         [SerializeField]
+        private Button cameraSettingsButton;
+
+        [SerializeField]
         private Button creditsButton;
 
         [SerializeField]
@@ -34,6 +37,9 @@ namespace TDOM.Unity
             if (volumeCustomButton != null)
                 volumeCustomButton.onClick.AddListener(OnVolumeCustomClicked);
 
+            if (cameraSettingsButton != null)
+                cameraSettingsButton.onClick.AddListener(OnCameraSettingsClicked);
+
             if (creditsButton != null)
                 creditsButton.onClick.AddListener(OnCreditsClicked);
 
@@ -48,6 +54,9 @@ namespace TDOM.Unity
 
             if (volumeCustomButton != null)
                 volumeCustomButton.onClick.RemoveListener(OnVolumeCustomClicked);
+
+            if (cameraSettingsButton != null)
+                cameraSettingsButton.onClick.RemoveListener(OnCameraSettingsClicked);
 
             if (creditsButton != null)
                 creditsButton.onClick.RemoveListener(OnCreditsClicked);
@@ -69,6 +78,14 @@ namespace TDOM.Unity
             if (UiManager.Instance != null)
             {
                 UiManager.Instance.SwitchWindow(WindowsIds.OptionsUI, WindowsIds.VolumeUI);
+            }
+        }
+
+        private void OnCameraSettingsClicked()
+        {
+            if (UiManager.Instance != null)
+            {
+                UiManager.Instance.SwitchWindow(WindowsIds.OptionsUI, WindowsIds.CameraSettingsUI);
             }
         }
 
