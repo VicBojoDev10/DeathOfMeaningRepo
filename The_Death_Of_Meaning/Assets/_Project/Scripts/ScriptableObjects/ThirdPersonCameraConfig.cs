@@ -79,7 +79,7 @@ namespace TDOM.Data
         public float SensibilidadYPorDefecto = 120f;
 
         [Min(0f)]
-        public float SensibilidadMinima;
+        public float SensibilidadMinima = 10f;
 
         [Min(0f)]
         public float SensibilidadMaxima = 300f;

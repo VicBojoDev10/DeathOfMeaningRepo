@@ -48,6 +48,8 @@ namespace TDOM.Unity
 
         private void OnDisable()
         {
+            _settingsService?.GuardarEnDisco();
+
             if (backButton != null)
                 backButton.onClick.RemoveListener(OnBackButtonClicked);
 

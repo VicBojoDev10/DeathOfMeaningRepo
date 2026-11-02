@@ -12,10 +12,15 @@ namespace TDOM.Unity.Settings
         public static event Action<float, float> SensibilidadCambiada;
 
         private readonly ThirdPersonCameraConfig _config;
+        private float _sensibilidadX;
+        private float _sensibilidadY;
 
         public CameraSettingsService(ThirdPersonCameraConfig config)
         {
             _config = config;
+            Vector2 sensibilidad = Cargar();
+            _sensibilidadX = sensibilidad.x;
+            _sensibilidadY = sensibilidad.y;
         }
 
         public Vector2 Cargar()
@@ -28,18 +33,21 @@ namespace TDOM.Unity.Settings
 
         public void GuardarSensibilidadX(float valor)
         {
-            float sensibilidadX = Normalizar(valor);
-            PlayerPrefs.SetFloat(SensibilidadXKey, sensibilidadX);
-            PlayerPrefs.Save();
-            SensibilidadCambiada?.Invoke(sensibilidadX, Cargar().y);
+            _sensibilidadX = Normalizar(valor);
+            PlayerPrefs.SetFloat(SensibilidadXKey, _sensibilidadX);
+            SensibilidadCambiada?.Invoke(_sensibilidadX, _sensibilidadY);
         }
 
         public void GuardarSensibilidadY(float valor)
         {
-            float sensibilidadY = Normalizar(valor);
-            PlayerPrefs.SetFloat(SensibilidadYKey, sensibilidadY);
+            _sensibilidadY = Normalizar(valor);
+            PlayerPrefs.SetFloat(SensibilidadYKey, _sensibilidadY);
+            SensibilidadCambiada?.Invoke(_sensibilidadX, _sensibilidadY);
+        }
+
+        public void GuardarEnDisco()
+        {
             PlayerPrefs.Save();
-            SensibilidadCambiada?.Invoke(Cargar().x, sensibilidadY);
         }
 
         private float Leer(string clave, float valorPorDefecto)
