@@ -122,7 +122,7 @@ namespace TDOM.Unity
             for (int i = 0; i < puntosValidos.Count; i++)
             {
                 var punto = puntosValidos[i];
-
+                //Excepción aprobada a la regla de Instantiate
                 var instancia = Instantiate(_prefabPowerUp, punto.position, punto.rotation);
                 var pickup = instancia.GetComponent<PowerUpPickup>();
                 var networkObject = instancia.GetComponent<NetworkObject>();
