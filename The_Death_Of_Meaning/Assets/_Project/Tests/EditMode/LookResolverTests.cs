@@ -44,6 +44,59 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
+        public void sensibilidades_x_e_y_afectan_yaw_y_pitch_por_separado()
+        {
+            var resolver = LookResolver.CrearConSensibilidades(
+                sensibilidadX: 2f,
+                sensibilidadY: 5f
+            );
+
+            resolver.Tick(new Vector2(1f, 1f), dt: 0.5f);
+
+            Assert.AreEqual(1f, resolver.Yaw, 0.001f);
+            Assert.AreEqual(-2.5f, resolver.Pitch, 0.001f);
+        }
+
+        [Test]
+        public void cambiar_sensibilidad_en_caliente_afecta_solo_los_ticks_siguientes()
+        {
+            var resolver = LookResolver.CrearConSensibilidades(
+                sensibilidadX: 1f,
+                sensibilidadY: 1f
+            );
+
+            resolver.Tick(new Vector2(1f, 1f), dt: 1f);
+            resolver.EstablecerSensibilidad(3f, 4f);
+            resolver.Tick(new Vector2(1f, 1f), dt: 1f);
+
+            Assert.AreEqual(4f, resolver.Yaw, 0.001f);
+            Assert.AreEqual(-5f, resolver.Pitch, 0.001f);
+        }
+
+        [Test]
+        public void sensibilidades_independientes_son_deterministas_con_dt_fijo()
+        {
+            var primero = LookResolver.CrearConSensibilidades(
+                sensibilidadX: 137f,
+                sensibilidadY: 83f
+            );
+            var segundo = LookResolver.CrearConSensibilidades(
+                sensibilidadX: 137f,
+                sensibilidadY: 83f
+            );
+            Vector2 look = new Vector2(0.7f, -0.4f);
+
+            for (int frame = 0; frame < 60; frame++)
+            {
+                primero.Tick(look, 1f / 60f);
+                segundo.Tick(look, 1f / 60f);
+            }
+
+            Assert.AreEqual(primero.Yaw, segundo.Yaw, 0.001f);
+            Assert.AreEqual(primero.Pitch, segundo.Pitch, 0.001f);
+        }
+
+        [Test]
         public void establecer_orientacion_envuelve_el_yaw_y_aplica_el_pitch_dado()
         {
             var resolver = new LookResolver(sensibilidad: 1f, pitchMin: -40f, pitchMax: 70f);
