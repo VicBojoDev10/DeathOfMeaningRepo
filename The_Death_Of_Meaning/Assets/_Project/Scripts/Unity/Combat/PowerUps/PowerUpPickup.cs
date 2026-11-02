@@ -61,6 +61,7 @@ namespace TDOM.Unity.Combat
 
         // Solo servidor.
         private float _caducaEn;
+        private bool _permanecerHastaRecoger;
         private bool _consumido;
         private readonly List<PlayerRoot> _jugadores = new List<PlayerRoot>();
         private readonly List<EstadoJugadorPowerUp> _estados = new List<EstadoJugadorPowerUp>();
@@ -81,9 +82,10 @@ namespace TDOM.Unity.Combat
         }
 
         /// <summary>Solo servidor, antes del Spawn: qué power-up es.</summary>
-        public void Preparar(int indiceCatalogo)
+        public void Preparar(int indiceCatalogo, bool permanecerHastaRecoger = false)
         {
             IndiceCatalogo.Value = (byte)Mathf.Clamp(indiceCatalogo, 0, byte.MaxValue);
+            _permanecerHastaRecoger = permanecerHastaRecoger;
         }
 
         public override void OnNetworkSpawn()
@@ -104,7 +106,9 @@ namespace TDOM.Unity.Combat
                 return;
             }
 
-            _caducaEn = Time.time + perfil.DuracionEnSuelo;
+            _caducaEn = _permanecerHastaRecoger
+                ? float.PositiveInfinity
+                : Time.time + perfil.DuracionEnSuelo;
         }
 
         public override void OnNetworkDespawn()
