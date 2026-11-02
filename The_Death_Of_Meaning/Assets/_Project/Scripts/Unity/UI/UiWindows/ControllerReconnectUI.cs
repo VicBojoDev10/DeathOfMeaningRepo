@@ -1,5 +1,6 @@
 using System;
 using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace TDOM.Unity
@@ -12,16 +13,13 @@ namespace TDOM.Unity
             "Control conectado. Pulsa Continuar para seguir.";
         private const string TextoContinuar = "Continuar";
 
-        [UnityEngine.SerializeField]
+        [SerializeField]
         private Button _botonContinuar;
 
-        [UnityEngine.SerializeField]
-        private Button _botonCancelar;
-
-        [UnityEngine.SerializeField]
+        [SerializeField]
         private TMP_Text _mensaje;
 
-        [UnityEngine.SerializeField]
+        [SerializeField]
         private TMP_Text _textoContinuar;
 
         private Action _continuar;
@@ -43,9 +41,6 @@ namespace TDOM.Unity
         public void Configurar(Action continuar)
         {
             _continuar = continuar;
-
-            if (_botonCancelar != null)
-                _botonCancelar.gameObject.SetActive(false);
 
             if (_textoContinuar != null)
                 _textoContinuar.text = TextoContinuar;

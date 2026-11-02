@@ -35,19 +35,6 @@ namespace TDOM.Unity.Input
         {
             if (Gamepad.current != null)
                 _gamepadActivoId = Gamepad.current.deviceId;
-
-            if (!_flujo.PopupVisible || _flujo.PuedeContinuar)
-                return;
-
-            foreach (var gamepad in Gamepad.all)
-            {
-                if (gamepad.deviceId != _gamepadDesconectadoId)
-                {
-                    _gamepadActivoId = gamepad.deviceId;
-                    RegistrarReconexion();
-                    return;
-                }
-            }
         }
 
         private void ActualizarGamepadActivo()
@@ -75,6 +62,14 @@ namespace TDOM.Unity.Input
                 _gamepadDesconectadoId = gamepad.deviceId;
                 _flujo.RegistrarDesconexion();
                 MostrarVentana();
+
+                var gamepadConectado = ObtenerGamepadCandidato(gamepad.deviceId);
+                if (gamepadConectado != null)
+                {
+                    _gamepadActivoId = gamepadConectado.deviceId;
+                    RegistrarReconexion();
+                }
+
                 return;
             }
 
@@ -89,6 +84,17 @@ namespace TDOM.Unity.Input
 
             _gamepadActivoId = gamepad.deviceId;
             RegistrarReconexion();
+        }
+
+        private static Gamepad ObtenerGamepadCandidato(int gamepadDesconectadoId)
+        {
+            foreach (var gamepad in Gamepad.all)
+            {
+                if (gamepad.deviceId != gamepadDesconectadoId)
+                    return gamepad;
+            }
+
+            return null;
         }
 
         private void RegistrarReconexion()

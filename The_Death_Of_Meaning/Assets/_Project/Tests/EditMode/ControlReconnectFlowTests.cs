@@ -43,5 +43,23 @@ namespace TDOM.Tests.EditMode
             Assert.IsFalse(flujo.PuedeContinuar);
             Assert.IsFalse(flujo.ConfirmarContinuacion());
         }
+
+        [Test]
+        public void desconexion_repetida_mantiene_popup_hasta_reconectar_y_confirmar()
+        {
+            var flujo = new ControlReconnectFlow();
+
+            flujo.RegistrarDesconexion();
+            flujo.RegistrarDesconexion();
+
+            Assert.IsTrue(flujo.PopupVisible);
+            Assert.IsFalse(flujo.PuedeContinuar);
+
+            flujo.RegistrarReconexion();
+
+            Assert.IsTrue(flujo.PuedeContinuar);
+            Assert.IsTrue(flujo.ConfirmarContinuacion());
+            Assert.IsFalse(flujo.PopupVisible);
+        }
     }
 }
