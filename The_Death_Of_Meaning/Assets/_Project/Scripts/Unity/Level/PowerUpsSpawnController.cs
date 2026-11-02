@@ -20,6 +20,13 @@ namespace TDOM.Unity
         [Min(0)]
         private int _indiceCatalogo = 0;
 
+        [Tooltip(
+            "Cantidad de orbes que usarán el índice 1. Se asignan a puntos de spawn aleatorios, sin repetir punto."
+        )]
+        [SerializeField]
+        [Min(0)]
+        private int _cantidadIndiceCatalogo1 = 0;
+
         private readonly List<PowerUpPickup> _orbesActivos = new List<PowerUpPickup>();
         private BossController _jefeObservado;
 
@@ -82,6 +89,7 @@ namespace TDOM.Unity
         {
             if (!EsServidorActivo())
                 return;
+            LimpiarOrbes();
 
             if (_prefabPowerUp == null)
             {
@@ -92,10 +100,28 @@ namespace TDOM.Unity
                 return;
             }
 
+            var puntosValidos = new List<Transform>();
             foreach (var punto in _puntosSpawn)
             {
-                if (punto == null)
-                    continue;
+                if (punto != null)
+                    puntosValidos.Add(punto);
+            }
+
+            // Barajar los puntos permite colocar el tipo alternativo en ubicaciones distintas
+            // en cada aparición o cambio de fase, sin superponer orbes.
+            for (int i = puntosValidos.Count - 1; i > 0; i--)
+            {
+                int indiceAleatorio = Random.Range(0, i + 1);
+                (puntosValidos[i], puntosValidos[indiceAleatorio]) = (
+                    puntosValidos[indiceAleatorio],
+                    puntosValidos[i]
+                );
+            }
+
+            int cantidadIndice1 = Mathf.Min(_cantidadIndiceCatalogo1, puntosValidos.Count);
+            for (int i = 0; i < puntosValidos.Count; i++)
+            {
+                var punto = puntosValidos[i];
 
                 var instancia = Instantiate(_prefabPowerUp, punto.position, punto.rotation);
                 var pickup = instancia.GetComponent<PowerUpPickup>();
@@ -110,7 +136,8 @@ namespace TDOM.Unity
                     continue;
                 }
 
-                pickup.Preparar(_indiceCatalogo, permanecerHastaRecoger: true);
+                int indiceCatalogo = i < cantidadIndice1 ? 1 : _indiceCatalogo;
+                pickup.Preparar(indiceCatalogo, permanecerHastaRecoger: true);
                 _orbesActivos.Add(pickup);
                 networkObject.Spawn();
             }
@@ -119,7 +146,7 @@ namespace TDOM.Unity
         /// <summary>Limpia los orbes fijos antes de reiniciar la partida. Solo servidor.</summary>
         public static void LimpiarEnServidor()
         {
-            var controladores = FindObjectsOfType<PowerUpsSpawnController>();
+            var controladores = FindObjectsByType<PowerUpsSpawnController>();
             foreach (var controlador in controladores)
                 controlador.LimpiarOrbes();
         }
