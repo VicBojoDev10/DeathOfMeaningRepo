@@ -25,6 +25,10 @@ namespace TDOM.Unity
         public Sprite freeFrame;
         public Sprite hoverFrame;
         public Material grayscaleMaterial;
+        public event System.Action<CharacterCardUI> FocusRequested;
+        private bool _previewed;
+        private bool _hasPreview;
+        private bool _hasSelection;
         private bool _mine;
         private bool _blocked;
         private bool _hovered;
@@ -41,6 +45,7 @@ namespace TDOM.Unity
 
         public void Presentar(bool mine, bool blocked, bool hasSelection, int otherPlayerNumber)
         {
+            _hasSelection = hasSelection;
             _mine = mine;
             _blocked = blocked;
             frame.overrideSprite = null;
@@ -63,16 +68,30 @@ namespace TDOM.Unity
                 mine ? style.selectedSubtitle
                 : blocked ? string.Format(style.lockedSubtitle, otherPlayerNumber)
                 : style.availableSubtitle;
+            ActualizarDisposicionActual();
+            ActualizarMarco();
+        }
+
+        public void Previsualizar(bool focused)
+        {
+            _hasPreview = true;
+            _previewed = focused;
+            ActualizarDisposicionActual();
+        }
+
+        private void ActualizarDisposicionActual()
+        {
+            bool centered = _hasPreview ? _previewed : _mine;
+            bool hasFocus = _hasPreview || _hasSelection;
             var scale =
-                mine ? style.selectedScale
-                : hasSelection ? style.lockedScale
+                centered ? style.selectedScale
+                : hasFocus ? style.lockedScale
                 : Vector3.one;
-            var angle = !mine && hasSelection ? style.lockedAngle : 0f;
-            var position = hasSelection ? style.companionPosition : style.availablePosition;
+            var angle = !centered && hasFocus ? style.lockedAngle : 0f;
+            var position = hasFocus ? style.companionPosition : style.availablePosition;
             if (isLeftCard)
                 position.x = -position.x;
-            ActualizarDisposicion(mine ? Vector2.zero : position, scale, angle);
-            ActualizarMarco();
+            ActualizarDisposicion(centered ? Vector2.zero : position, scale, angle);
         }
 
         private void ActualizarDisposicion(Vector2 position, Vector3 scale, float angle)
@@ -132,6 +151,7 @@ namespace TDOM.Unity
         public void OnPointerEnter(PointerEventData _)
         {
             _hovered = true;
+            FocusRequested?.Invoke(this);
             ActualizarMarco();
         }
 
@@ -144,6 +164,7 @@ namespace TDOM.Unity
         public void OnSelect(BaseEventData _)
         {
             _focused = true;
+            FocusRequested?.Invoke(this);
             ActualizarMarco();
         }
 
@@ -158,6 +179,8 @@ namespace TDOM.Unity
             _layoutTween?.Kill(true);
             _layoutTween = null;
             _layoutInitialized = false;
+            _hasPreview = false;
+            _previewed = false;
             _hovered = false;
             _focused = false;
         }
