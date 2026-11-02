@@ -12,6 +12,7 @@ using TDOM.Unity.Combat;
 using TDOM.Unity.Input;
 using TDOM.Unity.Level;
 using TDOM.Unity.Locomotion;
+using TDOM.Unity.Settings;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
@@ -210,12 +211,9 @@ namespace TDOM.Unity.Player
             _anchorLauncher = GetComponentInChildren<AnchorLauncher>();
             _combat = GetComponentInChildren<PlayerCombat>();
             _aylaAnimator = GetComponentInChildren<AylaPlayerLocomotionAnimator>();
-            _look = new LookResolver(
-                _sensitivity,
-                _camera.Config.PitchMin,
-                _camera.Config.PitchMax,
-                transform.eulerAngles.y
-            );
+            _look = CrearLookResolver(transform.eulerAngles.y);
+            if (IsOwner)
+                CameraSettingsService.SensibilidadCambiada += OnSensibilidadCambiada;
             _locomocion = new PlayerLocomotion(_definition);
             _facing = new FacingResolver(_definition.Movement.TurnSpeed, transform.eulerAngles.y);
             _fijacion = new LockOnResolver(CrearAjustesFijacion(_camera.Config));
@@ -279,6 +277,7 @@ namespace TDOM.Unity.Player
 
         public override void OnNetworkDespawn()
         {
+            CameraSettingsService.SensibilidadCambiada -= OnSensibilidadCambiada;
             DestruirOverlayRespawn();
             EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
             _healthPool = null;
@@ -292,6 +291,7 @@ namespace TDOM.Unity.Player
 
         public override void OnDestroy()
         {
+            CameraSettingsService.SensibilidadCambiada -= OnSensibilidadCambiada;
             DestruirOverlayRespawn();
             EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
             if (IsServer)
@@ -338,7 +338,7 @@ namespace TDOM.Unity.Player
                     characterController.enabled = true;
             }
 
-            _look = new LookResolver(_sensitivity, yawInicial: transform.eulerAngles.y);
+            _look = CrearLookResolver(transform.eulerAngles.y);
             _initialSpawnApplied = true;
             _inputReader.enabled = true;
             _initialSpawnPosition = transform.position;
@@ -613,6 +613,29 @@ namespace TDOM.Unity.Player
             }
 
             _look.Tick(input.Look, dt);
+        }
+
+        private LookResolver CrearLookResolver(float yawInicial)
+        {
+            var config = _camera.Config;
+            if (IsOwner)
+            {
+                Vector2 sensibilidad = new CameraSettingsService(config).Cargar();
+                return LookResolver.CrearConSensibilidades(
+                    sensibilidad.x,
+                    sensibilidad.y,
+                    config.PitchMin,
+                    config.PitchMax,
+                    yawInicial
+                );
+            }
+
+            return new LookResolver(_sensitivity, config.PitchMin, config.PitchMax, yawInicial);
+        }
+
+        private void OnSensibilidadCambiada(float sensibilidadX, float sensibilidadY)
+        {
+            _look?.EstablecerSensibilidad(sensibilidadX, sensibilidadY);
         }
 
         private void ActualizarFijacion(bool alternar, Vector2 stick, float dt)

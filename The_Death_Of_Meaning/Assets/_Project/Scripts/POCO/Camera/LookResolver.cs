@@ -4,7 +4,8 @@ namespace TDOM.Gameplay.Camera
 {
     public sealed class LookResolver
     {
-        private readonly float _sensibilidad;
+        private float _sensibilidadX;
+        private float _sensibilidadY;
         private readonly float _pitchMin;
         private readonly float _pitchMax;
 
@@ -19,11 +20,37 @@ namespace TDOM.Gameplay.Camera
             float pitchMax = 85f,
             float yawInicial = 0f
         )
+            : this(sensibilidad, sensibilidad, pitchMin, pitchMax, yawInicial) { }
+
+        public static LookResolver CrearConSensibilidades(
+            float sensibilidadX,
+            float sensibilidadY,
+            float pitchMin = -85f,
+            float pitchMax = 85f,
+            float yawInicial = 0f
+        )
         {
-            _sensibilidad = sensibilidad;
+            return new LookResolver(sensibilidadX, sensibilidadY, pitchMin, pitchMax, yawInicial);
+        }
+
+        private LookResolver(
+            float sensibilidadX,
+            float sensibilidadY,
+            float pitchMin,
+            float pitchMax,
+            float yawInicial
+        )
+        {
+            EstablecerSensibilidad(sensibilidadX, sensibilidadY);
             _pitchMin = pitchMin;
             _pitchMax = pitchMax;
             Yaw = yawInicial;
+        }
+
+        public void EstablecerSensibilidad(float sensibilidadX, float sensibilidadY)
+        {
+            _sensibilidadX = Mathf.Max(0f, sensibilidadX);
+            _sensibilidadY = Mathf.Max(0f, sensibilidadY);
         }
 
         public void EstablecerOrientacion(float yaw, float pitch)
@@ -34,10 +61,10 @@ namespace TDOM.Gameplay.Camera
 
         public void Tick(Vector2 look, float dt, float multiplicadorSensibilidad = 1f)
         {
-            float sensibilidad = _sensibilidad * Mathf.Max(0f, multiplicadorSensibilidad);
-            Yaw += look.x * sensibilidad * dt;
+            float multiplicador = Mathf.Max(0f, multiplicadorSensibilidad);
+            Yaw += look.x * _sensibilidadX * multiplicador * dt;
             Yaw = Mathf.Repeat(Yaw, 360f);
-            Pitch -= look.y * sensibilidad * dt;
+            Pitch -= look.y * _sensibilidadY * multiplicador * dt;
             Pitch = Mathf.Clamp(Pitch, _pitchMin, _pitchMax);
         }
     }
