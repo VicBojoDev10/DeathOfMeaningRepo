@@ -9,6 +9,8 @@ namespace TDOM.Unity.Locomotion
         [SerializeField]
         private CharacterController _cc;
 
+        public CharacterController Controller => _cc;
+
         private Vector3 _empujeDireccion;
         private float _empujeDistancia;
         private float _empujeAltura;

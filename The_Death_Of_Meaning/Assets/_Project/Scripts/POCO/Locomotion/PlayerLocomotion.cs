@@ -12,6 +12,7 @@ namespace TDOM.Gameplay.Locomotion
         private readonly SprintResolver _run;
         private readonly DashResolver _dash;
         private readonly GrappleResolver _grapple;
+        private readonly ClimbResolver _climb;
         private readonly float _multiplicadorVelocidadPistola;
         private readonly InputSnapshot _inputSinControl = new InputSnapshot();
 
@@ -33,6 +34,8 @@ namespace TDOM.Gameplay.Locomotion
 
         public bool Corriendo => _run != null && _run.Corriendo;
         public bool GanchoActivo => _grapple != null && _grapple.Activo;
+        public bool ClimbActivo => _climb != null && _climb.Activo;
+        public bool PuedeEscalar => _climb != null;
         public bool DashActivo => _dash != null && _dash.Activo;
         public Vector3 PuntoGancho => _grapple != null ? _grapple.Punto : Vector3.zero;
         private float _escalaGravedadAtaqueAereo = 1f;
@@ -49,7 +52,8 @@ namespace TDOM.Gameplay.Locomotion
             SprintResolver run,
             DashResolver dash,
             GrappleResolver grapple = null,
-            float multiplicadorVelocidadPistola = VelocidadCompleta
+            float multiplicadorVelocidadPistola = VelocidadCompleta,
+            ClimbResolver climb = null
         )
         {
             this._gravity = gravity;
@@ -58,6 +62,7 @@ namespace TDOM.Gameplay.Locomotion
             this._run = run;
             this._dash = dash;
             this._grapple = grapple;
+            this._climb = climb;
             this._multiplicadorVelocidadPistola = multiplicadorVelocidadPistola;
         }
 
@@ -77,7 +82,49 @@ namespace TDOM.Gameplay.Locomotion
             _escalaGravedadAtaqueAereo = m.AirAttackGravityScale;
             _dash = new DashResolver(definition.Dash);
             _grapple = definition.Grapple != null ? new GrappleResolver(definition.Grapple) : null;
+            _climb = definition.CanClimb
+                ? new ClimbResolver(
+                    m.ClimbSpeed,
+                    m.ClimbApproachDistance,
+                    m.ClimbMinimumHeight,
+                    m.ClimbMaximumHeight,
+                    m.ClimbMaximumDuration
+                )
+                : null;
             _multiplicadorVelocidadPistola = m.ShootingSpeedMultiplier;
+        }
+
+        public bool IntentarEscalar(
+            float distanciaDeAproximacion,
+            Vector3 posicionActual,
+            Vector3 posicionSuperior,
+            bool acercandose,
+            bool bordeMarcado
+        )
+        {
+            if (
+                _climb == null
+                || _dash?.Activo == true
+                || _grapple?.Activo == true
+                || State.Phase == LocomotionPhase.Attacking
+            )
+                return false;
+
+            if (
+                !_climb.IntentarIniciar(
+                    posicionActual,
+                    posicionSuperior,
+                    distanciaDeAproximacion,
+                    acercandose,
+                    bordeMarcado
+                )
+            )
+                return false;
+
+            _run.Corriendo = false;
+            State.Velocity = Vector3.zero;
+            State.Phase = LocomotionPhase.Climbing;
+            return true;
         }
 
         private Vector3 DireccionDeDash(InputSnapshot input, Quaternion yaw)
@@ -161,6 +208,9 @@ namespace TDOM.Gameplay.Locomotion
             bool gravedadReducida
         )
         {
+            if (_climb != null && _climb.Activo)
+                return _climb.Tick(State, posicion, dt);
+
             ActualizarCarrera(input, modoPistola);
 
             if (_grapple != null && _grapple.Activo)
@@ -269,6 +319,7 @@ namespace TDOM.Gameplay.Locomotion
         {
             _dash?.Cancelar();
             _grapple?.Cancelar();
+            _climb?.Cancelar();
             _run.Corriendo = false;
             State.Velocity = new Vector3(0f, Mathf.Min(0f, State.Velocity.y), 0f);
             State.BufferTimer = 0f;
@@ -287,6 +338,7 @@ namespace TDOM.Gameplay.Locomotion
 
             _dash?.Cancelar();
             _grapple?.Cancelar();
+            _climb?.Cancelar();
 
             DashIniciado = false;
             SaltoAereo = false;
