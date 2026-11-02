@@ -7,6 +7,7 @@ namespace TDOM.Data
     {
         public string DisplayName;
         public MovementProfile Movement;
+        public bool CanClimb;
         public DashProfile Dash;
         public ComboProfile Melee;
         public ComboProfile Ranged;

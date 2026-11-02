@@ -56,6 +56,7 @@ namespace TDOM.Unity.Player
         private AnchorLauncher _anchorLauncher;
 
         private PlayerCombat _combat;
+        private readonly InputSnapshot _inputSinControlDuranteEscalada = new InputSnapshot();
 
         private AylaPlayerLocomotionAnimator _aylaAnimator;
 
@@ -264,6 +265,55 @@ namespace TDOM.Unity.Player
         private void OnBossSpawned(BossController jefe)
         {
             _jefe = jefe;
+        }
+
+        private bool IntentarEscaladaEnBorde(InputSnapshot input)
+        {
+            if (
+                _definition == null
+                || !_definition.CanClimb
+                || !_locomocion.PuedeEscalar
+                || !input.JumpPressed
+                || input.Move.sqrMagnitude <= 0f
+                || AtaqueActivo
+                || _locomocion.DashActivo
+                || _locomocion.GanchoActivo
+                || (_anchorLauncher != null && _anchorLauncher.AnclaActiva)
+            )
+                return false;
+
+            CharacterController controller = _motor != null ? _motor.Controller : null;
+            if (controller == null)
+                return false;
+
+            Vector3 direccion = _look.YawRotation * new Vector3(input.Move.x, 0f, input.Move.y);
+            if (direccion.sqrMagnitude <= 0f)
+                return false;
+
+            float distanciaMaxima = _definition.Movement.ClimbApproachDistance;
+            if (
+                !Physics.Raycast(
+                    controller.bounds.center,
+                    direccion.normalized,
+                    out RaycastHit hit,
+                    distanciaMaxima,
+                    Physics.DefaultRaycastLayers,
+                    QueryTriggerInteraction.Ignore
+                )
+            )
+                return false;
+
+            LedgeClimbAnchor borde = hit.collider.GetComponentInParent<LedgeClimbAnchor>();
+            if (borde == null || borde.TopPoint == null || borde.transform.IsChildOf(transform))
+                return false;
+
+            return _locomocion.IntentarEscalar(
+                hit.distance,
+                transform.position,
+                borde.TopPoint.position,
+                acercandose: true,
+                bordeMarcado: true
+            );
         }
 
         private void OnEstadoVidaChanged(PlayerLifeState anterior, PlayerLifeState actual)
@@ -748,7 +798,8 @@ namespace TDOM.Unity.Player
                 return;
 
             var input = _inputReader.Read();
-            bool apuntando = input.AimHeld && PuedeApuntar && !EstaAbatidoOMuerto;
+            bool apuntando =
+                input.AimHeld && PuedeApuntar && !EstaAbatidoOMuerto && !_locomocion.ClimbActivo;
             ActualizarMirada(input, dt);
             _zendreLocomotionAnimator?.ActualizarApuntado(apuntando, _fijacion.Activo, input.Move);
             if (_aylaAnimator != null)
@@ -766,33 +817,42 @@ namespace TDOM.Unity.Player
 
             if (!EstaAbatidoOMuerto)
             {
-                AlinearConCamaraAlAtacar(input, apuntando);
+                if (!_locomocion.ClimbActivo)
+                {
+                    AlinearConCamaraAlAtacar(input, apuntando);
+                    IntentarEscaladaEnBorde(input);
+                }
 
-                // Dash cancela el combo en cualquier punto (solo si el dash está disponible).
-                if (
-                    _combat != null
-                    && input.DashPressed
-                    && _combat.PuedeCancelarConDash
-                    && _locomocion.DashDisponible
-                    && !(_anchorLauncher != null && _anchorLauncher.AnclaActiva)
-                )
-                    _combat.CancelarMeleePorDash();
+                if (!_locomocion.ClimbActivo)
+                {
+                    if (
+                        _combat != null
+                        && input.DashPressed
+                        && _combat.PuedeCancelarConDash
+                        && _locomocion.DashDisponible
+                        && !(_anchorLauncher != null && _anchorLauncher.AnclaActiva)
+                    )
+                        _combat.CancelarMeleePorDash();
 
-                // Salto también cancela el combo (si hay salto disponible).
-                if (
-                    _combat != null
-                    && input.JumpPressed
-                    && _combat.PuedeCancelarConDash
-                    && _locomocion.SaltoDisponible
-                    && !(_anchorLauncher != null && _anchorLauncher.AnclaActiva)
-                )
-                    _combat.CancelarMeleePorSalto();
+                    if (
+                        _combat != null
+                        && input.JumpPressed
+                        && _combat.PuedeCancelarConDash
+                        && _locomocion.SaltoDisponible
+                        && !(_anchorLauncher != null && _anchorLauncher.AnclaActiva)
+                    )
+                        _combat.CancelarMeleePorSalto();
+                }
 
                 if (_combat != null)
-                    _combat.Tick(input, dt);
+                    _combat.Tick(
+                        _locomocion.ClimbActivo ? _inputSinControlDuranteEscalada : input,
+                        dt
+                    );
 
                 if (
-                    input.GrapplePressed
+                    !_locomocion.ClimbActivo
+                    && input.GrapplePressed
                     && !AtaqueActivo
                     && _definition != null
                     && _definition.Grapple != null
@@ -818,6 +878,7 @@ namespace TDOM.Unity.Player
                 _mantenerOrientacionGanchoHasta = Time.time + 0.55f;
             if (_aylaAnimator != null)
             {
+                _aylaAnimator.SetClimbingState(_locomocion.ClimbActivo);
                 _aylaAnimator.SetSprintState(_locomocion.Corriendo);
                 // La pose del gancho dura mientras el jalon siga activo y no se ataque.
                 // Saltar cancela el gancho en la locomocion, asi que tambien la apaga.
