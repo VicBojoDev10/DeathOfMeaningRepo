@@ -63,9 +63,6 @@ namespace TDOM.Unity
         private Quaternion _rotacionBase = Quaternion.identity;
         private readonly HashSet<ulong> _jugadoresGolpeados = new HashSet<ulong>();
 
-        // Flash de pantalla en el cliente golpeado
-        private static float _flashRojoTimer = 0f;
-
         // Todos los clientes: abanico de aviso en el piso, fuera de la jerarquía porque la
         // columna rota y el abanico debe quedarse fijo.
         private GameObject _arco;
@@ -339,7 +336,7 @@ namespace TDOM.Unity
         [Rpc(SendTo.SpecifiedInParams)]
         private void JugadorGolpeadoRpc(RpcParams rpcParams = default)
         {
-            _flashRojoTimer = 0.25f;
+            MostrarFlashRojo();
             NotificarGolpeAlJugadorLocal();
         }
 
@@ -373,21 +370,6 @@ namespace TDOM.Unity
                 _arcLineRenderer.sharedMaterial = _materialAviso;
             else
                 Debug.LogWarning("[AtaqueMano] Falta asignar _materialAviso (AvisoAtaque.mat).");
-        }
-
-        private void OnGUI()
-        {
-            if (_flashRojoTimer > 0f)
-            {
-                _flashRojoTimer -= Time.deltaTime;
-                Color prev = GUI.color;
-                GUI.color = new Color(1f, 0f, 0f, 0.4f);
-                GUI.DrawTexture(
-                    new Rect(0, 0, Screen.width, Screen.height),
-                    Texture2D.whiteTexture
-                );
-                GUI.color = prev;
-            }
         }
 
         private void OnDrawGizmosSelected()
