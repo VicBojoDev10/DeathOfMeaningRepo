@@ -72,8 +72,6 @@ namespace TDOM.Unity
 
         private const float VelocidadGiroPiedra = 40f;
 
-        private float _flashGolpe;
-
         private void Awake()
         {
             // Los visuales son solo decoración: sin colliders para no empujar jugadores.
@@ -249,9 +247,6 @@ namespace TDOM.Unity
             float dt = Time.deltaTime;
 
             AnimarCaidaLocal(dt);
-
-            if (_flashGolpe > 0f)
-                _flashGolpe -= dt;
 
             if (!IsServer || !IsSpawned)
                 return;
@@ -514,19 +509,8 @@ namespace TDOM.Unity
         [Rpc(SendTo.SpecifiedInParams)]
         private void JugadorGolpeadoRpc(RpcParams rpcParams = default)
         {
-            _flashGolpe = 0.25f;
+            MostrarFlashRojo();
             NotificarGolpeAlJugadorLocal();
-        }
-
-        private void OnGUI()
-        {
-            if (_flashGolpe <= 0f)
-                return;
-
-            Color colorAnterior = GUI.color;
-            GUI.color = new Color(1f, 0f, 0f, 0.4f);
-            GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
-            GUI.color = colorAnterior;
         }
 
         private void OnDrawGizmosSelected()
