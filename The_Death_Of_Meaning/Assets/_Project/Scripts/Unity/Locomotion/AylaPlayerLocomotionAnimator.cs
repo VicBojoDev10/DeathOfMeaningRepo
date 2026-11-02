@@ -17,6 +17,7 @@ namespace TDOM.Unity
         private static readonly int DobleSaltoHash = Animator.StringToHash("DobleSalto");
         private static readonly int GanchoHash = Animator.StringToHash("Gancho");
         private static readonly int DashHash = Animator.StringToHash("Dash");
+        private static readonly int ClimbingHash = Animator.StringToHash("Climbing");
         private static readonly int DobleSaltoTiempoHash = Animator.StringToHash(
             "DobleSaltoTiempo"
         );
@@ -87,6 +88,7 @@ namespace TDOM.Unity
         private bool _isSprinting;
         private bool _ganchoAnimando;
         private bool _dashAnimando;
+        private bool _climbAnimando;
         private float _dashHasta;
         private float _inclinacionActual;
         private Vector3 _posLocalBase;
@@ -200,6 +202,22 @@ namespace TDOM.Unity
                 _animator.SetBool(DashHash, activo);
         }
 
+        public void SetClimbingState(bool activo)
+        {
+            if (!IsSpawned || !IsOwner || activo == _climbAnimando)
+                return;
+
+            _climbAnimando = activo;
+            ApplyClimbingState(activo);
+            SyncClimbingStateRpc(activo);
+        }
+
+        private void ApplyClimbingState(bool activo)
+        {
+            if (_animator != null)
+                _animator.SetBool(ClimbingHash, activo);
+        }
+
         // Inclina el modelo hacia adelante mientras el Animator esta en el dash, girando
         // alrededor de la cadera. Lee el parametro del Animator, que existe en todos los
         // clientes.
@@ -259,11 +277,13 @@ namespace TDOM.Unity
             _isSprinting = false;
             _ganchoAnimando = false;
             _dashAnimando = false;
+            _climbAnimando = false;
             _dashHasta = 0f;
             _dobleSaltoTiempo = 0f;
             ApplyAimState(false);
             ApplyGanchoState(false);
             ApplyDashState(false);
+            ApplyClimbingState(false);
         }
 
         private void Update()
@@ -287,10 +307,16 @@ namespace TDOM.Unity
 
             _smoothSpeed = Mathf.Lerp(_smoothSpeed, _rawSpeed, dt * 12f);
 
-            bool isJumping = _isJumpingPrevio;
+            bool isClimbing = _animator != null && _animator.GetBool(ClimbingHash);
+            bool isJumping = !isClimbing && _isJumpingPrevio;
             if (IsOwner && _characterController != null)
             {
-                if (!_characterController.isGrounded)
+                if (isClimbing)
+                {
+                    _tiempoEnAire = 0f;
+                    isJumping = false;
+                }
+                else if (!_characterController.isGrounded)
                 {
                     _tiempoEnAire += dt;
                 }
@@ -299,7 +325,8 @@ namespace TDOM.Unity
                     _tiempoEnAire = 0f;
                 }
 
-                isJumping = velY > 1.5f || _tiempoEnAire > 0.10f;
+                if (!isClimbing)
+                    isJumping = velY > 1.5f || _tiempoEnAire > 0.10f;
 
                 if (isJumping != _isJumpingPrevio)
                 {
@@ -318,17 +345,21 @@ namespace TDOM.Unity
             }
             ActualizarDobleSalto(dt);
 
-            bool isRunning = !isJumping && _isSprinting;
-            bool isWalking = !isJumping && _smoothSpeed >= _walkThreshold && !isRunning;
+            bool isRunning = !isClimbing && !isJumping && _isSprinting;
+            bool isWalking =
+                !isClimbing && !isJumping && _smoothSpeed >= _walkThreshold && !isRunning;
 
             if (_animator != null)
             {
                 Vector3 localVelocity = transform.InverseTransformDirection(v);
-                _animator.SetFloat(SpeedHash, CalculateLocomotionBlendSpeed(_smoothSpeed));
+                _animator.SetFloat(
+                    SpeedHash,
+                    isClimbing ? 0f : CalculateLocomotionBlendSpeed(_smoothSpeed)
+                );
                 Vector3 localDirection =
                     localVelocity.sqrMagnitude > 0.01f ? localVelocity.normalized : Vector3.zero;
-                _animator.SetFloat(MoveXHash, localDirection.x);
-                _animator.SetFloat(MoveYHash, localDirection.z);
+                _animator.SetFloat(MoveXHash, isClimbing ? 0f : localDirection.x);
+                _animator.SetFloat(MoveYHash, isClimbing ? 0f : localDirection.z);
                 _animator.SetBool(JumpHash, isJumping);
                 _animator.SetBool(WalkHash, isWalking);
                 _animator.SetBool(RunHash, _isSprinting && !isJumping);
@@ -375,6 +406,13 @@ namespace TDOM.Unity
         {
             _dashAnimando = activo;
             ApplyDashState(activo);
+        }
+
+        [Rpc(SendTo.NotOwner)]
+        private void SyncClimbingStateRpc(bool activo)
+        {
+            _climbAnimando = activo;
+            ApplyClimbingState(activo);
         }
 
         [Rpc(SendTo.NotOwner)]

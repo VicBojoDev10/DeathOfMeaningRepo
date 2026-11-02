@@ -54,10 +54,12 @@ namespace TDOM.Unity.Combat
             AnclaActual = ancla;
         }
 
-        public void NotificarDespawnAncla()
+        public void NotificarDespawnAncla(bool conecto)
         {
             AnclaActiva = false;
             _esperandoSoltar = true;
+            if (!conecto && IsOwner && _cooldown != null)
+                _cooldown.Recortar(_perfil.FactorCooldownSinConectar);
         }
 
         public override void OnNetworkSpawn()
