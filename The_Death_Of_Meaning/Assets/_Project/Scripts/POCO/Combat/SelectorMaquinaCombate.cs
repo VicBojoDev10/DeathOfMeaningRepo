@@ -13,13 +13,21 @@ namespace TDOM.Gameplay.Combat
             bool meleeDisponible,
             bool disparoDisponible,
             bool meleeActiva,
-            bool disparoActivo
+            bool disparoActivo,
+            bool meleeSolicitada,
+            bool disparoSolicitado
         )
         {
-            if (meleeDisponible && meleeActiva)
+            if (meleeActiva)
                 return MaquinaCombateSeleccionada.Melee;
 
-            if (disparoDisponible && disparoActivo)
+            if (disparoActivo)
+                return MaquinaCombateSeleccionada.Disparo;
+
+            if (meleeDisponible && meleeSolicitada)
+                return MaquinaCombateSeleccionada.Melee;
+
+            if (disparoDisponible && disparoSolicitado)
                 return MaquinaCombateSeleccionada.Disparo;
 
             if (meleeDisponible)

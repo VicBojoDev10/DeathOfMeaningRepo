@@ -426,7 +426,9 @@ namespace TDOM.Unity.Combat
                 _melee != null,
                 _disparo != null,
                 _melee != null && _melee.Fase != ComboPhase.Idle,
-                _disparo != null && _disparo.Fase != ComboPhase.Idle
+                _disparo != null && _disparo.Fase != ComboPhase.Idle,
+                input.AttackPressed || input.AttackHeld,
+                input.FirePressed || input.FireHeld
             );
 
             var prevMeleePhase = _melee?.Fase ?? ComboPhase.Idle;

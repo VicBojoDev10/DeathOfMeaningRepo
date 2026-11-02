@@ -18,73 +18,132 @@ namespace TDOM.Tests.EditMode
         private const float VentanaBuffer = 0.1f;
 
         [Test]
-        public void Si_una_maquina_esta_activa_avanza_solo_esa()
-        {
-            var seleccionMelee = SelectorMaquinaCombate.Seleccionar(true, true, true, false);
-            var seleccionDisparo = SelectorMaquinaCombate.Seleccionar(true, true, false, true);
-
-            Assert.AreEqual(MaquinaCombateSeleccionada.Melee, seleccionMelee);
-            Assert.AreEqual(MaquinaCombateSeleccionada.Disparo, seleccionDisparo);
-        }
-
-        [Test]
-        public void Si_ambas_estan_en_idle_gana_melee()
-        {
-            var seleccion = SelectorMaquinaCombate.Seleccionar(true, true, false, false);
-
-            Assert.AreEqual(MaquinaCombateSeleccionada.Melee, seleccion);
-        }
-
-        [Test]
-        public void Si_una_maquina_no_esta_disponible_avanza_la_otra()
-        {
-            var seleccionMelee = SelectorMaquinaCombate.Seleccionar(true, false, false, false);
-            var seleccionDisparo = SelectorMaquinaCombate.Seleccionar(false, true, false, false);
-
-            Assert.AreEqual(MaquinaCombateSeleccionada.Melee, seleccionMelee);
-            Assert.AreEqual(MaquinaCombateSeleccionada.Disparo, seleccionDisparo);
-            Assert.AreEqual(
-                MaquinaCombateSeleccionada.Ninguna,
-                SelectorMaquinaCombate.Seleccionar(false, false, false, false)
-            );
-        }
-
-        [Test]
-        public void Con_dt_fijo_el_turno_es_determinista_y_no_activa_ambas_maquinas()
-        {
-            var fasesPrimeraSimulacion = SimularTurnos();
-            var fasesSegundaSimulacion = SimularTurnos();
-
-            CollectionAssert.AreEqual(fasesPrimeraSimulacion, fasesSegundaSimulacion);
-        }
-
-        private static ComboPhase[] SimularTurnos()
+        public void melee_y_disparo_en_el_mismo_frame_solo_arranca_el_melee()
         {
             var melee = CrearMaquina();
             var disparo = CrearMaquina();
-            var fases = new ComboPhase[FramesDePrueba];
 
-            for (var frame = 0; frame < FramesDePrueba; frame++)
+            AvanzarMaquinas(
+                melee,
+                disparo,
+                new InputSnapshot { AttackPressed = true, FirePressed = true }
+            );
+
+            Assert.AreNotEqual(ComboPhase.Idle, melee.Fase);
+            Assert.AreEqual(ComboPhase.Idle, disparo.Fase);
+        }
+
+        [Test]
+        public void con_el_disparo_activo_el_melee_no_avanza()
+        {
+            var melee = CrearMaquina();
+            var disparo = CrearMaquina();
+
+            AvanzarMaquinas(null, disparo, new InputSnapshot { FirePressed = true });
+            AvanzarMaquinas(
+                melee,
+                disparo,
+                new InputSnapshot { AttackPressed = true, FirePressed = true }
+            );
+
+            Assert.AreEqual(ComboPhase.Idle, melee.Fase);
+            Assert.AreNotEqual(ComboPhase.Idle, disparo.Fase);
+        }
+
+        [Test]
+        public void mantener_melee_y_disparo_nunca_deja_las_dos_maquinas_activas()
+        {
+            RegistroFases primeraSimulacion = SimularAmbosBotonesSostenidos();
+            RegistroFases segundaSimulacion = SimularAmbosBotonesSostenidos();
+
+            CollectionAssert.AreEqual(primeraSimulacion.Melee, segundaSimulacion.Melee);
+            CollectionAssert.AreEqual(primeraSimulacion.Disparo, segundaSimulacion.Disparo);
+        }
+
+        [Test]
+        public void al_terminar_el_melee_con_r2_sostenido_arranca_el_disparo()
+        {
+            var melee = CrearMaquina();
+            var disparo = CrearMaquina();
+            bool disparoInicioDespuesDelMelee = false;
+
+            for (int frame = 0; frame < FramesDePrueba; frame++)
             {
-                var seleccion = SelectorMaquinaCombate.Seleccionar(
-                    true,
-                    true,
-                    melee.Fase != ComboPhase.Idle,
-                    disparo.Fase != ComboPhase.Idle
+                AvanzarMaquinas(
+                    melee,
+                    disparo,
+                    new InputSnapshot { AttackPressed = frame == 0, FireHeld = true }
                 );
-                var input = new InputSnapshot { AttackPressed = frame == 0 };
 
-                if (seleccion == MaquinaCombateSeleccionada.Melee)
-                    melee.Tick(input, DeltaTimeDeterminista);
-                else if (seleccion == MaquinaCombateSeleccionada.Disparo)
-                    disparo.Tick(input, DeltaTimeDeterminista);
-
-                Assert.IsFalse(melee.Fase != ComboPhase.Idle && disparo.Fase != ComboPhase.Idle);
-                fases[frame] = melee.Fase;
+                if (melee.Fase == ComboPhase.Idle && disparo.Fase != ComboPhase.Idle)
+                {
+                    disparoInicioDespuesDelMelee = true;
+                    break;
+                }
             }
 
-            return fases;
+            Assert.IsTrue(disparoInicioDespuesDelMelee);
         }
+
+        private static RegistroFases SimularAmbosBotonesSostenidos()
+        {
+            var melee = CrearMaquina();
+            var disparo = CrearMaquina();
+            var fasesMelee = new ComboPhase[FramesDePrueba];
+            var fasesDisparo = new ComboPhase[FramesDePrueba];
+
+            for (int frame = 0; frame < FramesDePrueba; frame++)
+            {
+                AvanzarMaquinas(
+                    melee,
+                    disparo,
+                    new InputSnapshot
+                    {
+                        AttackPressed = frame == 0,
+                        AttackHeld = true,
+                        FirePressed = frame == 0,
+                        FireHeld = true,
+                    }
+                );
+
+                fasesMelee[frame] = melee.Fase;
+                fasesDisparo[frame] = disparo.Fase;
+                Assert.IsFalse(melee.Fase != ComboPhase.Idle && disparo.Fase != ComboPhase.Idle);
+            }
+
+            return new RegistroFases(fasesMelee, fasesDisparo);
+        }
+
+        private static MaquinaCombateSeleccionada AvanzarMaquinas(
+            ComboStateMachine melee,
+            ComboStateMachine disparo,
+            InputSnapshot input
+        )
+        {
+            var seleccion = SelectorMaquinaCombate.Seleccionar(
+                melee != null,
+                disparo != null,
+                melee != null && melee.Fase != ComboPhase.Idle,
+                disparo != null && disparo.Fase != ComboPhase.Idle,
+                input.AttackPressed || input.AttackHeld,
+                input.FirePressed || input.FireHeld
+            );
+
+            if (seleccion == MaquinaCombateSeleccionada.Melee)
+                melee?.Tick(input, DeltaTimeDeterminista);
+            else if (seleccion == MaquinaCombateSeleccionada.Disparo)
+                disparo?.Tick(ComoDisparo(input), DeltaTimeDeterminista);
+
+            return seleccion;
+        }
+
+        private static InputSnapshot ComoDisparo(InputSnapshot input) =>
+            new InputSnapshot
+            {
+                AttackPressed = input.FirePressed,
+                AttackHeld = input.FireHeld,
+                AttackReleased = input.FireReleased,
+            };
 
         private static ComboStateMachine CrearMaquina()
         {
@@ -103,6 +162,18 @@ namespace TDOM.Tests.EditMode
                 CargaMaxima,
                 VentanaBuffer
             );
+        }
+
+        private sealed class RegistroFases
+        {
+            public ComboPhase[] Melee { get; }
+            public ComboPhase[] Disparo { get; }
+
+            public RegistroFases(ComboPhase[] melee, ComboPhase[] disparo)
+            {
+                Melee = melee;
+                Disparo = disparo;
+            }
         }
     }
 }
