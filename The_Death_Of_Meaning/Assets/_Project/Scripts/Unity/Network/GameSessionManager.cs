@@ -414,6 +414,8 @@ namespace TDOM.Unity
             if (!IsServer || NetworkManager == null || NetworkManager.SpawnManager == null)
                 return;
 
+            PowerUpsSpawnController.LimpiarEnServidor();
+
             // Se busca primero y se limpia después: despawnear modifica SpawnedObjectsList.
             MinionSpawner spawner = null;
             foreach (var objeto in NetworkManager.SpawnManager.SpawnedObjectsList)
