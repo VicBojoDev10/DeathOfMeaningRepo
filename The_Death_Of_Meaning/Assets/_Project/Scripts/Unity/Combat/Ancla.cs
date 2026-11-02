@@ -19,6 +19,7 @@ namespace TDOM.Unity.Combat
         private NetworkVariable<bool> _ancladaAPlataforma = new NetworkVariable<bool>();
 
         public NetworkVariable<bool> Pegada = new NetworkVariable<bool>();
+        private readonly NetworkVariable<bool> _conecto = new NetworkVariable<bool>();
         public bool PegadaEnOjo { get; private set; }
 
         private Vector3 _direccion;
@@ -162,6 +163,7 @@ namespace TDOM.Unity.Combat
                 FijarPlataforma(_hitsBuffer[indice].collider);
 
             Pegada.Value = true;
+            _conecto.Value = true;
             _tiempoPegada = 0f;
         }
 
@@ -259,7 +261,7 @@ namespace TDOM.Unity.Combat
                     var launcher = duenoObj.GetComponentInChildren<AnchorLauncher>();
                     if (launcher != null)
                     {
-                        launcher.NotificarDespawnAncla();
+                        launcher.NotificarDespawnAncla(_conecto.Value);
                     }
                 }
             }
