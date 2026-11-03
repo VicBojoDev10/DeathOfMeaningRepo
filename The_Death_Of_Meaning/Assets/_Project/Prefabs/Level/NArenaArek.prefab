@@ -10651,6 +10651,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: GeneralScenario
       objectReference: {fileID: 0}
+    - target: {fileID: 4382692015579545293, guid: c5bb22bd39373344484925e8cef769a0, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5349439648099932127, guid: c5bb22bd39373344484925e8cef769a0, type: 3}
       propertyPath: m_LocalPosition.x
       value: -460
@@ -10692,7 +10696,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 3351849569368796452, guid: c5bb22bd39373344484925e8cef769a0, type: 3}
+    - {fileID: 7343070086047418814, guid: c5bb22bd39373344484925e8cef769a0, type: 3}
+    - {fileID: 4382692015579545293, guid: c5bb22bd39373344484925e8cef769a0, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 4284875210953841171, guid: c5bb22bd39373344484925e8cef769a0, type: 3}
       insertIndex: -1
