@@ -416,6 +416,33 @@ namespace TDOM.Unity
 
             PowerUpsSpawnController.LimpiarEnServidor();
 
+            // Snapshot: despawnear modifica SpawnedObjectsList.
+            var objetosSpawneados = new List<NetworkObject>(
+                NetworkManager.SpawnManager.SpawnedObjectsList
+            );
+
+            // Vaciar también el registro del jefe para no conservar referencias a columnas
+            // que ya no existen (la limpieza es inmediata incluso tras victoria o derrota).
+            foreach (var objeto in objetosSpawneados)
+            {
+                if (objeto != null && objeto.TryGetComponent(out AtaquesArek ataques))
+                    ataques.LimpiarColumnasEnServidor();
+            }
+
+            // Limpieza de respaldo para columnas que hayan quedado fuera del registro del jefe.
+            objetosSpawneados = new List<NetworkObject>(
+                NetworkManager.SpawnManager.SpawnedObjectsList
+            );
+            foreach (var objeto in objetosSpawneados)
+            {
+                if (
+                    objeto != null
+                    && objeto.IsSpawned
+                    && objeto.TryGetComponent(out ColumnaMortero _)
+                )
+                    objeto.Despawn(true);
+            }
+
             // Se busca primero y se limpia después: despawnear modifica SpawnedObjectsList.
             MinionSpawner spawner = null;
             foreach (var objeto in NetworkManager.SpawnManager.SpawnedObjectsList)

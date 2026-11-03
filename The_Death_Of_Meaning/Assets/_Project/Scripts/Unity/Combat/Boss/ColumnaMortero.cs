@@ -52,6 +52,7 @@ namespace TDOM.Unity
 
         private Estado _estado = Estado.Subiendo;
         private float _tiempoEnEstado;
+        private float _tiempoDesdeSpawn;
 
         /// <summary>Solo servidor, antes de Spawn.</summary>
         public void AsignarAltura(float altura)
@@ -106,6 +107,7 @@ namespace TDOM.Unity
             }
 
             CambiarEstado(Estado.Subiendo);
+            _tiempoDesdeSpawn = 0f;
             ColocarCuerpo(0f);
 
             if (IsServer)
@@ -183,13 +185,15 @@ namespace TDOM.Unity
             if (!IsServer || !IsSpawned || _estado == Estado.Hundiendo)
                 return;
 
+            CambiarEstado(Estado.Hundiendo);
             HundirRpc();
         }
 
         [Rpc(SendTo.ClientsAndHost)]
         private void HundirRpc()
         {
-            CambiarEstado(Estado.Hundiendo);
+            if (!IsServer)
+                CambiarEstado(Estado.Hundiendo);
         }
 
         private void CambiarEstado(Estado nuevo)
@@ -210,6 +214,15 @@ namespace TDOM.Unity
                 return;
             if (_perfil == null || !IsSpawned)
                 return;
+
+            _tiempoDesdeSpawn += Time.deltaTime;
+            if (
+                IsServer
+                && _estado != Estado.Hundiendo
+                && _perfil.tiempoVisibleColumna > 0f
+                && _tiempoDesdeSpawn >= _perfil.tiempoVisibleColumna
+            )
+                Hundir();
 
             _tiempoEnEstado += Time.deltaTime;
 
