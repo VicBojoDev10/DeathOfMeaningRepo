@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace TDOM.Unity.UI
 {
@@ -7,6 +9,17 @@ namespace TDOM.Unity.UI
     {
         [SerializeField]
         private List<UIWindow> windows = new List<UIWindow>();
+
+        [SerializeField]
+        private TransitionManager _transitionManager;
+
+        public TransitionManager TransitionManager => _transitionManager;
+
+        protected override void Awake()
+        {
+            base.Awake();
+            FoundUIScene();
+        }
 
         void Start()
         {
@@ -20,11 +33,10 @@ namespace TDOM.Unity.UI
 
         private void FoundUIScene()
         {
-            windows.Clear();
             var uiWindows = gameObject.GetComponentsInChildren<UIWindow>(true);
             foreach (var uiWindow in uiWindows)
             {
-                if (!windows.Contains(uiWindow))
+                if (uiWindow != null && !windows.Contains(uiWindow))
                 {
                     windows.Add(uiWindow);
                 }
@@ -33,10 +45,13 @@ namespace TDOM.Unity.UI
 
         public void ShowWindow(string windowId)
         {
+            if (windows == null || windows.Count == 0)
+                FoundUIScene();
+
             UIWindow windowToShow = null;
             foreach (UIWindow window in windows)
             {
-                if (window.WindowId == windowId)
+                if (window != null && window.WindowId == windowId)
                 {
                     windowToShow = window;
                     break;
@@ -54,12 +69,16 @@ namespace TDOM.Unity.UI
 
         public void CloseWindow(string windowId)
         {
+            if (windows == null || windows.Count == 0)
+                FoundUIScene();
+
             UIWindow windowToClose = null;
             foreach (UIWindow window in windows)
             {
-                if (window.WindowId == windowId)
+                if (window != null && window.WindowId == windowId)
                 {
                     windowToClose = window;
+                    break;
                 }
             }
             if (windowToClose != null)
@@ -68,20 +87,62 @@ namespace TDOM.Unity.UI
             }
             else
             {
-                Debug.Log($"No se encontro la ventana con ID");
+                Debug.Log($"No se encontro la ventana con ID {windowId}");
             }
+        }
+
+        public void SwitchWindow(string fromWindowId, string toWindowId)
+        {
+            if (_transitionManager == null)
+            {
+                CloseWindow(fromWindowId);
+                ShowWindow(toWindowId);
+                return;
+            }
+
+            _transitionManager.CambiarVentana(GetWindow(fromWindowId), GetWindow(toWindowId));
+        }
+
+        public void ActivarInteraccionSolo(string windowId)
+        {
+            if (windows == null || windows.Count == 0)
+                FoundUIScene();
+
+            foreach (UIWindow window in windows)
+                if (window != null)
+                    window.SetInteractable(window.WindowId == windowId);
+        }
+
+        public void LoadScene(
+            string sceneName,
+            Action onScreenCovered = null,
+            Action onSceneLoaded = null
+        )
+        {
+            if (_transitionManager == null)
+            {
+                onScreenCovered?.Invoke();
+                SceneManager.LoadScene(sceneName);
+                onSceneLoaded?.Invoke();
+                return;
+            }
+
+            _transitionManager.CargarEscena(sceneName, onScreenCovered, onSceneLoaded);
         }
 
         public UIWindow GetWindow(string windowId)
         {
+            if (windows == null || windows.Count == 0)
+                FoundUIScene();
+
             foreach (UIWindow window in windows)
             {
-                if (window.WindowId == windowId)
+                if (window != null && window.WindowId == windowId)
                 {
                     return window;
                 }
             }
-            Debug.LogError($"No se encontro la ventana con ID");
+            Debug.LogError($"No se encontro la ventana con ID {windowId}");
             return null;
         }
     }
@@ -93,5 +154,17 @@ namespace TDOM.Unity.UI
         public const string KeyboardUI = "keyboardui";
         public const string MainMenuUI = "mainmenuui";
         public const string GamePlayUI = "gameplayui";
+        public const string CreditsUI = "creditsui";
+        public const string OptionsUI = "optionsui";
+        public const string VolumeUI = "volumeui";
+        public const string CameraSettingsUI = "camerasettingsui";
+        public const string ControlEsquemaUI = "controlesquemaui";
+        public const string SplashUI = "splashui";
+        public const string PausaUI = "pausaui";
+        public const string RetryPopUpUI = "retrypopupui";
+        public const string ExitPopUpUI = "exitpopupui";
+        public const string DerrotaUI = "derrotaui";
+        public const string CancelHostUI = "cancelhostui";
+        public const string ControllerReconnectUI = "controllerreconnectui";
     }
 }

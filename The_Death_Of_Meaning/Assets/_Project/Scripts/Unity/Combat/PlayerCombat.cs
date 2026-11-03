@@ -1,11 +1,18 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.Gameplay.Core;
+using TDOM.Gameplay.Vfx;
+using TDOM.Unity;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Player;
+using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace TDOM.Unity.Combat
 {
@@ -13,6 +20,7 @@ namespace TDOM.Unity.Combat
     {
         private ComboStateMachine _melee;
         private ComboStateMachine _disparo;
+        private readonly AlternadorEspejoAtaque _alternadorEspejo = new AlternadorEspejoAtaque();
 
         [SerializeField]
         private CharacterDefinition _definition;
@@ -32,6 +40,107 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private CombatVfx _vfx;
 
+        [Serializable]
+        private struct VfxGolpeLigero
+        {
+            public VfxBase Efecto;
+            public Vector3 Giro;
+            public Vector3 GiroEspejo;
+
+            [Min(0f)]
+            public float Retardo;
+        }
+
+        [Header("Vfx en red de los golpes ligeros")]
+        [SerializeField]
+        private VfxRed _vfxRed;
+
+        [SerializeField, FormerlySerializedAs("_vfxPrimerGolpe")]
+        private VfxBase _vfxGolpeLigero;
+
+        [SerializeField, FormerlySerializedAs("_origenVfxPrimerGolpe")]
+        private Transform _origenVfxGolpeLigero;
+
+        [SerializeField]
+        [Tooltip(
+            "Si la espada tiene estela reciente, los vfx de golpe salen en su centro y con su "
+                + "rotacion (el plano que barre la hoja) en vez de en el centro de la hoja con "
+                + "el giro fijo de cada golpe."
+        )]
+        private bool _vfxSigueLaEstela = true;
+
+        [SerializeField]
+        [Tooltip(
+            "Giro (grados) que se suma a la rotacion de la estela. Por defecto cancela el giro de "
+                + "45 grados en Y que traen las siluetas, para que su lado largo siga el tajo. Si "
+                + "salen cruzadas, prueba con 0, 45 o 90 en Y."
+        )]
+        private Vector3 _giroVfxEnEstela = new Vector3(0f, -45f, 0f);
+
+        [SerializeField, FormerlySerializedAs("_avanceVfxPrimerGolpe")]
+        [Min(0f)]
+        private float _avanceVfxGolpeLigero;
+
+        [SerializeField]
+        private VfxGolpeLigero[] _vfxPorGolpeLigero =
+        {
+            new VfxGolpeLigero
+            {
+                Giro = new Vector3(0f, 0f, 45f),
+                GiroEspejo = new Vector3(0f, 0f, -45f),
+                Retardo = 0.12f,
+            },
+            new VfxGolpeLigero
+            {
+                Giro = new Vector3(0f, 0f, -45f),
+                GiroEspejo = new Vector3(0f, 0f, 45f),
+                Retardo = 0.12f,
+            },
+        };
+
+        [Header("Vfx en red del cargado")]
+        [SerializeField]
+        private VfxGolpeLigero _vfxCargado = new VfxGolpeLigero
+        {
+            Giro = new Vector3(0f, 0f, 45f),
+            GiroEspejo = new Vector3(0f, 0f, -45f),
+        };
+
+        [SerializeField]
+        [Tooltip("Silueta que sale al soltar, una por etapa de color de la carga.")]
+        private VfxBase[] _vfxCargadoPorEtapa = new VfxBase[0];
+
+        [SerializeField]
+        [Tooltip("Siluetas grandes que salen además de la normal, una por etapa de color.")]
+        private VfxBase[] _vfxCargadoGrandePorEtapa = new VfxBase[0];
+
+        [SerializeField]
+        [Tooltip("Metros a la derecha (+) o izquierda (-) del centro, una por silueta lateral.")]
+        private float[] _desplazamientosCargadoLaterales = { -1.2f, 1.2f };
+
+        [SerializeField, Min(0f)]
+        [Tooltip("Metros que la silueta grande del centro sale por delante de las laterales.")]
+        private float _adelantoCargadoCentral = 0.6f;
+
+        [SerializeField]
+        [Tooltip("Tornado de siluetas que sale en cada corte del cargado de giros.")]
+        private VfxBase _vfxTornadoGiro;
+
+        [SerializeField]
+        [Tooltip("Arco grande que envuelve el cuerpo en cada corte del cargado de giros.")]
+        private VfxBase _vfxArcoGiro;
+
+        [SerializeField]
+        [Tooltip("Inclinación de cada arco grande, en grados sobre el frente de Ayla.")]
+        private float[] _inclinacionesArcoGiro = { 45f, -45f, 60f, -60f };
+
+        [SerializeField, Min(0f)]
+        [Tooltip("Altura en metros desde los pies a la que giran los arcos grandes.")]
+        private float _alturaArcoGiro = 1f;
+
+        private IOrigenVfxGolpe _origenHoja;
+        private ICargaVfx _cargaArma;
+
         [SerializeField]
         private bool _logCombo = true;
 
@@ -41,6 +150,62 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private float _alcanceHitbox = 1.0f;
+
+        [SerializeField, Min(0f)]
+        [Tooltip(
+            "Segundos tras iniciar un golpe en los que el hitbox sigue detectando mientras la espada "
+                + "se mueve con la animacion. Cada zona se golpea una sola vez por golpe. "
+                + "0 = solo se detecta al iniciar el golpe, con la espada todavia en reposo."
+        )]
+        private float _ventanaBarridoMelee = 0.35f;
+
+        private const float IntervaloBarridoMelee = 0.05f;
+
+        [Header("Cargado de giros (ab + ab + ac)")]
+        [SerializeField, Min(0f)]
+        [Tooltip("Daño de cada impacto de un giro, como fraccion del daño del cargado.")]
+        private float _factorDanioGiro = 0.4f;
+
+        [SerializeField, Min(0f)]
+        [Tooltip("Daño del impacto del tramo final, como fraccion del daño del cargado.")]
+        private float _factorDanioFinal = 0.8f;
+
+        [Header("Movimiento durante el combo")]
+        [SerializeField, Range(0f, 1f)]
+        [Tooltip(
+            "Fraccion de la velocidad normal con la que se puede caminar mientras se hace el "
+                + "combo de golpes ligeros (0 = el combo bloquea el movimiento, 1 = sin "
+                + "penalizacion)."
+        )]
+        private float _velocidadEnCombo;
+
+        [Header("Empujon al conectar un golpe de combo")]
+        [SerializeField, Min(0f)]
+        [Tooltip("Metros que avanza el personaje hacia el frente al conectar un golpe de combo.")]
+        private float _empujeAdelante = 0.45f;
+
+        [SerializeField, Min(0f)]
+        [Tooltip("Metros que sube en el mini salto (vuelve solo a donde estaba, no flota).")]
+        private float _empujeArriba = 0.18f;
+
+        [SerializeField, Min(0.02f)]
+        [Tooltip("Segundos que dura el empujon.")]
+        private float _empujeDuracion = 0.16f;
+
+        [SerializeField, Range(0f, 1f)]
+        [Tooltip(
+            "Fuerza del empujon cuando el golpe de combo no toca a nadie, como fraccion del "
+                + "empujon cuando conecta (1 = igual, 0 = solo empuja al conectar)."
+        )]
+        private float _factorEmpujeSinImpacto = 0.5f;
+
+        [Header("Carga del cargado")]
+        [SerializeField, Min(0f)]
+        [Tooltip(
+            "Segundos de boton sostenido tras los que el ataque de giros adopta su pose de carga "
+                + "(debe ser menor que el HoldThreshold del perfil)."
+        )]
+        private float _retardoPoseCarga = 0.06f;
 
         [Header("Disparo a distancia")]
         [SerializeField]
@@ -54,6 +219,44 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private float _radioDisparo = 0.5f;
+        private bool _cargaVisibleMelee;
+        private bool _incapacitado;
+        private bool _girosEnCurso;
+        private bool _poseGirosActiva;
+        private AttackEvent _eventoGiros;
+        private Coroutine _golpeDiferido;
+        private Coroutine _barridoMelee;
+        private readonly HashSet<(ulong, HitZone)> _zonasGolpeadas =
+            new HashSet<(ulong, HitZone)>();
+
+        /// <summary>
+        /// Energia que costara el cargado que se esta preparando (0 si no se esta cargando).
+        /// La HUD la marca sobre la barra mientras se mantiene el boton.
+        /// </summary>
+        public float CostoCargaPendiente =>
+            IsOwner
+            && !_incapacitado
+            && _melee != null
+            && _melee.CargaVisible
+            && _definition?.Energy != null
+                ? _definition.Energy.ChargedCost
+                : 0f;
+
+        public void EstablecerIncapacitado(bool incapacitado)
+        {
+            _incapacitado = incapacitado;
+            if (!incapacitado)
+                return;
+
+            _melee?.Cancelar();
+            _disparo?.Cancelar();
+            CancelarGolpeDiferido();
+            _girosEnCurso = false;
+            _poseGirosActiva = false;
+            _cargaVisibleMelee = false;
+            MostrarCarga(false);
+            _combatAnimator?.CancelarAtaque(false);
+        }
 
         public float RadioHitbox => _radioHitbox;
         public float AlcanceHitbox => _alcanceHitbox;
@@ -62,14 +265,74 @@ namespace TDOM.Unity.Combat
         public GameObject ProyectilPrefab => _proyectilPrefab;
         public Transform OrigenDisparo => _origenDisparo;
 
-        public bool AtaqueActivo =>
-            (_melee?.BloqueaMovimiento ?? false) || (_disparo?.BloqueaMovimiento ?? false);
+        /// <summary>Movimiento bloqueado del todo (carga, cargado, giros).</summary>
+        public bool BloqueaMovimiento =>
+            _melee != null && _melee.AtaqueEnCurso && !MovimientoLimitado;
+
+        /// <summary>
+        /// Combo de golpes ligeros en curso con permiso para caminar mas lento. Con la
+        /// velocidad en 0 no hay permiso y el combo bloquea el movimiento como siempre.
+        /// </summary>
+        public bool MovimientoLimitado =>
+            _velocidadEnCombo > 0f && _melee != null && _melee.PermiteMovimientoLento;
+
+        public float MultiplicadorVelocidadAtaque => MovimientoLimitado ? _velocidadEnCombo : 1f;
+
+        /// <summary>
+        /// Hay un ataque cuerpo a cuerpo en curso o su animacion sigue sonando (incluida la
+        /// cola despues del ultimo golpe). Sirve para reducir la gravedad en el aire solo
+        /// durante el ataque.
+        /// </summary>
+        public bool GravedadReducidaPorAtaque =>
+            (_melee?.AtaqueEnCurso ?? false)
+            || (_combatAnimator != null && _combatAnimator.AtaqueAnimandose);
+
+        public bool DisparoActivo => _disparo?.AtaqueEnCurso ?? false;
+        public bool AtaqueActivo => (_melee?.AtaqueEnCurso ?? false) || DisparoActivo;
+
+        public bool PuedeCancelarConDash =>
+            IsOwner
+            && _melee != null
+            && (_melee.Fase != ComboPhase.Idle || _melee.EsperandoAnimacionFinal);
+
+        public void CancelarMeleePorDash() => CancelarMelee(false);
+
+        public void CancelarMeleePorSalto() => CancelarMelee(true);
+
+        private void CancelarMelee(bool haciaSalto)
+        {
+            if (!PuedeCancelarConDash)
+                return;
+            if (_logCombo)
+                Debug.Log(
+                    $"[Combo][{NombrePersonaje}] cancelado con {(haciaSalto ? "salto" : "dash")} desde {_melee.Fase}"
+                );
+            _melee.Cancelar();
+            CancelarGolpeDiferido();
+            _girosEnCurso = false;
+            _poseGirosActiva = false;
+            if (_combatAnimator != null)
+            {
+                _combatAnimator.CargaEnCurso = false;
+                _combatAnimator.CancelarAtaque(haciaSalto);
+            }
+            CancelarAtaqueRpc(haciaSalto);
+        }
+
+        [Rpc(SendTo.NotOwner)]
+        private void CancelarAtaqueRpc(bool haciaSalto)
+        {
+            if (_combatAnimator != null)
+                _combatAnimator.CancelarAtaque(haciaSalto);
+        }
 
         private PlayerRoot _root;
 
         public override void OnNetworkSpawn()
         {
             _root = GetComponentInParent<PlayerRoot>();
+            _origenHoja = GetComponentInChildren<IOrigenVfxGolpe>(true);
+            _cargaArma = GetComponentInChildren<ICargaVfx>(true);
 
             if (_vfx == null)
                 Debug.LogWarning($"[PlayerCombat] _vfx no asignado en {name}");
@@ -84,8 +347,22 @@ namespace TDOM.Unity.Combat
                     _definition.Melee.Charged,
                     _definition.Melee.HoldThreshold,
                     _definition.Melee.MaxChargeTime,
-                    _definition.Melee.BufferWindow
+                    _definition.Melee.BufferWindow,
+                    _definition.Melee.CooldownFinCombo,
+                    _definition.Melee.ReleaseChargeThreshold
                 );
+                _melee.RetenerCargadoSi = ligeros =>
+                    _combatAnimator != null && _combatAnimator.UsaGiros(ligeros);
+                // Tras un combo completo o un cargado no se aceptan golpes nuevos hasta que
+                // la animacion termina (dash y salto siguen cancelando).
+                _melee.EsperarAnimacionFinal = () =>
+                    _combatAnimator != null && _combatAnimator.AtaqueAnimandose;
+            }
+
+            if (_combatAnimator != null)
+            {
+                _combatAnimator.ImpactoGiros += AlImpactoGiro;
+                _combatAnimator.SecuenciaGirosTerminada += AlTerminarGiros;
             }
 
             if (_definition != null && _definition.Ranged != null)
@@ -98,6 +375,16 @@ namespace TDOM.Unity.Combat
                     _definition.Ranged.BufferWindow
                 );
             }
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            if (_combatAnimator != null)
+            {
+                _combatAnimator.ImpactoGiros -= AlImpactoGiro;
+                _combatAnimator.SecuenciaGirosTerminada -= AlTerminarGiros;
+            }
+            base.OnNetworkDespawn();
         }
 
         private bool PuedeConsumirEnergia(AttackEvent evento)
@@ -117,7 +404,7 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.Server)]
         private void ConsumirEnergiaRpc(float cantidad)
         {
-            if (_root != null)
+            if (!_incapacitado && _root != null)
             {
                 _root.ConsumirEnergiaEnServidor(cantidad);
             }
@@ -130,25 +417,32 @@ namespace TDOM.Unity.Combat
 
         public void Tick(InputSnapshot input, float dt)
         {
-            if (!IsOwner)
+            if (!IsOwner || _incapacitado)
                 return;
             if (_melee == null && _disparo == null)
                 return;
 
-            bool meleeActivo = _melee != null && _melee.Fase != ComboPhase.Idle;
-            bool disparoActivo = _disparo != null && _disparo.Fase != ComboPhase.Idle;
+            var maquinaSeleccionada = SelectorMaquinaCombate.Seleccionar(
+                _melee != null,
+                _disparo != null,
+                _melee != null && _melee.Fase != ComboPhase.Idle,
+                _disparo != null && _disparo.Fase != ComboPhase.Idle,
+                input.AttackPressed || input.AttackHeld,
+                input.FirePressed || input.FireHeld
+            );
 
             var prevMeleePhase = _melee?.Fase ?? ComboPhase.Idle;
             var prevDisparoPhase = _disparo?.Fase ?? ComboPhase.Idle;
 
-            if (_melee != null && !disparoActivo)
+            if (_melee != null && maquinaSeleccionada == MaquinaCombateSeleccionada.Melee)
             {
                 var evento = _melee.Tick(input, dt);
                 if (evento.HasValue)
                     EjecutarGolpe(evento.Value);
+                ActualizarPoseCarga();
             }
 
-            if (_disparo != null && !meleeActivo)
+            if (_disparo != null && maquinaSeleccionada == MaquinaCombateSeleccionada.Disparo)
             {
                 var evento = _disparo.Tick(ComoDisparo(input), dt);
                 if (evento.HasValue)
@@ -156,24 +450,57 @@ namespace TDOM.Unity.Combat
             }
 
             ProcesarCambiosDeFase(prevMeleePhase, prevDisparoPhase);
+
+            if (_melee != null)
+            {
+                bool visible = _melee.CargaVisible;
+                if (visible != _cargaVisibleMelee)
+                {
+                    _cargaVisibleMelee = visible;
+                    MostrarCarga(visible);
+                    CargaRpc(visible);
+                }
+            }
+        }
+
+        // Mientras se carga tras dos ligeros, la espada espera en la pose del giro (no vuelve a
+        // idle) y asi el cargado arranca al instante al soltar.
+        private void ActualizarPoseCarga()
+        {
+            if (_combatAnimator == null)
+                return;
+
+            bool cargando = _melee.Fase == ComboPhase.Windup || _melee.Fase == ComboPhase.Charging;
+            _combatAnimator.CargaEnCurso = cargando;
+
+            bool pose =
+                _melee.Fase == ComboPhase.Charging
+                && _melee.TiempoDeCarga >= _retardoPoseCarga
+                && _combatAnimator.UsaGiros(_melee.LigerosEnCombo);
+            if (pose == _poseGirosActiva)
+                return;
+
+            _poseGirosActiva = pose;
+            _combatAnimator.PoseCargaGiros(pose);
+            _cargaArma?.ForzarEtapaFinal(pose);
+            PoseGirosRpc(pose);
+        }
+
+        [Rpc(SendTo.NotOwner)]
+        private void PoseGirosRpc(bool activa)
+        {
+            if (_incapacitado)
+                return;
+
+            if (_combatAnimator != null)
+                _combatAnimator.PoseCargaGiros(activa);
+            _cargaArma?.ForzarEtapaFinal(activa);
         }
 
         private void ProcesarCambiosDeFase(ComboPhase prevMeleePhase, ComboPhase prevDisparoPhase)
         {
-            if (_melee != null && _melee.Fase != prevMeleePhase)
-            {
-                if (_logCombo)
-                    Debug.Log($"[Combo][{NombrePersonaje}] {prevMeleePhase} → {_melee.Fase}");
-
-                bool estabaCargando = prevMeleePhase == ComboPhase.Charging;
-                bool estaCargando = _melee.Fase == ComboPhase.Charging;
-                if (estabaCargando != estaCargando)
-                {
-                    if (_vfx != null)
-                        _vfx.Carga(estaCargando);
-                    CargaRpc(estaCargando);
-                }
-            }
+            if (_melee != null && _melee.Fase != prevMeleePhase && _logCombo)
+                Debug.Log($"[Combo][{NombrePersonaje}] {prevMeleePhase} → {_melee.Fase}");
 
             if (_disparo != null && _disparo.Fase != prevDisparoPhase)
             {
@@ -184,8 +511,7 @@ namespace TDOM.Unity.Combat
                 bool estaCargando = _disparo.Fase == ComboPhase.Charging;
                 if (estabaCargando != estaCargando)
                 {
-                    if (_vfx != null)
-                        _vfx.Carga(estaCargando);
+                    MostrarCarga(estaCargando);
                     CargaRpc(estaCargando);
                 }
             }
@@ -207,25 +533,22 @@ namespace TDOM.Unity.Combat
             }
 
             if (_combatAnimator != null)
-                _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
+                _combatAnimator.PlayShot(evento.ComboIndex, cargado);
             if (_vfx != null)
                 _vfx.Disparo(cargado);
             _debugFeedback?.FlashActive(0.1f);
             if (_feedback != null)
-                _feedback.OnGolpeConectado();
+                _feedback.OnAtaquePropio();
 
             if (_proyectilPrefab != null && _origenDisparo != null)
             {
-                DispararRpc(_origenDisparo.position, _origenDisparo.forward, evento);
+                DispararRpc(_origenDisparo.position, DireccionDeDisparo(), evento);
             }
             else if (_hitbox != null)
             {
-                var objetivos = _hitbox.DetectarDisparo(_radioDisparo, _rangoDisparo);
-                foreach (var obj in objetivos)
-                {
-                    if (obj != null)
-                        ReportarDisparoRpc(evento, obj.NetworkObjectId);
-                }
+                var impactos = _hitbox.DetectarDisparo(_radioDisparo, _rangoDisparo);
+                foreach (var imp in impactos)
+                    ReportarDisparoRpc(evento, imp.Objeto.NetworkObjectId, ReferenciaZona(imp));
             }
 
             ReproducirDisparoRpc(evento.ComboIndex, cargado);
@@ -256,7 +579,11 @@ namespace TDOM.Unity.Combat
         {
             bool cargado = evento.Kind == AttackKind.Charged;
             if (!PuedeConsumirEnergia(evento))
+            {
+                // Si el cargado venia retenido para los giros, hay que soltar la maquina.
+                _melee?.TerminarCargado();
                 return;
+            }
 
             if (_logCombo)
             {
@@ -267,11 +594,218 @@ namespace TDOM.Unity.Combat
                 );
             }
 
+            // Golpes basicos que preceden a este evento (el cargado no cuenta como uno).
+            int ligeros = _melee != null ? _melee.LigerosEnCombo : 0;
+
+            // Los giros no pegan de golpe: cada impacto llega como evento de la secuencia.
+            bool giros = cargado && _melee != null && _melee.CargadoRetenido;
+
+            // ab => ac: el cargado tras un basico es el mismo basico, espejeado y con retraso.
+            bool espejoBasico =
+                cargado
+                && !giros
+                && _combatAnimator != null
+                && _combatAnimator.UsaEspejoBasico(ligeros);
+            float retardo =
+                espejoBasico && _combatAnimator != null
+                    ? _combatAnimator.RetardoSalidaCargada(ligeros)
+                    : 0f;
+
+            bool espejo;
+            if (espejoBasico)
+                espejo = !_alternadorEspejo.Espejado;
+            else
+                espejo =
+                    _combatAnimator != null
+                    && _combatAnimator.AlternarAtaqueBasico
+                    && _alternadorEspejo.Resolver(evento);
+
+            if (giros)
+            {
+                _eventoGiros = evento;
+                _girosEnCurso = true;
+            }
+
             if (_combatAnimator != null)
-                _combatAnimator.PlayCombo(evento.ComboIndex, cargado);
+                _combatAnimator.PlayCombo(
+                    evento.ComboIndex,
+                    cargado,
+                    espejo,
+                    evento.ChargeRatio,
+                    giros,
+                    ligeros
+                );
             if (_vfx != null)
                 _vfx.Golpe(evento.ComboIndex, cargado, evento.ChargeRatio);
+            LanzarVfxGolpeLigero(evento, cargado, espejo);
             _debugFeedback?.FlashActive(0.1f);
+
+            if (!giros)
+            {
+                CancelarGolpeDiferido();
+                _zonasGolpeadas.Clear();
+                if (retardo > 0f)
+                    _golpeDiferido = StartCoroutine(GolpeDiferido(evento, retardo, ligeros));
+                else
+                    ImpactarMelee(evento, ligeros);
+
+                if (_ventanaBarridoMelee > 0f)
+                    _barridoMelee = StartCoroutine(BarridoMelee(evento, retardo, ligeros));
+            }
+            ReproducirGolpeRpc(
+                evento.ComboIndex,
+                cargado,
+                evento.ChargeRatio,
+                espejo,
+                giros,
+                ligeros
+            );
+        }
+
+        private void LanzarVfxGolpeLigero(AttackEvent evento, bool cargado, bool espejo)
+        {
+            if (_vfxRed == null || _vfxGolpeLigero == null)
+                return;
+
+            if (cargado)
+            {
+                if (!_girosEnCurso)
+                    LanzarVfxCargado(evento.ChargeRatio, espejo);
+                return;
+            }
+
+            if (evento.ComboIndex < 0 || evento.ComboIndex >= _vfxPorGolpeLigero.Length)
+                return;
+
+            StartCoroutine(
+                LanzarVfxGolpeLigeroConRetardo(_vfxPorGolpeLigero[evento.ComboIndex], espejo)
+            );
+        }
+
+        private void LanzarVfxCargado(float progreso, bool espejo)
+        {
+            VfxGolpeLigero lateral = _vfxCargado;
+            lateral.Efecto = EfectoCargado(progreso);
+            foreach (float desplazamiento in _desplazamientosCargadoLaterales)
+                StartCoroutine(
+                    LanzarVfxGolpeLigeroConRetardo(lateral, espejo, Vector3.right * desplazamiento)
+                );
+
+            VfxBase grande = EfectoPorEtapa(_vfxCargadoGrandePorEtapa, progreso);
+            VfxGolpeLigero central = lateral;
+            if (grande != null)
+                central.Efecto = grande;
+            StartCoroutine(
+                LanzarVfxGolpeLigeroConRetardo(
+                    central,
+                    espejo,
+                    Vector3.forward * _adelantoCargadoCentral
+                )
+            );
+        }
+
+        private VfxBase EfectoCargado(float progreso)
+        {
+            VfxBase efecto = EfectoPorEtapa(_vfxCargadoPorEtapa, progreso);
+            return efecto != null ? efecto : _vfxCargado.Efecto;
+        }
+
+        private VfxBase EfectoPorEtapa(VfxBase[] efectos, float progreso)
+        {
+            int etapa = _cargaArma != null ? _cargaArma.EtapaDe(progreso) : EtapasCarga.SinEtapa;
+            return etapa >= 0 && etapa < efectos.Length ? efectos[etapa] : null;
+        }
+
+        private void LanzarVfxTornadoGiro()
+        {
+            if (_vfxRed == null)
+                return;
+
+            if (_vfxTornadoGiro != null)
+                _vfxRed.Lanzar(_vfxTornadoGiro, transform.position, transform.rotation);
+            LanzarArcosGiro();
+        }
+
+        private void LanzarArcosGiro()
+        {
+            if (_vfxArcoGiro == null)
+                return;
+
+            Vector3 centro = transform.position + Vector3.up * _alturaArcoGiro;
+            foreach (float inclinacion in _inclinacionesArcoGiro)
+                _vfxRed.Lanzar(
+                    _vfxArcoGiro,
+                    centro,
+                    transform.rotation * Quaternion.Euler(0f, 0f, inclinacion)
+                );
+        }
+
+        private IEnumerator LanzarVfxGolpeLigeroConRetardo(
+            VfxGolpeLigero ajuste,
+            bool espejo,
+            Vector3 desplazamientoLocal = default
+        )
+        {
+            yield return new WaitForSeconds(ajuste.Retardo);
+            if (_incapacitado)
+                yield break;
+
+            Vector3 giro = espejo ? ajuste.GiroEspejo : ajuste.Giro;
+            Vector3 posicion = PosicionVfxGolpeLigero();
+            Quaternion rotacion = transform.rotation * Quaternion.Euler(giro);
+            if (
+                _vfxSigueLaEstela
+                && _origenHoja != null
+                && _origenHoja.Estela(out Vector3 centroEstela, out Quaternion rotacionEstela)
+            )
+            {
+                posicion = centroEstela;
+                rotacion = rotacionEstela * Quaternion.Euler(_giroVfxEnEstela);
+            }
+
+            _vfxRed.Lanzar(
+                ajuste.Efecto != null ? ajuste.Efecto : _vfxGolpeLigero,
+                posicion + transform.rotation * desplazamientoLocal,
+                rotacion,
+                MarcoTajo.Avance(transform.forward, _avanceVfxGolpeLigero)
+            );
+        }
+
+        private Vector3 PosicionVfxGolpeLigero()
+        {
+            if (_origenHoja != null && _origenHoja.Hoja(out Vector3 baseHoja, out Vector3 punta))
+                return MarcoTajo.Centro(baseHoja, punta);
+
+            Transform origen = _origenVfxGolpeLigero != null ? _origenVfxGolpeLigero : transform;
+            return origen.position;
+        }
+
+        // El golpe cae cuando arranca la animacion, no al soltar el boton.
+        private IEnumerator GolpeDiferido(AttackEvent evento, float retardo, int ligeros)
+        {
+            yield return new WaitForSeconds(retardo);
+            _golpeDiferido = null;
+            if (!IsOwner || _incapacitado)
+                yield break;
+            ImpactarMelee(evento, ligeros);
+        }
+
+        private void CancelarGolpeDiferido()
+        {
+            if (_barridoMelee != null)
+            {
+                StopCoroutine(_barridoMelee);
+                _barridoMelee = null;
+            }
+
+            if (_golpeDiferido == null)
+                return;
+            StopCoroutine(_golpeDiferido);
+            _golpeDiferido = null;
+        }
+
+        private void ImpactarMelee(AttackEvent evento, int ligeros)
+        {
             bool huboImpacto = false;
             if (_hitbox != null)
             {
@@ -281,18 +815,134 @@ namespace TDOM.Unity.Combat
                     if (imp.Objeto != null)
                     {
                         huboImpacto = true;
-                        NetworkBehaviourReference zoneRef =
-                            imp.Zona != null ? new NetworkBehaviourReference(imp.Zona) : default;
-                        ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, zoneRef);
+                        _zonasGolpeadas.Add((imp.Objeto.NetworkObjectId, imp.Zona));
+                        ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, ReferenciaZona(imp));
                     }
                 }
             }
-            if (huboImpacto && _feedback != null)
+            // Solo los golpes que forman parte de un combo (ligeros y el cargado que sale de
+            // uno) dan el zoom y el empujon.
+            bool esDeCombo = evento.Kind == AttackKind.Light || ligeros > 0;
+
+            // El empujon sale con cada golpe de combo; si no toca a nadie es mas suave. El zoom
+            // de camara solo sale al conectar.
+            if (esDeCombo && _feedback != null)
+                _feedback.OnComboGolpe();
+
+            if (esDeCombo && _root != null)
             {
-                _feedback.OnGolpeConectado();
+                float factor = huboImpacto ? 1f : _factorEmpujeSinImpacto;
+                if (_logCombo)
+                    Debug.Log(
+                        $"[Combo][{NombrePersonaje}] empujon de combo "
+                            + (huboImpacto ? "(conecto)" : "(sin impacto)")
+                            + $" al {factor * 100f:F0}%"
+                    );
+                _root.EmpujarPorCombo(
+                    _empujeAdelante * factor,
+                    _empujeArriba * factor,
+                    _empujeDuracion
+                );
             }
-            ReproducirGolpeRpc(evento.ComboIndex, cargado, evento.ChargeRatio);
+
+            if (!huboImpacto)
+                return;
+
+            if (_feedback != null)
+            {
+                _feedback.OnAtaquePropio();
+                if (esDeCombo)
+                    _feedback.OnComboConectado();
+            }
         }
+
+        // El golpe de ImpactarMelee se detecta cuando arranca la animacion, con la espada aun en
+        // reposo. Este barrido repite la deteccion mientras la espada se mueve, para que un ojo
+        // alcanzado a mitad del tajo cuente. Cada zona se reporta una sola vez por golpe (un
+        // segundo reporte sobre un ojo abierto seria un rebote, es decir, danio).
+        private IEnumerator BarridoMelee(AttackEvent evento, float retardo, int ligeros)
+        {
+            if (retardo > 0f)
+                yield return new WaitForSeconds(retardo);
+
+            var intervalo = new WaitForSeconds(IntervaloBarridoMelee);
+            bool esDeCombo = evento.Kind == AttackKind.Light || ligeros > 0;
+            float restante = _ventanaBarridoMelee;
+            while (restante > 0f)
+            {
+                yield return intervalo;
+                restante -= IntervaloBarridoMelee;
+                if (!IsOwner || _incapacitado || _hitbox == null)
+                    break;
+
+                bool huboNuevo = false;
+                foreach (var imp in _hitbox.DetectarImpactos(_radioHitbox, _alcanceHitbox))
+                {
+                    if (imp.Objeto == null)
+                        continue;
+                    if (!_zonasGolpeadas.Add((imp.Objeto.NetworkObjectId, imp.Zona)))
+                        continue;
+
+                    huboNuevo = true;
+                    ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, ReferenciaZona(imp));
+                }
+
+                if (huboNuevo && _feedback != null)
+                {
+                    _feedback.OnAtaquePropio();
+                    if (esDeCombo)
+                        _feedback.OnComboConectado();
+                }
+            }
+
+            _barridoMelee = null;
+        }
+
+        private void AlImpactoGiro(int indice, bool esFinal)
+        {
+            if (!IsOwner || _incapacitado || !_girosEnCurso)
+                return;
+
+            LanzarVfxTornadoGiro();
+            if (_hitbox == null)
+                return;
+
+            float factor = esFinal ? _factorDanioFinal : _factorDanioGiro;
+            var evento = new AttackEvent(
+                _eventoGiros.Kind,
+                _eventoGiros.ComboIndex,
+                _eventoGiros.ChargeRatio,
+                _eventoGiros.Damage * factor
+            );
+
+            if (_logCombo)
+                Debug.Log(
+                    $"[Combo][{NombrePersonaje}] giro {indice} {(esFinal ? "(final) " : "")}daño {evento.Damage}"
+                );
+
+            bool huboImpacto = false;
+            var impactos = _hitbox.DetectarImpactos(_radioHitbox, _alcanceHitbox);
+            foreach (var imp in impactos)
+            {
+                if (imp.Objeto == null)
+                    continue;
+                huboImpacto = true;
+                ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, ReferenciaZona(imp));
+            }
+
+            if (huboImpacto && _feedback != null)
+                _feedback.OnAtaquePropio();
+        }
+
+        private void AlTerminarGiros()
+        {
+            _girosEnCurso = false;
+            if (IsOwner)
+                _melee?.TerminarCargado();
+        }
+
+        private static NetworkBehaviourReference ReferenciaZona(HitboxCaster.Impacto impacto) =>
+            impacto.Zona != null ? new NetworkBehaviourReference(impacto.Zona) : default;
 
         private bool EstaEnRango(
             ulong objetivoId,
@@ -343,7 +993,24 @@ namespace TDOM.Unity.Combat
                         minDistance = dist;
                     }
                 }
-                return minDistance <= rangoPermitido;
+                if (minDistance <= rangoPermitido)
+                    return true;
+
+                // Golpes del prisma de la espada: el servidor no ve la espada animada de un
+                // cliente, asi que los valida con un radio generoso desde el personaje.
+                float extraPrisma = _hitbox != null ? _hitbox.ExtraValidacionPrisma : 0f;
+                if (extraPrisma <= 0f)
+                    return false;
+
+                Vector3 origen = _hitbox.PosicionOrigen;
+                float minDesdeOrigen = float.MaxValue;
+                foreach (var col in colliders)
+                {
+                    float dist = Vector3.Distance(origen, col.ClosestPoint(origen));
+                    if (dist < minDesdeOrigen)
+                        minDesdeOrigen = dist;
+                }
+                return minDesdeOrigen <= (alcanceCentro + radio + extraPrisma) * tolerancia;
             }
 
             float distancia = Vector3.Distance(centro, objetivo.transform.position);
@@ -377,6 +1044,9 @@ namespace TDOM.Unity.Combat
             NetworkBehaviourReference hitZoneRef = default
         )
         {
+            if (_incapacitado)
+                return;
+
             if (
                 !EstaEnRango(objetivoId, hitZoneRef, _alcanceHitbox, _radioHitbox, tolerancia: 1.3f)
             )
@@ -387,30 +1057,19 @@ namespace TDOM.Unity.Combat
                 return;
             }
 
-            if (
-                NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
-                    objetivoId,
-                    out var obj
-                )
-                && obj != null
-            )
-            {
-                if (hitZoneRef.TryGet(out HitZone hitZone) && hitZone != null)
-                {
-                    hitZone.RegistrarDanio(evento.Damage);
-                }
-                else
-                {
-                    Debug.Log(
-                        $"[SERVER] Golpe melee validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño"
-                    );
-                }
-            }
+            AplicarImpacto(evento, objetivoId, hitZoneRef, TipoImpactoOjo.Melee);
         }
 
         [Rpc(SendTo.Server)]
-        private void ReportarDisparoRpc(AttackEvent evento, ulong objetivoId)
+        private void ReportarDisparoRpc(
+            AttackEvent evento,
+            ulong objetivoId,
+            NetworkBehaviourReference hitZoneRef = default
+        )
         {
+            if (_incapacitado)
+                return;
+
             if (!EstaEnRango(objetivoId, _rangoDisparo, tolerancia: 1.3f))
             {
                 Debug.LogWarning(
@@ -419,31 +1078,61 @@ namespace TDOM.Unity.Combat
                 return;
             }
 
+            AplicarImpacto(evento, objetivoId, hitZoneRef, TipoImpactoOjo.Disparo);
+        }
+
+        private void AplicarImpacto(
+            AttackEvent evento,
+            ulong objetivoId,
+            NetworkBehaviourReference hitZoneRef,
+            TipoImpactoOjo tipo
+        )
+        {
             if (
-                NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
+                !NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
                     objetivoId,
                     out var obj
                 )
-                && obj != null
+                || obj == null
             )
+                return;
+
+            if (hitZoneRef.TryGet(out HitZone hitZone) && hitZone != null)
             {
-                var hitZone = obj.GetComponentInChildren<HitZone>();
-                if (hitZone != null)
+                if (hitZone.NetworkObject != obj)
                 {
-                    hitZone.RegistrarDanio(evento.Damage);
-                }
-                else
-                {
-                    Debug.Log(
-                        $"[SERVER] Disparo validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño"
+                    Debug.LogWarning(
+                        $"[SERVER] {tipo} rechazado: la zona {hitZone.name} no pertenece a {obj.name}"
                     );
+                    return;
                 }
+
+                var ataquesArek = obj.GetComponent<AtaquesArek>();
+                ataquesArek?.RegistrarImpacto(OwnerClientId);
+
+                bool atacanteEsAyla = _definition != null && _definition.DisplayName == "Ayla";
+                hitZone.RegistrarImpacto(evento.Damage, OwnerClientId, tipo, atacanteEsAyla);
+                return;
             }
+
+            obj.GetComponent<AtaquesArek>()?.RegistrarImpacto(OwnerClientId);
+
+            Debug.Log(
+                $"[SERVER] {tipo} validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño"
+            );
         }
+
+        private Vector3 DireccionDeDisparo() =>
+            _root != null
+                ? _root.ResolverApuntado(_origenDisparo.position).Direction
+                : _origenDisparo.forward;
 
         [Rpc(SendTo.Server)]
         private void DispararRpc(Vector3 origen, Vector3 dir, AttackEvent evento)
         {
+            if (_incapacitado)
+                return;
+
             if (Vector3.Distance(origen, transform.position) > 3f)
                 return;
             Quaternion rotacion =
@@ -452,7 +1141,8 @@ namespace TDOM.Unity.Combat
             Proyectil proyectil = go.GetComponent<Proyectil>();
             if (proyectil != null)
             {
-                proyectil.Inicializar(dir, evento.Damage);
+                bool atacanteEsAyla = _definition != null && _definition.DisplayName == "Ayla";
+                proyectil.Inicializar(dir, evento.Damage, OwnerClientId, atacanteEsAyla);
             }
             NetworkObject networkObject = go.GetComponent<NetworkObject>();
             if (networkObject != null)
@@ -464,15 +1154,37 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.NotOwner)]
         private void CargaRpc(bool activa)
         {
+            if (_incapacitado && activa)
+                return;
+
+            MostrarCarga(activa);
+        }
+
+        private void MostrarCarga(bool activa)
+        {
             if (_vfx != null)
                 _vfx.Carga(activa);
+
+            ComboProfile melee = _definition != null ? _definition.Melee : null;
+            if (melee != null)
+                _cargaArma?.SetCarga(activa, melee.HoldThreshold, melee.MaxChargeTime);
         }
 
         [Rpc(SendTo.NotOwner)]
-        private void ReproducirGolpeRpc(int indice, bool cargado, float carga)
+        private void ReproducirGolpeRpc(
+            int indice,
+            bool cargado,
+            float carga,
+            bool espejo,
+            bool giros,
+            int ligerosPrevios
+        )
         {
+            if (_incapacitado)
+                return;
+
             if (_combatAnimator != null)
-                _combatAnimator.PlayCombo(indice, cargado);
+                _combatAnimator.PlayCombo(indice, cargado, espejo, carga, giros, ligerosPrevios);
             if (_vfx != null)
                 _vfx.Golpe(indice, cargado, carga);
         }
@@ -480,8 +1192,11 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.NotOwner)]
         private void ReproducirDisparoRpc(int indice, bool cargado)
         {
+            if (_incapacitado)
+                return;
+
             if (_combatAnimator != null)
-                _combatAnimator.PlayCombo(indice, cargado);
+                _combatAnimator.PlayShot(indice, cargado);
             if (_vfx != null)
                 _vfx.Disparo(cargado);
         }

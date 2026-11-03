@@ -16,6 +16,7 @@ namespace TDOM.Gameplay
         private float _transcurrido;
         private Vector3 _direccion;
         public bool Activo { get; private set; }
+        public float CooldownNormalizado => _cooldown.Normalizado;
 
         public DashResolver(DashProfile profile)
         {
@@ -42,6 +43,8 @@ namespace TDOM.Gameplay
                 _promedioCurva = 1f;
             }
         }
+
+        public bool Disponible => !Activo && _cooldown.Listo;
 
         public bool TryIniciar(Vector3 direccion)
         {

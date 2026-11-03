@@ -15,6 +15,7 @@ MonoBehaviour:
   Gravity: -18
   TerminalVelocity: -50
   LowJumpMultiplier: 2
+  AirAttackGravityScale: 0.25
   JumpVelocity: 15
   MaxJumps: 2
   CoyoteTime: 0.12
@@ -24,3 +25,11 @@ MonoBehaviour:
   Acceleration: 60
   Friction: 80
   AirControl: 2.5
+  ClimbSpeed: 2
+  ClimbApproachDistance: 0.8
+  ClimbMinimumHeight: 0.5
+  ClimbMaximumHeight: 2.5
+  ClimbMaximumDuration: 2
+  ShootingSpeedMultiplier: 0.3
+  TurnSpeed: 720
+  SnapToCameraOnAttack: 1

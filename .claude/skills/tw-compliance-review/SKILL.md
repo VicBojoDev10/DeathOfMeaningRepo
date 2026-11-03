@@ -64,6 +64,7 @@ Este proyecto (Unity 6 + Netcode for GameObjects, arquitectura por capas `TDOM.C
 - **Construcción de objetos de red en `Awake()` en vez de `OnNetworkSpawn()`** — `IsOwner` no está determinado todavía en `Awake()`.
 - **Escenas de prueba/greybox decoradas con arte real** en vez de geometría primitiva gris — si el ticket es de blockout/greybox, cualquier material o modelo importado que no sea gris plano es una desviación.
 - **Prefabs esperados que no están conectados a ningún prefab de personaje real** — verifica adjuntando componentes vía guid-matching en los `.prefab`, no asumas por el nombre del archivo.
+- **Falta la prueba en red (obligatoria).** Todo PR debe documentar en la sección "Prueba en red" de su descripción una prueba con host + cliente (dos instancias) que cubra el cambio y confirme que siguen funcionando la conexión, el spawn de los dos jugadores, el movimiento, el combate y la pelea contra AREK, y debe tener marcada la casilla "Probado en red con DOS instancias". Lee la descripción con `gh pr view $1 --json body -q .body`. Quedan exentos solo los PRs cuyos commits son todos de tipo `doc:` o que únicamente modifican documentación o diagramas.
 
 ## 6. Formato del veredicto
 
@@ -75,6 +76,7 @@ Publica el resultado como comentario en el PR (usa la herramienta de comentario 
 4. Si aplica (ver sección 3), nota de alcance duplicado con otro ticket. Si no encontraste nada, omite esta sección por completo.
 5. Un estado al final del comentario, calculado según la severidad de lo encontrado:
    - **"Solicitar cambios"** — si hay al menos un bug que rompe la compilación o hace que el código no funcione (ver sección 5: marcadores de conflicto sin resolver, referencias de `.asmdef` faltantes, namespaces mal escritos que rompen la compilación, llamadas a métodos/tipos inexistentes, etc.). Junto con el estado, indica explícitamente que hay que resolver esos bugs antes de poder aprobar.
+   - **"Solicitar cambios"** también si el PR no está exento y le falta la prueba en red documentada (sección "Prueba en red" vacía o ausente) o la casilla "Probado en red con DOS instancias" sin marcar. Indica explícitamente que debe agregarse antes de poder aprobar.
    - **Comentario simple (sin etiqueta de bloqueo)** — si lo único encontrado son sugerencias de mejora de código, estilo, valores sin tunear u otras observaciones que no impiden que el código compile o funcione. En este caso no uses la etiqueta "Solicitar cambios"; presenta los hallazgos como comentario.
    - **"Aprobado"** — si todos los criterios de aceptación se cumplen y no encontraste ningún bug ni observación relevante.
 

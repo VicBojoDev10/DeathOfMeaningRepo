@@ -26,22 +26,40 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private GameObject _anclaPrefab;
 
-        [SerializeField]
-        private float _tiempoMaximoColgado = 5f;
-
-        private float _tiempoColgado;
         private bool _esperandoSoltar;
+        private bool _incapacitado;
+
+        public void EstablecerIncapacitado(bool incapacitado)
+        {
+            _incapacitado = incapacitado;
+            if (!incapacitado)
+                return;
+
+            AnclaActiva = false;
+            _esperandoSoltar = true;
+            if (IsServer)
+                DespawnearAncla();
+        }
 
         private CooldownTimer _cooldown;
         private NetworkObject _anclaSpawnada;
 
         public AnchorProfile Perfil => _perfil;
+        public float CooldownNormalizado => _cooldown != null ? _cooldown.Normalizado : 0f;
 
         public Ancla AnclaActual { get; private set; }
 
         public void RegistrarAncla(Ancla ancla)
         {
             AnclaActual = ancla;
+        }
+
+        public void NotificarDespawnAncla(bool conecto)
+        {
+            AnclaActiva = false;
+            _esperandoSoltar = true;
+            if (!conecto && IsOwner && _cooldown != null)
+                _cooldown.Recortar(_perfil.FactorCooldownSinConectar);
         }
 
         public override void OnNetworkSpawn()
@@ -52,7 +70,7 @@ namespace TDOM.Unity.Combat
 
         private void Update()
         {
-            if (!IsOwner || _perfil == null || _cooldown == null)
+            if (!IsOwner || _incapacitado || _perfil == null || _cooldown == null)
                 return;
 
             float dt = Time.deltaTime;
@@ -71,21 +89,10 @@ namespace TDOM.Unity.Combat
             {
                 _cooldown.Disparar();
                 AnclaActiva = true;
-                _tiempoColgado = 0f;
-                LanzarAnclaRpc(_origen.position, _origen.forward);
-            }
-            else if (AnclaActiva && holdingL2R1)
-            {
-                if (AnclaActual != null && AnclaActual.Pegada.Value)
-                {
-                    _tiempoColgado += dt;
-                    if (_tiempoColgado >= _tiempoMaximoColgado)
-                    {
-                        AnclaActiva = false;
-                        _esperandoSoltar = true;
-                        SoltarAnclaRpc();
-                    }
-                }
+                LanzarAnclaRpc(
+                    _origen.position,
+                    _root.ResolverApuntado(_origen.position).Direction
+                );
             }
             else if (AnclaActiva && !holdingL2R1)
             {
@@ -102,6 +109,12 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.Server)]
         private void LanzarAnclaRpc(Vector3 origen, Vector3 dir)
         {
+            if (_incapacitado)
+            {
+                RechazarLanzamientoRpc();
+                return;
+            }
+
             float limit =
                 _perfil != null && _perfil.ToleranciaOrigen > 0f ? _perfil.ToleranciaOrigen : 6f;
             float distance = Vector3.Distance(origen, transform.position);
@@ -133,6 +146,11 @@ namespace TDOM.Unity.Combat
 
         [Rpc(SendTo.Server)]
         private void SoltarAnclaRpc()
+        {
+            DespawnearAncla();
+        }
+
+        private void DespawnearAncla()
         {
             if (_anclaSpawnada != null && _anclaSpawnada.IsSpawned)
             {

@@ -3,7 +3,12 @@ guid: b73b6dc646363664eb14acd50507d1e2
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material_CuerpoMonstruo
+    second: {fileID: -876546973899608171, guid: 01c0ddf34c558344ab86e4f75dfa0b87, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0

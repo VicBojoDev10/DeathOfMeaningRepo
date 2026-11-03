@@ -1,6 +1,15 @@
 flowchart TD
     Player["Player: PlayerAyla / PlayerZendre (NetworkObject, ClientNetworkTransform, CharacterController, CapsuleCollider)"]
     Player --> Root[PlayerRoot - composition root]
+    Root -->|"Servidor: dano, proximidad y dt"| Health["HealthPool: Vivo / Abatido / Muerto, reanimacion y Game Over"]
+    Root -->|"EstadoVida, Vida, TiempoAbatidoRestante, ProgresoRevivir"| DownedUI["DownedSliderUI: suscripciones durante el spawn de red"]
+    Player --> DownedUI
+    Player --> DownedCanvas["DownedCanvas: prefab UI compartido, Slider y Fill enlazados"]
+    DownedUI --> DownedCanvas
+    DownedUI --> DownedProfile["DownedSliderProfile: altura y colores"]
+    Root -->|"Estado de vida: incapacitar acciones"| Combat
+    Root -->|"Estado de vida: soltar y bloquear ancla"| Anchor
+    Root -->|"Abatido: TickIncapacitado conserva gravedad"| DownedLocomotion[PlayerLocomotion]
     Player --> Motor[PlayerMotor]
     Player --> Reader[PlayerInputReader]
     Player --> Combat[PlayerCombat]
@@ -11,12 +20,22 @@ flowchart TD
     Player --> HitboxOrigin["HitboxOrigin - HitboxCaster"]
     HitboxOrigin --> Vfx[CombatVfx]
     Player --> HurtBox["HurtBox - CapsuleCollider"]
-    Player --> Pivot["CameraPivot - CinemachineCamera, CinemachineImpulseSource, PlayerCameraRig, FeedbackDirector"]
-    Pivot --> VM["Viewmodel - ViewmodelRig"]
+    Player --> Pivot["CameraPivot - CinemachineImpulseSource, PlayerCameraRig, FeedbackDirector"]
+    Pivot --> TPC["ThirdPersonCamera - CinemachineCamera, CinemachineThirdPersonFollow, CinemachineImpulseListener"]
+    Pivot --> VM["Viewmodel - ViewmodelRig (inactivo)"]
     Player --> Modelo["Modelo: AylaModel / ZendreModel"]
     Root --> Motor
     Root --> Reader
-    Root --> Pivot
+    Root -->|"ApplyLook, ActualizarEncuadre"| Pivot
+    Root --> Facing["FacingResolver: giro del root hacia el movimiento"]
+    Root -->|"LockOnPressed (R3)"| LockOn["LockOnResolver: fija yaw y pitch hacia el objetivo"]
+    LockOn -.->|"LockOnTarget.Activos"| Objetivo["LockOnTarget en los 12 ojos de BossArek y en MinionArek (al morir el minion se libera al despawnear)"]
+    Root -->|"Stick derecho con objetivo fijado"| Cambio["LockOnSwitcher: cambia al objetivo en esa dirección (LockOnResolver.FijarA)"]
+    Pivot --> Config["ThirdPersonCameraConfig (valores por stance)"]
+    Pivot --> Stances["CameraStanceResolver: Exploracion, Sprint, Combate, Apuntado"]
+    Root -->|"RegistrarDesplazamientoLateral (dash o carga lateral en combate)"| Pivot
+    Combat -->|"ResolverApuntado (AimResolver)"| Root
+    Anchor -->|"ResolverApuntado (AimResolver)"| Root
     Root --> Grapple
     Root -->|GetComponentInChildren| Combat
     Root -->|GetComponentInChildren| Anchor

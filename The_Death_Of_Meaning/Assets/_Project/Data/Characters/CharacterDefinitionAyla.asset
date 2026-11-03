@@ -14,8 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.CharacterDefinition
   DisplayName: Ayla
   Movement: {fileID: 11400000, guid: eb24e798a0960ca4babff28cff0f0ef4, type: 2}
+  CanClimb: 1
   Dash: {fileID: 11400000, guid: 67a0fff5c75a7e445a594d92aa81b0f8, type: 2}
   Melee: {fileID: 11400000, guid: 3d29f885e5658c7478f3e86cc01bdaa9, type: 2}
   Ranged: {fileID: 0}
   Grapple: {fileID: 11400000, guid: e9799926818444dc86f94cb8a40440dd, type: 2}
   Energy: {fileID: 11400000, guid: 02f43bca33cd3754ca19cd3aff46a69b, type: 2}
+  MaxHealth: 100
+  DownedDuration: 15
+  ReviveHealth: 50
+  ReviveDuration: 3
+  ReviveRadius: 3.5

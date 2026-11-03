@@ -3,7 +3,7 @@
     DEF["CharacterDefinition: MovementProfile, DashProfile, GrappleProfile"] -->|construye los resolvers| PL[PlayerLocomotion.Tick]
     ROOT -->|"ProbeGround: IsGrounded"| MOTOR[PlayerMotor]
     ROOT -->|"GrapplePressed + Raycast: IntentarGancho"| PL
-    ROOT -->|"input, yaw, dt, AtaqueActivo"| PL
+    ROOT -->|"input, yaw, dt, MovimientoBloqueado, ModoPistola"| PL
     PL --> SPR[SprintResolver]
     SPR --> GAN{"GrappleResolver activo?"}
     GAN -->|si| SINGRAV["MotionIntent sin gravedad"]
@@ -21,5 +21,8 @@
     ANCLA -->|no| APPLY[PlayerMotor.Apply]
     CERO --> APPLY
     APPLY --> CC["CharacterController.Move()"]
+    APPLY --> FACE["FacingResolver.Tick: velocidad, yaw de camara, L2"]
+    ROOT -->|"Ataque sin L2 y SnapToCameraOnAttack: AlinearCon yaw de camara"| FACE
+    FACE --> ROT["transform.rotation del root (replicada por ClientNetworkTransform)"]
     PL -.->|"DashIniciado, SaltoAereo, Aterrizaje"| FB[FeedbackDirector]
     PL -.->|"GanchoActivo, PuntoGancho"| GV[GrappleVisual]

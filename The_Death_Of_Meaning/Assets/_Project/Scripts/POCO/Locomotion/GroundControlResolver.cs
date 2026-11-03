@@ -31,12 +31,13 @@ namespace TDOM.Gameplay
             Vector2 move,
             Quaternion yaw,
             bool corriendo,
-            float dt
+            float dt,
+            float multiplicadorVelocidad = 1f
         )
         {
             Vector3 direction = yaw * new Vector3(move.x, 0f, move.y);
 
-            float MaxVel = corriendo ? _velocidadCorrer : _velocidadBase;
+            float MaxVel = (corriendo ? _velocidadCorrer : _velocidadBase) * multiplicadorVelocidad;
             Vector3 objetivo = direction * MaxVel;
             float fuerzaActual = move.sqrMagnitude > 0.01f ? _aceleracion : _friccion;
             float accel = fuerzaActual * (estado.IsGrounded ? 1f : _controlAereo);

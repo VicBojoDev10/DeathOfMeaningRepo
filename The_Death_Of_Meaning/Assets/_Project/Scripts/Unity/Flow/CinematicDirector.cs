@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
+using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Playables;
@@ -17,6 +18,7 @@ namespace TDOM.Unity.Flow
         {
             public string Id;
             public PlayableDirector Director;
+            public CinemachineCamera CamaraDeSalida;
         }
 
         private const string PrefijoCinematicaDeFase = "fase_";
@@ -37,6 +39,13 @@ namespace TDOM.Unity.Flow
         [SerializeField]
         private float _duracionFade = 0.4f;
 
+        [Header("Salida con blend")]
+        [SerializeField]
+        private int _prioridadCamaraDeSalida = 100;
+
+        [SerializeField, Min(0f)]
+        private float _margenEsperaBlend = 0.5f;
+
         [Header("HUD")]
         [SerializeField]
         private GameplayUI _gameplayUI;
@@ -52,9 +61,10 @@ namespace TDOM.Unity.Flow
         [SerializeField]
         private string _idPrueba = "prueba";
 
-        private readonly Dictionary<string, PlayableDirector> _directores = new();
+        private readonly Dictionary<string, EntradaCatalogo> _entradas = new();
         private GameFlowStateMachine _flujo;
         private PlayableDirector _directorActual;
+        private ICinematicExit _salidaActual;
         private BossController _jefe;
         private Coroutine _secuencia;
         private bool _reproduciendo;
@@ -65,7 +75,7 @@ namespace TDOM.Unity.Flow
         private void Awake()
         {
             foreach (var entrada in _catalogo)
-                _directores[entrada.Id] = entrada.Director;
+                _entradas[entrada.Id] = entrada;
 
             _flujo = new GameFlowStateMachine(_duracionFade * 2f);
             _flujo.Cambio += AlCambiarEstado;
@@ -77,12 +87,12 @@ namespace TDOM.Unity.Flow
             if (!IsServer)
                 return;
 
-            BossController.Spawned += AlSpawnearJefe;
+            BossController.ObservarJefe(NetworkManager, AlSpawnearJefe);
         }
 
         public override void OnNetworkDespawn()
         {
-            BossController.Spawned -= AlSpawnearJefe;
+            BossController.DejarDeObservarJefe(AlSpawnearJefe);
             DesuscribirJefe();
         }
 
@@ -102,7 +112,7 @@ namespace TDOM.Unity.Flow
             if (!IsServer || !EnGameplay)
                 return;
 
-            if (!_directores.ContainsKey(id))
+            if (!_entradas.ContainsKey(id))
             {
                 Debug.LogWarning($"[CinematicDirector] No hay cinemática con id '{id}'");
                 return;
@@ -114,10 +124,12 @@ namespace TDOM.Unity.Flow
         [Rpc(SendTo.ClientsAndHost)]
         private void ReproducirRpc(string id)
         {
-            if (!_directores.TryGetValue(id, out var director))
+            if (!_entradas.TryGetValue(id, out var entrada) || !_flujo.PuedeIniciarCinematica(id))
                 return;
 
-            _directorActual = director;
+            _salidaActual?.Cancelar();
+            _directorActual = entrada.Director;
+            _salidaActual = CrearSalida(entrada.CamaraDeSalida);
             _flujo.IniciarCinematica(id);
         }
 
@@ -153,6 +165,7 @@ namespace TDOM.Unity.Flow
             yield return FundirA(AlphaNegro);
 
             JugadorLocal()?.SetCamaraCedida(true);
+            _salidaActual.Preparar();
             _directorActual.extrapolationMode = DirectorWrapMode.Hold;
             _directorActual.Play();
             _reproduciendo = true;
@@ -162,14 +175,35 @@ namespace TDOM.Unity.Flow
 
         private IEnumerator RutinaSalida()
         {
-            yield return FundirA(AlphaNegro);
+            _flujo.RetenerTransicion();
+            try
+            {
+                if (_salidaActual != null)
+                    yield return _salidaActual.Salir();
+            }
+            finally
+            {
+                _salidaActual = null;
+                _flujo.LiberarTransicion();
+            }
+        }
 
+        private ICinematicExit CrearSalida(CinemachineCamera camaraDeSalida) =>
+            camaraDeSalida != null
+                ? new BlendCinematicExit(
+                    camaraDeSalida,
+                    _prioridadCamaraDeSalida,
+                    _margenEsperaBlend,
+                    DetenerDirector
+                )
+                : new FadeCinematicExit(FundirA, DetenerDirector);
+
+        private void DetenerDirector()
+        {
             if (_directorActual != null)
                 _directorActual.Stop();
             _directorActual = null;
             JugadorLocal()?.SetCamaraCedida(false);
-
-            yield return FundirA(AlphaTransparente);
         }
 
         private IEnumerator FundirA(float objetivo)
@@ -252,7 +286,7 @@ namespace TDOM.Unity.Flow
         private void AlCambiarFase(int anterior, int actual)
         {
             string id = PrefijoCinematicaDeFase + actual;
-            if (_directores.ContainsKey(id))
+            if (_entradas.ContainsKey(id))
                 Reproducir(id);
         }
 

@@ -1,5 +1,8 @@
 using TDOM.Contracts;
+using TDOM.Gameplay.Camera;
 using TDOM.Unity.Player;
+using TDOM.Unity.UI;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -27,21 +30,112 @@ namespace TDOM.Unity
         [SerializeField]
         private float multiplicadorEscalaEnRango = 1.15f;
 
+        [Header("Cooldowns")]
+        [SerializeField]
+        private Image dashandembestidaslider;
+
+        [SerializeField]
+        private Image hookandgraplerslider;
+
+        [SerializeField]
+        private Color cooldownDisponible = Color.white;
+
+        [SerializeField]
+        private Color cooldownEnUso = new Color(0.35f, 0.35f, 0.35f, 1f);
+
+        [SerializeField]
+        private Sprite zendreIcon;
+
+        [SerializeField]
+        private Sprite aylaIcon;
+
+        [SerializeField]
+        [Tooltip("Color del fondo detras del icono mientras se llena el cooldown.")]
+        private Color cooldownFondo = new Color(0f, 0f, 0f, 0.45f);
+
+        [SerializeField]
+        private Image buttonPlayerIcon;
+
+        [Header("PlayerHealth")]
+        [SerializeField]
+        private Slider mainPlayerHealthSlider;
+
+        [SerializeField]
+        private Slider secondaryPlayerHealthSlider;
+
+        [Header("Vida del Jefe")]
+        [SerializeField]
+        private BossHealthBar _barraVidaJefe;
+
         private PlayerRoot _localPlayer;
+        private PlayerRoot _otherPlayer;
+        private float _busquedaJugadoresTimer;
         private RectTransform _crosshairRect;
         private Vector3 _escalaBase;
         private bool _hudVisible = true;
+        private PlayerEnergyHud _barraEnergiaJugador;
+        private PlayerRoot _jugadorConEnergiaInicializado;
+
+        private void Update()
+        {
+            if (_localPlayer == null || _otherPlayer == null)
+            {
+                _busquedaJugadoresTimer -= Time.deltaTime;
+                if (_busquedaJugadoresTimer <= 0f)
+                {
+                    _busquedaJugadoresTimer = 0.5f;
+                    BuscarJugadores();
+                }
+            }
+
+            if (_barraEnergiaJugador == null)
+                _barraEnergiaJugador = GetComponentInChildren<PlayerEnergyHud>(true);
+
+            if (_barraEnergiaJugador == null || _localPlayer == null)
+                return;
+
+            _barraEnergiaJugador.ActualizarEnergia(_localPlayer.Energia.Value);
+            _barraEnergiaJugador.MostrarCostoPendiente(
+                _localPlayer.CostoEnergiaPendiente,
+                _localPlayer.Energia.Value
+            );
+
+            if (_jugadorConEnergiaInicializado == _localPlayer)
+                return;
+
+            string etiquetaEnergia = _localPlayer.CharacterId switch
+            {
+                CharacterIds.Ayla => "Stamina",
+                CharacterIds.Zendre => "Maná",
+                _ => "Energy",
+            };
+
+            _barraEnergiaJugador.Reinitialize(
+                _localPlayer,
+                etiquetaEnergia,
+                _localPlayer.EnergiaMaxima
+            );
+            _jugadorConEnergiaInicializado = _localPlayer;
+        }
 
         public void SetHudVisible(bool visible)
         {
             _hudVisible = visible;
             if (canvasGroup != null)
                 canvasGroup.alpha = visible ? 1f : 0f;
+
+            if (_barraVidaJefe != null)
+                _barraVidaJefe.CambiarVisibilidadHud(visible);
         }
 
         public override void Initialize()
         {
             base.Initialize();
+
+            ConfigurarImagenCooldown(dashandembestidaslider);
+            ConfigurarImagenCooldown(hookandgraplerslider);
+            CrearFondoCooldown(dashandembestidaslider);
+            CrearFondoCooldown(hookandgraplerslider);
 
             if (crosshairImage != null)
             {
@@ -61,11 +155,34 @@ namespace TDOM.Unity
 
         private void OnDisable()
         {
-            _localPlayer = null;
+            DesconectarJugadores();
             if (crosshairImage != null)
                 crosshairImage.gameObject.SetActive(false);
             if (crosshairDefaultImage != null)
                 crosshairDefaultImage.gameObject.SetActive(false);
+        }
+
+        private void OnDestroy()
+        {
+            DesconectarJugadores();
+        }
+
+        private void DesconectarJugadores()
+        {
+            if (_localPlayer != null)
+            {
+                _localPlayer.DashEmbestidaIniciada -= ActualizarCooldowns;
+                _localPlayer.Vida.OnValueChanged -= OnVidaLocalChanged;
+            }
+
+            if (_otherPlayer != null)
+            {
+                _otherPlayer.Vida.OnValueChanged -= OnVidaSecundarioChanged;
+            }
+
+            _localPlayer = null;
+            _otherPlayer = null;
+            _jugadorConEnergiaInicializado = null;
         }
 
         private void LateUpdate()
@@ -73,16 +190,16 @@ namespace TDOM.Unity
             if (!_hudVisible)
                 return;
 
-            // Si no tenemos referencia al jugador local, lo buscamos en la escena
             if (_localPlayer == null)
             {
-                BuscarJugadorLocal();
+                BuscarJugadores();
                 if (_localPlayer == null)
                     return;
             }
 
-            var camTransform = _localPlayer.CameraTransform;
-            if (camTransform == null)
+            ActualizarCooldowns();
+
+            if (_localPlayer.CameraTransform == null)
                 return;
 
             var input =
@@ -116,26 +233,12 @@ namespace TDOM.Unity
             if (!crosshairImage.gameObject.activeSelf)
                 crosshairImage.gameObject.SetActive(true);
 
-            // Raycast desde el centro de la cámara hacia adelante
-            Ray ray = new Ray(camTransform.position, camTransform.forward);
-            bool valido = false;
-
-            if (
-                Physics.Raycast(
-                    ray,
-                    out RaycastHit hit,
-                    alcance,
-                    Physics.AllLayers,
-                    QueryTriggerInteraction.Ignore
-                )
-            )
-            {
-                // Ignorar colisiones con el propio o con otro jugador
-                if (hit.collider.GetComponentInParent<PlayerRoot>() == null)
-                {
-                    valido = true;
-                }
-            }
+            Vector3 origen = _localPlayer.transform.position;
+            var apuntado = _localPlayer.ResolverApuntado(origen, out Collider impactado);
+            bool valido =
+                apuntado.HasHit
+                && impactado.GetComponentInParent<PlayerRoot>() == null
+                && AimResolver.IsWithinRange(origen, apuntado.TargetPoint, alcance);
 
             // Aplicar colores y escala
             crosshairImage.color = valido ? colorEnRango : colorFueraDeRango;
@@ -147,22 +250,215 @@ namespace TDOM.Unity
             }
         }
 
-        private void BuscarJugadorLocal()
+        private void BuscarJugadores()
         {
-            var players = FindObjectsByType<PlayerRoot>(FindObjectsSortMode.None);
-            foreach (var p in players)
+            var manager = NetworkManager.Singleton;
+            if (manager == null || !manager.IsClient || manager.SpawnManager == null)
+                return;
+
+            if (_localPlayer == null && manager.LocalClient != null)
             {
-                if (p != null && p.IsOwner)
+                foreach (var objeto in manager.LocalClient.OwnedObjects)
                 {
-                    _localPlayer = p;
-                    if (_crosshairRect == null && crosshairImage != null)
+                    if (
+                        objeto != null
+                        && objeto.IsSpawned
+                        && objeto.TryGetComponent(out PlayerRoot player)
+                    )
                     {
-                        _crosshairRect = crosshairImage.rectTransform;
-                        _escalaBase = _crosshairRect.localScale;
+                        ConectarJugadorLocal(player);
+                        break;
                     }
-                    break;
                 }
             }
+
+            if (_otherPlayer != null)
+                return;
+
+            foreach (var objeto in manager.SpawnManager.SpawnedObjectsList)
+            {
+                if (
+                    objeto != null
+                    && objeto.IsSpawned
+                    && !objeto.IsOwner
+                    && objeto.TryGetComponent(out PlayerRoot player)
+                )
+                {
+                    ConectarJugadorSecundario(player);
+                    return;
+                }
+            }
+        }
+
+        private void ConectarJugadorLocal(PlayerRoot player)
+        {
+            _localPlayer = player;
+            _localPlayer.DashEmbestidaIniciada += ActualizarCooldowns;
+            _localPlayer.Vida.OnValueChanged += OnVidaLocalChanged;
+
+            if (mainPlayerHealthSlider != null)
+            {
+                mainPlayerHealthSlider.minValue = 0f;
+                mainPlayerHealthSlider.maxValue = _localPlayer.VidaMaxima;
+                mainPlayerHealthSlider.value = Mathf.Clamp(
+                    _localPlayer.Vida.Value,
+                    0f,
+                    _localPlayer.VidaMaxima
+                );
+            }
+
+            ActualizarIconosPersonajes();
+
+            if (_crosshairRect == null && crosshairImage != null)
+            {
+                _crosshairRect = crosshairImage.rectTransform;
+                _escalaBase = _crosshairRect.localScale;
+            }
+        }
+
+        private void ConectarJugadorSecundario(PlayerRoot player)
+        {
+            _otherPlayer = player;
+            _otherPlayer.Vida.OnValueChanged += OnVidaSecundarioChanged;
+
+            if (secondaryPlayerHealthSlider != null)
+            {
+                secondaryPlayerHealthSlider.minValue = 0f;
+                secondaryPlayerHealthSlider.maxValue = _otherPlayer.VidaMaxima;
+                secondaryPlayerHealthSlider.value = Mathf.Clamp(
+                    _otherPlayer.Vida.Value,
+                    0f,
+                    _otherPlayer.VidaMaxima
+                );
+            }
+
+            ActualizarIconosPersonajes();
+        }
+
+        private void OnVidaLocalChanged(float anterior, float actual)
+        {
+            if (mainPlayerHealthSlider != null && _localPlayer != null)
+            {
+                mainPlayerHealthSlider.value = Mathf.Clamp(actual, 0f, _localPlayer.VidaMaxima);
+            }
+        }
+
+        private void OnVidaSecundarioChanged(float anterior, float actual)
+        {
+            if (secondaryPlayerHealthSlider != null && _otherPlayer != null)
+            {
+                secondaryPlayerHealthSlider.value = Mathf.Clamp(
+                    actual,
+                    0f,
+                    _otherPlayer.VidaMaxima
+                );
+            }
+        }
+
+        private void ActualizarIconosPersonajes()
+        {
+            if (_localPlayer != null)
+            {
+                if (_localPlayer.CharacterId == CharacterIds.Ayla)
+                {
+                    if (buttonPlayerIcon != null)
+                        buttonPlayerIcon.sprite = aylaIcon;
+                }
+                else if (_localPlayer.CharacterId == CharacterIds.Zendre)
+                {
+                    if (buttonPlayerIcon != null)
+                        buttonPlayerIcon.sprite = zendreIcon;
+                }
+            }
+        }
+
+        private static void ConfigurarImagenCooldown(Image imagen)
+        {
+            if (imagen == null)
+                return;
+
+            // Una Image sin sprite ignora el relleno radial y se dibuja entera.
+            if (imagen.sprite == null)
+                imagen.sprite = SpriteBlancoCooldown();
+
+            imagen.type = Image.Type.Filled;
+            imagen.fillMethod = Image.FillMethod.Radial360;
+            imagen.fillOrigin = (int)Image.Origin360.Top;
+            imagen.fillClockwise = true;
+            imagen.raycastTarget = false;
+        }
+
+        private static Sprite _spriteBlancoCooldown;
+
+        private static Sprite SpriteBlancoCooldown()
+        {
+            if (_spriteBlancoCooldown == null)
+            {
+                Texture2D textura = Texture2D.whiteTexture;
+                _spriteBlancoCooldown = Sprite.Create(
+                    textura,
+                    new Rect(0f, 0f, textura.width, textura.height),
+                    new Vector2(0.5f, 0.5f)
+                );
+            }
+            return _spriteBlancoCooldown;
+        }
+
+        // El icono se llena de a poco (sentido de las manecillas, desde arriba): detras va un
+        // fondo oscuro para ver la zona que falta por llenar.
+        private void CrearFondoCooldown(Image frente)
+        {
+            if (frente == null || frente.transform.parent == null)
+                return;
+
+            string nombre = frente.name + "_Fondo";
+            if (frente.transform.parent.Find(nombre) != null)
+                return;
+
+            var fondoObjeto = new GameObject(nombre, typeof(RectTransform), typeof(Image));
+            var fondoRect = (RectTransform)fondoObjeto.transform;
+            fondoRect.SetParent(frente.transform.parent, false);
+
+            RectTransform origen = frente.rectTransform;
+            fondoRect.anchorMin = origen.anchorMin;
+            fondoRect.anchorMax = origen.anchorMax;
+            fondoRect.pivot = origen.pivot;
+            fondoRect.anchoredPosition = origen.anchoredPosition;
+            fondoRect.sizeDelta = origen.sizeDelta;
+            fondoRect.localScale = origen.localScale;
+            fondoRect.localRotation = origen.localRotation;
+            fondoRect.SetSiblingIndex(frente.transform.GetSiblingIndex());
+
+            var fondo = fondoObjeto.GetComponent<Image>();
+            fondo.sprite = frente.sprite;
+            fondo.color = cooldownFondo;
+            fondo.raycastTarget = false;
+        }
+
+        private void ActualizarCooldowns()
+        {
+            if (_localPlayer == null)
+                return;
+
+            var cooldowns = _localPlayer.Cooldowns;
+            ActualizarIconoCooldown(dashandembestidaslider, cooldowns.Dash);
+
+            float cooldownSecundario =
+                _localPlayer.CharacterId == CharacterIds.Zendre
+                    ? cooldowns.Ancla
+                    : cooldowns.Gancho;
+            ActualizarIconoCooldown(hookandgraplerslider, cooldownSecundario);
+        }
+
+        private void ActualizarIconoCooldown(Image imagen, float normalizado)
+        {
+            if (imagen == null)
+                return;
+
+            // normalizado = lo que falta (1 recien usado, 0 listo): el icono se llena al reves.
+            normalizado = Mathf.Clamp01(normalizado);
+            imagen.fillAmount = 1f - normalizado;
+            imagen.color = normalizado <= 0.001f ? cooldownDisponible : cooldownEnUso;
         }
     }
 }

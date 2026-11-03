@@ -1,0 +1,183 @@
+classDiagram
+    class TrayectoriaVfx {
+        <<static, POCO>>
+        +Normal(a, b, arriba, rotacion) Vector3
+        +Control(a, b, arriba, curvatura, rotacion) Vector3
+        +Curvatura(a, b, arriba, rotacion, control) float
+        +Punto(a, control, b, t) Vector3
+        +Tangente(a, control, b, t) Vector3
+    }
+
+    class VisibilidadVfx {
+        <<static, POCO>>
+        +Factor(tiempo, duracion, aparicion, desaparicion) float
+    }
+
+    class VfxProfile {
+        <<abstract, ScriptableObject>>
+        +puntoA, puntoB
+        +curvatura, rotacion, orientacion
+        +duracion
+        +color, intensidad, disolucion
+        +tamanoPool
+    }
+    class VfxOrigenFinalProfile {
+        +avance
+        +orientarATrayectoria
+        +particulasResiduales, ancho
+        +aparicion, desaparicion
+    }
+    class VfxExplosionProfile {
+        +radio
+        +escala
+    }
+    class VfxDisparoProfile {
+        +avance
+        +largoEstela
+        +tamano
+        +escala
+    }
+    class VfxCargaProfile {
+        +escala
+        +radioCentro, velocidadParticulas
+        +duracionMaxima
+    }
+    class VfxCatalogo {
+        <<ScriptableObject>>
+        +efectos GameObject[]
+    }
+
+    class VfxBase {
+        <<abstract, MonoBehaviour>>
+        +Perfil VfxProfile
+        +Velocidad Vector3
+        +Reproducir(posicion, rotacion)
+        +Reproducir(posicion, rotacion, velocidad)
+        +ReproducirEntre(a, b)
+        +Detener()
+        +Terminado event
+        #Avanzar(t)*
+        #TiempoAgotado(tiempo)
+        #Visibilidad(tiempo)
+        #AlIniciar()
+    }
+    class VfxOrigenFinal
+    class VfxExplosion
+    class VfxDisparo
+    class VfxCarga
+
+    class VfxPool {
+        <<MonoBehaviour>>
+        +Indice(prefab) int
+        +Pedir(indice) VfxBase
+        +Detener(indice)
+    }
+    class VfxRed {
+        <<NetworkBehaviour>>
+        +Lanzar(efecto, posicion, rotacion)
+        +Lanzar(efecto, posicion, rotacion, velocidad)
+        +LanzarEntre(efecto, a, b)
+        +Detener(efecto)
+        -PedirReproducirRpc() Server
+        -PedirReproducirEntreRpc() Server
+        -PedirDetenerRpc() Server
+        -ReproducirRpc() ClientsAndHost
+        -ReproducirEntreRpc() ClientsAndHost
+        -DetenerRpc() ClientsAndHost
+    }
+
+    VfxProfile <|-- VfxOrigenFinalProfile
+    VfxProfile <|-- VfxExplosionProfile
+    VfxProfile <|-- VfxDisparoProfile
+    VfxProfile <|-- VfxCargaProfile
+
+    VfxBase <|-- VfxOrigenFinal
+    VfxBase <|-- VfxExplosion
+    VfxBase <|-- VfxDisparo
+    VfxBase <|-- VfxCarga
+
+    VfxBase ..> TrayectoriaVfx : calcula la curva A-B
+    VfxOrigenFinal ..> VisibilidadVfx : aparicion y desaparicion
+    VfxBase --> VfxProfile : lee tuning
+    VfxOrigenFinal --> VfxOrigenFinalProfile
+    VfxExplosion --> VfxExplosionProfile
+    VfxDisparo --> VfxDisparoProfile
+    VfxCarga --> VfxCargaProfile
+
+    VfxPool --> VfxCatalogo : crea las copias al inicio
+    VfxPool o-- VfxBase : instancias
+    VfxRed --> VfxPool : cada maquina saca su copia
+
+    class MuestrasEstela {
+        <<POCO>>
+        +Cantidad int
+        +Agregar(baseHoja, punta, distanciaMinima) bool
+        +Envejecer(segundos, duracionVida)
+        +Vaciar()
+    }
+    class MarcoTajo {
+        <<static, POCO>>
+        +Centro(baseHoja, punta) Vector3
+        +Avance(adelante, rapidez) Vector3
+    }
+    class EstelaEspadaProfile {
+        <<ScriptableObject>>
+        +duracionVida, distanciaMinima, maxPuntos
+        +curvaAncho, gradienteColor, material
+    }
+    class EstelaEspada {
+        <<MonoBehaviour>>
+        +Encender(idPerfil)
+        +Apagar()
+        +Hoja(out baseHoja, out punta) bool
+    }
+    class IOrigenVfxGolpe {
+        <<interface>>
+        +Hoja(out baseHoja, out punta) bool
+    }
+    class ICargaVfx {
+        <<interface>>
+        +SetCarga(activa, segundosCargados, segundosMaximos)
+        +EtapaDe(progreso) int
+        +ForzarEtapaFinal(activa)
+    }
+    class EtapasCarga {
+        <<POCO>>
+        +Progreso(segundosCargados, transcurridos, maximos) float
+        +Indice(inicios, progreso) int
+    }
+    class CargaEspadaProfile {
+        <<ScriptableObject>>
+        +etapas : Etapa[]
+        +emisionCuerpo : AnimationCurve
+    }
+    class AylaEspada {
+        <<MonoBehaviour>>
+        +EstelaOn(idPerfil)
+        +EstelaOff()
+        +SetCarga(activa, segundosCargados, segundosMaximos)
+        +EtapaDe(progreso) int
+        +ForzarEtapaFinal(activa)
+        +EspadaBurst()
+    }
+    class PlayerCombat {
+        <<NetworkBehaviour>>
+        -LanzarVfxGolpeLigero(evento, cargado, espejo)
+        -LanzarVfxCargado(progreso, espejo)
+        -LanzarVfxTornadoGiro()
+        -LanzarArcosGiro()
+        -MostrarCarga(activa)
+    }
+
+    EstelaEspada ..> MuestrasEstela : guarda la hoja cada frame
+    EstelaEspada --> EstelaEspadaProfile : lee tuning
+    AylaEspada ..|> IOrigenVfxGolpe
+    AylaEspada ..|> ICargaVfx
+    PlayerCombat --> ICargaVfx : silueta de carga (dueño + CargaRpc)
+    PlayerCombat --> VfxRed : silueta del cargado por etapa
+    AylaEspada --> CargaEspadaProfile : colores y emisión
+    AylaEspada ..> EtapasCarga : etapa por progreso
+    AylaEspada --> EstelaEspada : Animation Events
+    PlayerCombat --> IOrigenVfxGolpe : centro de la hoja
+    PlayerCombat ..> MarcoTajo : posicion y avance
+    PlayerCombat --> VfxRed : silueta por golpe ligero

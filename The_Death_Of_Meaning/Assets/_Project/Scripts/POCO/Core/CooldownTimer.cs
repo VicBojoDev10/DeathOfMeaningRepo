@@ -17,5 +17,8 @@ namespace TDOM.Gameplay.Core
         public void Disparar() => _restante = _duracion;
 
         public void Resetear() => _restante = 0f;
+
+        public void Recortar(float factor) =>
+            _restante = Mathf.Max(0f, _restante - _duracion * (1f - Mathf.Clamp01(factor)));
     }
 }

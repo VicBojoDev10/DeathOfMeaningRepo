@@ -10,6 +10,16 @@ TW-XXX
 
 <!-- Pasos concretos para que quien revise pueda verificarlo. -->
 
+## Prueba en red
+
+<!-- Obligatoria en todos los PRs, salvo los que solo cambian documentación o diagramas. -->
+<!-- Prueba con host + cliente (dos instancias): tu cambio y lo que ya está en dev (conexión, spawn de los dos jugadores, movimiento, combate y pelea contra AREK). -->
+
+- Pasos:
+- Resultado en host:
+- Resultado en cliente:
+- Video o captura de las dos ventanas:
+
 ## Nivel de integración
 
 <!-- Marca el que declaraba el ticket -->
@@ -26,6 +36,6 @@ TW-XXX
 - [ ] Los valores de tuning están en un ScriptableObject, no hardcodeados
 - [ ] No introduje singletons, `Instantiate` de gameplay ni daño directo
 - [ ] Si es N1: hay tests unitarios y pasan en verde
-- [ ] Si es N3 o más: probado con DOS instancias, no una
+- [ ] Probado en red con DOS instancias (host + cliente) y documentado en "Prueba en red"
 - [ ] Si cambié la estructura de clases, actualicé el diagrama en `/docs/diagrams`
 - [ ] Otra persona lo probó en su máquina

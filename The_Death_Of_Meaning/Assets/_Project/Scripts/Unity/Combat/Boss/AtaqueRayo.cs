@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using TDOM.Data;
+using TDOM.Gameplay.Core;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
@@ -9,45 +11,22 @@ namespace TDOM.Unity
 {
     /// <summary>
     /// Ataque Rayo (Especial) de AREK en greybox. El servidor elige un patrón de líneas en
-    /// abanico frente al jefe, todos ven franjas rojas de aviso en el piso y después los rayos
-    /// (LineRenderer) desde la boca. El servidor detecta a los jugadores dentro de cada rayo.
+    /// abanico frente al jefe, todos ven franjas de aviso parpadeantes en el piso y después los
+    /// rayos (LineRenderer) desde la boca. El servidor detecta a los jugadores dentro de cada rayo.
     /// No resta vida: solo detecta y reporta (04. Daño en WIP).
     /// </summary>
-    public class AtaqueRayo : NetworkBehaviour
+    public class AtaqueRayo : AtaqueArekBase
     {
-        [Header("Tiempos")]
-        [SerializeField]
-        private float _aviso = 1.25f;
-
-        [SerializeField]
-        private float _activo = 0.6f;
-
-        [SerializeField]
-        private float _retirada = 0.2f;
-
-        [Header("Forma")]
-        [SerializeField]
-        private float _largo = 30f;
-
-        [SerializeField]
-        private float _diametro = 2f;
-
-        [SerializeField]
-        private int _lineas = 3;
-
-        [SerializeField]
-        private float _aberturaGrados = 60f; // abanico frente al jefe
-
         [Header("Origen")]
         [SerializeField]
-        private Transform _boca; // si es null: centro del jefe + 3 m en Y
-
-        [SerializeField]
-        private float _alturaBocaPorDefecto = 3f;
+        private Transform _boca; // si es null: centro del jefe + alturaBocaPorDefecto del perfil
 
         [Header("Visuales")]
         [SerializeField]
-        private Material _materialAviso;
+        private Material _materialAviso; // AvisoAtaque.mat
+
+        [SerializeField]
+        private AvisoParpadeo _avisoParpadeo;
 
         [SerializeField]
         private Material _materialRayo;
@@ -59,6 +38,9 @@ namespace TDOM.Unity
             Retirada,
             Terminado,
         }
+
+        // Tuning: lo lee de AtaquesArek (BossArek.prefab) al spawnear.
+        private AtaqueRayoProfile _perfil;
 
         private FaseRayo _fase = FaseRayo.Aviso;
         private float _tiempoEnFase;
@@ -72,23 +54,34 @@ namespace TDOM.Unity
         private readonly List<GameObject> _franjas = new List<GameObject>();
         private readonly List<LineRenderer> _rayos = new List<LineRenderer>();
 
-        private float _flashGolpe;
-
         /// <summary>Lo llama AtaquesArek antes de Spawn para indicar la boca del jefe.</summary>
         public void AsignarBoca(Transform boca)
         {
             _boca = boca;
         }
 
-        public override void OnNetworkSpawn()
+        private void Awake()
         {
+            if (_avisoParpadeo == null)
+                _avisoParpadeo = GetComponent<AvisoParpadeo>();
+        }
+
+        protected override void AlSpawnear()
+        {
+            _perfil = Lanzador != null ? Lanzador.PerfilRayo : null;
+            if (_perfil == null)
+            {
+                Debug.LogError("[AtaqueRayo] Falta el AtaqueRayoProfile en AtaquesArek.");
+                return;
+            }
+
             if (!IsServer)
                 return;
 
             _origenServidor =
                 _boca != null
                     ? _boca.position
-                    : transform.position + Vector3.up * _alturaBocaPorDefecto;
+                    : transform.position + Vector3.up * _perfil.alturaBocaPorDefecto;
             _finalesServidor = CalcularFinales(_origenServidor);
             _fase = FaseRayo.Aviso;
             _tiempoEnFase = 0f;
@@ -107,21 +100,45 @@ namespace TDOM.Unity
                 adelante = Vector3.forward;
             adelante.Normalize();
 
-            int cantidad = Mathf.Max(1, _lineas);
-            float paso = _aberturaGrados / cantidad;
+            int cantidad = Mathf.Max(1, _perfil.lineas);
+            float paso = _perfil.aberturaGrados / cantidad;
             float desfase = Random.Range(-paso * 0.5f, paso * 0.5f);
+
+            // El abanico se centra en el objetivo, pero ningún rayo sale más allá del límite
+            // frontal: nunca hacia atrás de la boca.
+            float limite = Mathf.Abs(_perfil.limiteFrontalGrados);
+            float centro = Mathf.Clamp(AnguloHaciaObjetivo(adelante), -limite, limite);
 
             var finales = new Vector3[cantidad];
             for (int i = 0; i < cantidad; i++)
             {
-                float angulo = -_aberturaGrados * 0.5f + paso * (i + 0.5f) + desfase;
+                float angulo = centro - _perfil.aberturaGrados * 0.5f + paso * (i + 0.5f) + desfase;
+                angulo = Mathf.Clamp(angulo, -limite, limite);
                 Vector3 direccion = Quaternion.Euler(0f, angulo, 0f) * adelante;
-                Vector3 final = origen + direccion * _largo;
+                Vector3 final = origen + direccion * _perfil.largo;
                 final.y = BuscarPiso(final, transform.position.y);
                 finales[i] = final;
             }
 
             return finales;
+        }
+
+        // Grados (en Y) del frente del jefe hacia el objetivo elegido; 0 si no hay objetivo.
+        private float AnguloHaciaObjetivo(Vector3 adelante)
+        {
+            if (
+                Lanzador == null
+                || !Lanzador.ObjetivoActual.HasValue
+                || !Lanzador.TryPosicionJugador(Lanzador.ObjetivoActual.Value, out var posicion)
+            )
+                return 0f;
+
+            Vector3 hacia = posicion - transform.position;
+            hacia.y = 0f;
+            if (hacia.sqrMagnitude < 0.0001f)
+                return 0f;
+
+            return Vector3.SignedAngle(adelante, hacia.normalized, Vector3.up);
         }
 
         // Altura del piso: el punto más bajo que encuentra un rayo hacia abajo (ignora jefe y jugadores).
@@ -150,12 +167,14 @@ namespace TDOM.Unity
 
         private void Update()
         {
+            if (
+                PauseManager.PausadoGlobal
+                || (PauseManager.ResultadoGlobal != ResultadoPartida.EnCurso)
+            )
+                return;
             float dt = Time.deltaTime;
 
-            if (_flashGolpe > 0f)
-                _flashGolpe -= dt;
-
-            if (!IsServer || !IsSpawned)
+            if (!IsServer || !IsSpawned || _perfil == null)
                 return;
 
             _tiempoEnFase += dt;
@@ -163,7 +182,7 @@ namespace TDOM.Unity
             switch (_fase)
             {
                 case FaseRayo.Aviso:
-                    if (_tiempoEnFase >= _aviso)
+                    if (_tiempoEnFase >= _perfil.aviso)
                     {
                         CambiarFase(FaseRayo.Activo);
                         RayoRpc();
@@ -172,7 +191,7 @@ namespace TDOM.Unity
 
                 case FaseRayo.Activo:
                     DetectarImpactos();
-                    if (_tiempoEnFase >= _activo)
+                    if (_tiempoEnFase >= _perfil.activo)
                     {
                         CambiarFase(FaseRayo.Retirada);
                         ApagarRpc();
@@ -180,7 +199,7 @@ namespace TDOM.Unity
                     break;
 
                 case FaseRayo.Retirada:
-                    if (_tiempoEnFase >= _retirada)
+                    if (_tiempoEnFase >= _perfil.retirada)
                     {
                         CambiarFase(FaseRayo.Terminado);
                         NetworkObject.Despawn(true);
@@ -200,7 +219,7 @@ namespace TDOM.Unity
             if (_finalesServidor == null)
                 return;
 
-            float radio = _diametro * 0.5f;
+            float radio = _perfil.diametro * 0.5f;
             foreach (var final in _finalesServidor)
             {
                 Collider[] tocados = Physics.OverlapCapsule(
@@ -213,13 +232,19 @@ namespace TDOM.Unity
 
                 foreach (var tocado in tocados)
                 {
-                    var jugador = tocado.GetComponentInParent<PlayerRoot>();
-                    if (jugador == null || !_golpeados.Add(jugador.OwnerClientId))
-                        continue; // cada jugador solo una vez por ataque
+                    var damageable = tocado.GetComponentInParent<IDamageable>();
+                    if (damageable == null)
+                        continue;
 
-                    ulong id = jugador.OwnerClientId;
+                    var netObj = tocado.GetComponentInParent<NetworkObject>();
+                    ulong id = netObj != null ? netObj.OwnerClientId : 0;
+                    if (!_golpeados.Add(id))
+                        continue;
+
                     Debug.Log($"[AREK][Rayo] golpeó a cliente {id}");
-                    JugadorGolpeadoRpc(RpcTarget.Single(id, RpcTargetUse.Temp));
+                    damageable.RecibirDanio(_perfil.Dano, _perfil.EsInstaKill);
+                    if (netObj != null)
+                        JugadorGolpeadoRpc(RpcTarget.Single(id, RpcTargetUse.Temp));
                 }
             }
         }
@@ -233,6 +258,20 @@ namespace TDOM.Unity
             {
                 _franjas.Add(CrearFranja(origen, final));
                 _rayos.Add(CrearRayo(origen, final));
+            }
+
+            if (_avisoParpadeo != null && _perfil != null)
+            {
+                var renderers = new List<Renderer>(_franjas.Count);
+                foreach (var franja in _franjas)
+                    renderers.Add(franja.GetComponent<Renderer>());
+
+                _avisoParpadeo.Iniciar(
+                    Lanzador.PerfilAviso,
+                    _perfil.aviso,
+                    renderers,
+                    AvisoParpadeo.Forma.FranjaU
+                );
             }
         }
 
@@ -253,7 +292,7 @@ namespace TDOM.Unity
                 franja.SetActive(false);
         }
 
-        // Franja roja en el piso, desde debajo de la boca hasta el final del rayo.
+        // Franja de aviso en el piso, desde debajo de la boca hasta el final del rayo.
         private GameObject CrearFranja(Vector3 origen, Vector3 final)
         {
             Vector3 inicio = new Vector3(origen.x, final.y, origen.z);
@@ -267,13 +306,13 @@ namespace TDOM.Unity
                 inicio + recorrido * 0.5f + Vector3.up * 0.05f,
                 Quaternion.LookRotation(recorrido.normalized, Vector3.up)
             );
-            franja.transform.localScale = new Vector3(_diametro, 0.02f, recorrido.magnitude);
+            franja.transform.localScale = new Vector3(_perfil.diametro, 0.02f, recorrido.magnitude);
 
             var render = franja.GetComponent<Renderer>();
             if (_materialAviso != null)
                 render.sharedMaterial = _materialAviso;
             else
-                render.material.color = new Color(1f, 0f, 0f, 0.4f);
+                Debug.LogWarning("[AtaqueRayo] Falta asignar _materialAviso (AvisoAtaque.mat).");
 
             return franja;
         }
@@ -289,8 +328,8 @@ namespace TDOM.Unity
             linea.positionCount = 2;
             linea.SetPosition(0, origen);
             linea.SetPosition(1, final);
-            linea.startWidth = _diametro;
-            linea.endWidth = _diametro;
+            linea.startWidth = _perfil.diametro;
+            linea.endWidth = _perfil.diametro;
 
             if (_materialRayo != null)
             {
@@ -327,30 +366,8 @@ namespace TDOM.Unity
         [Rpc(SendTo.SpecifiedInParams)]
         private void JugadorGolpeadoRpc(RpcParams rpcParams = default)
         {
-            _flashGolpe = 0.25f;
-
-            var propio = NetworkManager.Singleton?.LocalClient?.PlayerObject;
-            if (propio == null)
-                return;
-
-            var camaraJugador = propio.GetComponentInChildren<PlayerCameraRig>();
-            if (camaraJugador != null)
-                camaraJugador.Impacto(2.5f);
-
-            var flashDebug = propio.GetComponentInChildren<CombatDebugFeedback>();
-            if (flashDebug != null)
-                flashDebug.FlashActive(0.2f);
-        }
-
-        private void OnGUI()
-        {
-            if (_flashGolpe <= 0f)
-                return;
-
-            Color previo = GUI.color;
-            GUI.color = new Color(1f, 0f, 0f, 0.4f);
-            GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
-            GUI.color = previo;
+            MostrarFlashRojo();
+            NotificarGolpeAlJugadorLocal();
         }
 
         private void OnDrawGizmosSelected()

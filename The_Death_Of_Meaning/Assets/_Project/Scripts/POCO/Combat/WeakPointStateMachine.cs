@@ -18,18 +18,28 @@ namespace TDOM.Gameplay.Combat
         Rebote,
     }
 
+    public enum TipoImpactoOjo
+    {
+        Melee,
+        Disparo,
+    }
+
     public sealed class WeakPointStateMachine
     {
         private const float Tolerancia = 1e-4f;
 
-        private static readonly int[] OjosPorFase = { 2, 2, 2, 3, 3 };
+        private static readonly int[] OjosPorFasePorDefecto = { 2, 2, 2, 3, 3 };
+
+        private readonly int[] _ojosPorFase;
 
         private readonly EstadoOjo[] _estados;
         private readonly float[] _timers;
         private readonly float _duracionAbierto;
         private readonly float _cooldown;
+        private readonly float _duracionBrillando;
         private readonly Random _random;
         private readonly List<int> _candidatos = new List<int>();
+        private readonly List<int> _caducadosEnTick = new List<int>();
 
         private int _ojosActivosObjetivo;
 
@@ -37,7 +47,9 @@ namespace TDOM.Gameplay.Combat
             int totalOjos = 12,
             float duracionAbierto = 10f,
             float cooldown = 5f,
-            int semilla = 0
+            int semilla = 0,
+            IReadOnlyList<int> ojosPorFase = null,
+            float duracionBrillando = 0f
         )
         {
             if (totalOjos <= 0)
@@ -52,17 +64,23 @@ namespace TDOM.Gameplay.Combat
                 );
             if (cooldown < 0f)
                 throw new ArgumentOutOfRangeException(nameof(cooldown), "No puede ser negativo.");
+            if (duracionBrillando < 0f)
+                throw new ArgumentOutOfRangeException(
+                    nameof(duracionBrillando),
+                    "No puede ser negativo."
+                );
+
+            _ojosPorFase = CopiarOjosPorFase(ojosPorFase ?? OjosPorFasePorDefecto);
 
             _estados = new EstadoOjo[totalOjos];
             _timers = new float[totalOjos];
             _duracionAbierto = duracionAbierto;
             _cooldown = cooldown;
+            _duracionBrillando = duracionBrillando;
             _random = new Random(semilla);
         }
 
         public int TotalOjos => _estados.Length;
-
-        public int FaseActual { get; private set; }
 
         public EstadoOjo Estado(int ojo)
         {
@@ -72,14 +90,13 @@ namespace TDOM.Gameplay.Combat
 
         public void ActivarFase(int fase)
         {
-            if (fase < 1 || fase > OjosPorFase.Length)
+            if (fase < 1 || fase > _ojosPorFase.Length)
                 throw new ArgumentOutOfRangeException(
                     nameof(fase),
-                    "La fase debe estar entre 1 y 5."
+                    $"La fase debe estar entre 1 y {_ojosPorFase.Length}."
                 );
 
-            FaseActual = fase;
-            _ojosActivosObjetivo = Math.Min(OjosPorFase[fase - 1], TotalOjos);
+            _ojosActivosObjetivo = Math.Min(_ojosPorFase[fase - 1], TotalOjos);
 
             ApagarBrillantesSobrantes();
             Rellenar();
@@ -102,10 +119,43 @@ namespace TDOM.Gameplay.Combat
             }
         }
 
+        public void AbrirOjoParaDebug(int ojo)
+        {
+            ValidarOjo(ojo);
+            _estados[ojo] = EstadoOjo.Abierto;
+            _timers[ojo] = 0f;
+        }
+
+        public static bool AdmiteAncla(EstadoOjo estado) =>
+            estado == EstadoOjo.Brillando || estado == EstadoOjo.Abierto;
+
+        public void BrillarOjoParaDebug(int ojo)
+        {
+            ValidarOjo(ojo);
+            _estados[ojo] = EstadoOjo.Brillando;
+            _timers[ojo] = 0f;
+        }
+
         public bool Disparo(int ojo)
         {
             ValidarOjo(ojo);
             return _estados[ojo] == EstadoOjo.Abierto;
+        }
+
+        public bool ResolverImpacto(int ojo, TipoImpactoOjo tipo, bool atacanteEsAyla)
+        {
+            if (tipo == TipoImpactoOjo.Melee)
+                return atacanteEsAyla && GolpeMelee(ojo) == ResultadoGolpe.Rebote;
+
+            return !atacanteEsAyla && Disparo(ojo);
+        }
+
+        public bool ResolverImpacto(int ojo, TipoImpactoOjo tipo)
+        {
+            bool estabaAbierto = Disparo(ojo);
+            if (tipo == TipoImpactoOjo.Melee)
+                GolpeMelee(ojo);
+            return estabaAbierto;
         }
 
         public void Tick(float dt)
@@ -121,6 +171,21 @@ namespace TDOM.Gameplay.Combat
 
         private void AvanzarOjo(int ojo, float dt)
         {
+            if (_estados[ojo] == EstadoOjo.Brillando)
+            {
+                if (_duracionBrillando <= 0f)
+                    return;
+
+                _timers[ojo] += dt;
+                if (_timers[ojo] < _duracionBrillando - Tolerancia)
+                    return;
+
+                _estados[ojo] = EstadoOjo.Cerrado;
+                _timers[ojo] = 0f;
+                _caducadosEnTick.Add(ojo);
+                return;
+            }
+
             if (_estados[ojo] == EstadoOjo.Abierto)
             {
                 _timers[ojo] += dt;
@@ -150,13 +215,43 @@ namespace TDOM.Gameplay.Combat
             while (activos < _ojosActivosObjetivo)
             {
                 ReunirCandidatos(EstadoOjo.Cerrado);
+                ExcluirCaducadosDeCandidatos();
                 if (_candidatos.Count == 0)
-                    return;
+                    break;
 
                 int elegido = _candidatos[_random.Next(_candidatos.Count)];
                 _estados[elegido] = EstadoOjo.Brillando;
                 _timers[elegido] = 0f;
                 activos++;
+            }
+
+            _caducadosEnTick.Clear();
+        }
+
+        // Los ojos que acaban de caducar no se vuelven a encender en este mismo Tick,
+        // salvo que no quede ningún otro candidato.
+        private void ExcluirCaducadosDeCandidatos()
+        {
+            if (_caducadosEnTick.Count == 0)
+                return;
+
+            bool hayOtroCandidato = false;
+            foreach (int candidato in _candidatos)
+            {
+                if (!_caducadosEnTick.Contains(candidato))
+                {
+                    hayOtroCandidato = true;
+                    break;
+                }
+            }
+
+            if (!hayOtroCandidato)
+                return;
+
+            for (int i = _candidatos.Count - 1; i >= 0; i--)
+            {
+                if (_caducadosEnTick.Contains(_candidatos[i]))
+                    _candidatos.RemoveAt(i);
             }
         }
 
@@ -196,6 +291,24 @@ namespace TDOM.Gameplay.Combat
                 if (_estados[ojo] == estado)
                     _candidatos.Add(ojo);
             }
+        }
+
+        private static int[] CopiarOjosPorFase(IReadOnlyList<int> ojosPorFase)
+        {
+            if (ojosPorFase.Count == 0)
+                throw new ArgumentException("Debe haber al menos una fase.", nameof(ojosPorFase));
+
+            var copia = new int[ojosPorFase.Count];
+            for (int i = 0; i < copia.Length; i++)
+            {
+                if (ojosPorFase[i] < 0)
+                    throw new ArgumentOutOfRangeException(
+                        nameof(ojosPorFase),
+                        "No puede haber ojos negativos en una fase."
+                    );
+                copia[i] = ojosPorFase[i];
+            }
+            return copia;
         }
 
         private void ValidarOjo(int ojo)

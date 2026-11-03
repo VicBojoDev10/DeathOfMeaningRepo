@@ -1,8 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TDOM.Contracts;
+using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.POCO.ScriptableObjects;
+using TDOM.Unity.Player;
+using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -17,13 +21,60 @@ namespace TDOM.Unity.Combat
             NetworkVariableWritePermission.Server
         );
 
+        public NetworkVariable<float> Vida = new NetworkVariable<float>(
+            1f,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
+        [Header("Identidad")]
+        [SerializeField]
+        private BossIdentity _identidad;
+
+        public string Nombre => _identidad != null ? _identidad.Nombre : string.Empty;
+
         public static event Action<BossController> Spawned;
 
+        public static void ObservarJefe(NetworkManager red, Action<BossController> alAparecer)
+        {
+            Spawned += alAparecer;
+            if (TryEncontrarSpawneado(red, out BossController jefe))
+                alAparecer(jefe);
+        }
+
+        public static void DejarDeObservarJefe(Action<BossController> alAparecer) =>
+            Spawned -= alAparecer;
+
+        private static bool TryEncontrarSpawneado(NetworkManager red, out BossController jefe)
+        {
+            jefe = null;
+            if (red == null || red.SpawnManager == null)
+                return false;
+
+            foreach (var objeto in red.SpawnManager.SpawnedObjectsList)
+            {
+                if (objeto != null && objeto.TryGetComponent(out jefe))
+                    return true;
+            }
+
+            return false;
+        }
+
         public event Action<int, int> OnFaseChanged;
+
+        /// <summary>Tick de movimiento emitido solo por el servidor para BossMovement.</summary>
+        public event Action<float, int, bool, BossAttackKind> ServerMovementTick;
 
         private bool _pausado;
 
         public void Pausar(bool pausado) => _pausado = pausado;
+
+        public bool Pausado =>
+            _pausado
+            || PauseManager.PausadoGlobal
+            || (PauseManager.ResultadoGlobal != ResultadoPartida.EnCurso);
+
+        private bool EnTransicion => _maquina != null && _maquina.EnTransicion;
 
         [Header("Puntos Débiles (Ojos)")]
         [SerializeField]
@@ -31,19 +82,30 @@ namespace TDOM.Unity.Combat
 
         public HitZone[] HitZones => _hitZones;
 
+        [SerializeField]
+        private OjosArek _ojos;
+
+        private bool _ojosListos;
+
         [Header("Phase System")]
         [SerializeField]
         private BossPhaseProfile[] _fases;
+
+        /// <summary>Perfil de la fase actual (null si no está configurado). Lo usa MinionSpawner.</summary>
+        public BossPhaseProfile PerfilFaseActual => PerfilDeFase(Fase.Value);
+
+        public bool HayOjoAbierto => _ojos != null && _ojos.HayOjoAbierto;
+
+        /// <summary>
+        /// Solo servidor: false mientras hay un ataque en curso (aviso incluido) y durante la
+        /// espera posterior. El jefe no rota (fase 1) ni se traslada (fase 2 en adelante).
+        /// </summary>
+        public bool PuedeMoverse => _ataques == null || _ataques.MovimientoPermitido;
 
         [SerializeField]
         private float _vidaMaxima = 1000f;
 
         private BossPhaseStateMachine _maquina;
-
-        private readonly Dictionary<
-            HitZone,
-            NetworkVariable<float>.OnValueChangedDelegate
-        > _hitZoneListeners = new();
 
         [Header("Patrón de ataques")]
         [SerializeField]
@@ -52,15 +114,25 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private float _duracionTelegraph = 1.25f;
 
-        // TW-96: lanzador de los ataques reales; si queda vacío se toma del mismo objeto.
         [SerializeField]
         private AtaquesArek _ataques;
-
-        // Solo existe en el servidor. Decide cuándo avisar (Telegraph) y cuándo golpear (Impacto).
         private BossAttackScheduler _scheduler;
-
-        // Posición dentro de la secuencia de la fase actual; solo para mostrar el siguiente ataque.
         private int _indiceEnFase;
+
+        [Header("Visual por fase")]
+        [SerializeField]
+        private Renderer[] _renderersCuerpo;
+
+        [SerializeField]
+        private ParticleSystem _efectoTransicion;
+
+        private static readonly int IdColorBase = Shader.PropertyToID("_BaseColor");
+        private static readonly int IdColorEmision = Shader.PropertyToID("_EmissionColor");
+        private const string KeywordEmision = "_EMISSION";
+
+        private Material[] _materialesCuerpo = Array.Empty<Material>();
+        private Coroutine _destello;
+        private readonly List<PlayerRoot> _jugadores = new List<PlayerRoot>();
 
         [Header("Debug UI")]
         [SerializeField]
@@ -72,11 +144,14 @@ namespace TDOM.Unity.Combat
             {
                 _hitZones = GetComponentsInChildren<HitZone>();
             }
+
+            PrepararMaterialesCuerpo();
         }
 
         public override void OnNetworkSpawn()
         {
             Fase.OnValueChanged += HandleFaseChanged;
+            AplicarColorFase(Fase.Value);
             Spawned?.Invoke(this);
 
             Debug.Log(
@@ -93,6 +168,18 @@ namespace TDOM.Unity.Combat
             }
 
             _maquina = new BossPhaseStateMachine(_fases);
+            _maquina.Muerto += AlMorir;
+            _maquina.TransicionTerminada += AlTerminarTransicion;
+            _maquina.VidaCambiada += AlCambiarVida;
+            Vida.Value = _maquina.VidaActual;
+
+            if (_ojos == null)
+                _ojos = GetComponent<OjosArek>();
+
+            _ojosListos = _ojos != null && _ojos.Preparar(_hitZones, _maquina, _fases.Length);
+            if (!_ojosListos)
+                return;
+
             _scheduler = new BossAttackScheduler(
                 _maquina,
                 _cooldownEntreAtaques,
@@ -112,13 +199,7 @@ namespace TDOM.Unity.Combat
                 if (hz == null)
                     continue;
 
-                NetworkVariable<float>.OnValueChangedDelegate listener = (anterior, actual) =>
-                {
-                    OnDanioZona(actual - anterior);
-                };
-
-                hz.DanioAcumulado.OnValueChanged += listener;
-                _hitZoneListeners[hz] = listener;
+                hz.DanioRegistrado += OnDanioZona;
             }
         }
 
@@ -126,65 +207,131 @@ namespace TDOM.Unity.Combat
         {
             Fase.OnValueChanged -= HandleFaseChanged;
 
-            foreach (var pair in _hitZoneListeners)
+            if (_maquina != null)
             {
-                if (pair.Key != null)
-                {
-                    pair.Key.DanioAcumulado.OnValueChanged -= pair.Value;
-                }
+                _maquina.TransicionTerminada -= AlTerminarTransicion;
+                _maquina.Muerto -= AlMorir;
+                _maquina.VidaCambiada -= AlCambiarVida;
             }
 
-            _hitZoneListeners.Clear();
+            if (_hitZones == null)
+                return;
+
+            foreach (var hz in _hitZones)
+            {
+                if (hz == null)
+                    continue;
+
+                hz.DanioRegistrado -= OnDanioZona;
+            }
         }
 
         private void HandleFaseChanged(int anterior, int actual)
         {
             Debug.Log($"[BossController] Fase cambió de {anterior} a {actual}");
+            AplicarColorFase(actual);
             OnFaseChanged?.Invoke(anterior, actual);
         }
 
-        private void OnDanioZona(float delta)
+        private void OnDanioZona(float cantidad)
         {
             if (!IsServer)
                 return;
 
-            if (delta <= 0f)
+            if (cantidad <= 0f)
                 return;
 
-            if (_maquina == null)
+            if (!_ojosListos)
                 return;
 
-            float porcentajeDanio = delta / _vidaMaxima;
+            if (Pausado)
+                return;
 
-            Debug.Log($"[BossController] Daño recibido: {delta:F1} ({porcentajeDanio:P2})");
+            float porcentajeDanio = cantidad / _vidaMaxima;
 
-            _maquina.AplicarDaño(porcentajeDanio);
+            Debug.Log($"[BossController] Daño recibido: {cantidad:F1} ({porcentajeDanio:P2})");
 
-            if (_maquina.FaseActual != Fase.Value)
+            if (!_ojos.AplicarDanio(porcentajeDanio))
+                return;
+
+            Debug.Log($"[BossController] Cambio de fase detectado: {_maquina.FaseActual}");
+            EntrarAFase(_maquina.FaseActual);
+        }
+
+        private void EntrarAFase(int nuevaFase)
+        {
+            CambiarFase(nuevaFase);
+            _indiceEnFase = 0;
+            RestaurarEnergiaJugadores();
+            CambioDeFaseRpc(nuevaFase);
+
+            if (!_maquina.EnTransicion)
+                AlTerminarTransicion();
+        }
+
+        private void AlCambiarVida(float vida) => Vida.Value = vida;
+
+        private void AlMorir()
+        {
+            if (!IsServer)
+                return;
+
+            if (GameSessionManager.Instance == null)
             {
-                Debug.Log($"[BossController] Cambio de fase detectado: {_maquina.FaseActual}");
-
-                CambiarFase(_maquina.FaseActual);
-
-                // La máquina ya reinició el índice; el scheduler reinicia el tiempo.
-                _scheduler?.ReiniciarPorCambioDeFase();
-                _indiceEnFase = 0;
+                Debug.LogError("No se encontró GameSessionManager para registrar la victoria.");
+                return;
             }
+
+            GameSessionManager.Instance.FinalizarPartidaDesdeServidor();
+        }
+
+        private void AlTerminarTransicion()
+        {
+            _scheduler?.ReiniciarPorCambioDeFase();
+            _indiceEnFase = 0;
+        }
+
+        private void RestaurarEnergiaJugadores()
+        {
+            if (_ataques == null)
+            {
+                Debug.LogWarning(
+                    "[BossController] Sin AtaquesArek: no se pudo restaurar la energía."
+                );
+                return;
+            }
+
+            _ataques.ListarJugadores(_jugadores);
+            foreach (var jugador in _jugadores)
+                jugador.RestaurarEnergiaPorCambioDeFase();
         }
 
         private void Update()
         {
-            // Toda la lógica del jefe corre únicamente en el servidor.
-            if (!IsServer || _scheduler == null || _pausado)
+            if (!IsServer || _scheduler == null || Pausado)
+                return;
+
+            _maquina.Tick(Time.deltaTime);
+            if (_maquina.EstaMuerto)
+                return;
+
+            _ojos.Tick(Time.deltaTime);
+
+            if (Pausado)
                 return;
 
             var evento = _scheduler.Tick(Time.deltaTime, out var ataque);
+            ServerMovementTick?.Invoke(
+                Time.deltaTime,
+                Fase.Value,
+                _scheduler.EnTelegraph,
+                _scheduler.AtaqueActual
+            );
 
             switch (evento)
             {
                 case EventoAtaque.Telegraph:
                     TelegraphAtaqueRpc(ataque);
-                    // TW-96: el ataque se lanza en el Telegraph; cada prefab trae su propio aviso.
                     if (_ataques != null)
                         _ataques.Lanzar(ataque);
                     break;
@@ -207,7 +354,24 @@ namespace TDOM.Unity.Combat
             Debug.Log($"[BossController][RPC Impacto] Golpe: {ataque}");
         }
 
-        public void CambiarFase(int nuevaFase)
+        [Rpc(SendTo.ClientsAndHost)]
+        private void CambioDeFaseRpc(int fase)
+        {
+            if (_efectoTransicion != null)
+                _efectoTransicion.Play();
+
+            var perfil = PerfilDeFase(fase);
+            if (perfil != null && _materialesCuerpo.Length > 0)
+            {
+                if (_destello != null)
+                    StopCoroutine(_destello);
+                _destello = StartCoroutine(Destello(perfil));
+            }
+
+            JugadorLocal()?.SacudidaCambioDeFase();
+        }
+
+        private void CambiarFase(int nuevaFase)
         {
             if (!IsServer)
                 return;
@@ -227,7 +391,126 @@ namespace TDOM.Unity.Combat
             }
         }
 
-        // Ataque que viene después del actual en la secuencia de la fase (solo para el debug UI).
+        private BossPhaseProfile PerfilDeFase(int fase)
+        {
+            if (_fases == null)
+                return null;
+
+            foreach (var perfil in _fases)
+            {
+                if (perfil != null && perfil.Fase == fase)
+                    return perfil;
+            }
+            return null;
+        }
+
+        private void PrepararMaterialesCuerpo()
+        {
+            if (_renderersCuerpo == null || _renderersCuerpo.Length == 0)
+                _renderersCuerpo = BuscarRenderersCuerpo();
+
+            if (_renderersCuerpo.Length == 0)
+            {
+                Debug.LogWarning(
+                    "[BossController] Sin renderers del cuerpo: no habrá color por fase ni destello."
+                );
+                return;
+            }
+
+            var materiales = new List<Material>();
+            var sinColorBase = new Dictionary<string, List<string>>();
+            foreach (var r in _renderersCuerpo)
+            {
+                if (r == null)
+                    continue;
+
+                var material = r.material;
+                if (!material.HasProperty(IdColorBase))
+                {
+                    string shader = material.shader.name;
+                    if (!sinColorBase.TryGetValue(shader, out var partes))
+                        sinColorBase[shader] = partes = new List<string>();
+                    partes.Add(r.name);
+                }
+                material.EnableKeyword(KeywordEmision);
+                material.SetColor(IdColorEmision, Color.black);
+                materiales.Add(material);
+            }
+            _materialesCuerpo = materiales.ToArray();
+
+            // Un solo aviso por shader (no uno por parte del modelo): esas partes no cambian de
+            // color por fase ni con el destello hasta que el shader tenga una propiedad _BaseColor.
+            foreach (var par in sinColorBase)
+            {
+                Debug.LogWarning(
+                    $"[BossController] El shader '{par.Key}' no tiene _BaseColor "
+                        + $"({par.Value.Count} partes, sin color por fase ni destello): "
+                        + string.Join(", ", par.Value)
+                );
+            }
+        }
+
+        private Renderer[] BuscarRenderersCuerpo()
+        {
+            var encontrados = new List<Renderer>();
+            var ojosVisual = GetComponent<OjosArekVisual>();
+            foreach (var r in GetComponentsInChildren<Renderer>())
+            {
+                bool esMalla = r is MeshRenderer || r is SkinnedMeshRenderer;
+                bool esOjo = ojosVisual != null && ojosVisual.UsaRenderer(r);
+                if (esMalla && r.enabled && !esOjo && r.GetComponent<HitZone>() == null)
+                    encontrados.Add(r);
+            }
+            return encontrados.ToArray();
+        }
+
+        private void AplicarColorFase(int fase)
+        {
+            var perfil = PerfilDeFase(fase);
+            if (perfil == null)
+                return;
+
+            foreach (var material in _materialesCuerpo)
+                material.SetColor(IdColorBase, perfil.ColorFase);
+        }
+
+        private IEnumerator Destello(BossPhaseProfile perfil)
+        {
+            float duracion = perfil.DuracionDestello;
+            float transcurrido = 0f;
+            while (transcurrido < duracion)
+            {
+                float fuerza = perfil.IntensidadDestello * (1f - transcurrido / duracion);
+                FijarEmision(perfil.ColorDestello * fuerza);
+                transcurrido += Time.deltaTime;
+                yield return null;
+            }
+
+            FijarEmision(Color.black);
+            _destello = null;
+        }
+
+        private void FijarEmision(Color color)
+        {
+            foreach (var material in _materialesCuerpo)
+                material.SetColor(IdColorEmision, color);
+        }
+
+        private PlayerRoot JugadorLocal()
+        {
+            var cliente = NetworkManager.LocalClient;
+            if (cliente == null)
+                return null;
+
+            foreach (var objeto in cliente.OwnedObjects)
+            {
+                var jugador = objeto.GetComponent<PlayerRoot>();
+                if (jugador != null)
+                    return jugador;
+            }
+            return null;
+        }
+
         private string SiguienteAtaqueParaDebug()
         {
             if (_maquina == null)
@@ -246,7 +529,7 @@ namespace TDOM.Unity.Combat
             if (!_mostrarDebugUI || !IsSpawned)
                 return;
 
-            GUILayout.BeginArea(new Rect(10, 200, 320, 480), "Boss AREK Debug", GUI.skin.window);
+            GUILayout.BeginArea(new Rect(10, 200, 490, 480), "Boss AREK Debug", GUI.skin.window);
 
             string rol = IsServer
                 ? (IsHost ? "Host (Server + Client)" : "Dedicated Server")
@@ -256,10 +539,17 @@ namespace TDOM.Unity.Combat
 
             if (IsServer && _scheduler != null)
             {
-                string etapa = _scheduler.EnTelegraph ? "Telegraph" : "Cooldown";
-                GUILayout.Label($"Ataque actual: {_scheduler.AtaqueActual} ({etapa})");
-                GUILayout.Label($"Siguiente: {SiguienteAtaqueParaDebug()}");
-                GUILayout.Label($"Tiempo restante: {_scheduler.TiempoRestante:F2} s");
+                if (EnTransicion)
+                {
+                    GUILayout.Label($"En transición ({_maquina.TiempoTransicionRestante:F1}s)");
+                }
+                else
+                {
+                    string etapa = _scheduler.EnTelegraph ? "Telegraph" : "Cooldown";
+                    GUILayout.Label($"Ataque actual: {_scheduler.AtaqueActual} ({etapa})");
+                    GUILayout.Label($"Siguiente: {SiguienteAtaqueParaDebug()}");
+                    GUILayout.Label($"Tiempo restante: {_scheduler.TiempoRestante:F2} s");
+                }
             }
             else
             {
@@ -278,16 +568,33 @@ namespace TDOM.Unity.Combat
                         continue;
 
                     GUILayout.BeginHorizontal();
+                    string estado =
+                        _ojos != null && i < _ojos.TotalOjos ? _ojos.Estado(i).ToString() : "-";
                     GUILayout.Label(
-                        $"[{hz.ZoneIndex:D2}] {hz.ZoneName}: {hz.DanioAcumulado.Value:F0} dmg",
+                        $"[{hz.ZoneIndex:D2}] {estado}: {hz.DanioAcumulado.Value:F0} dmg",
                         GUILayout.Width(180)
                     );
 
                     if (IsServer)
                     {
+                        if (GUILayout.Button("Brillar", GUILayout.Width(55)))
+                            _ojos?.BrillarOjoParaDebug(i);
+
+                        if (GUILayout.Button("Abrir", GUILayout.Width(55)))
+                            _ojos?.AbrirOjoParaDebug(i);
+
                         if (GUILayout.Button("+10", GUILayout.Width(50)))
                         {
                             hz.RegistrarDanio(10f);
+                        }
+
+                        if (GUILayout.Button("Golpe", GUILayout.Width(60)))
+                        {
+                            hz.RegistrarImpacto(
+                                10f,
+                                NetworkManager.LocalClientId,
+                                TipoImpactoOjo.Melee
+                            );
                         }
                     }
                     GUILayout.EndHorizontal();

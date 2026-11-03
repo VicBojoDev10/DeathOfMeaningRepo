@@ -7,7 +7,7 @@ namespace TDOM.Unity
 {
     [CreateAssetMenu(
         fileName = "AudioManagerData",
-        menuName = "DINO/Audio/AudioManagerData",
+        menuName = "TDOM/Audio/AudioManagerData",
         order = 0
     )]
     public class AudioManagerData : ScriptableObject

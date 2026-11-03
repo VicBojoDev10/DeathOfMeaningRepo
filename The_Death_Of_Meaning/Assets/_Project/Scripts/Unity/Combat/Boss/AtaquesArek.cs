@@ -1,7 +1,12 @@
+using System;
+using System.Collections.Generic;
 using TDOM.Contracts;
+using TDOM.Data;
+using TDOM.Gameplay.Combat;
+using TDOM.Unity.Combat;
+using TDOM.Unity.Player;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace TDOM.Unity
 {
@@ -16,8 +21,10 @@ namespace TDOM.Unity
 
         // Antes era el "Tentáculo" (TW-86); en realidad es el Mortero (TW-96).
         [SerializeField]
-        [FormerlySerializedAs("_prefabAtaqueTentaculo")]
         private GameObject _prefabAtaqueMortero;
+
+        [SerializeField]
+        private GameObject _prefabAtaqueTentaculo;
 
         [SerializeField]
         private GameObject _prefabAtaqueRayo;
@@ -25,11 +32,394 @@ namespace TDOM.Unity
         [SerializeField]
         private Transform _bocaRayo; // opcional; si es null se busca el hijo "Boca" del jefe
 
+        // Cada ataque lee su perfil de aquí al spawnear (servidor y clientes).
+        [Header("Perfiles de tuning de los ataques")]
+        [SerializeField]
+        private AtaqueManoProfile _perfilMano;
+
+        [SerializeField]
+        private AtaqueTentaculoProfile _perfilTentaculo;
+
+        [SerializeField]
+        private AtaqueMorteroProfile _perfilMortero;
+
+        [SerializeField]
+        private AtaqueRayoProfile _perfilRayo;
+
+        // Parpadeo de las áreas de aviso, común a todos los ataques.
+        [SerializeField]
+        private AvisoAtaqueProfile _perfilAviso;
+
+        [Header("Elección de objetivo")]
+        [SerializeField]
+        private BossTargetingProfile _perfilObjetivo;
+
+        // TW-126: cada piedra del Mortero deja una columna; aquí viven porque el ataque se despawnea.
+        [Header("Columnas del Mortero")]
+        [SerializeField]
+        private GameObject _prefabColumnaMortero;
+
+        public AtaqueManoProfile PerfilMano => _perfilMano;
+        public AtaqueTentaculoProfile PerfilTentaculo => _perfilTentaculo;
+        public AtaqueMorteroProfile PerfilMortero => _perfilMortero;
+
+        [Header("Efectos")]
+        [Tooltip(
+            "Boca del jefe: de ahí sale la lava del Mortero (TW-182). Si falta, sale del pivote."
+        )]
+        [SerializeField]
+        private Transform _puntoBoca;
+
+        public Transform PuntoBoca => _puntoBoca != null ? _puntoBoca : transform;
+        public AtaqueRayoProfile PerfilRayo => _perfilRayo;
+        public AvisoAtaqueProfile PerfilAviso => _perfilAviso;
+        public BossTargetingProfile PerfilObjetivo => _perfilObjetivo;
+
+        /// <summary>Solo servidor: se lanzó un ataque (también desde los botones de debug). Lo usa MinionSpawner.</summary>
+        public event Action<BossAttackKind> AtaqueEjecutado;
+
+        /// <summary>
+        /// Servidor y clientes: se lanzó un ataque de verdad (hubo objetivo en rango o fue debug).
+        /// Lo usa BossAnimationDriver para animar solo cuando el ataque sale.
+        /// </summary>
+        public event Action<BossAttackKind> AtaqueLanzado;
+
+        /// <summary>Solo servidor: jugador elegido para el último ataque (null si nadie estaba en rango).</summary>
+        public ulong? ObjetivoActual { get; private set; }
+
+        /// <summary>Un impacto válido cambia el tracking al jugador que lo conectó.</summary>
+        public void RegistrarImpacto(ulong atacanteId)
+        {
+            if (!IsServer)
+                return;
+
+            _logicaMovimiento.FijarObjetivo(atacanteId);
+            _agro?.Registrar(atacanteId, 1f, Time.time);
+            Debug.Log($"[AtaquesArek] Tracking cambiado al cliente {atacanteId} por impacto.");
+        }
+
+        // Solo servidor.
+        private BossAggroTracker _agro;
+        private HitZone[] _zonas;
+        private readonly List<BossTargetCandidate> _candidatos = new List<BossTargetCandidate>();
+        private readonly List<BossTargetCandidate> _candidatosMovimiento =
+            new List<BossTargetCandidate>();
+        private readonly List<PlayerRoot> _jugadores = new List<PlayerRoot>();
+        private readonly TDOM.Gameplay.Combat.BossMovement _logicaMovimiento =
+            new TDOM.Gameplay.Combat.BossMovement();
+
+        // La Mano alterna el sentido del barrido en cada ataque (TW-180).
+        private readonly AlternadorDireccionMano _alternadorMano = new AlternadorDireccionMano();
+
+        // Solo servidor: columnas vivas, de la más vieja a la más nueva.
+        private struct ColumnaViva
+        {
+            public ColumnaMortero Columna;
+            public int AtaqueDeNacimiento;
+        }
+
+        private readonly List<ColumnaViva> _columnas = new List<ColumnaViva>();
+        private int _ataquesLanzados;
+        private BossController _jefe;
+
+        // Solo servidor: el jefe no rota ni se traslada mientras hay un ataque en curso (desde
+        // el aviso hasta que su NetworkObject se despawnea) ni durante la espera posterior.
+        private BloqueoMovimientoAtaque _bloqueo = new BloqueoMovimientoAtaque();
+        private readonly List<NetworkObject> _ataquesEnCurso = new List<NetworkObject>();
+
+        /// <summary>
+        /// Solo servidor: el jefe puede rotar o trasladarse (sin ataque en curso y con la espera
+        /// posterior cumplida). Lo consultan BossGiroHaciaObjetivo y BossMovement.
+        /// </summary>
+        public bool MovimientoPermitido => _bloqueo.PuedeMoverse;
+
+        public override void OnNetworkSpawn()
+        {
+            if (!IsServer)
+                return;
+
+            _agro = new BossAggroTracker(0f);
+            _alternadorMano.Reiniciar();
+            _ataquesEnCurso.Clear();
+            _bloqueo =
+                _perfilObjetivo != null
+                    ? new BloqueoMovimientoAtaque(
+                        _perfilObjetivo.esperaTrasAtaque,
+                        _perfilObjetivo.tiempoMaximoAtaque
+                    )
+                    : new BloqueoMovimientoAtaque();
+            _zonas = GetComponentsInChildren<HitZone>(true);
+            foreach (var zona in _zonas)
+                zona.DanioRecibido += AlRecibirDanio;
+
+            _jefe = GetComponent<BossController>();
+            if (_jefe != null)
+                _jefe.OnFaseChanged += AlCambiarFase;
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            if (IsServer)
+                LimpiarColumnasEnServidor();
+
+            _logicaMovimiento.ResetearObjetivo();
+            _ataquesEnCurso.Clear();
+            _bloqueo.Reiniciar();
+            if (_jefe != null)
+                _jefe.OnFaseChanged -= AlCambiarFase;
+
+            if (_zonas == null)
+                return;
+
+            foreach (var zona in _zonas)
+                zona.DanioRecibido -= AlRecibirDanio;
+        }
+
+        private void Update()
+        {
+            if (!IsServer || !IsSpawned)
+                return;
+
+            // El tiempo (espera y límite de seguridad) no corre en pausa ni con la partida
+            // terminada; el fin de los ataques sí se detecta siempre.
+            if (_jefe == null || !_jefe.Pausado)
+            {
+                if (_bloqueo.Tick(Time.deltaTime))
+                {
+                    Debug.LogWarning(
+                        "[AtaquesArek] Un ataque superó tiempoMaximoAtaque sin terminar; "
+                            + "se libera el movimiento del jefe."
+                    );
+                    _ataquesEnCurso.Clear();
+                }
+            }
+
+            PodarAtaquesTerminados();
+        }
+
+        // Un ataque terminó cuando su NetworkObject se despawneó (o se destruyó).
+        private void PodarAtaquesTerminados()
+        {
+            for (int i = _ataquesEnCurso.Count - 1; i >= 0; i--)
+            {
+                NetworkObject ataque = _ataquesEnCurso[i];
+                if (ataque != null && ataque.IsSpawned)
+                    continue;
+
+                _ataquesEnCurso.RemoveAt(i);
+                _bloqueo.Terminar();
+            }
+        }
+
+        // Un ataque spawneado bloquea el movimiento del jefe hasta que se despawnee.
+        private void RegistrarAtaqueEnCurso(NetworkObject ataque)
+        {
+            if (ataque == null || !ataque.IsSpawned)
+                return;
+
+            _ataquesEnCurso.Add(ataque);
+            _bloqueo.Iniciar();
+        }
+
+        private void AlRecibirDanio(ulong atacanteId, float cantidad)
+        {
+            _agro?.Registrar(atacanteId, cantidad, Time.time);
+        }
+
+        // Lo llama el patrón (BossController). Solo ataca si hay un jugador en el rango de ese ataque.
         // Mapeo de Confluence: Basico = Mano, Pesado = Tentáculo, Especial = Rayo, InstaKill = Mortero.
         public void Lanzar(BossAttackKind tipo)
         {
             if (!IsServer)
                 return;
+
+            if (!TryElegirObjetivo(tipo))
+                return;
+
+            Ejecutar(tipo);
+        }
+
+        private bool TryElegirObjetivo(BossAttackKind tipo)
+        {
+            AtaqueArekProfile perfil = PerfilDe(tipo);
+            if (perfil == null || _perfilObjetivo == null)
+            {
+                Debug.LogError(
+                    $"[AtaquesArek] Falta el perfil de {tipo} o el BossTargetingProfile en el Inspector."
+                );
+                return false;
+            }
+
+            if (!TryActualizarObjetivoFijado(out ulong objetivoId, out bool zendreAnclado))
+            {
+                ObjetivoActual = null;
+                return false;
+            }
+
+            if (!zendreAnclado && !EstaEnRangoDeAtaque(objetivoId, perfil.Rango))
+            {
+                ObjetivoActual = null;
+                Debug.Log(
+                    $"[AtaquesArek] {tipo}: ningún jugador en rango ({perfil.Rango:F0} m); no ataca."
+                );
+                return false;
+            }
+
+            ObjetivoActual = objetivoId;
+            Debug.Log($"[AtaquesArek] {tipo} contra cliente {objetivoId} (objetivo fijado).");
+            return true;
+        }
+
+        /// <summary>
+        /// Solo servidor: objetivo fijado por cercanía mientras siga en el radio de detección.
+        /// Si Zendre tiene un ojo anclado, se prioriza a Zendre. Lo usa BossGiroHaciaObjetivo.
+        /// </summary>
+        public bool TryObjetivoVisible(out ulong objetivoId)
+        {
+            return TryActualizarObjetivoFijado(out objetivoId, out _);
+        }
+
+        public bool TryObjetivoMovimiento(out ulong objetivoId, out bool zendreAnclado)
+        {
+            return TryActualizarObjetivoFijado(out objetivoId, out zendreAnclado);
+        }
+
+        private bool TryActualizarObjetivoFijado(out ulong objetivoId, out bool zendreAnclado)
+        {
+            objetivoId = 0;
+            zendreAnclado = false;
+            if (!IsServer || _perfilObjetivo == null || _agro == null)
+                return false;
+
+            ArmarCandidatos();
+            _candidatosMovimiento.Clear();
+            foreach (var candidato in _candidatos)
+            {
+                if (candidato.Distancia <= _perfilObjetivo.radioDeteccion)
+                    _candidatosMovimiento.Add(
+                        new BossTargetCandidate(candidato.Id, candidato.Distancia, 0f)
+                    );
+            }
+
+            ulong? anclado = null;
+            if (TryObjetivoAnclado(out ulong idAnclado))
+            {
+                anclado = idAnclado;
+                zendreAnclado = true;
+            }
+
+            return _logicaMovimiento.TryElegirObjetivo(
+                _candidatosMovimiento,
+                anclado,
+                out objetivoId
+            );
+        }
+
+        private bool EstaEnRangoDeAtaque(ulong objetivoId, float rangoAtaque)
+        {
+            float alcance = Mathf.Min(rangoAtaque, _perfilObjetivo.radioDeteccion);
+            foreach (var candidato in _candidatosMovimiento)
+            {
+                if (candidato.Id == objetivoId && candidato.Distancia <= alcance)
+                    return true;
+            }
+            return false;
+        }
+
+        private bool TryObjetivoAnclado(out ulong objetivoId)
+        {
+            objetivoId = 0;
+            ListarJugadores(_jugadores);
+            foreach (var jugador in _jugadores)
+            {
+                if (jugador.CharacterId != CharacterIds.Zendre)
+                    continue;
+
+                var launcher = jugador.GetComponentInChildren<AnchorLauncher>();
+                var ancla = launcher != null ? launcher.AnclaActual : null;
+                if (ancla == null || !ancla.IsSpawned || !ancla.Pegada.Value || !ancla.PegadaEnOjo)
+                    continue;
+
+                objetivoId = jugador.OwnerClientId;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>Solo servidor: posición del jugador de ese cliente, si sigue spawneado.</summary>
+        public bool TryPosicionJugador(ulong clientId, out Vector3 posicion)
+        {
+            posicion = default;
+            ListarJugadores(_jugadores);
+            foreach (var jugador in _jugadores)
+            {
+                if (jugador.OwnerClientId != clientId)
+                    continue;
+
+                posicion = jugador.transform.position;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Jugadores spawneados (PlayerRoot). GameSessionManager los spawnea con
+        /// SpawnWithOwnership, así que NetworkClient.PlayerObject está vacío: se buscan aquí.
+        /// </summary>
+        public void ListarJugadores(List<PlayerRoot> resultado)
+        {
+            resultado.Clear();
+            foreach (var objeto in NetworkManager.SpawnManager.SpawnedObjectsList)
+            {
+                if (objeto != null && objeto.TryGetComponent(out PlayerRoot jugador))
+                    resultado.Add(jugador);
+            }
+        }
+
+        // Distancia en XZ desde el jefe y daño reciente de cada jugador spawneado.
+        private void ArmarCandidatos()
+        {
+            _candidatos.Clear();
+            if (_perfilObjetivo != null)
+                _agro.Ventana = _perfilObjetivo.ventanaAgro;
+            float ahora = Time.time;
+
+            ListarJugadores(_jugadores);
+            foreach (var jugador in _jugadores)
+            {
+                Vector3 hacia = jugador.transform.position - transform.position;
+                hacia.y = 0f;
+
+                ulong id = jugador.OwnerClientId;
+                _candidatos.Add(
+                    new BossTargetCandidate(id, hacia.magnitude, _agro.DanioReciente(id, ahora))
+                );
+            }
+        }
+
+        private AtaqueArekProfile PerfilDe(BossAttackKind tipo)
+        {
+            switch (tipo)
+            {
+                case BossAttackKind.Basico:
+                    return _perfilMano;
+                case BossAttackKind.Pesado:
+                    return _perfilTentaculo;
+                case BossAttackKind.Especial:
+                    return _perfilRayo;
+                case BossAttackKind.InstaKill:
+                    return _perfilMortero;
+                default:
+                    return null;
+            }
+        }
+
+        private void Ejecutar(BossAttackKind tipo)
+        {
+            _ataquesLanzados++;
+            HundirColumnasVencidas();
 
             switch (tipo)
             {
@@ -37,8 +427,7 @@ namespace TDOM.Unity
                     LanzarAtaqueMano();
                     break;
                 case BossAttackKind.Pesado:
-                    // Reservado para el Tentáculo nuevo (otro ticket).
-                    Debug.LogWarning("[AtaquesArek] Tentáculo no implementado");
+                    LanzarAtaqueTentaculo();
                     break;
                 case BossAttackKind.Especial:
                     LanzarAtaqueRayo();
@@ -47,15 +436,86 @@ namespace TDOM.Unity
                     LanzarAtaqueMortero();
                     break;
             }
+
+            AtaqueEjecutado?.Invoke(tipo);
+            AtaqueLanzadoRpc(tipo);
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void AtaqueLanzadoRpc(BossAttackKind tipo)
+        {
+            AtaqueLanzado?.Invoke(tipo);
         }
 
         private void LanzarAtaqueMano()
         {
-            Vector3 pos = _puntoOrigenMano != null ? _puntoOrigenMano.position : transform.position;
+            Vector3 centro = CentroMano();
             Quaternion rot =
                 _puntoOrigenMano != null ? _puntoOrigenMano.rotation : transform.rotation;
 
-            Spawnear(_prefabAtaqueMano, "_prefabAtaqueMano", pos, rot);
+            // El barrido de 180° se centra en el objetivo, aunque el jefe no haya terminado de girar.
+            if (
+                ObjetivoActual.HasValue
+                && TryPosicionJugador(ObjetivoActual.Value, out Vector3 posicionObjetivo)
+            )
+            {
+                Vector3 hacia = posicionObjetivo - centro;
+                hacia.y = 0f;
+                if (hacia.sqrMagnitude > 0.0001f)
+                    rot = Quaternion.LookRotation(hacia.normalized, Vector3.up);
+            }
+
+            // El eje centro -> objetivo (rot) fija la dirección; el origen nace en el borde.
+            int sentido = _alternadorMano.Siguiente();
+            Spawnear(
+                _prefabAtaqueMano,
+                "_prefabAtaqueMano",
+                OrigenMano(centro, rot),
+                rot,
+                go =>
+                {
+                    var mano = go.GetComponent<AtaqueMano>();
+                    if (mano != null)
+                        mano.AsignarSentido(sentido);
+                }
+            );
+        }
+
+        // _puntoOrigenMano si está asignado; si no, el pivote del jefe más el desfase del perfil.
+        private Vector3 CentroMano()
+        {
+            if (_puntoOrigenMano != null)
+                return _puntoOrigenMano.position;
+
+            Vector3 desfase = _perfilMano != null ? _perfilMano.desfaseOrigen : Vector3.zero;
+            return transform.TransformPoint(desfase);
+        }
+
+        // Punto donde nacen la burbuja y la raíz de la columna: el cruce entre el eje centro ->
+        // objetivo y el borde de la silueta del jefe, un poco adentro (perfil). El sentido del
+        // barrido no lo cambia. Con _puntoOrigenMano asignado o el borde apagado, es el centro.
+        private Vector3 OrigenMano(Vector3 centro, Quaternion rot)
+        {
+            if (
+                _puntoOrigenMano != null
+                || _perfilMano == null
+                || !_perfilMano.origenEnBordeDelJefe
+            )
+                return centro;
+
+            Vector3 direccion = rot * Vector3.forward;
+            direccion.y = 0f;
+            if (direccion.sqrMagnitude < 0.0001f)
+                return centro;
+
+            direccion.Normalize();
+            float borde = SiluetaJefe.DistanciaAlBorde(
+                transform,
+                centro,
+                direccion,
+                _perfilMano.radioBorde
+            );
+            return centro + direccion * Mathf.Max(0f, borde - _perfilMano.adentroBorde);
         }
 
         // Se spawnea en la posición y rotación del jefe; AtaqueMortero elige los 3 puntos al spawnear.
@@ -64,6 +524,17 @@ namespace TDOM.Unity
             Spawnear(
                 _prefabAtaqueMortero,
                 "_prefabAtaqueMortero",
+                transform.position,
+                transform.rotation
+            );
+        }
+
+        // Se spawnea en la posición y rotación del jefe; AtaqueTentaculo elige la dirección al spawnear.
+        private void LanzarAtaqueTentaculo()
+        {
+            Spawnear(
+                _prefabAtaqueTentaculo,
+                "_prefabAtaqueTentaculo",
                 transform.position,
                 transform.rotation
             );
@@ -83,15 +554,28 @@ namespace TDOM.Unity
             Transform boca = _bocaRayo != null ? _bocaRayo : transform.Find("Boca");
 
             var rayo = go.GetComponent<AtaqueRayo>();
-            if (rayo != null && boca != null)
-                rayo.AsignarBoca(boca);
+            if (rayo != null)
+            {
+                rayo.AsignarLanzador(this);
+                if (boca != null)
+                    rayo.AsignarBoca(boca);
+            }
 
             var no = go.GetComponent<NetworkObject>();
             if (no != null)
+            {
                 no.Spawn();
+                RegistrarAtaqueEnCurso(no);
+            }
         }
 
-        private void Spawnear(GameObject prefab, string nombreCampo, Vector3 pos, Quaternion rot)
+        private void Spawnear(
+            GameObject prefab,
+            string nombreCampo,
+            Vector3 pos,
+            Quaternion rot,
+            Action<GameObject> antesDeSpawn = null
+        )
         {
             if (prefab == null)
             {
@@ -100,9 +584,120 @@ namespace TDOM.Unity
             }
 
             GameObject go = Instantiate(prefab, pos, rot);
+
+            var ataque = go.GetComponent<AtaqueArekBase>();
+            if (ataque != null)
+                ataque.AsignarLanzador(this);
+
+            antesDeSpawn?.Invoke(go);
+
             var no = go.GetComponent<NetworkObject>();
             if (no != null)
+            {
                 no.Spawn();
+                RegistrarAtaqueEnCurso(no);
+            }
+        }
+
+        /// <summary>
+        /// Solo servidor: spawnea una columna con la base en el punto de impacto. Si se pasa del
+        /// máximo, la más vieja se hunde.
+        /// </summary>
+        public void SpawnearColumna(Vector3 punto)
+        {
+            if (!IsServer)
+                return;
+
+            if (_prefabColumnaMortero == null || _perfilMortero == null)
+            {
+                Debug.LogError(
+                    "[AtaquesArek] _prefabColumnaMortero o _perfilMortero no está asignado en el Inspector."
+                );
+                return;
+            }
+
+            GameObject go = Instantiate(_prefabColumnaMortero, punto, Quaternion.identity);
+            var columna = go.GetComponent<ColumnaMortero>();
+            var no = go.GetComponent<NetworkObject>();
+            if (columna == null || no == null)
+            {
+                Debug.LogError(
+                    "[AtaquesArek] _prefabColumnaMortero necesita ColumnaMortero y NetworkObject."
+                );
+                Destroy(go);
+                return;
+            }
+
+            columna.AsignarAltura(
+                UnityEngine.Random.Range(
+                    _perfilMortero.alturaColumnaMin,
+                    _perfilMortero.alturaColumnaMax
+                )
+            );
+            no.Spawn();
+
+            _columnas.Add(
+                new ColumnaViva { Columna = columna, AtaqueDeNacimiento = _ataquesLanzados }
+            );
+
+            int maximo = Mathf.Max(1, _perfilMortero.maxColumnas);
+            while (_columnas.Count > maximo)
+                HundirColumna(0);
+        }
+
+        // Se quitan al empezar el ataque número ataquesDeVidaColumna después del Mortero que las creó.
+        private void HundirColumnasVencidas()
+        {
+            if (_perfilMortero == null)
+                return;
+
+            for (int i = _columnas.Count - 1; i >= 0; i--)
+            {
+                int edad = _ataquesLanzados - _columnas[i].AtaqueDeNacimiento;
+                if (edad >= _perfilMortero.ataquesDeVidaColumna)
+                    HundirColumna(i);
+            }
+        }
+
+        private void HundirColumna(int indice)
+        {
+            ColumnaMortero columna = _columnas[indice].Columna;
+            _columnas.RemoveAt(indice);
+            if (columna != null)
+                columna.Hundir();
+        }
+
+        /// <summary>Elimina inmediatamente todas las columnas al finalizar o reiniciar la partida.</summary>
+        public void LimpiarColumnasEnServidor()
+        {
+            if (!IsServer)
+                return;
+
+            for (int i = _columnas.Count - 1; i >= 0; i--)
+            {
+                ColumnaMortero columna = _columnas[i].Columna;
+                _columnas.RemoveAt(i);
+                if (columna != null && columna.IsSpawned)
+                    columna.NetworkObject.Despawn(true);
+            }
+        }
+
+        // TW-116: opcional, detrás de limpiarColumnasAlCambiarFase.
+        private void AlCambiarFase(int anterior, int actual)
+        {
+            if (!IsServer || _perfilMortero == null || !_perfilMortero.limpiarColumnasAlCambiarFase)
+                return;
+
+            for (int i = _columnas.Count - 1; i >= 0; i--)
+                HundirColumna(i);
+        }
+
+        // Los botones de debug no revisan el rango del ataque, pero sí apuntan a quien el jefe
+        // está mirando (radio de detección); si no ve a nadie, el ataque cae al azar.
+        private void EjecutarDebug(BossAttackKind tipo)
+        {
+            ObjetivoActual = TryObjetivoVisible(out ulong objetivoId) ? objetivoId : (ulong?)null;
+            Ejecutar(tipo);
         }
 
         private void OnGUI()
@@ -111,27 +706,28 @@ namespace TDOM.Unity
             if (!IsServer || !IsHost || !IsSpawned)
                 return;
 
+            // Los botones de debug lanzan el ataque sin revisar su rango (ver EjecutarDebug).
             // Ubicado en la esquina superior derecha para no solapar el debug UI de la izquierda
             GUILayout.BeginArea(
-                new Rect(Screen.width - 180, 20, 160, 215),
+                new Rect(Screen.width - 180, 120, 160, 215),
                 "Boss Attacks Host",
                 GUI.skin.window
             );
             if (GUILayout.Button("Lanzar Mano", GUILayout.Height(35)))
             {
-                Lanzar(BossAttackKind.Basico);
+                EjecutarDebug(BossAttackKind.Basico);
             }
             if (GUILayout.Button("Lanzar Tentáculo", GUILayout.Height(35)))
             {
-                Lanzar(BossAttackKind.Pesado);
+                EjecutarDebug(BossAttackKind.Pesado);
             }
             if (GUILayout.Button("Lanzar Mortero", GUILayout.Height(35)))
             {
-                Lanzar(BossAttackKind.InstaKill);
+                EjecutarDebug(BossAttackKind.InstaKill);
             }
             if (GUILayout.Button("Lanzar Rayo", GUILayout.Height(35)))
             {
-                Lanzar(BossAttackKind.Especial);
+                EjecutarDebug(BossAttackKind.Especial);
             }
             GUILayout.EndArea();
         }

@@ -17,6 +17,15 @@ namespace TDOM.Gameplay
             _bufferTime = bufferTime;
         }
 
+        public bool PuedeSaltar(LocomotionState estado)
+        {
+            if (estado.IsGrounded)
+                return true;
+            bool tieneSaltos = estado.JumpsUsed < _maxSaltos;
+            bool enCoyote = estado.CoyoteTimer > 0f && estado.JumpsUsed == 0;
+            return tieneSaltos || enCoyote;
+        }
+
         public void Tick(LocomotionState estado, InputSnapshot input, float dt)
         {
             if (estado.IsGrounded)

@@ -22,6 +22,15 @@ namespace TDOM.Gameplay.Combat
         private int _faseActual;
         private int _indiceAtaque;
         private float _vidaActual = 1f;
+        private float _tiempoTransicion;
+        private bool _muerto;
+
+        /// <summary>Se dispara en Tick cuando termina la transición de fase.</summary>
+        public event Action TransicionTerminada;
+
+        public event Action<float> VidaCambiada;
+
+        public event Action Muerto;
 
         public BossPhaseStateMachine(BossPhaseProfile[] fases, float cooldownSegundos = 0f)
         {
@@ -42,9 +51,28 @@ namespace TDOM.Gameplay.Combat
 
         public int FaseActual => _faseActual + 1;
 
+        /// <summary>True durante la transición de fase: el daño se ignora.</summary>
+        public bool EnTransicion => _tiempoTransicion > 0f;
+
+        public float TiempoTransicionRestante => _tiempoTransicion;
+
+        /// <summary>Vida normalizada (1 = llena).</summary>
+        public float VidaActual => _vidaActual;
+
+        public bool EstaMuerto => _muerto;
+
+        private bool EnUltimaFase => _faseActual + 1 >= _fases.Length;
+
         public void Tick(float dt)
         {
             _cooldown.Tick(dt);
+
+            if (!EnTransicion || dt <= 0f)
+                return;
+
+            _tiempoTransicion = Math.Max(0f, _tiempoTransicion - dt);
+            if (!EnTransicion)
+                TransicionTerminada?.Invoke();
         }
 
         public BossAttackStep SiguienteAtaque()
@@ -74,16 +102,32 @@ namespace TDOM.Gameplay.Combat
 
         public void AplicarDaño(float daño)
         {
-            _vidaActual -= daño;
+            if (EnTransicion || _muerto || daño <= 0f)
+                return;
 
-            if (
-                _faseActual + 1 < _fases.Length
-                && _vidaActual <= _fases[_faseActual].VidaTransicion
-            )
+            _vidaActual = Math.Max(0f, _vidaActual - daño);
+
+            float umbral = _fases[_faseActual].VidaTransicion;
+            if (!EnUltimaFase && _vidaActual <= umbral)
             {
+                // El daño que sobra no arrastra a la siguiente fase.
+                _vidaActual = umbral;
                 _faseActual++;
                 _indiceAtaque = 0;
+                _tiempoTransicion = Math.Max(0f, _fases[_faseActual].DuracionTransicion);
             }
+
+            VidaCambiada?.Invoke(_vidaActual);
+            ComprobarMuerte();
+        }
+
+        private void ComprobarMuerte()
+        {
+            if (!EnUltimaFase || _vidaActual > 0f)
+                return;
+
+            _muerto = true;
+            Muerto?.Invoke();
         }
     }
 }

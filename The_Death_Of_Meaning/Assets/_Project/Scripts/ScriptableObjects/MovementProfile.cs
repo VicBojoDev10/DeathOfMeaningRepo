@@ -10,6 +10,10 @@ namespace TDOM.Data
         public float TerminalVelocity = -50f;
         public float LowJumpMultiplier = 2.0f;
 
+        [Tooltip("Escala de la gravedad mientras se ataca en el aire (1 = normal).")]
+        [Range(0f, 1f)]
+        public float AirAttackGravityScale = 0.25f;
+
         [Header("Movement")]
         public float JumpVelocity = 15f;
         public int MaxJumps = 1;
@@ -22,5 +26,29 @@ namespace TDOM.Data
         public float Acceleration = 15f;
         public float Friction = 5f;
         public float AirControl = 2.5f;
+
+        [Header("Climbing")]
+        [Min(0f)]
+        public float ClimbSpeed = 2f;
+
+        [Min(0f)]
+        public float ClimbApproachDistance = 0.8f;
+
+        [Min(0f)]
+        public float ClimbMinimumHeight = 0.5f;
+
+        [Min(0f)]
+        public float ClimbMaximumHeight = 2.5f;
+
+        [Min(0f)]
+        public float ClimbMaximumDuration = 2f;
+
+        [Header("Shooting")]
+        [Range(0f, 1f)]
+        public float ShootingSpeedMultiplier = 0.3f;
+
+        [Header("Facing")]
+        public float TurnSpeed = 720f;
+        public bool SnapToCameraOnAttack = true;
     }
 }

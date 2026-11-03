@@ -10,6 +10,8 @@ namespace TDOM.Unity.Input
 
         private void Awake() => _actions = new PlayerInputActions();
 
+        public bool PausaPresionada => _actions.UI.Pause.WasPressedThisFrame();
+
         private void OnDestroy() => _actions.Dispose();
 
         public void ActivarPersonaje(CharacterIds id)
@@ -17,6 +19,7 @@ namespace TDOM.Unity.Input
             _personajeActivo = id;
             _actions.Zendre.Disable();
             _actions.Ayla.Disable();
+            _actions.UI.Pause.Enable();
 
             if (id == CharacterIds.Zendre)
                 _actions.Zendre.Enable();
@@ -30,6 +33,7 @@ namespace TDOM.Unity.Input
             {
                 _actions.Zendre.Disable();
                 _actions.Ayla.Disable();
+                // Pause queda activa para permitir reanudar desde el menú.
                 return;
             }
 
@@ -42,12 +46,13 @@ namespace TDOM.Unity.Input
             if (_personajeActivo == CharacterIds.Zendre)
             {
                 var m = _actions.Zendre;
+                bool dashPressed = m.Dash.WasPressedThisFrame();
                 return new InputSnapshot(
                     move: m.Move.ReadValue<Vector2>(),
                     look: m.Look.ReadValue<Vector2>(),
                     jumpPressed: m.Jump.WasPressedThisFrame(),
                     jumpHeld: m.Jump.IsPressed(),
-                    dashPressed: m.Dash.WasPressedThisFrame(),
+                    dashPressed: dashPressed,
                     sprintPressed: m.Sprint.WasPressedThisFrame(),
                     attackPressed: m.Attack.WasPressedThisFrame(),
                     attackHeld: m.Attack.IsPressed(),
@@ -58,7 +63,10 @@ namespace TDOM.Unity.Input
                     fireReleased: m.Fire.WasReleasedThisFrame(),
                     grapplePressed: m.Grapple.WasPressedThisFrame(),
                     grappleHeld: m.Grapple.IsPressed()
-                );
+                )
+                {
+                    LockOnPressed = m.LockOn.WasPressedThisFrame(),
+                };
             }
             else if (_personajeActivo == CharacterIds.Ayla)
             {
@@ -79,7 +87,10 @@ namespace TDOM.Unity.Input
                     fireReleased: false,
                     grapplePressed: m.Grapple.WasPressedThisFrame(),
                     grappleHeld: m.Grapple.IsPressed()
-                );
+                )
+                {
+                    LockOnPressed = m.LockOn.WasPressedThisFrame(),
+                };
             }
 
             return new InputSnapshot();

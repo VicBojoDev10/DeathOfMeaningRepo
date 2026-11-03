@@ -13,6 +13,7 @@ namespace TDOM.Gameplay.Core
     {
         private readonly float _duracionTransicion;
         private float _restanteTransicion;
+        private bool _transicionRetenida;
 
         public GameFlowStateMachine(float duracionTransicion) =>
             _duracionTransicion = duracionTransicion;
@@ -22,9 +23,12 @@ namespace TDOM.Gameplay.Core
 
         public event Action<EstadoFlujo> Cambio;
 
+        public bool PuedeIniciarCinematica(string id) =>
+            Estado == EstadoFlujo.Gameplay && !string.IsNullOrEmpty(id);
+
         public bool IniciarCinematica(string id)
         {
-            if (Estado != EstadoFlujo.Gameplay || string.IsNullOrEmpty(id))
+            if (!PuedeIniciarCinematica(id))
                 return false;
 
             IdActual = id;
@@ -41,13 +45,17 @@ namespace TDOM.Gameplay.Core
             CambiarA(EstadoFlujo.Transicion);
         }
 
+        public void RetenerTransicion() => _transicionRetenida = true;
+
+        public void LiberarTransicion() => _transicionRetenida = false;
+
         public void Tick(float dt)
         {
             if (Estado != EstadoFlujo.Transicion)
                 return;
 
             _restanteTransicion -= dt;
-            if (_restanteTransicion > 0f)
+            if (_restanteTransicion > 0f || _transicionRetenida)
                 return;
 
             IdActual = null;
