@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TDOM.Unity.Player;
 using TDOM.Unity.UI;
 using Unity.Netcode;
@@ -14,6 +15,7 @@ namespace TDOM.Unity
 
     public class PauseManager : NetworkBehaviour
     {
+        private const float TiempoLimiteConfirmacionFinal = 30f;
         public static PauseManager Instance { get; private set; }
         public static bool PausadoGlobal { get; private set; }
         public static ResultadoPartida ResultadoGlobal { get; private set; }
@@ -36,9 +38,21 @@ namespace TDOM.Unity
         private bool _salir;
         private bool _confirmacionDesdePantallaFinalPendiente;
         private string _ventanaFinalPendiente;
+        private readonly HashSet<ulong> _clientesQuePuedenResponder = new();
+        private ulong _secuenciaConfirmacion;
+        private ulong _idConfirmacionPendiente;
+        private ulong _idConfirmacionLocal;
+        private float _venceConfirmacionFinalEn;
 
         private void Update()
         {
+            if (
+                IsServer
+                && _confirmacionDesdePantallaFinalPendiente
+                && Time.unscaledTime >= _venceConfirmacionFinalEn
+            )
+                CancelarConfirmacionFinal("se agotó el tiempo de espera", notificarClientes: true);
+
             var clienteLocal = NetworkManager?.LocalClient;
             if (clienteLocal == null || (ResultadoGlobal != ResultadoPartida.EnCurso))
                 return;
@@ -69,6 +83,8 @@ namespace TDOM.Unity
             Instance = this;
             Pausado.OnValueChanged += AlCambiarPausa;
             Resultado.OnValueChanged += AlCambiarResultado;
+            if (IsServer && NetworkManager != null)
+                NetworkManager.OnClientDisconnectCallback += AlDesconectarCliente;
             AlCambiarPausa(false, Pausado.Value);
             AlCambiarResultado(ResultadoPartida.EnCurso, Resultado.Value);
         }
@@ -77,6 +93,13 @@ namespace TDOM.Unity
         {
             Pausado.OnValueChanged -= AlCambiarPausa;
             Resultado.OnValueChanged -= AlCambiarResultado;
+            if (IsServer && NetworkManager != null)
+                NetworkManager.OnClientDisconnectCallback -= AlDesconectarCliente;
+            _clientesQuePuedenResponder.Clear();
+            _confirmacionDesdePantallaFinalPendiente = false;
+            _idConfirmacionPendiente = 0;
+            _idConfirmacionLocal = 0;
+            _ventanaFinalPendiente = null;
             if (Instance == this)
                 Instance = null;
             PausadoGlobal = false;
@@ -154,36 +177,56 @@ namespace TDOM.Unity
             RpcParams rpc = default
         )
         {
-            if (
-                !IsServer
-                || _confirmacionDesdePantallaFinalPendiente
-                || (ventanaFinal != "victoriaui" && ventanaFinal != WindowsIds.DerrotaUI)
-            )
+            if (!IsServer || (ventanaFinal != "victoriaui" && ventanaFinal != WindowsIds.DerrotaUI))
                 return;
+
+            if (_confirmacionDesdePantallaFinalPendiente)
+            {
+                Debug.LogWarning(
+                    $"[PauseManager] Solicitud final ignorada: ya hay una confirmación pendiente "
+                        + $"(id={_idConfirmacionPendiente}, solicitante={_solicitante})."
+                );
+                return;
+            }
 
             _solicitante = rpc.Receive.SenderClientId;
             _salir = salir;
             _ventanaFinalPendiente = ventanaFinal;
             _confirmacionDesdePantallaFinalPendiente = true;
+            _idConfirmacionPendiente = ++_secuenciaConfirmacion;
+            _venceConfirmacionFinalEn = Time.unscaledTime + TiempoLimiteConfirmacionFinal;
+            _clientesQuePuedenResponder.Clear();
 
-            bool hayOtroJugador = false;
             foreach (var cliente in NetworkManager.ConnectedClientsIds)
             {
                 if (cliente == _solicitante)
                     continue;
 
-                hayOtroJugador = true;
-                ConfirmacionClientRpc(salir, RpcTarget.Single(cliente, RpcTargetUse.Temp));
+                _clientesQuePuedenResponder.Add(cliente);
+                ConfirmacionClientRpc(
+                    salir,
+                    _idConfirmacionPendiente,
+                    RpcTarget.Single(cliente, RpcTargetUse.Temp)
+                );
             }
 
-            if (!hayOtroJugador)
+            if (_clientesQuePuedenResponder.Count == 0)
             {
-                _confirmacionDesdePantallaFinalPendiente = false;
-                _ventanaFinalPendiente = null;
+                CancelarConfirmacionFinal(
+                    "no hay otro jugador conectado",
+                    notificarClientes: false
+                );
                 Debug.LogWarning(
                     "No hay otro jugador conectado para confirmar la acción desde la pantalla final."
                 );
+                return;
             }
+
+            Debug.Log(
+                $"[PauseManager] Confirmación final solicitada: id={_idConfirmacionPendiente}, "
+                    + $"solicitante={_solicitante}, acción={(salir ? "salir" : "reiniciar")}, "
+                    + $"respuestas={_clientesQuePuedenResponder.Count}."
+            );
         }
 
         public void PedirConfirmacion(bool salir) => PedirConfirmacionRpc(salir);
@@ -195,29 +238,75 @@ namespace TDOM.Unity
                 return;
             _solicitante = rpc.Receive.SenderClientId;
             _salir = salir;
+            _idConfirmacionPendiente = ++_secuenciaConfirmacion;
+            _clientesQuePuedenResponder.Clear();
             foreach (var cliente in NetworkManager.ConnectedClientsIds)
                 if (cliente != _solicitante)
-                    ConfirmacionClientRpc(salir, RpcTarget.Single(cliente, RpcTargetUse.Temp));
+                {
+                    _clientesQuePuedenResponder.Add(cliente);
+                    ConfirmacionClientRpc(
+                        salir,
+                        _idConfirmacionPendiente,
+                        RpcTarget.Single(cliente, RpcTargetUse.Temp)
+                    );
+                }
         }
 
         [Rpc(SendTo.SpecifiedInParams)]
-        private void ConfirmacionClientRpc(bool salir, RpcParams rpc = default)
+        private void ConfirmacionClientRpc(
+            bool salir,
+            ulong idConfirmacion,
+            RpcParams rpc = default
+        )
         {
+            _idConfirmacionLocal = idConfirmacion;
             MostrarPopupLocal(salir);
         }
 
-        public void ResponderConfirmacion(bool aceptar) => ResponderConfirmacionRpc(aceptar);
+        public void ResponderConfirmacion(bool aceptar)
+        {
+            if (_idConfirmacionLocal == 0)
+            {
+                Debug.LogWarning(
+                    "[PauseManager] Respuesta ignorada: no hay confirmación local activa."
+                );
+                return;
+            }
+
+            ResponderConfirmacionRpc(aceptar, _idConfirmacionLocal);
+        }
 
         [Rpc(SendTo.Server)]
-        private void ResponderConfirmacionRpc(bool aceptar, RpcParams rpc = default)
+        private void ResponderConfirmacionRpc(
+            bool aceptar,
+            ulong idConfirmacion,
+            RpcParams rpc = default
+        )
         {
             bool desdePantallaFinal = _confirmacionDesdePantallaFinalPendiente;
             if (!IsServer || (!Pausado.Value && !desdePantallaFinal))
                 return;
 
             ulong quienResponde = rpc.Receive.SenderClientId;
-            if (quienResponde == _solicitante)
+            if (
+                idConfirmacion == 0
+                || idConfirmacion != _idConfirmacionPendiente
+                || quienResponde == _solicitante
+                || !_clientesQuePuedenResponder.Contains(quienResponde)
+            )
+            {
+                Debug.LogWarning(
+                    $"[PauseManager] Respuesta ignorada: id={idConfirmacion}, "
+                        + $"cliente={quienResponde}, idActivo={_idConfirmacionPendiente}, "
+                        + $"pendienteFinal={_confirmacionDesdePantallaFinalPendiente}."
+                );
                 return;
+            }
+
+            Debug.Log(
+                $"[PauseManager] Respuesta recibida: id={idConfirmacion}, cliente={quienResponde}, "
+                    + $"aceptar={aceptar}, pantallaFinal={desdePantallaFinal}."
+            );
 
             if (aceptar)
             {
@@ -225,30 +314,34 @@ namespace TDOM.Unity
                 {
                     bool salirDesdePantallaFinal = _salir;
                     string ventanaFinal = _ventanaFinalPendiente;
-                    _confirmacionDesdePantallaFinalPendiente = false;
-                    _ventanaFinalPendiente = null;
+                    LimpiarConfirmacionPendiente();
                     if (salirDesdePantallaFinal)
                         SalirAlMenu();
                     else
                         ReiniciarConCargaClientRpc(true, ventanaFinal);
                 }
                 else if (_salir)
+                {
+                    LimpiarConfirmacionPendiente();
                     SalirAlMenu();
+                }
                 else
+                {
+                    LimpiarConfirmacionPendiente();
                     RecargarNivel();
+                }
             }
             else
             {
-                if (desdePantallaFinal)
-                    _confirmacionDesdePantallaFinalPendiente = false;
+                string ventanaFinal = _ventanaFinalPendiente;
                 RespuestaClientRpc(
                     _salir,
                     desdePantallaFinal,
-                    _ventanaFinalPendiente,
+                    ventanaFinal,
+                    idConfirmacion,
                     RpcTarget.Single(quienResponde, RpcTargetUse.Temp)
                 );
-                if (desdePantallaFinal)
-                    _ventanaFinalPendiente = null;
+                LimpiarConfirmacionPendiente();
             }
         }
 
@@ -257,9 +350,14 @@ namespace TDOM.Unity
             bool salir,
             bool desdePantallaFinal,
             string ventanaFinal,
+            ulong idConfirmacion,
             RpcParams rpc = default
         )
         {
+            if (idConfirmacion != _idConfirmacionLocal)
+                return;
+
+            _idConfirmacionLocal = 0;
             if (desdePantallaFinal)
             {
                 var ui = UiManager.Instance;
@@ -270,6 +368,74 @@ namespace TDOM.Unity
             }
 
             CerrarPopupLocal(salir);
+        }
+
+        private void AlDesconectarCliente(ulong cliente)
+        {
+            if (!_clientesQuePuedenResponder.Contains(cliente) && cliente != _solicitante)
+                return;
+
+            if (_confirmacionDesdePantallaFinalPendiente)
+            {
+                _clientesQuePuedenResponder.Remove(cliente);
+                if (cliente == _solicitante || _clientesQuePuedenResponder.Count == 0)
+                    CancelarConfirmacionFinal(
+                        $"se desconectó el cliente {cliente}",
+                        notificarClientes: true
+                    );
+            }
+            else if (_idConfirmacionPendiente != 0)
+            {
+                LimpiarConfirmacionPendiente();
+            }
+        }
+
+        private void CancelarConfirmacionFinal(string motivo, bool notificarClientes)
+        {
+            ulong id = _idConfirmacionPendiente;
+            bool salir = _salir;
+            string ventana = _ventanaFinalPendiente;
+            if (notificarClientes)
+            {
+                foreach (var cliente in _clientesQuePuedenResponder)
+                    CerrarPopupConfirmacionClientRpc(
+                        id,
+                        salir,
+                        ventana,
+                        RpcTarget.Single(cliente, RpcTargetUse.Temp)
+                    );
+            }
+
+            Debug.LogWarning($"[PauseManager] Confirmación final cancelada (id={id}): {motivo}.");
+            LimpiarConfirmacionPendiente();
+        }
+
+        [Rpc(SendTo.SpecifiedInParams)]
+        private void CerrarPopupConfirmacionClientRpc(
+            ulong idConfirmacion,
+            bool salir,
+            string ventanaFinal,
+            RpcParams rpc = default
+        )
+        {
+            if (idConfirmacion != _idConfirmacionLocal)
+                return;
+
+            _idConfirmacionLocal = 0;
+            var ui = UiManager.Instance;
+            ui?.CloseWindow(salir ? WindowsIds.ExitPopUpUI : WindowsIds.RetryPopUpUI);
+            (ui?.GetWindow(WindowsIds.PausaUI) as PausaUI)?.SetPopupActivo(false);
+            if (!string.IsNullOrEmpty(ventanaFinal))
+                ui?.ActivarInteraccionSolo(ventanaFinal);
+        }
+
+        private void LimpiarConfirmacionPendiente()
+        {
+            _confirmacionDesdePantallaFinalPendiente = false;
+            _ventanaFinalPendiente = null;
+            _clientesQuePuedenResponder.Clear();
+            _idConfirmacionPendiente = 0;
+            _venceConfirmacionFinalEn = 0f;
         }
 
         private static void MostrarPopupLocal(bool salir)
