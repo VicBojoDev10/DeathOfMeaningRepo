@@ -212,7 +212,10 @@ namespace TDOM.Unity
 
             if (_clientesQuePuedenResponder.Count == 0)
             {
-                CancelarConfirmacionFinal("no hay otro jugador conectado", notificarClientes: false);
+                CancelarConfirmacionFinal(
+                    "no hay otro jugador conectado",
+                    notificarClientes: false
+                );
                 Debug.LogWarning(
                     "No hay otro jugador conectado para confirmar la acción desde la pantalla final."
                 );
@@ -250,7 +253,11 @@ namespace TDOM.Unity
         }
 
         [Rpc(SendTo.SpecifiedInParams)]
-        private void ConfirmacionClientRpc(bool salir, ulong idConfirmacion, RpcParams rpc = default)
+        private void ConfirmacionClientRpc(
+            bool salir,
+            ulong idConfirmacion,
+            RpcParams rpc = default
+        )
         {
             _idConfirmacionLocal = idConfirmacion;
             MostrarPopupLocal(salir);
@@ -260,7 +267,9 @@ namespace TDOM.Unity
         {
             if (_idConfirmacionLocal == 0)
             {
-                Debug.LogWarning("[PauseManager] Respuesta ignorada: no hay confirmación local activa.");
+                Debug.LogWarning(
+                    "[PauseManager] Respuesta ignorada: no hay confirmación local activa."
+                );
                 return;
             }
 
@@ -268,7 +277,11 @@ namespace TDOM.Unity
         }
 
         [Rpc(SendTo.Server)]
-        private void ResponderConfirmacionRpc(bool aceptar, ulong idConfirmacion, RpcParams rpc = default)
+        private void ResponderConfirmacionRpc(
+            bool aceptar,
+            ulong idConfirmacion,
+            RpcParams rpc = default
+        )
         {
             bool desdePantallaFinal = _confirmacionDesdePantallaFinalPendiente;
             if (!IsServer || (!Pausado.Value && !desdePantallaFinal))
