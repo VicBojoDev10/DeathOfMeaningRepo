@@ -51,8 +51,6 @@ namespace TDOM.Unity
         // Todos los clientes: franja de aviso en el piso (fuera de la jerarquía porque el tentáculo rota).
         private GameObject _franja;
 
-        private float _flashGolpe;
-
         private void Awake()
         {
             if (_tentaculoVisual == null)
@@ -205,9 +203,6 @@ namespace TDOM.Unity
                 return;
             float dt = Time.deltaTime;
 
-            if (_flashGolpe > 0f)
-                _flashGolpe -= dt;
-
             if (!IsServer || !IsSpawned || _perfil == null)
                 return;
 
@@ -334,19 +329,8 @@ namespace TDOM.Unity
         [Rpc(SendTo.SpecifiedInParams)]
         private void JugadorGolpeadoRpc(RpcParams rpcParams = default)
         {
-            _flashGolpe = 0.25f;
+            MostrarFlashRojo();
             NotificarGolpeAlJugadorLocal();
-        }
-
-        private void OnGUI()
-        {
-            if (_flashGolpe <= 0f)
-                return;
-
-            Color colorAnterior = GUI.color;
-            GUI.color = new Color(1f, 0f, 0f, 0.4f);
-            GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
-            GUI.color = colorAnterior;
         }
 
         private void OnDrawGizmosSelected()

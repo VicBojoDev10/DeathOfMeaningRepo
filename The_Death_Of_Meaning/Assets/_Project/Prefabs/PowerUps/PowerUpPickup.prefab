@@ -95,6 +95,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5db0ef27bc654db1bcd250e2593dc8ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.PowerUpPickup
+  ShowTopMostFoldoutHeaderGroup: 1
   _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
   _visual: {fileID: 5000000000000012}
   _renderVisual: {fileID: 5000000000000014}
@@ -169,7 +170,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b64a8084103c4122b3191866b12e9b44, type: 2}
+  - {fileID: 2100000, guid: d30570211237ca14d8a6a57f2cf1d554, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
