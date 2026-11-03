@@ -17,45 +17,47 @@ MonoBehaviour:
     ActiveTime: 0.1
     RecoveryTime: 0.3
     ComboWindowTime: 0.25
-    Damage: 20
+    Damage: 12
     AnimTrigger: 
   - WindupTime: 0
     ActiveTime: 0.1
     RecoveryTime: 0.3
     ComboWindowTime: 0.25
-    Damage: 20
+    Damage: 12
     AnimTrigger: 
   - WindupTime: 0
     ActiveTime: 0.1
     RecoveryTime: 0.3
     ComboWindowTime: 0.25
-    Damage: 20
+    Damage: 12
     AnimTrigger: 
   - WindupTime: 0
     ActiveTime: 0.1
     RecoveryTime: 0.3
     ComboWindowTime: 0.25
-    Damage: 20
+    Damage: 12
     AnimTrigger: 
   - WindupTime: 0
     ActiveTime: 0.1
     RecoveryTime: 0.3
     ComboWindowTime: 0.25
-    Damage: 25
+    Damage: 14
     AnimTrigger: 
   - WindupTime: 0
     ActiveTime: 0.1
     RecoveryTime: 0.3
     ComboWindowTime: 0.25
-    Damage: 30
+    Damage: 22
     AnimTrigger: 
   Charged:
     WindupTime: 0.3
     ActiveTime: 0.1
     RecoveryTime: 0.3
     ComboWindowTime: 0.3
-    Damage: 35
+    Damage: 20
     AnimTrigger: 
   HoldThreshold: 0.2
+  ReleaseChargeThreshold: 0
   MaxChargeTime: 1
   BufferWindow: 0.15
+  CooldownFinCombo: 0.3
