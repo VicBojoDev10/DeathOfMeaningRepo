@@ -42,6 +42,7 @@ namespace TDOM.Data
         public int ataquesDeVidaColumna = 2;
         public float duracionAscenso = 0.2f;
         public float duracionHundimiento = 0.5f;
+
         [Tooltip(
             "Segundos desde que aparece la columna hasta que empieza a hundirse. "
                 + "Con duracionHundimiento = 0.5, 1.5 equivale a desaparecer en unos 2 segundos."
