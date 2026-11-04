@@ -66,7 +66,10 @@ namespace TDOM.Unity.Player
         private GrappleVisual _grappleVisual;
 
         [SerializeField]
-        private float _sensitivity = 200f;
+        private VfxDash _vfxDash;
+
+        [SerializeField]
+        private float _sensitivity = 120f;
 
         private const float MultiplicadorSensibilidadGancho = 0.35f;
 
@@ -985,7 +988,12 @@ namespace TDOM.Unity.Player
             )
                 _aylaAnimator.IniciarDobleSalto();
             if (_locomocion.DashIniciado)
+            {
+                if (_characterId == CharacterIds.Zendre)
+                    _zendreLocomotionAnimator?.IniciarAssault();
                 DashEmbestidaIniciada?.Invoke();
+                LanzarVfxDash();
+            }
             RegistrarDesplazamientoLateralEnCamara(input.Move);
 
             if (ganchoActivoActual != _ganchoActivoPrevio)
