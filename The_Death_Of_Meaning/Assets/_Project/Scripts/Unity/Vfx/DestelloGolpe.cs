@@ -39,11 +39,11 @@ namespace TDOM.Unity.Vfx
 
         [SerializeField]
         [ColorUsage(false, true)]
-        private Color _colorGolpe = new Color(4f, 0.4f, 0.2f, 1f);
+        private Color _colorGolpe = new Color(0.7f, 0.01f, 0.01f, 1f);
 
         [SerializeField]
         [Range(0f, 1f)]
-        private float _intensidadMaxima = 1f;
+        private float _intensidadMaxima = 0.35f;
 
         [SerializeField]
         [Range(0f, 1f)]

@@ -273,9 +273,14 @@ MonoBehaviour:
   _vfxDash: {fileID: 0}
   _destelloGolpe: {fileID: 0}
   _vfxRed: {fileID: 0}
+  _vfxGancho: {fileID: 0}
+  _origenVfxGancho: {fileID: 0}
   _vfxSalto: {fileID: 4626283046374563792, guid: baa458ea3a572424ab1dba0edcce6134, type: 3}
   _vfxAterrizaje: {fileID: 5989393493187071933, guid: c06bff77887bc2646817bc95601a41db, type: 3}
   _velocidadMinimaVfxAterrizaje: 6
+  _distanciaVfxAlSuelo: 2
+  _alturaRayoVfxSuelo: 1
+  _separacionVfxDelSuelo: 0.05
   _sensitivity: 120
   _alturaMaxima: 80
   Energia:
@@ -514,33 +519,6 @@ MonoBehaviour:
   _fillImage: {fileID: 6682880522841132029}
   _canvas: {fileID: 8693802000460562269}
   _profile: {fileID: 11400000, guid: bb7adef1e27e4dd4b94be56a46ba3e3d, type: 2}
---- !u!114 &2886936978579731612
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5125041952874771469}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5b3f0a0eef2178941b4abd08c0dd6eb4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Vfx.VfxPool
-  _catalogo: {fileID: 11400000, guid: e63be35bfa730c34e89d0b12d85259fb, type: 2}
---- !u!114 &180704491247187337
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5125041952874771469}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9e5bdbde09808cd47bf6ca37e850a2d3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Vfx.VfxRed
-  ShowTopMostFoldoutHeaderGroup: 1
-  _pool: {fileID: 2886936978579731612}
 --- !u!114 &7465050890302052488
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -578,10 +556,37 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  _colorGolpe: {r: 4, g: 0.4, b: 0.2, a: 1}
-  _intensidadMaxima: 1
+  _colorGolpe: {r: 0.7, g: 0.01, b: 0.01, a: 1}
+  _intensidadMaxima: 0.35
   _mezclaTinteSinShader: 0.6
   _renderers: []
+--- !u!114 &2886936978579731612
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5125041952874771469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b3f0a0eef2178941b4abd08c0dd6eb4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Vfx.VfxPool
+  _catalogo: {fileID: 11400000, guid: e63be35bfa730c34e89d0b12d85259fb, type: 2}
+--- !u!114 &180704491247187337
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5125041952874771469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e5bdbde09808cd47bf6ca37e850a2d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Vfx.VfxRed
+  ShowTopMostFoldoutHeaderGroup: 1
+  _pool: {fileID: 2886936978579731612}
 --- !u!1 &5152080394067024196
 GameObject:
   m_ObjectHideFlags: 0
