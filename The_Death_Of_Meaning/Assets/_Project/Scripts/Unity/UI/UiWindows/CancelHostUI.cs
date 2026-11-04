@@ -9,10 +9,16 @@ namespace TDOM.Unity
     {
         public Button cancelButton;
         public TextMeshProUGUI timerText;
+        public TextMeshProUGUI hostIpText;
         public event Action OnCancelarSolicitado;
 
         private void Awake()
         {
+            if (hostIpText != null)
+            {
+                hostIpText.raycastTarget = false;
+                hostIpText.text = string.Empty;
+            }
             if (timerText != null)
             {
                 timerText.raycastTarget = false;
@@ -36,6 +42,22 @@ namespace TDOM.Unity
         {
             if (timerText != null)
                 timerText.text = segundos >= 0 ? $"{segundos}..." : string.Empty;
+        }
+
+        public void ConfigurarModoHost(bool esHost)
+        {
+            if (hostIpText == null)
+                return;
+
+            hostIpText.gameObject.SetActive(esHost);
+            if (!esHost)
+                ActualizarIpHost(string.Empty);
+        }
+
+        public void ActualizarIpHost(string ip)
+        {
+            if (hostIpText != null)
+                hostIpText.text = string.IsNullOrWhiteSpace(ip) ? string.Empty : $"IP: {ip}";
         }
 
         public void CancelarConexion() => OnCancelarSolicitado?.Invoke();

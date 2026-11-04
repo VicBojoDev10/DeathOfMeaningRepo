@@ -14,27 +14,101 @@ namespace TDOM.Unity
 {
     public class ConnectionUI : UIWindow
     {
+        private enum ConnectionMode
+        {
+            None,
+            Host,
+            Client,
+        }
+
         public ConnectionManager ConnectionManager => ConnectionManager.Instance;
         public TMP_InputField ipInputField;
-        public TextMeshProUGUI hostIpDisplayText;
         public TextMeshProUGUI statusText;
         public Button startHostButton;
         public Button startClientButton;
         public Button startMatchButton;
         public Button joinTest;
 
+        [Header("Selección visual (opcional; se busca por nombre si queda vacío)")]
+        public RectTransform createHolder;
+        public RectTransform joinHolder;
+        public Image disconnectedIndicator;
+        public Image connectedIndicator;
+        public Color selectedTint = Color.white;
+        public Color dimmedTint = new Color(0.42f, 0.42f, 0.42f, 1f);
+        public float backgroundScale = 0.82f;
+        public float focusDuration = 0.35f;
+
         private float _lastKeyboardCloseTime = -1f;
+        private int _segundosRestantesConexion = -1;
         private bool _connectionAttemptStarted;
         private bool _inicializado;
         private bool _navegandoAPersonaje;
         private CancelHostUI _cancelHostUI;
         private InputAction _cancelAction;
         private Coroutine _enfocandoCancelar;
+        private ConnectionMode _selectedMode;
+        private Vector2 _createStartPosition;
+        private Vector2 _joinStartPosition;
+        private Vector3 _createStartScale;
+        private Vector3 _joinStartScale;
+        private int _createStartSiblingIndex;
+        private int _joinStartSiblingIndex;
+        private CanvasGroup _createGroup;
+        private CanvasGroup _joinGroup;
+        private Image _createImage;
+        private Image _joinImage;
+        private Coroutine _animacionSeleccion;
+        private event Action<string> IpHostGenerada;
 
         private void Awake()
         {
+            if (createHolder == null)
+                createHolder = BuscarRectTransform("CrearPartidaUI");
+            if (joinHolder == null)
+                joinHolder = BuscarRectTransform("UnirseAPartidaUI");
+            if (disconnectedIndicator == null)
+                disconnectedIndicator = BuscarImagen("NotConnectedImage");
+            if (connectedIndicator == null)
+                connectedIndicator = BuscarImagen("SuccessConnectionImage");
+            if (createHolder != null)
+            {
+                _createStartPosition = createHolder.anchoredPosition;
+                _createStartScale = createHolder.localScale;
+                _createStartSiblingIndex = createHolder.GetSiblingIndex();
+                _createGroup =
+                    createHolder.GetComponent<CanvasGroup>()
+                    ?? createHolder.gameObject.AddComponent<CanvasGroup>();
+                _createImage = createHolder.GetComponent<Image>();
+            }
+            if (joinHolder != null)
+            {
+                _joinStartPosition = joinHolder.anchoredPosition;
+                _joinStartScale = joinHolder.localScale;
+                _joinStartSiblingIndex = joinHolder.GetSiblingIndex();
+                _joinGroup =
+                    joinHolder.GetComponent<CanvasGroup>()
+                    ?? joinHolder.gameObject.AddComponent<CanvasGroup>();
+                _joinImage = joinHolder.GetComponent<Image>();
+            }
             if (firstSelectedObject == null && startHostButton != null)
                 firstSelectedObject = startHostButton.gameObject;
+        }
+
+        private RectTransform BuscarRectTransform(string nombre)
+        {
+            foreach (var elemento in GetComponentsInChildren<RectTransform>(true))
+                if (elemento.name == nombre)
+                    return elemento;
+            return null;
+        }
+
+        private Image BuscarImagen(string nombre)
+        {
+            foreach (var elemento in GetComponentsInChildren<Transform>(true))
+                if (elemento.name == nombre)
+                    return elemento.GetComponent<Image>();
+            return null;
         }
 
         public override void Initialize() => base.Initialize();
@@ -117,6 +191,11 @@ namespace TDOM.Unity
 
         private void OnDisable()
         {
+            if (_animacionSeleccion != null)
+            {
+                StopCoroutine(_animacionSeleccion);
+                _animacionSeleccion = null;
+            }
             SceneManager.sceneLoaded -= AlCargarEscena;
 
             DeshabilitarAccionCancelar();
@@ -125,6 +204,7 @@ namespace TDOM.Unity
             if (_cancelHostUI != null)
             {
                 _cancelHostUI.OnCancelarSolicitado -= SolicitarCancelar;
+                IpHostGenerada -= _cancelHostUI.ActualizarIpHost;
                 if (_cancelHostUI.IsOpen)
                     _cancelHostUI.Hide();
             }
@@ -214,20 +294,49 @@ namespace TDOM.Unity
 
         private void AlPresionarCancelar(InputAction.CallbackContext _)
         {
-            if (IsOpen && DebeMostrarCancelar())
-                SolicitarCancelar();
+            if (!IsOpen)
+                return;
+            if (_selectedMode != ConnectionMode.None)
+                PedirCancelarPorEvento();
+            else if (DebeMostrarCancelar())
+                PedirCancelarPorEvento();
         }
 
         private void SolicitarCancelar()
         {
             if (ConnectionManager != null && ConnectionManager.PuedeCancelar)
                 ConnectionManager.CancelarConexion();
+            RestaurarSeleccionVisual();
+        }
+
+        private void PedirCancelarPorEvento()
+        {
+            var cancelUI = ResolverCancelHostUI();
+            if (cancelUI != null)
+                cancelUI.CancelarConexion();
+            else
+                SolicitarCancelar();
         }
 
         private void ActualizarTiempo(int segundos)
         {
+            _segundosRestantesConexion = segundos;
             if (_cancelHostUI != null)
                 _cancelHostUI.ActualizarTiempo(segundos);
+
+            ActualizarEstadoConTiempoCliente();
+        }
+
+        private void ActualizarEstadoConTiempoCliente()
+        {
+            if (
+                statusText != null
+                && _segundosRestantesConexion >= 0
+                && ConnectionManager != null
+                && ConnectionManager.EstadoActual == EstadoSesion.Conectando
+                && ConnectionManager.UltimoIntentoFueCliente
+            )
+                statusText.text = $"Conectando... {_segundosRestantesConexion}s";
         }
 
         private void RestaurarFocoControl()
@@ -387,6 +496,8 @@ namespace TDOM.Unity
             {
                 _cancelHostUI.OnCancelarSolicitado -= SolicitarCancelar;
                 _cancelHostUI.OnCancelarSolicitado += SolicitarCancelar;
+                IpHostGenerada -= _cancelHostUI.ActualizarIpHost;
+                IpHostGenerada += _cancelHostUI.ActualizarIpHost;
             }
             return _cancelHostUI;
         }
@@ -398,6 +509,9 @@ namespace TDOM.Unity
 
             if (_cancelHostUI == null && ResolverCancelHostUI() == null)
                 return;
+
+            bool esAnfitrion = NetworkManager.Singleton != null && NetworkManager.Singleton.IsHost;
+            _cancelHostUI.ConfigurarModoHost(esAnfitrion);
 
             if (mostrar && !_cancelHostUI.IsOpen)
             {
@@ -449,6 +563,7 @@ namespace TDOM.Unity
         {
             bool esHost = NetworkManager.Singleton != null && NetworkManager.Singleton.IsHost;
             bool habilitado = esHost && cantPlayers >= 2;
+            ActualizarIndicadorEstado(ConexionListaParaPartida(cantPlayers));
             startMatchButton.interactable = habilitado;
             startMatchButton.gameObject.SetActive(habilitado);
             SincronizarVentanaCancelar(cantPlayers);
@@ -476,13 +591,16 @@ namespace TDOM.Unity
             if (ConnectionManager == null)
                 return;
 
+            SeleccionarModo(ConnectionMode.Host);
+
             ConnectionManager.OnCrearPartida();
             if (
-                hostIpDisplayText != null
+                NetworkManager.Singleton != null
+                && NetworkManager.Singleton.IsHost
                 && ConnectionManager.EstadoActual != EstadoSesion.Error
                 && ConnectionManager.EstadoActual != EstadoSesion.Cancelada
             )
-                hostIpDisplayText.text = $"IP: {ConnectionManager.GetLocalIPAddress()}";
+                IpHostGenerada?.Invoke(ConnectionManager.GetLocalIPAddress());
         }
 
         private void StartClientButton_OnClick()
@@ -490,12 +608,160 @@ namespace TDOM.Unity
             if (ConnectionManager == null)
                 return;
 
+            SeleccionarModo(ConnectionMode.Client);
+            _cancelHostUI = ResolverCancelHostUI();
+            _cancelHostUI?.ConfigurarModoHost(false);
+
             ConnectionManager.OnUnirse(ipInputField.text.Trim());
+        }
+
+        private void SeleccionarModo(ConnectionMode mode)
+        {
+            _selectedMode = mode;
+            (mode == ConnectionMode.Host ? createHolder : joinHolder)?.SetAsLastSibling();
+            AnimarSeleccion(mode);
+            var boton = mode == ConnectionMode.Host ? startHostButton : startClientButton;
+            if (EventSystem.current != null && boton != null)
+                EventSystem.current.SetSelectedGameObject(boton.gameObject);
+        }
+
+        private void RestaurarSeleccionVisual()
+        {
+            _selectedMode = ConnectionMode.None;
+            if (createHolder != null && joinHolder != null)
+            {
+                if (_createStartSiblingIndex < _joinStartSiblingIndex)
+                {
+                    createHolder.SetSiblingIndex(_createStartSiblingIndex);
+                    joinHolder.SetSiblingIndex(_joinStartSiblingIndex);
+                }
+                else
+                {
+                    joinHolder.SetSiblingIndex(_joinStartSiblingIndex);
+                    createHolder.SetSiblingIndex(_createStartSiblingIndex);
+                }
+            }
+            AnimarSeleccion(ConnectionMode.None);
+            RestaurarFocoControl();
+        }
+
+        private void AnimarSeleccion(ConnectionMode mode)
+        {
+            if (_animacionSeleccion != null)
+                StopCoroutine(_animacionSeleccion);
+            _animacionSeleccion = StartCoroutine(AnimarSeleccionCoroutine(mode));
+        }
+
+        private IEnumerator AnimarSeleccionCoroutine(ConnectionMode mode)
+        {
+            Vector2 createTarget = _createStartPosition;
+            Vector2 joinTarget = _joinStartPosition;
+            Vector3 createScale = _createStartScale;
+            Vector3 joinScale = _joinStartScale;
+            float createAlpha = 1f;
+            float joinAlpha = 1f;
+            Color createColor = selectedTint;
+            Color joinColor = selectedTint;
+
+            if (mode != ConnectionMode.None)
+            {
+                if (mode == ConnectionMode.Host)
+                {
+                    createTarget = PosicionCentrada(createHolder);
+                    joinScale = _joinStartScale * backgroundScale;
+                }
+                else
+                {
+                    joinTarget = PosicionCentrada(joinHolder);
+                    createScale = _createStartScale * backgroundScale;
+                }
+                createAlpha = mode == ConnectionMode.Host ? 1f : 0.48f;
+                joinAlpha = mode == ConnectionMode.Client ? 1f : 0.48f;
+                createColor = mode == ConnectionMode.Host ? selectedTint : dimmedTint;
+                joinColor = mode == ConnectionMode.Client ? selectedTint : dimmedTint;
+            }
+
+            Vector2 createFrom =
+                createHolder != null ? createHolder.anchoredPosition : createTarget;
+            Vector2 joinFrom = joinHolder != null ? joinHolder.anchoredPosition : joinTarget;
+            Vector3 createScaleFrom = createHolder != null ? createHolder.localScale : createScale;
+            Vector3 joinScaleFrom = joinHolder != null ? joinHolder.localScale : joinScale;
+            float createAlphaFrom = _createGroup != null ? _createGroup.alpha : createAlpha;
+            float joinAlphaFrom = _joinGroup != null ? _joinGroup.alpha : joinAlpha;
+            Color createColorFrom = _createImage != null ? _createImage.color : createColor;
+            Color joinColorFrom = _joinImage != null ? _joinImage.color : joinColor;
+            float elapsed = 0f;
+            float duration = Mathf.Max(0.01f, focusDuration);
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                t = t * t * (3f - 2f * t);
+                if (createHolder != null)
+                    createHolder.anchoredPosition = Vector2.LerpUnclamped(
+                        createFrom,
+                        createTarget,
+                        t
+                    );
+                if (joinHolder != null)
+                    joinHolder.anchoredPosition = Vector2.LerpUnclamped(joinFrom, joinTarget, t);
+                if (createHolder != null)
+                    createHolder.localScale = Vector3.LerpUnclamped(
+                        createScaleFrom,
+                        createScale,
+                        t
+                    );
+                if (joinHolder != null)
+                    joinHolder.localScale = Vector3.LerpUnclamped(joinScaleFrom, joinScale, t);
+                if (_createGroup != null)
+                    _createGroup.alpha = Mathf.Lerp(createAlphaFrom, createAlpha, t);
+                if (_joinGroup != null)
+                    _joinGroup.alpha = Mathf.Lerp(joinAlphaFrom, joinAlpha, t);
+                if (_createImage != null)
+                    _createImage.color = Color.Lerp(createColorFrom, createColor, t);
+                if (_joinImage != null)
+                    _joinImage.color = Color.Lerp(joinColorFrom, joinColor, t);
+                yield return null;
+            }
+
+            if (createHolder != null)
+                createHolder.anchoredPosition = createTarget;
+            if (joinHolder != null)
+                joinHolder.anchoredPosition = joinTarget;
+            if (createHolder != null)
+                createHolder.localScale = createScale;
+            if (joinHolder != null)
+                joinHolder.localScale = joinScale;
+            if (_createGroup != null)
+                _createGroup.alpha = createAlpha;
+            if (_joinGroup != null)
+                _joinGroup.alpha = joinAlpha;
+            if (_createImage != null)
+                _createImage.color = createColor;
+            if (_joinImage != null)
+                _joinImage.color = joinColor;
+            _animacionSeleccion = null;
+        }
+
+        private static Vector2 PosicionCentrada(RectTransform elemento)
+        {
+            if (elemento == null || elemento.parent is not RectTransform padre)
+                return Vector2.zero;
+
+            Rect rect = padre.rect;
+            Vector2 anchorRelativo =
+                elemento.anchorMin
+                + Vector2.Scale(elemento.anchorMax - elemento.anchorMin, elemento.pivot);
+            Vector2 puntoAncla = rect.min + Vector2.Scale(rect.size, anchorRelativo);
+            Vector2 posicionPivoteObjetivo = rect.center - elemento.rect.center;
+            return posicionPivoteObjetivo - puntoAncla;
         }
 
         private void ActualizarTextoEstado(EstadoSesion estado)
         {
             CerrarTecladoVirtual();
+            ActualizarIndicadorEstado(ConexionListaParaPartida());
 
             if (statusText != null)
                 statusText.text = estado switch
@@ -507,6 +773,7 @@ namespace TDOM.Unity
                     EstadoSesion.Cancelada => "Conexión cancelada",
                     _ => estado.ToString(),
                 };
+            ActualizarEstadoConTiempoCliente();
 
             bool activo = ConnectionManager.EstadoEsActivo(estado);
             if (startHostButton != null)
@@ -527,14 +794,38 @@ namespace TDOM.Unity
 
                 bool eraHost =
                     ConnectionManager != null && !ConnectionManager.UltimoIntentoFueCliente;
-                if (eraHost && hostIpDisplayText != null)
-                    hostIpDisplayText.text = string.Empty;
+                if (eraHost)
+                    ResolverCancelHostUI()?.ActualizarIpHost(string.Empty);
                 if (eraHost && estado == EstadoSesion.Cancelada && ipInputField != null)
                     ipInputField.text = string.Empty;
 
                 if (EventSystem.current != null)
                     RestaurarFocoControl();
             }
+        }
+
+        private bool ConexionListaParaPartida(int jugadoresHost = -1)
+        {
+            var networkManager = NetworkManager.Singleton;
+            if (networkManager == null || ConnectionManager == null)
+                return false;
+
+            if (networkManager.IsHost)
+            {
+                int cantidad =
+                    jugadoresHost >= 0 ? jugadoresHost : networkManager.ConnectedClientsList.Count;
+                return cantidad >= 2;
+            }
+
+            return networkManager.IsClient && ConnectionManager.EstadoActual == EstadoSesion.Listo;
+        }
+
+        private void ActualizarIndicadorEstado(bool conectado)
+        {
+            if (connectedIndicator != null)
+                connectedIndicator.gameObject.SetActive(conectado);
+            if (disconnectedIndicator != null)
+                disconnectedIndicator.gameObject.SetActive(!conectado);
         }
     }
 }

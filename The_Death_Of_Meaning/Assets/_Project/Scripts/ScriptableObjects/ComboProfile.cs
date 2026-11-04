@@ -10,10 +10,16 @@ namespace TDOM.Data
         public AttackStep Charged;
 
         [Tooltip(
-            "Segundos con el boton apretado para que cuente como ataque cargado en vez de "
-                + "golpe basico. Mas bajo = responde antes, pero un toque largo ya es cargado."
+            "Segundos de carga antes de mostrar el efecto visual. Tambien clasifica una "
+                + "soltada como cargado cuando ReleaseChargeThreshold es 0."
         )]
         public float HoldThreshold;
+
+        [Tooltip(
+            "Tiempo minimo para que soltar el boton ejecute un cargado. 0 = usa HoldThreshold. "
+                + "Mantener hasta MaxChargeTime ejecuta el cargado automaticamente."
+        )]
+        public float ReleaseChargeThreshold;
 
         [Tooltip(
             "Segundos de carga tras los que el cargado se ejecuta solo, aunque sigas apretando. "

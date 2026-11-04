@@ -1,5 +1,6 @@
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
+using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -8,18 +9,43 @@ namespace TDOM.Unity
     public abstract class AtaqueArekBase : NetworkBehaviour
     {
         private const float DuracionFlashDebugGolpe = 0.2f;
+        private const float DuracionFlashRojo = 0.25f;
+        private static readonly Color ColorFlashRojo = new Color(1f, 0f, 0f, 0.4f);
 
         private readonly NetworkVariable<ulong> _lanzadorId = new NetworkVariable<ulong>();
 
+        private ulong _lanzadorPendiente;
+
+        private float _finFlashRojo;
+
+        private VfxRed _vfxJefe;
+
         protected AtaquesArek Lanzador { get; private set; }
 
+        /// <summary>VFX en red del jefe (VfxRed de la raíz de AREK); null si no lo tiene.</summary>
+        protected VfxRed VfxJefe
+        {
+            get
+            {
+                if (_vfxJefe == null && Lanzador != null)
+                    _vfxJefe = Lanzador.GetComponentInParent<VfxRed>();
+                return _vfxJefe;
+            }
+        }
+
+        // Se llama antes de Spawn(): la NetworkVariable aun no conoce su NetworkBehaviour, asi que
+        // el id se guarda aparte y se escribe en OnNetworkSpawn, antes de que el spawn llegue a los
+        // clientes.
         public void AsignarLanzador(AtaquesArek lanzador)
         {
-            _lanzadorId.Value = lanzador.NetworkObjectId;
+            _lanzadorPendiente = lanzador.NetworkObjectId;
         }
 
         public override void OnNetworkSpawn()
         {
+            if (IsServer)
+                _lanzadorId.Value = _lanzadorPendiente;
+
             if (
                 NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(
                     _lanzadorId.Value,
@@ -37,6 +63,22 @@ namespace TDOM.Unity
         }
 
         protected abstract void AlSpawnear();
+
+        protected void MostrarFlashRojo()
+        {
+            _finFlashRojo = Time.unscaledTime + DuracionFlashRojo;
+        }
+
+        private void OnGUI()
+        {
+            if (Time.unscaledTime >= _finFlashRojo)
+                return;
+
+            Color colorAnterior = GUI.color;
+            GUI.color = ColorFlashRojo;
+            GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
+            GUI.color = colorAnterior;
+        }
 
         internal static void NotificarGolpeAlJugadorLocal()
         {

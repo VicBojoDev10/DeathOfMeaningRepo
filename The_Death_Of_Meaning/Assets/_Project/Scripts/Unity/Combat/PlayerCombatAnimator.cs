@@ -10,7 +10,7 @@ namespace TDOM.Unity.Combat
         private static readonly int ComboIndexHash = Animator.StringToHash("ComboIndex");
         private static readonly int ChargedHash = Animator.StringToHash("Charged");
         private static readonly int AttackHash = Animator.StringToHash("Attack");
-        private static readonly int LightTwoHash = Animator.StringToHash("1i");
+        private static readonly int LightTwoHash = Animator.StringToHash("1iC");
         private static readonly int LightThreeHash = Animator.StringToHash("2IC");
         private static readonly int GirosHash = Animator.StringToHash("1iCargado");
         private static readonly int VelocidadGirosHash = Animator.StringToHash("VelocidadGiros");
@@ -241,7 +241,9 @@ namespace TDOM.Unity.Combat
             if (_animator == null)
                 return;
 
-            _pendingComboIndex = comboIndex;
+            // El cargado tras un ligero puede llegar con indice 0 (si empieza durante Swing)
+            // o 1 (si empieza en la ventana del combo). En ambos casos el Animator usa 2IC = 2.
+            _pendingComboIndex = charged && ligerosPrevios == 1 ? 2 : comboIndex;
             _pendingCharged = charged;
             _pendingCarga = cargaRatio;
             _pendingGiros = giros && _girosActivos;

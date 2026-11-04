@@ -10,6 +10,7 @@ namespace TDOM.Gameplay.Combat
         private readonly AttackStep[] _pasos;
         private readonly AttackStep _cargado;
         private readonly float _umbralHold;
+        private readonly float _umbralCargadoAlSoltar;
         private readonly float _cargaMaxima;
         private readonly InputBuffer _buffer;
         private ComboPhase _fase = ComboPhase.Idle;
@@ -35,13 +36,16 @@ namespace TDOM.Gameplay.Combat
             float umbralHold,
             float cargaMaxima,
             float bufferWindow,
-            float cooldownFinCombo = 0f
+            float cooldownFinCombo = 0f,
+            float umbralCargadoAlSoltar = -1f
         )
         {
             _cooldownFinCombo = Mathf.Max(0f, cooldownFinCombo);
             _pasos = pasos;
             _cargado = cargado;
             _umbralHold = Mathf.Max(0f, umbralHold);
+            _umbralCargadoAlSoltar =
+                umbralCargadoAlSoltar > 0f ? umbralCargadoAlSoltar : _umbralHold;
             _cargaMaxima = cargaMaxima;
             _buffer = new InputBuffer(bufferWindow);
             _fase = ComboPhase.Idle;
@@ -178,7 +182,7 @@ namespace TDOM.Gameplay.Combat
                     }
                     else if (_soltoDuranteWindup)
                     {
-                        if (_tiempoDeCarga >= _umbralHold)
+                        if (_tiempoDeCarga >= _umbralCargadoAlSoltar)
                         {
                             float sobranteCarga = EntrarCargado();
                             Avanzar(input, sobranteCarga, esBordeDeFrame: false);
@@ -206,7 +210,7 @@ namespace TDOM.Gameplay.Combat
                     }
                     else if (released)
                     {
-                        if (_tiempoDeCarga >= _umbralHold)
+                        if (_tiempoDeCarga >= _umbralCargadoAlSoltar)
                         {
                             float sobranteCarga = EntrarCargado();
                             Avanzar(input, sobranteCarga, esBordeDeFrame: false);

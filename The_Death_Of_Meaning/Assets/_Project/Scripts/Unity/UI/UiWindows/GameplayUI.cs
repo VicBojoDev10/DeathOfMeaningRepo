@@ -43,24 +43,25 @@ namespace TDOM.Unity
         [SerializeField]
         private Color cooldownEnUso = new Color(0.35f, 0.35f, 0.35f, 1f);
 
-        [Header("PlayerHealth")]
-        [SerializeField]
-        private Image mainPlayerIcon;
-
-        [SerializeField]
-        private Image secondaryPlayerIcon;
-
-        [SerializeField]
-        private Slider mainPlayerHealthSlider;
-
-        [SerializeField]
-        private Slider secondaryPlayerHealthSlider;
-
         [SerializeField]
         private Sprite zendreIcon;
 
         [SerializeField]
         private Sprite aylaIcon;
+
+        [SerializeField]
+        [Tooltip("Color del fondo detras del icono mientras se llena el cooldown.")]
+        private Color cooldownFondo = new Color(0f, 0f, 0f, 0.45f);
+
+        [SerializeField]
+        private Image buttonPlayerIcon;
+
+        [Header("PlayerHealth")]
+        [SerializeField]
+        private Slider mainPlayerHealthSlider;
+
+        [SerializeField]
+        private Slider secondaryPlayerHealthSlider;
 
         [Header("Vida del Jefe")]
         [SerializeField]
@@ -133,6 +134,8 @@ namespace TDOM.Unity
 
             ConfigurarImagenCooldown(dashandembestidaslider);
             ConfigurarImagenCooldown(hookandgraplerslider);
+            CrearFondoCooldown(dashandembestidaslider);
+            CrearFondoCooldown(hookandgraplerslider);
 
             if (crosshairImage != null)
             {
@@ -358,24 +361,14 @@ namespace TDOM.Unity
             {
                 if (_localPlayer.CharacterId == CharacterIds.Ayla)
                 {
-                    if (mainPlayerIcon != null)
-                        mainPlayerIcon.sprite = aylaIcon;
-                    if (secondaryPlayerIcon != null && _otherPlayer == null)
-                        secondaryPlayerIcon.sprite = zendreIcon;
+                    if (buttonPlayerIcon != null)
+                        buttonPlayerIcon.sprite = aylaIcon;
                 }
                 else if (_localPlayer.CharacterId == CharacterIds.Zendre)
                 {
-                    if (mainPlayerIcon != null)
-                        mainPlayerIcon.sprite = zendreIcon;
-                    if (secondaryPlayerIcon != null && _otherPlayer == null)
-                        secondaryPlayerIcon.sprite = aylaIcon;
+                    if (buttonPlayerIcon != null)
+                        buttonPlayerIcon.sprite = zendreIcon;
                 }
-            }
-
-            if (_otherPlayer != null && secondaryPlayerIcon != null)
-            {
-                secondaryPlayerIcon.sprite =
-                    _otherPlayer.CharacterId == CharacterIds.Ayla ? aylaIcon : zendreIcon;
             }
         }
 
@@ -384,11 +377,62 @@ namespace TDOM.Unity
             if (imagen == null)
                 return;
 
+            // Una Image sin sprite ignora el relleno radial y se dibuja entera.
+            if (imagen.sprite == null)
+                imagen.sprite = SpriteBlancoCooldown();
+
             imagen.type = Image.Type.Filled;
             imagen.fillMethod = Image.FillMethod.Radial360;
             imagen.fillOrigin = (int)Image.Origin360.Top;
             imagen.fillClockwise = true;
             imagen.raycastTarget = false;
+        }
+
+        private static Sprite _spriteBlancoCooldown;
+
+        private static Sprite SpriteBlancoCooldown()
+        {
+            if (_spriteBlancoCooldown == null)
+            {
+                Texture2D textura = Texture2D.whiteTexture;
+                _spriteBlancoCooldown = Sprite.Create(
+                    textura,
+                    new Rect(0f, 0f, textura.width, textura.height),
+                    new Vector2(0.5f, 0.5f)
+                );
+            }
+            return _spriteBlancoCooldown;
+        }
+
+        // El icono se llena de a poco (sentido de las manecillas, desde arriba): detras va un
+        // fondo oscuro para ver la zona que falta por llenar.
+        private void CrearFondoCooldown(Image frente)
+        {
+            if (frente == null || frente.transform.parent == null)
+                return;
+
+            string nombre = frente.name + "_Fondo";
+            if (frente.transform.parent.Find(nombre) != null)
+                return;
+
+            var fondoObjeto = new GameObject(nombre, typeof(RectTransform), typeof(Image));
+            var fondoRect = (RectTransform)fondoObjeto.transform;
+            fondoRect.SetParent(frente.transform.parent, false);
+
+            RectTransform origen = frente.rectTransform;
+            fondoRect.anchorMin = origen.anchorMin;
+            fondoRect.anchorMax = origen.anchorMax;
+            fondoRect.pivot = origen.pivot;
+            fondoRect.anchoredPosition = origen.anchoredPosition;
+            fondoRect.sizeDelta = origen.sizeDelta;
+            fondoRect.localScale = origen.localScale;
+            fondoRect.localRotation = origen.localRotation;
+            fondoRect.SetSiblingIndex(frente.transform.GetSiblingIndex());
+
+            var fondo = fondoObjeto.GetComponent<Image>();
+            fondo.sprite = frente.sprite;
+            fondo.color = cooldownFondo;
+            fondo.raycastTarget = false;
         }
 
         private void ActualizarCooldowns()
@@ -411,8 +455,9 @@ namespace TDOM.Unity
             if (imagen == null)
                 return;
 
+            // normalizado = lo que falta (1 recien usado, 0 listo): el icono se llena al reves.
             normalizado = Mathf.Clamp01(normalizado);
-            imagen.fillAmount = normalizado;
+            imagen.fillAmount = 1f - normalizado;
             imagen.color = normalizado <= 0.001f ? cooldownDisponible : cooldownEnUso;
         }
     }

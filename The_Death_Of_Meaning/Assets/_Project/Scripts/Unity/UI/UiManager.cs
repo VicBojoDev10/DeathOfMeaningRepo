@@ -157,6 +157,7 @@ namespace TDOM.Unity.UI
         public const string CreditsUI = "creditsui";
         public const string OptionsUI = "optionsui";
         public const string VolumeUI = "volumeui";
+        public const string CameraSettingsUI = "camerasettingsui";
         public const string ControlEsquemaUI = "controlesquemaui";
         public const string SplashUI = "splashui";
         public const string PausaUI = "pausaui";
@@ -164,5 +165,6 @@ namespace TDOM.Unity.UI
         public const string ExitPopUpUI = "exitpopupui";
         public const string DerrotaUI = "derrotaui";
         public const string CancelHostUI = "cancelhostui";
+        public const string ControllerReconnectUI = "controllerreconnectui";
     }
 }

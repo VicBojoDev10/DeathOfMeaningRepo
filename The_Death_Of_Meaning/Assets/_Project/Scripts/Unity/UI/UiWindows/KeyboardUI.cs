@@ -67,8 +67,8 @@ namespace TDOM.Unity
         private void HandleKeyPress(string keyName)
         {
             if (
-                keyName.Equals("KeyBakc", StringComparison.OrdinalIgnoreCase)
-                || keyName.Equals("KeyBack", StringComparison.OrdinalIgnoreCase)
+                keyName.Equals("KeyDel", StringComparison.OrdinalIgnoreCase)
+                || keyName.Equals("KeyDel", StringComparison.OrdinalIgnoreCase)
                 || keyName.Equals("KeyBackspace", StringComparison.OrdinalIgnoreCase)
             )
             {
@@ -103,7 +103,7 @@ namespace TDOM.Unity
 
                 return suffix.ToLowerInvariant() switch
                 {
-                    "point" or "dot" => ".",
+                    "dot" => ".",
                     "space" => " ",
                     "less" or "minus" => "-",
                     "more" or "plus" => "+",

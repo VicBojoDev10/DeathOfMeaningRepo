@@ -59,7 +59,7 @@ namespace TDOM.Unity
             SolicitarReinicioDePartidaRpc();
         }
 
-        [Rpc(SendTo.Server, RequireOwnership = false)]
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         private void SolicitarReinicioDePartidaRpc(RpcParams rpcParams = default)
         {
             Debug.Log(

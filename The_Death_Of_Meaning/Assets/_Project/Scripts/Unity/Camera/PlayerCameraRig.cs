@@ -18,6 +18,7 @@ namespace TDOM.Unity.Camera
 
         [SerializeField]
         private CinemachineImpulseSource _impulso;
+        private CinemachineImpulseSource _impulsoAterrizaje;
 
         [SerializeField]
         private ThirdPersonCameraConfig _config;
@@ -30,6 +31,15 @@ namespace TDOM.Unity.Camera
         private CameraStanceResolver _stances;
         private Transform _cuerpo;
         private float _fovExtra;
+        private float _pulsoNivel;
+        private float _dashNivel;
+        private float _dashZoomObjetivo;
+        private float _dashZoomInicio;
+        private float _dashZoomTiempo;
+        private float _dashZoomDuracion = 0.1f;
+        private float _dashZoomAmount;
+        private AnimationCurve _dashZoomCurva;
+        private Coroutine _rutinaPulso;
         private float _dutchBase;
         private float _dutchExtra;
         private int _prioridadBase;
@@ -44,6 +54,7 @@ namespace TDOM.Unity.Camera
         {
             _cuerpo = transform.root;
             _stances = new CameraStanceResolver(CrearAjustes(_config));
+            CrearFuenteImpulsoAterrizaje();
             LeerValoresBaseDeCamara();
             AplicarEncuadre();
         }
@@ -65,11 +76,47 @@ namespace TDOM.Unity.Camera
 
         public void ApplyLook(float yaw, float pitch)
         {
+            // Rotacion absoluta en mundo: el yaw/pitch del jugador no se suma al de la camara.
             transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
+        }
+
+        public void SetDashFeedback(
+            bool activo,
+            float amount,
+            float entrada,
+            float salida,
+            AnimationCurve curva,
+            float multiplicador
+        )
+        {
+            float objetivo = activo ? 1f : 0f;
+            if (!Mathf.Approximately(objetivo, _dashZoomObjetivo))
+            {
+                _dashZoomInicio = _dashNivel;
+                _dashZoomObjetivo = objetivo;
+                _dashZoomTiempo = 0f;
+                _dashZoomDuracion = Mathf.Max(0.01f, activo ? entrada : salida);
+            }
+            _dashZoomAmount = Mathf.Max(0f, amount) * Mathf.Clamp01(multiplicador);
+            _dashZoomCurva = curva;
+        }
+
+        private void ActualizarDashCerca(float dt)
+        {
+            if (_config == null)
+                return;
+
+            if (Mathf.Approximately(_dashNivel, _dashZoomObjetivo))
+                return;
+            _dashZoomTiempo += dt;
+            float t = Mathf.Clamp01(_dashZoomTiempo / _dashZoomDuracion);
+            float eased = _dashZoomCurva != null ? Mathf.Clamp01(_dashZoomCurva.Evaluate(t)) : t;
+            _dashNivel = Mathf.Lerp(_dashZoomInicio, _dashZoomObjetivo, eased);
         }
 
         public void ActualizarEncuadre(bool apuntando, bool atacando, bool corriendo, float dt)
         {
+            ActualizarDashCerca(dt);
             _stances.Tick(apuntando, atacando, corriendo, dt);
             AplicarEncuadre();
         }
@@ -88,7 +135,9 @@ namespace TDOM.Unity.Camera
             if (_seguimiento == null)
                 return;
 
-            _seguimiento.CameraDistance = encuadre.Distance;
+            float acercamientoDash = _dashNivel * _dashZoomAmount;
+            _seguimiento.CameraDistance =
+                encuadre.Distance + (_pulsoNivel * DistanciaPulso()) - acercamientoDash;
             _seguimiento.CameraSide = _stances.CameraSide;
             Vector3 hombro = _seguimiento.ShoulderOffset;
             hombro.x = encuadre.ShoulderOffset;
@@ -97,10 +146,21 @@ namespace TDOM.Unity.Camera
 
         private static CameraStanceSettings CrearAjustes(ThirdPersonCameraConfig config)
         {
+            CameraStanceValues combate = config.Combat;
+            if (!config.CombatZoomSostenido)
+            {
+                combate = new CameraStanceValues(
+                    config.Exploration.Distance,
+                    config.Combat.ShoulderOffsetX,
+                    config.Combat.PivotHeight,
+                    config.Exploration.FieldOfView
+                );
+            }
+
             return new CameraStanceSettings(
                 CrearEncuadre(config.Exploration),
                 CrearEncuadre(config.Sprint),
-                CrearEncuadre(config.Combat),
+                CrearEncuadre(combate),
                 CrearEncuadre(config.Aim),
                 config.TransitionSpeed,
                 config.CombatLingerSeconds,
@@ -177,6 +237,30 @@ namespace TDOM.Unity.Camera
 
         public void Impacto(float fuerza) => _impulso.GenerateImpulse(fuerza);
 
+        public void ImpactoAterrizaje(float fuerza, float duracion)
+        {
+            if (_impulsoAterrizaje == null || _impulsoAterrizaje.ImpulseDefinition == null)
+                return;
+
+            _impulsoAterrizaje.ImpulseDefinition.ImpulseDuration = Mathf.Max(0.01f, duracion);
+            _impulsoAterrizaje.GenerateImpulse(fuerza);
+        }
+
+        private void CrearFuenteImpulsoAterrizaje()
+        {
+            _impulsoAterrizaje = gameObject.AddComponent<CinemachineImpulseSource>();
+            var definicion = _impulsoAterrizaje.ImpulseDefinition;
+            definicion.ImpulseChannel =
+                _impulso != null && _impulso.ImpulseDefinition != null
+                    ? _impulso.ImpulseDefinition.ImpulseChannel
+                    : 1;
+            definicion.ImpulseShape = CinemachineImpulseDefinition.ImpulseShapes.Bump;
+            definicion.ImpulseType = CinemachineImpulseDefinition.ImpulseTypes.Uniform;
+            definicion.DissipationDistance = 100f;
+            definicion.ImpulseDuration = 0.14f;
+            _impulsoAterrizaje.DefaultVelocity = Vector3.down;
+        }
+
         private IEnumerator RutinaFov(float grados, float duracion)
         {
             float tiempoTranscurrido = 0f;
@@ -203,9 +287,56 @@ namespace TDOM.Unity.Camera
                 return;
 
             var lente = _camara.Lens;
-            lente.FieldOfView = _stances.Framing.FieldOfView + _fovExtra;
+            lente.FieldOfView =
+                _stances.Framing.FieldOfView + _fovExtra + (_pulsoNivel * FovPulso());
             lente.Dutch = _dutchBase + _dutchExtra;
             _camara.Lens = lente;
+        }
+
+        private float DistanciaPulso()
+        {
+            if (_config == null)
+                return 0f;
+            return (_config.Combat.Distance - _config.Exploration.Distance)
+                * _config.CombatPulsoFactor;
+        }
+
+        private float FovPulso()
+        {
+            if (_config == null)
+                return 0f;
+            return (_config.Combat.FieldOfView - _config.Exploration.FieldOfView)
+                * _config.CombatPulsoFactor;
+        }
+
+        public void PulsoCombate()
+        {
+            if (_config == null || _config.CombatPulsoFactor <= 0f)
+                return;
+
+            if (_rutinaPulso != null)
+                StopCoroutine(_rutinaPulso);
+            _rutinaPulso = StartCoroutine(RutinaPulso());
+        }
+
+        private IEnumerator RutinaPulso()
+        {
+            float subida = Mathf.Max(0.01f, _config.CombatPulsoSubida);
+            float bajada = Mathf.Max(0.01f, _config.CombatPulsoBajada);
+
+            while (_pulsoNivel < 1f)
+            {
+                _pulsoNivel = Mathf.Min(1f, _pulsoNivel + (Time.deltaTime / subida));
+                yield return null;
+            }
+
+            while (_pulsoNivel > 0f)
+            {
+                _pulsoNivel = Mathf.Max(0f, _pulsoNivel - (Time.deltaTime / bajada));
+                yield return null;
+            }
+
+            _rutinaPulso = null;
         }
 
         private IEnumerator RutinaTilt(float grados, float duracion)

@@ -18,6 +18,23 @@ namespace TDOM.Gameplay.Combat
     }
 
     /// <summary>
+    /// Un jugador como posible objetivo del minion. Vivo es false si está abatido o muerto.
+    /// </summary>
+    public readonly struct MinionCandidato
+    {
+        public ulong Id { get; }
+        public float Distancia { get; }
+        public bool Vivo { get; }
+
+        public MinionCandidato(ulong id, float distancia, bool vivo)
+        {
+            Id = id;
+            Distancia = distancia;
+            Vivo = vivo;
+        }
+    }
+
+    /// <summary>
     /// IA de un minion de AREK, en POCO puro (sin UnityEngine ni red). Corre solo en el servidor.
     /// Ciclo: Perseguir hasta tener al objetivo en rango → Atacar (combo de golpesPorCombo
     /// golpes, cada uno con Aviso y luego Golpe) → Recuperar → Perseguir.
@@ -175,6 +192,34 @@ namespace TDOM.Gameplay.Combat
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// El jugador vivo más cercano; los abatidos y muertos no cuentan, aunque estén más cerca.
+        /// False si no hay candidatos o ninguno está vivo (el minion se queda quieto).
+        /// </summary>
+        public static bool TryElegirObjetivoVivo(
+            IReadOnlyList<MinionCandidato> candidatos,
+            out ulong objetivoId
+        )
+        {
+            objetivoId = 0;
+            if (candidatos == null)
+                return false;
+
+            bool hayObjetivo = false;
+            float mejor = float.MaxValue;
+            foreach (var candidato in candidatos)
+            {
+                if (!candidato.Vivo || candidato.Distancia >= mejor)
+                    continue;
+
+                mejor = candidato.Distancia;
+                objetivoId = candidato.Id;
+                hayObjetivo = true;
+            }
+
+            return hayObjetivo;
         }
     }
 }

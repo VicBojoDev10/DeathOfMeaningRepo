@@ -339,7 +339,7 @@ ParticleSystem:
         m_RotationOrder: 4
     startSizeY:
       serializedVersion: 2
-      minMaxState: 0
+      minMaxState: 3
       scalar: 1
       minScalar: 1
       maxCurve:
@@ -392,7 +392,7 @@ ParticleSystem:
         m_RotationOrder: 4
     startSizeZ:
       serializedVersion: 2
-      minMaxState: 0
+      minMaxState: 3
       scalar: 1
       minScalar: 1
       maxCurve:
@@ -445,7 +445,7 @@ ParticleSystem:
         m_RotationOrder: 4
     startRotationX:
       serializedVersion: 2
-      minMaxState: 0
+      minMaxState: 3
       scalar: 0
       minScalar: 0
       maxCurve:
@@ -498,7 +498,7 @@ ParticleSystem:
         m_RotationOrder: 4
     startRotationY:
       serializedVersion: 2
-      minMaxState: 0
+      minMaxState: 3
       scalar: 0
       minScalar: 0
       maxCurve:
@@ -4895,6 +4895,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   _owner: {fileID: 2285527289693865955}
+  _usarPrismaEspada: 1
+  _anchoPrisma: 2.5
+  _altoPrisma: 2.5
+  _margenLargo: 0.75
+  _extraValidacionServidor: 2
 --- !u!1 &2229917530308356307
 GameObject:
   m_ObjectHideFlags: 0
@@ -4919,6 +4924,7 @@ GameObject:
   - component: {fileID: 6057063955198916791}
   - component: {fileID: 2102127513358069341}
   - component: {fileID: 5756340313008821684}
+  - component: {fileID: 4092464067334334174}
   - component: {fileID: 679057322281883628}
   m_Layer: 0
   m_Name: PlayerAyla
@@ -4946,6 +4952,7 @@ Transform:
   - {fileID: 1866025965018480206}
   - {fileID: 8212632726660078027}
   - {fileID: 4571251578767638599}
+  - {fileID: 1219787376790169299}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &5884450346086718015
@@ -5112,7 +5119,6 @@ MonoBehaviour:
   _camera: {fileID: 6394526385662522574}
   _inputReader: {fileID: 76253369680155383}
   _grappleVisual: {fileID: 8501239841203941202}
-  _vfxDash: {fileID: 0}
   _sensitivity: 200
   _alturaMaxima: 80
   Energia:
@@ -5162,6 +5168,8 @@ MonoBehaviour:
   _vfxRed: {fileID: 2102127513358069341}
   _vfxGolpeLigero: {fileID: 2884108901446239930, guid: 24f306be62a0ff54fb88dc60829ecdbc, type: 3}
   _origenVfxGolpeLigero: {fileID: 1955049811738589453}
+  _vfxSigueLaEstela: 1
+  _giroVfxEnEstela: {x: 0, y: -45, z: 0}
   _avanceVfxGolpeLigero: 0
   _vfxPorGolpeLigero:
   - Efecto: {fileID: 0}
@@ -5444,8 +5452,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Locomotion.GrappleVisual
   ShowTopMostFoldoutHeaderGroup: 1
   _lineRenderer: {fileID: 8501239841203941201}
-  _manoTransform: {fileID: 0}
-  _offset: {x: 0, y: 1.2, z: 0}
+  _manoTransform: {fileID: 1575068585774036390}
+  _offset: {x: 0, y: 0, z: 0}
 --- !u!114 &1793130870331789386
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5464,6 +5472,13 @@ MonoBehaviour:
   _walkThreshold: 0.5
   _walkBlendMaxSpeed: 10
   _runBlendMaxSpeed: 20
+  _velocidadDobleSalto: 0.5
+  _duracionClipDobleSalto: 0.375
+  _inclinacionDash: 45
+  _tiempoInclinar: 0.06
+  _tiempoEnderezar: 0.2
+  _alturaPivoteInclinacion: 0.8
+  _retencionDash: 0.08
 --- !u!114 &6057063955198916791
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5509,25 +5524,6 @@ MonoBehaviour:
   _fillImage: {fileID: 237506179095695175}
   _canvas: {fileID: 2833608773177654247}
   _profile: {fileID: 11400000, guid: bb7adef1e27e4dd4b94be56a46ba3e3d, type: 2}
---- !u!114 &679057322281883628
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2229917530308356307}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: be2344de46427ed4386249320b1c8e27, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Vfx.VfxDash
-  _vfxRed: {fileID: 2102127513358069341}
-  _ventanaTrasGancho: 1
-  _efectoSuelo: {fileID: 8141764296307097768, guid: 5a5fc9c52a6143b46a3fa1589a5400cb, type: 3}
-  _efectoAire: {fileID: 2849036800197132327, guid: 93f61e289a36b1e43bd16ebfb02a932b, type: 3}
-  _efectoCancelacion: {fileID: 5193272175661237925, guid: 120b13842ae4eec4abf2f24c861363a3, type: 3}
-  _nube: {fileID: 8165657749533258322, guid: aa5dabdfd76417d41b2e5214f5e492de, type: 3}
-  _nubeGrande: {fileID: 4104928192157428720, guid: 74939ec729628b54e967b8d9f50befe4, type: 3}
 --- !u!1 &5167135693431690079
 GameObject:
   m_ObjectHideFlags: 0
@@ -5638,6 +5634,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4026500297177568966}
     m_Modifications:
+    - target: {fileID: 3607470957840643935, guid: 74f51f0cde35aaa4992a2e34a5fb7423, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3607470957840643935, guid: 74f51f0cde35aaa4992a2e34a5fb7423, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7230940549405842864, guid: 74f51f0cde35aaa4992a2e34a5fb7423, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -5758,6 +5762,68 @@ MonoBehaviour:
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7230940549405842864, guid: 74f51f0cde35aaa4992a2e34a5fb7423, type: 3}
   m_PrefabInstance: {fileID: 1558342148638622843}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1801713522877556462
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 4026500297177568966}
+    m_Modifications:
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3954326398918770387, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+      propertyPath: m_Name
+      value: Vfx_AylaGanchoViento
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+--- !u!4 &1219787376790169299 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 715358548211990589, guid: 775c8f2f9b4341c4b3f724402f458b29, type: 3}
+  m_PrefabInstance: {fileID: 1801713522877556462}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &5188998373210228190
 PrefabInstance:
@@ -21952,6 +22018,11 @@ Animator:
   m_CorrespondingSourceObject: {fileID: 8229209229538670824, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
   m_PrefabInstance: {fileID: 9074774098523907290}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &1575068585774036390 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7506329043828920700, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
+  m_PrefabInstance: {fileID: 9074774098523907290}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1866025965018480206 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7211782858631420564, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
@@ -21985,14 +22056,24 @@ MonoBehaviour:
   _nombreHuesoRespaldo: DEF-hand.R
   _posicion: {x: 0, y: 0, z: 0}
   _rotacion: {x: 0, y: 0, z: 0}
-  _escala: 0.5
+  _escala: 1
   _nombreMango: MangoEspada
   _nombreHoja: OjaPrincipalEspada
   _nombreCarga: Carga
   _nombreLiberacion: Liberacion
   _perfilCarga: {fileID: 11400000, guid: 544112f2d74c11345a22f8978f136930, type: 2}
   _particulasCuerpo: {fileID: 6251455761682789970}
-  _soloVisibleAtacando: 1
+  _partesConBrillo:
+  - OjaPrincipalEspada
+  - HojaSecundariaEspada
+  - NavajaEspada
+  _rimReposo: 0.5
+  _emisionReposo: 0.35
+  _rimCargando: 1
+  _emisionCargando: 2
+  _multiplicadorRim: 3
+  _velocidadBrillo: 10
+  _soloVisibleAtacando: 0
   _retrasoOcultar: 0.3
   _estadosDeAtaque:
   - Attack
@@ -22000,6 +22081,50 @@ MonoBehaviour:
   - 2IC
   - Charged
   - 1iCargado
+  _perfilesEstela:
+  - Estado: Charged
+    IdPerfil: Cargado
+  _ajustarEstelaALaHoja: 1
+  _colocaciones:
+  - Estado: Reposo
+    Modo: 0
+    Posicion: {x: -0.15, y: 0, z: -0.4}
+    DireccionHoja: {x: 0.35, y: 1, z: -0.2}
+    GiroHoja: 0
+    OscilacionAltura: 0.025
+    OscilacionVelocidad: 0.8
+  - Estado: Movimiento
+    Modo: 1
+    Posicion: {x: -0.4, y: 0, z: 0}
+    DireccionHoja: {x: 0, y: -0.35, z: -1}
+    GiroHoja: 0
+    OscilacionAltura: 0
+    OscilacionVelocidad: 0
+  - Estado: Jump
+    Modo: 0
+    Posicion: {x: 0.55, y: 1, z: -0.1}
+    DireccionHoja: {x: 0.2, y: 1, z: -0.3}
+    GiroHoja: 0
+    OscilacionAltura: 0
+    OscilacionVelocidad: 0
+  - Estado: DobleSalto
+    Modo: 0
+    Posicion: {x: 0.55, y: 1, z: -0.1}
+    DireccionHoja: {x: 0.2, y: 1, z: -0.3}
+    GiroHoja: 0
+    OscilacionAltura: 0
+    OscilacionVelocidad: 0
+  - Estado: Dash
+    Modo: 0
+    Posicion: {x: 0.55, y: 1, z: -0.1}
+    DireccionHoja: {x: 0.2, y: 1, z: -0.3}
+    GiroHoja: 0
+    OscilacionAltura: 0
+    OscilacionVelocidad: 0
+  _estadoLocomocion: Locomotion
+  _parametroVelocidad: Speed
+  _umbralMovimiento: 0.05
+  _tiempoCambioColocacion: 0.15
   _ajustesPorEstado:
   - Estado: 1i
     GiroSobreEjeHoja: -90

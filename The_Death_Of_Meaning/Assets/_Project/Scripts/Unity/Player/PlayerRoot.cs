@@ -13,6 +13,7 @@ using TDOM.Unity.Input;
 using TDOM.Unity.Level;
 using TDOM.Unity.Locomotion;
 using TDOM.Unity.Vfx;
+using TDOM.Unity.Settings;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
@@ -57,6 +58,7 @@ namespace TDOM.Unity.Player
         private AnchorLauncher _anchorLauncher;
 
         private PlayerCombat _combat;
+        private readonly InputSnapshot _inputSinControlDuranteEscalada = new InputSnapshot();
 
         private AylaPlayerLocomotionAnimator _aylaAnimator;
 
@@ -64,12 +66,15 @@ namespace TDOM.Unity.Player
         private GrappleVisual _grappleVisual;
 
         [SerializeField]
-        private VfxDash _vfxDash;
-
-        [SerializeField]
         private float _sensitivity = 200f;
 
+        private const float MultiplicadorSensibilidadGancho = 0.35f;
+
         private bool _ganchoActivoPrevio;
+        private float _mantenerOrientacionGanchoHasta;
+        private bool _hayYawObjetivoGancho;
+        private float _yawObjetivoGancho;
+        private float _velocidadYawGancho;
 
         private BossController _jefe;
 
@@ -149,6 +154,30 @@ namespace TDOM.Unity.Player
             _motor.Empujar(transform.forward, adelante, enElAire ? arriba : 0f, duracion);
         }
 
+        /// <summary>
+        /// Solo servidor: empuja al jugador en la dirección horizontal dada. El motor lo mueve su
+        /// dueño, así que el servidor se lo pide por RPC.
+        /// </summary>
+        public void EmpujarDesdeServidor(
+            Vector3 direccion,
+            float distancia,
+            float altura,
+            float duracion
+        )
+        {
+            if (!IsServer)
+                return;
+
+            EmpujarRpc(direccion, distancia, altura, duracion);
+        }
+
+        [Rpc(SendTo.Owner)]
+        private void EmpujarRpc(Vector3 direccion, float distancia, float altura, float duracion)
+        {
+            if (_motor != null)
+                _motor.Empujar(direccion, distancia, altura, duracion);
+        }
+
         public float EnergiaMaxima => _definition?.Energy != null ? _definition.Energy.Max : 0f;
         public float VidaMaxima => _definition.MaxHealth;
         public float DuracionAbatido => _definition.DownedDuration;
@@ -184,12 +213,9 @@ namespace TDOM.Unity.Player
             _anchorLauncher = GetComponentInChildren<AnchorLauncher>();
             _combat = GetComponentInChildren<PlayerCombat>();
             _aylaAnimator = GetComponentInChildren<AylaPlayerLocomotionAnimator>();
-            _look = new LookResolver(
-                _sensitivity,
-                _camera.Config.PitchMin,
-                _camera.Config.PitchMax,
-                transform.eulerAngles.y
-            );
+            _look = CrearLookResolver(transform.eulerAngles.y);
+            if (IsOwner)
+                CameraSettingsService.SensibilidadCambiada += OnSensibilidadCambiada;
             _locomocion = new PlayerLocomotion(_definition);
             _facing = new FacingResolver(_definition.Movement.TurnSpeed, transform.eulerAngles.y);
             _fijacion = new LockOnResolver(CrearAjustesFijacion(_camera.Config));
@@ -231,12 +257,65 @@ namespace TDOM.Unity.Player
                 _inputReader.ActivarPersonaje(_characterId);
                 if (_camera != null)
                     _feedback = _camera.GetComponent<FeedbackDirector>();
+                if (_feedback != null && _feedback.Config != null)
+                    _locomocion.VelocidadMinimaAterrizaje = _feedback
+                        .Config
+                        .aterrizajeVelocidadMinima;
             }
         }
 
         private void OnBossSpawned(BossController jefe)
         {
             _jefe = jefe;
+        }
+
+        private bool IntentarEscaladaEnBorde(InputSnapshot input)
+        {
+            if (
+                _definition == null
+                || !_definition.CanClimb
+                || !_locomocion.PuedeEscalar
+                || !input.JumpPressed
+                || input.Move.sqrMagnitude <= 0f
+                || AtaqueActivo
+                || _locomocion.DashActivo
+                || _locomocion.GanchoActivo
+                || (_anchorLauncher != null && _anchorLauncher.AnclaActiva)
+            )
+                return false;
+
+            CharacterController controller = _motor != null ? _motor.Controller : null;
+            if (controller == null)
+                return false;
+
+            Vector3 direccion = _look.YawRotation * new Vector3(input.Move.x, 0f, input.Move.y);
+            if (direccion.sqrMagnitude <= 0f)
+                return false;
+
+            float distanciaMaxima = _definition.Movement.ClimbApproachDistance;
+            if (
+                !Physics.Raycast(
+                    controller.bounds.center,
+                    direccion.normalized,
+                    out RaycastHit hit,
+                    distanciaMaxima,
+                    Physics.DefaultRaycastLayers,
+                    QueryTriggerInteraction.Ignore
+                )
+            )
+                return false;
+
+            LedgeClimbAnchor borde = hit.collider.GetComponentInParent<LedgeClimbAnchor>();
+            if (borde == null || borde.TopPoint == null || borde.transform.IsChildOf(transform))
+                return false;
+
+            return _locomocion.IntentarEscalar(
+                hit.distance,
+                transform.position,
+                borde.TopPoint.position,
+                acercandose: true,
+                bordeMarcado: true
+            );
         }
 
         private void OnEstadoVidaChanged(PlayerLifeState anterior, PlayerLifeState actual)
@@ -252,6 +331,7 @@ namespace TDOM.Unity.Player
 
         public override void OnNetworkDespawn()
         {
+            CameraSettingsService.SensibilidadCambiada -= OnSensibilidadCambiada;
             DestruirOverlayRespawn();
             EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
             _healthPool = null;
@@ -265,6 +345,7 @@ namespace TDOM.Unity.Player
 
         public override void OnDestroy()
         {
+            CameraSettingsService.SensibilidadCambiada -= OnSensibilidadCambiada;
             DestruirOverlayRespawn();
             EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
             if (IsServer)
@@ -311,7 +392,7 @@ namespace TDOM.Unity.Player
                     characterController.enabled = true;
             }
 
-            _look = new LookResolver(_sensitivity, yawInicial: transform.eulerAngles.y);
+            _look = CrearLookResolver(transform.eulerAngles.y);
             _initialSpawnApplied = true;
             _inputReader.enabled = true;
             _initialSpawnPosition = transform.position;
@@ -523,7 +604,14 @@ namespace TDOM.Unity.Player
             if (_locomocion.SaltoAereo)
                 _feedback.OnDobleSalto();
             if (_locomocion.Aterrizaje)
-                _feedback.OnAterrizajeFuerte();
+            {
+                bool hayOtraAccionDeCamara =
+                    _locomocion.DashActivo
+                    || _locomocion.SaltoAereo
+                    || _locomocion.GanchoActivo
+                    || _ganchoActivoPrevio;
+                _feedback.OnAterrizajeFuerte(_locomocion.VelocidadImpacto, hayOtraAccionDeCamara);
+            }
         }
 
         private void CapturarContextoVfxDash(float dt)
@@ -554,6 +642,42 @@ namespace TDOM.Unity.Player
 
         private void ActualizarMirada(InputSnapshot input, float dt)
         {
+            bool ganchoActivo = _locomocion != null && _locomocion.GanchoActivo;
+            if (ganchoActivo)
+            {
+                // La fijacion automatica puede arrastrar la camara mientras Ayla es jalada.
+                // Durante el gancho se conserva solo el control horizontal y el pitch vuelve
+                // gradualmente al horizonte para no dejar la vista apuntando al cielo.
+                _fijacion.Liberar();
+                ActualizarYawObjetivoGancho();
+                _look.Tick(new Vector2(input.Look.x, 0f), dt, MultiplicadorSensibilidadGancho);
+                _look.EstablecerOrientacion(
+                    _hayYawObjetivoGancho
+                        ? Mathf.SmoothDampAngle(
+                            _look.Yaw,
+                            _yawObjetivoGancho,
+                            ref _velocidadYawGancho,
+                            0.08f,
+                            1080f,
+                            dt
+                        )
+                        : _look.Yaw,
+                    Mathf.MoveTowards(_look.Pitch, 0f, 180f * dt)
+                );
+                return;
+            }
+
+            _hayYawObjetivoGancho = false;
+
+            if (_ganchoActivoPrevio || Time.time < _mantenerOrientacionGanchoHasta)
+            {
+                _look.EstablecerOrientacion(
+                    _look.Yaw,
+                    Mathf.MoveTowards(_look.Pitch, 0f, 180f * dt)
+                );
+                return;
+            }
+
             ActualizarFijacion(input.LockOnPressed, input.Look, dt);
 
             if (_fijacion.Activo)
@@ -563,6 +687,29 @@ namespace TDOM.Unity.Player
             }
 
             _look.Tick(input.Look, dt);
+        }
+
+        private LookResolver CrearLookResolver(float yawInicial)
+        {
+            var config = _camera.Config;
+            if (IsOwner)
+            {
+                Vector2 sensibilidad = new CameraSettingsService(config).Cargar();
+                return LookResolver.CrearConSensibilidades(
+                    sensibilidad.x,
+                    sensibilidad.y,
+                    config.PitchMin,
+                    config.PitchMax,
+                    yawInicial
+                );
+            }
+
+            return new LookResolver(_sensitivity, config.PitchMin, config.PitchMax, yawInicial);
+        }
+
+        private void OnSensibilidadCambiada(float sensibilidadX, float sensibilidadY)
+        {
+            _look?.EstablecerSensibilidad(sensibilidadX, sensibilidadY);
         }
 
         private void ActualizarFijacion(bool alternar, Vector2 stick, float dt)
@@ -644,8 +791,32 @@ namespace TDOM.Unity.Player
             if (!apuntado.HasHit || impactado.GetComponentInParent<PlayerRoot>() != null)
                 return;
 
-            if (_locomocion.IntentarGancho(transform.position, apuntado.TargetPoint))
+            // Contra el jefe el gancho engancha pero corta el jalón antes de tocarlo.
+            bool haciaJefe = impactado.GetComponentInParent<BossController>() != null;
+            if (_locomocion.IntentarGancho(transform.position, apuntado.TargetPoint, haciaJefe))
+            {
+                ActualizarYawObjetivoGancho();
+                _velocidadYawGancho = 0f;
+                _fijacion.Liberar();
                 _camera.PunchFov(8f, 0.2f);
+                _feedback?.RegistrarAccionCamara(0.2f);
+            }
+        }
+
+        private void ActualizarYawObjetivoGancho()
+        {
+            if (_locomocion == null || !_locomocion.GanchoActivo)
+                return;
+
+            // Reevaluar desde la posicion actual evita conservar un angulo obsoleto
+            // cuando Ayla inicia el gancho de lado o mirando en sentido contrario.
+            Vector3 haciaGancho = _locomocion.PuntoGancho - transform.position;
+            haciaGancho.y = 0f;
+            if (haciaGancho.sqrMagnitude <= 0.001f)
+                return;
+
+            _yawObjetivoGancho = Mathf.Atan2(haciaGancho.x, haciaGancho.z) * Mathf.Rad2Deg;
+            _hayYawObjetivoGancho = true;
         }
 
         private void Update()
@@ -674,7 +845,8 @@ namespace TDOM.Unity.Player
                 return;
 
             var input = _inputReader.Read();
-            bool apuntando = input.AimHeld && PuedeApuntar && !EstaAbatidoOMuerto;
+            bool apuntando =
+                input.AimHeld && PuedeApuntar && !EstaAbatidoOMuerto && !_locomocion.ClimbActivo;
             ActualizarMirada(input, dt);
             _zendreLocomotionAnimator?.ActualizarApuntado(apuntando, _fijacion.Activo, input.Move);
             if (_aylaAnimator != null)
@@ -693,33 +865,44 @@ namespace TDOM.Unity.Player
 
             if (!EstaAbatidoOMuerto)
             {
-                AlinearConCamaraAlAtacar(input, apuntando);
+                if (!_locomocion.ClimbActivo)
+                {
+                    AlinearConCamaraAlAtacar(input, apuntando);
+                    IntentarEscaladaEnBorde(input);
+                }
 
-                // Dash cancela el combo en cualquier punto (solo si el dash está disponible).
-                if (
-                    _combat != null
-                    && input.DashPressed
-                    && _combat.PuedeCancelarConDash
-                    && _locomocion.DashDisponible
-                    && !(_anchorLauncher != null && _anchorLauncher.AnclaActiva)
-                )
-                    _combat.CancelarMeleePorDash();
+                if (!_locomocion.ClimbActivo)
+                {
+                    // Dash cancela el combo en cualquier punto (solo si el dash está disponible).
+                    if (
+                        _combat != null
+                        && input.DashPressed
+                        && _combat.PuedeCancelarConDash
+                        && _locomocion.DashDisponible
+                        && !(_anchorLauncher != null && _anchorLauncher.AnclaActiva)
+                    )
+                        _combat.CancelarMeleePorDash();
 
-                // Salto también cancela el combo (si hay salto disponible).
-                if (
-                    _combat != null
-                    && input.JumpPressed
-                    && _combat.PuedeCancelarConDash
-                    && _locomocion.SaltoDisponible
-                    && !(_anchorLauncher != null && _anchorLauncher.AnclaActiva)
-                )
-                    _combat.CancelarMeleePorSalto();
+                    // Salto también cancela el combo (si hay salto disponible).
+                    if (
+                        _combat != null
+                        && input.JumpPressed
+                        && _combat.PuedeCancelarConDash
+                        && _locomocion.SaltoDisponible
+                        && !(_anchorLauncher != null && _anchorLauncher.AnclaActiva)
+                    )
+                        _combat.CancelarMeleePorSalto();
+                }
 
                 if (_combat != null)
-                    _combat.Tick(input, dt);
+                    _combat.Tick(
+                        _locomocion.ClimbActivo ? _inputSinControlDuranteEscalada : input,
+                        dt
+                    );
 
                 if (
-                    input.GrapplePressed
+                    !_locomocion.ClimbActivo
+                    && input.GrapplePressed
                     && !AtaqueActivo
                     && _definition != null
                     && _definition.Grapple != null
@@ -737,10 +920,26 @@ namespace TDOM.Unity.Player
                     MovimientoBloqueado || BloqueoPorAtaqueAereo,
                     transform.position,
                     ModoPistola,
-                    _combat != null ? _combat.MultiplicadorVelocidadAtaque : 1f
+                    _combat != null ? _combat.MultiplicadorVelocidadAtaque : 1f,
+                    _combat != null && _combat.GravedadReducidaPorAtaque
                 );
+            bool ganchoActivoActual = _locomocion.GanchoActivo;
+            if (_ganchoActivoPrevio && !ganchoActivoActual)
+                _mantenerOrientacionGanchoHasta = Time.time + 0.55f;
             if (_aylaAnimator != null)
+            {
+                _aylaAnimator.SetClimbingState(_locomocion.ClimbActivo);
                 _aylaAnimator.SetSprintState(_locomocion.Corriendo);
+                // La pose del gancho dura mientras el jalon siga activo y no se ataque.
+                // Saltar cancela el gancho en la locomocion, asi que tambien la apaga.
+                _aylaAnimator.SetGanchoState(_locomocion.GanchoActivo && !AtaqueActivo);
+                // Pose del dash (y camara mas cerca) mientras dura el desplazamiento.
+                _aylaAnimator.SetDashState(_locomocion.DashActivo);
+            }
+            _feedback?.ActualizarZoomDash(
+                _locomocion.DashActivo,
+                _characterId == CharacterIds.Zendre
+            );
             if (_characterId == CharacterIds.Zendre)
                 _zendreLocomotionAnimator?.ActualizarSalto(
                     _locomocion.SaltoEnCurso,
@@ -763,24 +962,32 @@ namespace TDOM.Unity.Player
                 intent = new MotionIntent(Vector3.zero, ignoreGravity: true);
             }
             _motor.Apply(intent, dt, plataformaAnclada);
+            bool alineandoConGancho =
+                ganchoActivoActual || Time.time < _mantenerOrientacionGanchoHasta;
             _facing.Tick(
                 _locomocion.State.Velocity,
                 _look.Yaw,
-                apuntando || ModoPistola || (_combat != null && _combat.MovimientoLimitado),
-                dt
+                apuntando
+                    || ModoPistola
+                    || alineandoConGancho
+                    || (_combat != null && _combat.MovimientoLimitado),
+                dt,
+                alineandoConGancho ? 0.5f : 1f
             );
             transform.rotation = _facing.Rotacion;
             AplicarMiradaACamara();
 
             DispararFeedbackDeLocomocion();
+            if (
+                _locomocion.SaltoAereo
+                && _characterId == CharacterIds.Ayla
+                && _aylaAnimator != null
+            )
+                _aylaAnimator.IniciarDobleSalto();
             if (_locomocion.DashIniciado)
-            {
                 DashEmbestidaIniciada?.Invoke();
-                LanzarVfxDash();
-            }
             RegistrarDesplazamientoLateralEnCamara(input.Move);
 
-            bool ganchoActivoActual = _locomocion != null && _locomocion.GanchoActivo;
             if (ganchoActivoActual != _ganchoActivoPrevio)
             {
                 _ganchoActivoPrevio = ganchoActivoActual;
@@ -858,6 +1065,52 @@ namespace TDOM.Unity.Player
 
         public void AplicarDanioEnServidor(float cantidad, bool esInstaKill = false) =>
             RecibirDanio(cantidad, esInstaKill);
+
+        /// <summary>
+        /// Solo servidor: si el jugador se beneficiaría de ese efecto ahora mismo. Curar: está
+        /// vivo y con la vida incompleta. Los tickets de power-ups siguientes agregan casos.
+        /// </summary>
+        public bool NecesitaPowerUp(TipoEfectoPowerUp efecto)
+        {
+            if (!IsServer || _healthPool == null)
+                return false;
+
+            switch (efecto)
+            {
+                case TipoEfectoPowerUp.Curar:
+                    return _healthPool.State == PlayerLifeState.Vivo
+                        && _healthPool.Current < _healthPool.Max;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>Solo servidor: aplica el efecto del perfil. False si no lo necesitaba.</summary>
+        public bool AplicarPowerUp(PowerUpProfile perfil)
+        {
+            if (perfil == null || !NecesitaPowerUp(perfil.Efecto))
+                return false;
+
+            switch (perfil.Efecto)
+            {
+                case TipoEfectoPowerUp.Curar:
+                    _healthPool.Heal(perfil.Magnitud);
+                    SincronizarVidaEnRed();
+                    break;
+                default:
+                    return false;
+            }
+
+            PowerUpAplicadoRpc();
+            return true;
+        }
+
+        [Rpc(SendTo.Owner)]
+        private void PowerUpAplicadoRpc()
+        {
+            if (_feedback != null)
+                _feedback.OnPowerUpRecibido();
+        }
 
         private void ActualizarEstadoAbatidoEnServidor(float dt)
         {

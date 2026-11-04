@@ -96,6 +96,12 @@ namespace TDOM.Unity.Combat
 
         public bool HayOjoAbierto => _ojos != null && _ojos.HayOjoAbierto;
 
+        /// <summary>
+        /// Solo servidor: false mientras hay un ataque en curso (aviso incluido) y durante la
+        /// espera posterior. El jefe no rota (fase 1) ni se traslada (fase 2 en adelante).
+        /// </summary>
+        public bool PuedeMoverse => _ataques == null || _ataques.MovimientoPermitido;
+
         [SerializeField]
         private float _vidaMaxima = 1000f;
 
@@ -412,6 +418,7 @@ namespace TDOM.Unity.Combat
             }
 
             var materiales = new List<Material>();
+            var sinColorBase = new Dictionary<string, List<string>>();
             foreach (var r in _renderersCuerpo)
             {
                 if (r == null)
@@ -419,23 +426,39 @@ namespace TDOM.Unity.Combat
 
                 var material = r.material;
                 if (!material.HasProperty(IdColorBase))
-                    Debug.LogWarning(
-                        $"[BossController] El shader '{material.shader.name}' de {r.name} no tiene _BaseColor."
-                    );
+                {
+                    string shader = material.shader.name;
+                    if (!sinColorBase.TryGetValue(shader, out var partes))
+                        sinColorBase[shader] = partes = new List<string>();
+                    partes.Add(r.name);
+                }
                 material.EnableKeyword(KeywordEmision);
                 material.SetColor(IdColorEmision, Color.black);
                 materiales.Add(material);
             }
             _materialesCuerpo = materiales.ToArray();
+
+            // Un solo aviso por shader (no uno por parte del modelo): esas partes no cambian de
+            // color por fase ni con el destello hasta que el shader tenga una propiedad _BaseColor.
+            foreach (var par in sinColorBase)
+            {
+                Debug.LogWarning(
+                    $"[BossController] El shader '{par.Key}' no tiene _BaseColor "
+                        + $"({par.Value.Count} partes, sin color por fase ni destello): "
+                        + string.Join(", ", par.Value)
+                );
+            }
         }
 
         private Renderer[] BuscarRenderersCuerpo()
         {
             var encontrados = new List<Renderer>();
+            var ojosVisual = GetComponent<OjosArekVisual>();
             foreach (var r in GetComponentsInChildren<Renderer>())
             {
                 bool esMalla = r is MeshRenderer || r is SkinnedMeshRenderer;
-                if (esMalla && r.enabled && r.GetComponent<HitZone>() == null)
+                bool esOjo = ojosVisual != null && ojosVisual.UsaRenderer(r);
+                if (esMalla && r.enabled && !esOjo && r.GetComponent<HitZone>() == null)
                     encontrados.Add(r);
             }
             return encontrados.ToArray();

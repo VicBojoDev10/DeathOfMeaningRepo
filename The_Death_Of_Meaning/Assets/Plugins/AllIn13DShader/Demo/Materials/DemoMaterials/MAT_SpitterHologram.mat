@@ -9,11 +9,14 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: MAT_SpitterHologram
   m_Shader: {fileID: 4800000, guid: 0dde7f0097aeb2541aea684ca0ad0e3c, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _ALBEDOVERTEXCOLORMODE_REPLACE
   - _AOMAP_ON
   - _CAST_SHADOWS_ON
   - _COLORRAMPLIGHTINGSTAGE_BEFORELIGHTING
+  - _FADEUVSET_UV1
   - _FADE_BURN_ON
   - _GLITCH_ON
   - _GREYSCALESTAGE_BEFORELIGHTING
@@ -25,6 +28,7 @@ Material:
   - _MATCAPBLENDMODE_MULTIPLY
   - _NORMAL_MAP_ON
   - _OUTLINETYPE_NONE
+  - _RECEIVEDSHADOWSTYPE_CLASSIC
   - _RECEIVE_SHADOWS_ON
   - _REFLECTIONS_CLASSIC
   - _RIMLIGHTINGSTAGE_BEFORELIGHTING
@@ -43,6 +47,7 @@ Material:
   m_CustomRenderQueue: 3000
   stringTagMap: {}
   disabledShaderPasses: []
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -154,6 +159,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 339398f75cfa2714d93579662d08ec9a, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TriplanarNoiseTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _TriplanarTopNormalMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -228,6 +237,9 @@ Material:
     - _FadeOn: 0
     - _FadePower: 1
     - _FadeTransition: 0.046
+    - _FadeUVSet: 0
+    - _FlatNormalsBlend: 1
+    - _FlatNormalsEnabled: 0
     - _FogOn: 0
     - _GeneralAlpha: 1
     - _Glitch: 1
@@ -242,6 +254,7 @@ Material:
     - _GreyScaleStage: 0
     - _Greyscale: 1
     - _GreyscaleBlend: 0.464
+    - _GreyscaleBlending: 1
     - _GreyscaleLuminosity: 0
     - _HalfLambertWrap: 0.356
     - _HandDrawn: 0
@@ -285,7 +298,9 @@ Material:
     - _MatcapBlend: 0.25
     - _MatcapBlendMode: 0
     - _MatcapIntensity: 4
+    - _MaxCameraDistance: 1000
     - _MaxDistanceToFade: 100
+    - _MaxFadeDistance: 250
     - _MaxGradientHeight: 0.75
     - _MaxInflate: 0.2
     - _MaxRim: 1
@@ -301,6 +316,8 @@ Material:
     - _NormalMapEnabled: 1
     - _NormalStrength: 2
     - _OcclusionStrength: 1
+    - _OutlineMode: 8
+    - _OutlineThickness: 1
     - _OutlineType: 0
     - _Parallax: 0.02
     - _Pixelate: 0
@@ -309,7 +326,9 @@ Material:
     - _PosterizeGamma: 0.75
     - _PosterizeNumColors: 12
     - _RecalculateNormals: 0
+    - _ReceiveShadows: 1
     - _ReceiveShadowsOn: 1
+    - _ReceivedShadowsType: 0
     - _Reflections: 1
     - _ReflectionsAtten: 0.4
     - _RenderPreset: 2
@@ -326,6 +345,7 @@ Material:
     - _ScrollTextureX: 1
     - _ScrollTextureY: 1
     - _ShadingModel: 1
+    - _ShadowCutoff: 0.2
     - _ShakeBlend: 1
     - _ShakeSpeedMult: 1
     - _Shininess: 16
@@ -338,6 +358,7 @@ Material:
     - _SpecularToonSmoothness: 0
     - _SpherizeNormals: 0
     - _SrcBlend: 1
+    - _StencilRef: 1
     - _StochasticSampling: 0
     - _StochasticScale: 3.464
     - _StochasticSkew: 0.57735026
@@ -351,14 +372,18 @@ Material:
     - _ToonSmoothness: 0.5
     - _TopNormalStrength: 1
     - _TriplanarMappingOn: 0
+    - _TriplanarNoiseTransitionOn: 0
     - _TriplanarNormalSpace: 1
     - _TriplanarSharpness: 15
+    - _TriplanarTransitionPower: 0.75
     - _UVDistortion: 0
     - _UVSec: 0
     - _UseCustomTime: 0
     - _UseVerticalMask: 1
     - _VertexColorBlending: 1
     - _VertexDistortionAmount: 0
+    - _VertexDistortionNoiseSpeedX: 4
+    - _VertexDistortionNoiseSpeedY: 4
     - _VertexDistortionOn: 0
     - _VertexInflate: 0
     - _VertexShakeOn: 0
@@ -393,6 +418,7 @@ Material:
     - _HitColor: {r: 1, g: 1, b: 1, a: 1}
     - _HologramColor: {r: 1.25, g: 2.8, b: 6.8, a: 1}
     - _HologramLineDirection: {r: 0, g: 1, b: 0, a: 0}
+    - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
     - _RimColor: {r: 0, g: 1.639211, b: 44.727043, a: 1}
     - _RimOffset: {r: 0, g: 0.1, b: 0, a: 0}
     - _SSSColor: {r: 2, g: 1.4901961, b: 1.9607843, a: 1}
@@ -400,3 +426,4 @@ Material:
     - _ShakeSpeed: {r: 41, g: 49, b: 45, a: 0}
     - _VertexDistortionNoiseSpeed: {r: 4, g: 4, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
