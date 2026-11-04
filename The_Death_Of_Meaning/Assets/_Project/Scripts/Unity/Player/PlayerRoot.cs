@@ -72,6 +72,12 @@ namespace TDOM.Unity.Player
         private VfxRed _vfxRed;
 
         [SerializeField]
+        private VfxBase _vfxGancho;
+
+        [SerializeField]
+        private Transform _origenVfxGancho;
+
+        [SerializeField]
         private VfxBase _vfxDobleSalto;
 
         [SerializeField]
@@ -81,7 +87,6 @@ namespace TDOM.Unity.Player
         private float _sensitivity = 120f;
 
         private const float MultiplicadorSensibilidadGancho = 0.35f;
-
         private bool _ganchoActivoPrevio;
         private float _mantenerOrientacionGanchoHasta;
         private bool _hayYawObjetivoGancho;
@@ -824,7 +829,25 @@ namespace TDOM.Unity.Player
                 _fijacion.Liberar();
                 _camera.PunchFov(8f, 0.2f);
                 _feedback?.RegistrarAccionCamara(0.2f);
+                LanzarVfxGancho();
             }
+        }
+
+        private void LanzarVfxGancho()
+        {
+            if (_vfxRed == null || _vfxGancho == null)
+                return;
+
+            Transform origen = _origenVfxGancho != null ? _origenVfxGancho : transform;
+            _vfxRed.LanzarEntre(_vfxGancho, origen.position, _locomocion.PuntoGancho);
+        }
+
+        private void DetenerVfxGancho()
+        {
+            if (_vfxRed == null || _vfxGancho == null)
+                return;
+
+            _vfxRed.Detener(_vfxGancho);
         }
 
         private void ActualizarYawObjetivoGancho()
@@ -949,7 +972,10 @@ namespace TDOM.Unity.Player
                 );
             bool ganchoActivoActual = _locomocion.GanchoActivo;
             if (_ganchoActivoPrevio && !ganchoActivoActual)
+            {
                 _mantenerOrientacionGanchoHasta = Time.time + 0.55f;
+                DetenerVfxGancho();
+            }
             if (_aylaAnimator != null)
             {
                 _aylaAnimator.SetClimbingState(_locomocion.ClimbActivo);
