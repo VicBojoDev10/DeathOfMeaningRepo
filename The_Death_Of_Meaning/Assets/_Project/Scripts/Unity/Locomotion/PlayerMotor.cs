@@ -43,6 +43,12 @@ namespace TDOM.Unity.Locomotion
             _empujeTiempo = 0f;
         }
 
+        public void CancelarEmpuje()
+        {
+            _empujeDuracion = 0f;
+            _empujeTiempo = 0f;
+        }
+
         private PlataformaCircular _plataformaActual;
 
         public PlataformaCircular PlataformaActual => _plataformaActual;
