@@ -203,6 +203,7 @@ classDiagram
         -DetenerVfxGancho()
         -ActualizarVfxSaltoAterrizaje()
         -LanzarVfxEnPies(efecto)
+        -LanzarVfxDobleSalto()
     }
 
     VfxDash ..> ContextoDashVfx : color y nube del dash
@@ -229,6 +230,7 @@ classDiagram
     VfxExplosionSuelo ..> ColorPolvoSuelo : color del polvo segun el suelo
     PlayerRoot ..> DetectorSaltoAterrizaje : salto desde el suelo y aterrizaje
     PlayerRoot --> VfxRed : salto y aterrizaje en los pies
+    PlayerRoot --> VfxRed : anillo del doble salto de Ayla
 
     class CurvaDestelloGolpe {
         <<POCO>>
