@@ -230,3 +230,38 @@ classDiagram
     PlayerRoot ..> DetectorSaltoAterrizaje : salto desde el suelo y aterrizaje
     PlayerRoot --> VfxRed : salto y aterrizaje en los pies
     PlayerRoot --> VfxRed : anillo del doble salto de Ayla
+
+    class VfxEmbestidaProfile {
+        <<ScriptableObject>>
+        +avance : AnimationCurve
+        +aparicion : float
+        +desaparicion : float
+        +longitudLineas : float
+        +grosorLineas : float
+        +lineasPorSegundo : float
+        +velocidadLineas : float
+        +vidaLineas : float
+        +radioLineas : float
+    }
+    class VfxEmbestida {
+        <<MonoBehaviour>>
+        #AlIniciar()
+        #Avanzar(t)
+    }
+    class DetectorFinEmbestida {
+        <<POCO>>
+        +Termino : bool
+        +Actualizar(activa)
+    }
+    class VfxEmbestidaLanzador {
+        <<MonoBehaviour>>
+        +Lanzar(posicion, velocidad, rotacionPorDefecto)
+        +Actualizar(embestidaActiva, posicion, rotacion)
+    }
+
+    VfxProfile <|-- VfxEmbestidaProfile
+    VfxBase <|-- VfxEmbestida
+    VfxEmbestida --> VfxEmbestidaProfile : lineas de velocidad y recorrido
+    VfxEmbestidaLanzador ..> DetectorFinEmbestida : fin de la embestida
+    VfxEmbestidaLanzador --> VfxRed : efecto, detencion e impacto
+    PlayerRoot --> VfxEmbestidaLanzador : inicio y estado de la embestida de Zendre

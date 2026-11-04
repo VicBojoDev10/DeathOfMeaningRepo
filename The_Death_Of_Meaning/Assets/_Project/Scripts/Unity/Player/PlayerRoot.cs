@@ -70,6 +70,9 @@ namespace TDOM.Unity.Player
         private VfxDash _vfxDash;
 
         [SerializeField]
+        private VfxEmbestidaLanzador _vfxEmbestida;
+
+        [SerializeField]
         private VfxRed _vfxRed;
 
         [SerializeField]
@@ -271,6 +274,9 @@ namespace TDOM.Unity.Player
 
             if (_vfxDash == null)
                 _vfxDash = GetComponentInChildren<VfxDash>();
+
+            if (_vfxEmbestida == null)
+                _vfxEmbestida = GetComponentInChildren<VfxEmbestidaLanzador>();
 
             if (_vfxRed == null)
                 _vfxRed = GetComponentInChildren<VfxRed>();
@@ -682,6 +688,25 @@ namespace TDOM.Unity.Player
         {
             if (_vfxDash != null)
                 _vfxDash.Lanzar(transform.position, _locomocion.State.Velocity, transform.rotation);
+        }
+
+        private void ActualizarVfxEmbestida()
+        {
+            if (_vfxEmbestida == null || _characterId != CharacterIds.Zendre)
+                return;
+
+            if (_locomocion.DashIniciado)
+                _vfxEmbestida.Lanzar(
+                    transform.position,
+                    _locomocion.State.Velocity,
+                    transform.rotation
+                );
+
+            _vfxEmbestida.Actualizar(
+                _locomocion.DashActivo,
+                transform.position,
+                transform.rotation
+            );
         }
 
         private void ActualizarVfxSaltoAterrizaje()
@@ -1164,6 +1189,7 @@ namespace TDOM.Unity.Player
                 DashEmbestidaIniciada?.Invoke();
                 LanzarVfxDash();
             }
+            ActualizarVfxEmbestida();
             RegistrarDesplazamientoLateralEnCamara(input.Move);
 
             if (ganchoActivoActual != _ganchoActivoPrevio)
