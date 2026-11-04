@@ -200,6 +200,8 @@ classDiagram
         -LanzarVfxDash()
         -LanzarVfxGancho()
         -DetenerVfxGancho()
+        -ActualizarVfxSaltoAterrizaje()
+        -LanzarVfxEnPies(efecto)
         -LanzarVfxDobleSalto()
     }
 
@@ -207,4 +209,24 @@ classDiagram
     VfxDash --> VfxRed : ventisca, chispas y nube
     PlayerRoot --> VfxDash : estado antes del dash y lanzamiento
     PlayerRoot --> VfxRed : espada del gancho de la mano al punto de enganche
+
+    class DetectorSaltoAterrizaje {
+        <<POCO>>
+        +SaltoDesdeSuelo : bool
+        +Aterrizaje : bool
+        +Actualizar(enSuelo, saltoEnCurso, saltoAereo, velocidadVertical)
+    }
+    class ColorPolvoSuelo {
+        <<static, POCO>>
+        +Calcular(haySuelo, colorSuelo, colorSinSuelo, aclarado) Color
+    }
+    class VfxExplosionSuelo {
+        <<MonoBehaviour>>
+        #AlIniciar()
+    }
+
+    VfxExplosion <|-- VfxExplosionSuelo
+    VfxExplosionSuelo ..> ColorPolvoSuelo : color del polvo segun el suelo
+    PlayerRoot ..> DetectorSaltoAterrizaje : salto desde el suelo y aterrizaje
+    PlayerRoot --> VfxRed : salto y aterrizaje en los pies
     PlayerRoot --> VfxRed : anillo del doble salto de Ayla

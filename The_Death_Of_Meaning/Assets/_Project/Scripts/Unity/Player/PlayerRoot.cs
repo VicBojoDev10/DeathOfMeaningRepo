@@ -6,6 +6,7 @@ using TDOM.Data;
 using TDOM.Gameplay.Camera;
 using TDOM.Gameplay.Core;
 using TDOM.Gameplay.Locomotion;
+using TDOM.Gameplay.Vfx;
 using TDOM.Unity;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
@@ -76,6 +77,26 @@ namespace TDOM.Unity.Player
 
         [SerializeField]
         private Transform _origenVfxGancho;
+
+        [SerializeField]
+        private VfxBase _vfxSalto;
+
+        [SerializeField]
+        private VfxBase _vfxAterrizaje;
+
+        [SerializeField]
+        private float _velocidadMinimaVfxAterrizaje = 6f;
+
+        [SerializeField]
+        private float _distanciaVfxAlSuelo = 2f;
+
+        [SerializeField]
+        private float _alturaRayoVfxSuelo = 1f;
+
+        [SerializeField]
+        private float _separacionVfxDelSuelo = 0.05f;
+
+        private DetectorSaltoAterrizaje _detectorVfxSalto;
 
         [SerializeField]
         private VfxBase _vfxDobleSalto;
@@ -253,6 +274,8 @@ namespace TDOM.Unity.Player
 
             if (_vfxRed == null)
                 _vfxRed = GetComponentInChildren<VfxRed>();
+
+            _detectorVfxSalto = new DetectorSaltoAterrizaje(_velocidadMinimaVfxAterrizaje);
 
             if (IsServer && _definition != null && _definition.Energy != null)
             {
@@ -661,6 +684,74 @@ namespace TDOM.Unity.Player
                 _vfxDash.Lanzar(transform.position, _locomocion.State.Velocity, transform.rotation);
         }
 
+        private void ActualizarVfxSaltoAterrizaje()
+        {
+            if (_detectorVfxSalto == null)
+                return;
+
+            _detectorVfxSalto.Actualizar(
+                _locomocion.State.IsGrounded,
+                _locomocion.SaltoEnCurso,
+                _locomocion.SaltoAereo,
+                _locomocion.State.Velocity.y
+            );
+
+            if (_detectorVfxSalto.SaltoDesdeSuelo)
+                LanzarVfxEnPies(_vfxSalto);
+
+            if (_detectorVfxSalto.Aterrizaje)
+                LanzarVfxAterrizaje();
+        }
+
+        private void LanzarVfxAterrizaje()
+        {
+            if (_vfxRed == null || _vfxAterrizaje == null)
+                return;
+
+            _vfxRed.Lanzar(_vfxAterrizaje, BaseDelControlador(), transform.rotation);
+        }
+
+        private Vector3 BaseDelControlador()
+        {
+            CharacterController controlador = _motor != null ? _motor.Controller : null;
+            if (controlador == null)
+                return transform.position;
+
+            Vector3 pies = transform.position;
+            pies.y = controlador.bounds.min.y + _separacionVfxDelSuelo;
+            return pies;
+        }
+
+        private void LanzarVfxEnPies(VfxBase efecto)
+        {
+            if (_vfxRed == null || efecto == null)
+                return;
+
+            if (!BuscarSueloBajoLosPies(out RaycastHit impacto))
+            {
+                _vfxRed.Lanzar(efecto, transform.position, transform.rotation);
+                return;
+            }
+
+            Vector3 posicion = impacto.point + impacto.normal * _separacionVfxDelSuelo;
+            Quaternion rotacion =
+                Quaternion.FromToRotation(Vector3.up, impacto.normal) * transform.rotation;
+            _vfxRed.Lanzar(efecto, posicion, rotacion);
+        }
+
+        private bool BuscarSueloBajoLosPies(out RaycastHit impacto)
+        {
+            Vector3 origen = transform.position + Vector3.up * _alturaRayoVfxSuelo;
+            return Physics.Raycast(
+                origen,
+                Vector3.down,
+                out impacto,
+                _alturaRayoVfxSuelo + _distanciaVfxAlSuelo,
+                Physics.DefaultRaycastLayers,
+                QueryTriggerInteraction.Ignore
+            );
+        }
+
         private void LanzarVfxDobleSalto()
         {
             if (_vfxRed == null || _vfxDobleSalto == null)
@@ -1057,6 +1148,7 @@ namespace TDOM.Unity.Player
             AplicarMiradaACamara();
 
             DispararFeedbackDeLocomocion();
+            ActualizarVfxSaltoAterrizaje();
             if (
                 _locomocion.SaltoAereo
                 && _characterId == CharacterIds.Ayla
