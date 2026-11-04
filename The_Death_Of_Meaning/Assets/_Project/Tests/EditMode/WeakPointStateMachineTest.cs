@@ -182,7 +182,7 @@ namespace TDOM.Tests.EditMode
             var maquina = MaquinaEnFase1();
             int ojo = AbrirUnOjo(maquina);
 
-            Assert.IsTrue(maquina.Disparo(ojo));
+            Assert.IsTrue(maquina.ResolverImpacto(ojo, TipoImpactoOjo.Disparo, false));
         }
 
         [Test]

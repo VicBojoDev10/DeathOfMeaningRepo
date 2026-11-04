@@ -136,12 +136,6 @@ namespace TDOM.Gameplay.Combat
             _timers[ojo] = 0f;
         }
 
-        public bool Disparo(int ojo)
-        {
-            ValidarOjo(ojo);
-            return _estados[ojo] == EstadoOjo.Abierto;
-        }
-
         public bool GolpeDisparo(int ojo)
         {
             ValidarOjo(ojo);

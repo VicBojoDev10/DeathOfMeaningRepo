@@ -154,7 +154,7 @@ namespace TDOM.Unity.Combat
         [SerializeField, Min(0f)]
         [Tooltip(
             "Segundos tras iniciar un golpe en los que el hitbox sigue detectando mientras la espada "
-                + "se mueve con la animacion. Cada objetivo se golpea una sola vez por golpe. "
+                + "se mueve con la animacion. Cada zona de dano se golpea una vez por golpe. "
                 + "0 = solo se detecta al iniciar el golpe, con la espada todavia en reposo."
         )]
         private float _ventanaBarridoMelee = 0.35f;
@@ -226,7 +226,8 @@ namespace TDOM.Unity.Combat
         private AttackEvent _eventoGiros;
         private Coroutine _golpeDiferido;
         private Coroutine _barridoMelee;
-        private readonly HashSet<ulong> _objetivosGolpeados = new HashSet<ulong>();
+        private readonly HashSet<(ulong, HitZone)> _zonasGolpeadas =
+            new HashSet<(ulong, HitZone)>();
 
         /// <summary>
         /// Energia que costara el cargado que se esta preparando (0 si no se esta cargando).
@@ -642,7 +643,7 @@ namespace TDOM.Unity.Combat
             if (!giros)
             {
                 CancelarGolpeDiferido();
-                _objetivosGolpeados.Clear();
+                _zonasGolpeadas.Clear();
                 if (retardo > 0f)
                     _golpeDiferido = StartCoroutine(GolpeDiferido(evento, retardo, ligeros));
                 else
@@ -813,7 +814,7 @@ namespace TDOM.Unity.Combat
                 {
                     if (imp.Objeto != null)
                     {
-                        if (!_objetivosGolpeados.Add(imp.Objeto.NetworkObjectId))
+                        if (!_zonasGolpeadas.Add((imp.Objeto.NetworkObjectId, imp.Zona)))
                             continue;
 
                         huboImpacto = true;
@@ -859,8 +860,9 @@ namespace TDOM.Unity.Combat
 
         // El golpe de ImpactarMelee se detecta cuando arranca la animacion, con la espada aun en
         // reposo. Este barrido repite la deteccion mientras la espada se mueve, para que un ojo
-        // alcanzado a mitad del tajo cuente. Cada objetivo se reporta una sola vez por golpe,
-        // aunque varios colliders o zonas del mismo NetworkObject entren en el hitbox.
+        // alcanzado a mitad del tajo cuente. Cada HitZone se reporta una sola vez por golpe,
+        // aunque varios colliders de esa zona entren en el hitbox. Dos ojos del mismo jefe
+        // son zonas distintas y ambos pueden recibir el impacto.
         private IEnumerator BarridoMelee(AttackEvent evento, float retardo, int ligeros)
         {
             if (retardo > 0f)
@@ -881,7 +883,7 @@ namespace TDOM.Unity.Combat
                 {
                     if (imp.Objeto == null)
                         continue;
-                    if (!_objetivosGolpeados.Add(imp.Objeto.NetworkObjectId))
+                    if (!_zonasGolpeadas.Add((imp.Objeto.NetworkObjectId, imp.Zona)))
                         continue;
 
                     huboNuevo = true;
@@ -916,7 +918,7 @@ namespace TDOM.Unity.Combat
                 _eventoGiros.Damage * factor
             );
 
-            _objetivosGolpeados.Clear();
+            _zonasGolpeadas.Clear();
 
             if (_logCombo)
                 Debug.Log(
@@ -927,7 +929,10 @@ namespace TDOM.Unity.Combat
             var impactos = _hitbox.DetectarImpactos(_radioHitbox, _alcanceHitbox);
             foreach (var imp in impactos)
             {
-                if (imp.Objeto == null || !_objetivosGolpeados.Add(imp.Objeto.NetworkObjectId))
+                if (
+                    imp.Objeto == null
+                    || !_zonasGolpeadas.Add((imp.Objeto.NetworkObjectId, imp.Zona))
+                )
                     continue;
                 huboImpacto = true;
                 ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, ReferenciaZona(imp));
