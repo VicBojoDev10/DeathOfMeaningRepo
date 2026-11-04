@@ -19,6 +19,7 @@ namespace TDOM.Unity
         private static readonly int AssaultStandStateHash = Animator.StringToHash("AssaultStand");
         private static readonly int DamageHash = Animator.StringToHash("Damage");
         private static readonly int DamageStateHash = Animator.StringToHash("Base Layer.Damage");
+        private static readonly int DamageShortStateHash = Animator.StringToHash("Damage");
         private static readonly int DeadHash = Animator.StringToHash("Dead");
         private static readonly int ReviveHash = Animator.StringToHash("Revive");
         private static readonly int ReviveStateHash = Animator.StringToHash("Revive");
@@ -63,7 +64,13 @@ namespace TDOM.Unity
 
         private Vector3 _ultimaPos;
         private bool _assaultAutoReleasePending;
+        private bool _damageMovementLocked;
+        private bool _damageStateObserved;
+        private bool _reviveMovementLocked;
+        private bool _reviveStateObserved;
         private PlayerRoot _playerRoot;
+
+        public bool AnimationMovementLocked => _damageMovementLocked || _reviveMovementLocked;
 
         private void Awake()
         {
@@ -75,6 +82,7 @@ namespace TDOM.Unity
         {
             _ultimaPos = transform.position;
             _playerRoot = GetComponentInParent<PlayerRoot>();
+            LiberarBloqueoDanio();
             if (_playerRoot != null)
             {
                 _playerRoot.Vida.OnValueChanged += AlCambiarVida;
@@ -96,6 +104,7 @@ namespace TDOM.Unity
 
         public override void OnNetworkDespawn()
         {
+            LiberarBloqueoDanio();
             if (_playerRoot != null)
             {
                 _playerRoot.Vida.OnValueChanged -= AlCambiarVida;
@@ -115,6 +124,8 @@ namespace TDOM.Unity
             if (danioRecibido <= 0f)
                 return;
 
+            _damageMovementLocked = true;
+            _damageStateObserved = false;
             _animator.SetFloat(DamageHash, Mathf.Clamp(danioRecibido, 0f, DamageBlendMaximum));
             _animator.CrossFade(DamageStateHash, DamageTransitionDuration, 0, 0f);
         }
@@ -136,6 +147,11 @@ namespace TDOM.Unity
 
             _animator.SetBool(DeadHash, estado != PlayerLifeState.Vivo);
             _animator.SetBool(ReviveHash, iniciarRevive);
+            if (iniciarRevive)
+            {
+                _reviveMovementLocked = true;
+                _reviveStateObserved = false;
+            }
         }
 
         public void ActualizarApuntado(bool apuntando, bool guardia, Vector2 movimiento)
@@ -188,6 +204,9 @@ namespace TDOM.Unity
             if (dt <= 0f || _animator == null)
                 return;
 
+            ActualizarBloqueoDanio();
+            ActualizarBloqueoRevive();
+
             if (!IsOwner)
             {
                 AplicarModos(_aiming.Value, _guarding.Value, _aimMove.Value);
@@ -210,6 +229,70 @@ namespace TDOM.Unity
             _ultimaPos = posicionActual;
 
             _animator.SetFloat(SpeedHash, velocidad.magnitude, SpeedDampTime, dt);
+        }
+
+        private void ActualizarBloqueoDanio()
+        {
+            if (!_damageMovementLocked)
+                return;
+
+            var currentState = _animator.GetCurrentAnimatorStateInfo(0);
+            bool currentIsDamage = currentState.shortNameHash == DamageShortStateHash;
+            bool nextIsDamage =
+                _animator.IsInTransition(0)
+                && _animator.GetNextAnimatorStateInfo(0).shortNameHash == DamageShortStateHash;
+
+            if (currentIsDamage || nextIsDamage)
+            {
+                _damageStateObserved = true;
+                return;
+            }
+
+            if (_damageStateObserved)
+            {
+                LiberarBloqueoDanio();
+                return;
+            }
+
+            // Keep movement locked until Damage is actually observed. A delayed or
+            // interrupted transition must never silently unlock through a timeout.
+        }
+
+        private void LiberarBloqueoDanio()
+        {
+            _damageMovementLocked = false;
+            _damageStateObserved = false;
+        }
+
+        private void ActualizarBloqueoRevive()
+        {
+            if (!_reviveMovementLocked)
+                return;
+
+            bool currentIsRevive =
+                _animator.GetCurrentAnimatorStateInfo(0).shortNameHash == ReviveStateHash;
+            bool nextIsRevive =
+                _animator.IsInTransition(0)
+                && _animator.GetNextAnimatorStateInfo(0).shortNameHash == ReviveStateHash;
+
+            if (currentIsRevive || nextIsRevive)
+            {
+                _reviveStateObserved = true;
+                return;
+            }
+
+            if (_reviveStateObserved)
+            {
+                _reviveMovementLocked = false;
+                _reviveStateObserved = false;
+            }
+        }
+
+        public void RestablecerBloqueoDanio()
+        {
+            LiberarBloqueoDanio();
+            _reviveMovementLocked = false;
+            _reviveStateObserved = false;
         }
 
         private bool LlegoAAssaultStand()
