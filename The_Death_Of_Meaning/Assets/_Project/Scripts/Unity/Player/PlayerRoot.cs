@@ -139,7 +139,12 @@ namespace TDOM.Unity.Player
 
         private bool MovimientoBloqueado =>
             (_combat != null && _combat.BloqueaMovimiento)
-            || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
+            || (_anchorLauncher != null && _anchorLauncher.AnclaActiva)
+            || (
+                _characterId == CharacterIds.Zendre
+                && _zendreLocomotionAnimator != null
+                && _zendreLocomotionAnimator.AnimationMovementLocked
+            );
 
         public CharacterIds CharacterId => _characterId;
         public float CostoEnergiaPendiente => _combat != null ? _combat.CostoCargaPendiente : 0f;
@@ -512,6 +517,8 @@ namespace TDOM.Unity.Player
             if (!IsOwner)
                 return;
 
+            _zendreLocomotionAnimator?.RestablecerBloqueoDanio();
+
             _locomocion?.Reiniciar();
             _motor?.ResetPlataforma();
 
@@ -847,6 +854,13 @@ namespace TDOM.Unity.Player
             if (!IsOwner || !_initialSpawnApplied)
                 return;
 
+            if (
+                _characterId == CharacterIds.Zendre
+                && _zendreLocomotionAnimator != null
+                && _zendreLocomotionAnimator.AnimationMovementLocked
+            )
+                _locomocion.CancelarDashEnCurso();
+
             var input = _inputReader.Read();
             bool apuntando =
                 input.AimHeld && PuedeApuntar && !EstaAbatidoOMuerto && !_locomocion.ClimbActivo;
@@ -964,20 +978,35 @@ namespace TDOM.Unity.Player
             {
                 intent = new MotionIntent(Vector3.zero, ignoreGravity: true);
             }
-            _motor.Apply(intent, dt, plataformaAnclada);
+            bool bloquearTodoMovimiento =
+                _characterId == CharacterIds.Zendre
+                && _zendreLocomotionAnimator != null
+                && _zendreLocomotionAnimator.AnimationMovementLocked;
+            if (bloquearTodoMovimiento)
+            {
+                _locomocion.CancelarDashEnCurso();
+                _motor.CancelarEmpuje();
+            }
+            else
+            {
+                _motor.Apply(intent, dt, plataformaAnclada);
+            }
             bool alineandoConGancho =
                 ganchoActivoActual || Time.time < _mantenerOrientacionGanchoHasta;
-            _facing.Tick(
-                _locomocion.State.Velocity,
-                _look.Yaw,
-                apuntando
-                    || ModoPistola
-                    || alineandoConGancho
-                    || (_combat != null && _combat.MovimientoLimitado),
-                dt,
-                alineandoConGancho ? 0.5f : 1f
-            );
-            transform.rotation = _facing.Rotacion;
+            if (!bloquearTodoMovimiento)
+            {
+                _facing.Tick(
+                    _locomocion.State.Velocity,
+                    _look.Yaw,
+                    apuntando
+                        || ModoPistola
+                        || alineandoConGancho
+                        || (_combat != null && _combat.MovimientoLimitado),
+                    dt,
+                    alineandoConGancho ? 0.5f : 1f
+                );
+                transform.rotation = _facing.Rotacion;
+            }
             AplicarMiradaACamara();
 
             DispararFeedbackDeLocomocion();
