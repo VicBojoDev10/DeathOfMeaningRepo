@@ -198,8 +198,11 @@ classDiagram
         <<NetworkBehaviour>>
         -CapturarContextoVfxDash(dt)
         -LanzarVfxDash()
+        -LanzarVfxGancho()
+        -DetenerVfxGancho()
     }
 
     VfxDash ..> ContextoDashVfx : color y nube del dash
     VfxDash --> VfxRed : ventisca, chispas y nube
     PlayerRoot --> VfxDash : estado antes del dash y lanzamiento
+    PlayerRoot --> VfxRed : espada del gancho de la mano al punto de enganche
