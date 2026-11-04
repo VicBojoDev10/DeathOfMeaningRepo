@@ -318,7 +318,7 @@ MonoBehaviour:
   _vfx: {fileID: 6087383552892531074}
   _vfxRed: {fileID: 180704491247187337}
   _vfxGolpeLigero: {fileID: 8337503244343293207, guid: 08d72c306c3b8874eaed6937f723b172, type: 3}
-  _origenVfxGolpeLigero: {fileID: 4203025943293764004}
+  _origenVfxGolpeLigero: {fileID: 0}
   _vfxSigueLaEstela: 1
   _giroVfxEnEstela: {x: 0, y: -45, z: 0}
   _avanceVfxGolpeLigero: 0
@@ -326,11 +326,11 @@ MonoBehaviour:
   - Efecto: {fileID: 8337503244343293207, guid: 08d72c306c3b8874eaed6937f723b172, type: 3}
     Giro: {x: 0, y: 0, z: 0}
     GiroEspejo: {x: 0, y: 0, z: 18}
-    Retardo: 0.3
+    Retardo: 0.5
   - Efecto: {fileID: 8337503244343293207, guid: 08d72c306c3b8874eaed6937f723b172, type: 3}
     Giro: {x: 0, y: 0, z: 18}
     GiroEspejo: {x: 0, y: 0, z: 0}
-    Retardo: 0.3
+    Retardo: 0.65
   _vfxCargado:
     Efecto: {fileID: 0}
     Giro: {x: 0, y: 0, z: 45}
@@ -1391,11 +1391,6 @@ Transform:
 --- !u!95 &3310299557817736656 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
-  m_PrefabInstance: {fileID: 8978522072713748545}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &4203025943293764004 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -4121291106788982299, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
   m_PrefabInstance: {fileID: 8978522072713748545}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &8096196218240523536 stripped
