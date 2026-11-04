@@ -76,6 +76,8 @@ GameObject:
   - component: {fileID: 8086599341354008101}
   - component: {fileID: 1537443789259067397}
   - component: {fileID: 405411109418568762}
+  - component: {fileID: 2886936978579731612}
+  - component: {fileID: 180704491247187337}
   m_Layer: 0
   m_Name: PlayerZendre
   m_TagString: Player
@@ -267,6 +269,7 @@ MonoBehaviour:
   _camera: {fileID: 9139514355318020352}
   _inputReader: {fileID: 4485191308997266209}
   _grappleVisual: {fileID: 0}
+  _vfxDash: {fileID: 0}
   _sensitivity: 120
   _alturaMaxima: 80
   Energia:
@@ -313,21 +316,21 @@ MonoBehaviour:
   _feedback: {fileID: 7054898957245270891}
   _debugFeedback: {fileID: 3869141073335305693}
   _vfx: {fileID: 6087383552892531074}
-  _vfxRed: {fileID: 0}
-  _vfxGolpeLigero: {fileID: 0}
-  _origenVfxGolpeLigero: {fileID: 0}
+  _vfxRed: {fileID: 180704491247187337}
+  _vfxGolpeLigero: {fileID: 8337503244343293207, guid: 08d72c306c3b8874eaed6937f723b172, type: 3}
+  _origenVfxGolpeLigero: {fileID: 4203025943293764004}
   _vfxSigueLaEstela: 1
   _giroVfxEnEstela: {x: 0, y: -45, z: 0}
   _avanceVfxGolpeLigero: 0
   _vfxPorGolpeLigero:
-  - Efecto: {fileID: 0}
-    Giro: {x: 0, y: 0, z: 45}
-    GiroEspejo: {x: 0, y: 0, z: -45}
-    Retardo: 0.12
-  - Efecto: {fileID: 0}
-    Giro: {x: 0, y: 0, z: -45}
-    GiroEspejo: {x: 0, y: 0, z: 45}
-    Retardo: 0.12
+  - Efecto: {fileID: 8337503244343293207, guid: 08d72c306c3b8874eaed6937f723b172, type: 3}
+    Giro: {x: 0, y: 0, z: 0}
+    GiroEspejo: {x: 0, y: 0, z: 18}
+    Retardo: 0.3
+  - Efecto: {fileID: 8337503244343293207, guid: 08d72c306c3b8874eaed6937f723b172, type: 3}
+    Giro: {x: 0, y: 0, z: 18}
+    GiroEspejo: {x: 0, y: 0, z: 0}
+    Retardo: 0.3
   _vfxCargado:
     Efecto: {fileID: 0}
     Giro: {x: 0, y: 0, z: 45}
@@ -505,6 +508,33 @@ MonoBehaviour:
   _fillImage: {fileID: 6682880522841132029}
   _canvas: {fileID: 8693802000460562269}
   _profile: {fileID: 11400000, guid: bb7adef1e27e4dd4b94be56a46ba3e3d, type: 2}
+--- !u!114 &2886936978579731612
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5125041952874771469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b3f0a0eef2178941b4abd08c0dd6eb4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Vfx.VfxPool
+  _catalogo: {fileID: 11400000, guid: e63be35bfa730c34e89d0b12d85259fb, type: 2}
+--- !u!114 &180704491247187337
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5125041952874771469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e5bdbde09808cd47bf6ca37e850a2d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Vfx.VfxRed
+  ShowTopMostFoldoutHeaderGroup: 1
+  _pool: {fileID: 2886936978579731612}
 --- !u!1 &5152080394067024196
 GameObject:
   m_ObjectHideFlags: 0
@@ -737,6 +767,10 @@ PrefabInstance:
     - target: {fileID: 4308796071580946999, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6941943588414883099, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: _golpe
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 7344774625564070270, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
       propertyPath: EmissionModule.enabled
@@ -1357,6 +1391,11 @@ Transform:
 --- !u!95 &3310299557817736656 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
+  m_PrefabInstance: {fileID: 8978522072713748545}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &4203025943293764004 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -4121291106788982299, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
   m_PrefabInstance: {fileID: 8978522072713748545}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &8096196218240523536 stripped
