@@ -198,8 +198,30 @@ classDiagram
         <<NetworkBehaviour>>
         -CapturarContextoVfxDash(dt)
         -LanzarVfxDash()
+        -ActualizarVfxSaltoAterrizaje()
+        -LanzarVfxEnPies(efecto)
     }
 
     VfxDash ..> ContextoDashVfx : color y nube del dash
     VfxDash --> VfxRed : ventisca, chispas y nube
     PlayerRoot --> VfxDash : estado antes del dash y lanzamiento
+
+    class DetectorSaltoAterrizaje {
+        <<POCO>>
+        +SaltoDesdeSuelo : bool
+        +Aterrizaje : bool
+        +Actualizar(enSuelo, saltoEnCurso, saltoAereo, velocidadVertical)
+    }
+    class ColorPolvoSuelo {
+        <<static, POCO>>
+        +Calcular(haySuelo, colorSuelo, colorSinSuelo, aclarado) Color
+    }
+    class VfxExplosionSuelo {
+        <<MonoBehaviour>>
+        #AlIniciar()
+    }
+
+    VfxExplosion <|-- VfxExplosionSuelo
+    VfxExplosionSuelo ..> ColorPolvoSuelo : color del polvo segun el suelo
+    PlayerRoot ..> DetectorSaltoAterrizaje : salto desde el suelo y aterrizaje
+    PlayerRoot --> VfxRed : salto y aterrizaje en los pies

@@ -6,6 +6,7 @@ using TDOM.Data;
 using TDOM.Gameplay.Camera;
 using TDOM.Gameplay.Core;
 using TDOM.Gameplay.Locomotion;
+using TDOM.Gameplay.Vfx;
 using TDOM.Unity;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
@@ -67,6 +68,20 @@ namespace TDOM.Unity.Player
 
         [SerializeField]
         private VfxDash _vfxDash;
+
+        [SerializeField]
+        private VfxRed _vfxRed;
+
+        [SerializeField]
+        private VfxBase _vfxSalto;
+
+        [SerializeField]
+        private VfxBase _vfxAterrizaje;
+
+        [SerializeField]
+        private float _velocidadMinimaVfxAterrizaje = 6f;
+
+        private DetectorSaltoAterrizaje _detectorVfxSalto;
 
         [SerializeField]
         private float _sensitivity = 120f;
@@ -231,6 +246,11 @@ namespace TDOM.Unity.Player
 
             if (_vfxDash == null)
                 _vfxDash = GetComponentInChildren<VfxDash>();
+
+            if (_vfxRed == null)
+                _vfxRed = GetComponentInChildren<VfxRed>();
+
+            _detectorVfxSalto = new DetectorSaltoAterrizaje(_velocidadMinimaVfxAterrizaje);
 
             if (IsServer && _definition != null && _definition.Energy != null)
             {
@@ -637,6 +657,33 @@ namespace TDOM.Unity.Player
                 _vfxDash.Lanzar(transform.position, _locomocion.State.Velocity, transform.rotation);
         }
 
+        private void ActualizarVfxSaltoAterrizaje()
+        {
+            if (_detectorVfxSalto == null)
+                return;
+
+            _detectorVfxSalto.Actualizar(
+                _locomocion.State.IsGrounded,
+                _locomocion.SaltoEnCurso,
+                _locomocion.SaltoAereo,
+                _locomocion.State.Velocity.y
+            );
+
+            if (_detectorVfxSalto.SaltoDesdeSuelo)
+                LanzarVfxEnPies(_vfxSalto);
+
+            if (_detectorVfxSalto.Aterrizaje)
+                LanzarVfxEnPies(_vfxAterrizaje);
+        }
+
+        private void LanzarVfxEnPies(VfxBase efecto)
+        {
+            if (_vfxRed == null || efecto == null)
+                return;
+
+            _vfxRed.Lanzar(efecto, transform.position, transform.rotation);
+        }
+
         private void AplicarMiradaACamara()
         {
             if (_camera != null)
@@ -981,6 +1028,7 @@ namespace TDOM.Unity.Player
             AplicarMiradaACamara();
 
             DispararFeedbackDeLocomocion();
+            ActualizarVfxSaltoAterrizaje();
             if (
                 _locomocion.SaltoAereo
                 && _characterId == CharacterIds.Ayla
