@@ -81,8 +81,6 @@ namespace TDOM.Unity.Player
         private float _sensitivity = 120f;
 
         private const float MultiplicadorSensibilidadGancho = 0.35f;
-        private const float DistanciaMinimaDireccionVfxGancho = 0.001f;
-
         private bool _ganchoActivoPrevio;
         private float _mantenerOrientacionGanchoHasta;
         private bool _hayYawObjetivoGancho;
@@ -826,12 +824,15 @@ namespace TDOM.Unity.Player
                 return;
 
             Transform origen = _origenVfxGancho != null ? _origenVfxGancho : transform;
-            Vector3 haciaGancho = _locomocion.PuntoGancho - origen.position;
-            Quaternion rotacion =
-                haciaGancho.sqrMagnitude > DistanciaMinimaDireccionVfxGancho
-                    ? Quaternion.LookRotation(haciaGancho.normalized)
-                    : transform.rotation;
-            _vfxRed.Lanzar(_vfxGancho, origen.position, rotacion);
+            _vfxRed.LanzarEntre(_vfxGancho, origen.position, _locomocion.PuntoGancho);
+        }
+
+        private void DetenerVfxGancho()
+        {
+            if (_vfxRed == null || _vfxGancho == null)
+                return;
+
+            _vfxRed.Detener(_vfxGancho);
         }
 
         private void ActualizarYawObjetivoGancho()
@@ -956,7 +957,10 @@ namespace TDOM.Unity.Player
                 );
             bool ganchoActivoActual = _locomocion.GanchoActivo;
             if (_ganchoActivoPrevio && !ganchoActivoActual)
+            {
                 _mantenerOrientacionGanchoHasta = Time.time + 0.55f;
+                DetenerVfxGancho();
+            }
             if (_aylaAnimator != null)
             {
                 _aylaAnimator.SetClimbingState(_locomocion.ClimbActivo);
