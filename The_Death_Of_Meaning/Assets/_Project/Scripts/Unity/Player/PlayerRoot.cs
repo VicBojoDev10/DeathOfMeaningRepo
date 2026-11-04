@@ -84,6 +84,12 @@ namespace TDOM.Unity.Player
         [SerializeField]
         private float _distanciaVfxAlSuelo = 2f;
 
+        [SerializeField]
+        private float _alturaRayoVfxSuelo = 1f;
+
+        [SerializeField]
+        private float _separacionVfxDelSuelo = 0.05f;
+
         private DetectorSaltoAterrizaje _detectorVfxSalto;
 
         [SerializeField]
@@ -684,21 +690,29 @@ namespace TDOM.Unity.Player
             if (_vfxRed == null || efecto == null)
                 return;
 
-            _vfxRed.Lanzar(efecto, PosicionEnElSuelo(), transform.rotation);
+            if (!BuscarSueloBajoLosPies(out RaycastHit impacto))
+            {
+                _vfxRed.Lanzar(efecto, transform.position, transform.rotation);
+                return;
+            }
+
+            Vector3 posicion = impacto.point + impacto.normal * _separacionVfxDelSuelo;
+            Quaternion rotacion =
+                Quaternion.FromToRotation(Vector3.up, impacto.normal) * transform.rotation;
+            _vfxRed.Lanzar(efecto, posicion, rotacion);
         }
 
-        private Vector3 PosicionEnElSuelo()
+        private bool BuscarSueloBajoLosPies(out RaycastHit impacto)
         {
-            Vector3 origen = transform.position;
-            bool haySuelo = Physics.Raycast(
+            Vector3 origen = transform.position + Vector3.up * _alturaRayoVfxSuelo;
+            return Physics.Raycast(
                 origen,
                 Vector3.down,
-                out RaycastHit impacto,
-                _distanciaVfxAlSuelo,
+                out impacto,
+                _alturaRayoVfxSuelo + _distanciaVfxAlSuelo,
                 Physics.DefaultRaycastLayers,
                 QueryTriggerInteraction.Ignore
             );
-            return haySuelo ? impacto.point : origen;
         }
 
         private void AplicarMiradaACamara()
