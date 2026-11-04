@@ -5119,6 +5119,11 @@ MonoBehaviour:
   _camera: {fileID: 6394526385662522574}
   _inputReader: {fileID: 76253369680155383}
   _grappleVisual: {fileID: 8501239841203941202}
+  _vfxDash: {fileID: 0}
+  _vfxRed: {fileID: 0}
+  _vfxSalto: {fileID: 4626283046374563792, guid: baa458ea3a572424ab1dba0edcce6134, type: 3}
+  _vfxAterrizaje: {fileID: 0}
+  _velocidadMinimaVfxAterrizaje: 6
   _sensitivity: 120
   _alturaMaxima: 80
   Energia:
@@ -5224,6 +5229,7 @@ MonoBehaviour:
   _logCombo: 1
   _radioHitbox: 1.5
   _alcanceHitbox: 1
+  _ventanaBarridoMelee: 0.35
   _factorDanioGiro: 0.4
   _factorDanioFinal: 0.8
   _velocidadEnCombo: 0.4

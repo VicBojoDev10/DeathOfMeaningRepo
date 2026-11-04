@@ -76,6 +76,8 @@ GameObject:
   - component: {fileID: 8086599341354008101}
   - component: {fileID: 1537443789259067397}
   - component: {fileID: 405411109418568762}
+  - component: {fileID: 343775628458215006}
+  - component: {fileID: 4363769887927546492}
   m_Layer: 0
   m_Name: PlayerZendre
   m_TagString: Player
@@ -267,6 +269,11 @@ MonoBehaviour:
   _camera: {fileID: 9139514355318020352}
   _inputReader: {fileID: 4485191308997266209}
   _grappleVisual: {fileID: 0}
+  _vfxDash: {fileID: 0}
+  _vfxRed: {fileID: 0}
+  _vfxSalto: {fileID: 4626283046374563792, guid: baa458ea3a572424ab1dba0edcce6134, type: 3}
+  _vfxAterrizaje: {fileID: 0}
+  _velocidadMinimaVfxAterrizaje: 6
   _sensitivity: 120
   _alturaMaxima: 80
   Energia:
@@ -505,6 +512,33 @@ MonoBehaviour:
   _fillImage: {fileID: 6682880522841132029}
   _canvas: {fileID: 8693802000460562269}
   _profile: {fileID: 11400000, guid: bb7adef1e27e4dd4b94be56a46ba3e3d, type: 2}
+--- !u!114 &343775628458215006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5125041952874771469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b3f0a0eef2178941b4abd08c0dd6eb4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Vfx.VfxPool
+  _catalogo: {fileID: 11400000, guid: e63be35bfa730c34e89d0b12d85259fb, type: 2}
+--- !u!114 &4363769887927546492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5125041952874771469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e5bdbde09808cd47bf6ca37e850a2d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Vfx.VfxRed
+  ShowTopMostFoldoutHeaderGroup: 1
+  _pool: {fileID: 343775628458215006}
 --- !u!1 &5152080394067024196
 GameObject:
   m_ObjectHideFlags: 0
