@@ -362,11 +362,10 @@ namespace TDOM.Unity
             _rayos.Clear();
         }
 
-        // Mismo feedback que la Mano y el Tentáculo: impacto de cámara y flashes.
+        // Mismo feedback que la Mano y el Tentáculo: impacto de cámara y flash de debug.
         [Rpc(SendTo.SpecifiedInParams)]
         private void JugadorGolpeadoRpc(RpcParams rpcParams = default)
         {
-            MostrarFlashRojo();
             NotificarGolpeAlJugadorLocal();
         }
 

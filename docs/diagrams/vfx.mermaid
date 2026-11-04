@@ -198,6 +198,7 @@ classDiagram
         <<NetworkBehaviour>>
         -CapturarContextoVfxDash(dt)
         -LanzarVfxDash()
+        -OnVidaChanged(anterior, actual)
         -LanzarVfxGancho()
         -DetenerVfxGancho()
         -ActualizarVfxSaltoAterrizaje()
@@ -265,3 +266,20 @@ classDiagram
     VfxEmbestidaLanzador ..> DetectorFinEmbestida : fin de la embestida
     VfxEmbestidaLanzador --> VfxRed : efecto, detencion e impacto
     PlayerRoot --> VfxEmbestidaLanzador : inicio y estado de la embestida de Zendre
+
+    class CurvaDestelloGolpe {
+        <<POCO>>
+        +Activo bool
+        +EsGolpe(vidaAnterior, vidaActual)$ bool
+        +Reiniciar()
+        +Avanzar(dt, curva, intensidadMaxima) float
+    }
+    class DestelloGolpe {
+        <<MonoBehaviour>>
+        +Disparar()
+        -Aplicar(intensidad)
+    }
+
+    DestelloGolpe ..> CurvaDestelloGolpe : intensidad por tiempo
+    PlayerRoot --> DestelloGolpe : Vida baja (cada cliente)
+    PlayerRoot ..> CurvaDestelloGolpe : EsGolpe
