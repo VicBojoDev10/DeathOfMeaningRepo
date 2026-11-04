@@ -13,6 +13,7 @@ using TDOM.Unity.Input;
 using TDOM.Unity.Level;
 using TDOM.Unity.Locomotion;
 using TDOM.Unity.Settings;
+using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
@@ -63,6 +64,9 @@ namespace TDOM.Unity.Player
 
         [SerializeField]
         private GrappleVisual _grappleVisual;
+
+        [SerializeField]
+        private VfxDash _vfxDash;
 
         [SerializeField]
         private float _sensitivity = 120f;
@@ -224,6 +228,9 @@ namespace TDOM.Unity.Player
 
             if (_grappleVisual == null)
                 _grappleVisual = GetComponentInChildren<GrappleVisual>();
+
+            if (_vfxDash == null)
+                _vfxDash = GetComponentInChildren<VfxDash>();
 
             if (IsServer && _definition != null && _definition.Energy != null)
             {
@@ -610,6 +617,26 @@ namespace TDOM.Unity.Player
             }
         }
 
+        private void CapturarContextoVfxDash(float dt)
+        {
+            if (_vfxDash == null)
+                return;
+
+            _vfxDash.Capturar(
+                _locomocion.State.IsGrounded,
+                _locomocion.Corriendo,
+                _combat != null && (_combat.AtaqueActivo || _combat.PuedeCancelarConDash),
+                _locomocion.GanchoActivo,
+                dt
+            );
+        }
+
+        private void LanzarVfxDash()
+        {
+            if (_vfxDash != null)
+                _vfxDash.Lanzar(transform.position, _locomocion.State.Velocity, transform.rotation);
+        }
+
         private void AplicarMiradaACamara()
         {
             if (_camera != null)
@@ -837,6 +864,7 @@ namespace TDOM.Unity.Player
                 );
 
             _motor.ProbeGround(_locomocion.State);
+            CapturarContextoVfxDash(dt);
 
             if (!EstaAbatidoOMuerto)
             {
@@ -964,6 +992,7 @@ namespace TDOM.Unity.Player
                 if (_characterId == CharacterIds.Zendre)
                     _zendreLocomotionAnimator?.IniciarAssault();
                 DashEmbestidaIniciada?.Invoke();
+                LanzarVfxDash();
             }
             RegistrarDesplazamientoLateralEnCamara(input.Move);
 

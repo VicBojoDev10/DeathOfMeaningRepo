@@ -4925,6 +4925,7 @@ GameObject:
   - component: {fileID: 2102127513358069341}
   - component: {fileID: 5756340313008821684}
   - component: {fileID: 4092464067334334174}
+  - component: {fileID: 679057322281883628}
   m_Layer: 0
   m_Name: PlayerAyla
   m_TagString: Player
@@ -5545,6 +5546,25 @@ MonoBehaviour:
   _tiempoSubida: 0.15
   _tiempoBajada: 0.4
   _capas: []
+--- !u!114 &679057322281883628
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2229917530308356307}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be2344de46427ed4386249320b1c8e27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Vfx.VfxDash
+  _vfxRed: {fileID: 2102127513358069341}
+  _ventanaTrasGancho: 1
+  _efectoSuelo: {fileID: 8141764296307097768, guid: 5a5fc9c52a6143b46a3fa1589a5400cb, type: 3}
+  _efectoAire: {fileID: 2849036800197132327, guid: 93f61e289a36b1e43bd16ebfb02a932b, type: 3}
+  _efectoCancelacion: {fileID: 5193272175661237925, guid: 120b13842ae4eec4abf2f24c861363a3, type: 3}
+  _nube: {fileID: 8165657749533258322, guid: aa5dabdfd76417d41b2e5214f5e492de, type: 3}
+  _nubeGrande: {fileID: 4104928192157428720, guid: 74939ec729628b54e967b8d9f50befe4, type: 3}
 --- !u!1 &5167135693431690079
 GameObject:
   m_ObjectHideFlags: 0
