@@ -99,6 +99,12 @@ namespace TDOM.Unity.Player
         private DetectorSaltoAterrizaje _detectorVfxSalto;
 
         [SerializeField]
+        private VfxBase _vfxDobleSalto;
+
+        [SerializeField]
+        private Transform _origenVfxDobleSalto;
+
+        [SerializeField]
         private float _sensitivity = 120f;
 
         private const float MultiplicadorSensibilidadGancho = 0.35f;
@@ -746,6 +752,15 @@ namespace TDOM.Unity.Player
             );
         }
 
+        private void LanzarVfxDobleSalto()
+        {
+            if (_vfxRed == null || _vfxDobleSalto == null)
+                return;
+
+            Transform origen = _origenVfxDobleSalto != null ? _origenVfxDobleSalto : transform;
+            _vfxRed.Lanzar(_vfxDobleSalto, origen.position, transform.rotation);
+        }
+
         private void AplicarMiradaACamara()
         {
             if (_camera != null)
@@ -1140,6 +1155,8 @@ namespace TDOM.Unity.Player
                 && _aylaAnimator != null
             )
                 _aylaAnimator.IniciarDobleSalto();
+            if (_locomocion.SaltoAereo && _characterId == CharacterIds.Ayla)
+                LanzarVfxDobleSalto();
             if (_locomocion.DashIniciado)
             {
                 if (_characterId == CharacterIds.Zendre)
