@@ -6,6 +6,7 @@ using TDOM.Data;
 using TDOM.Gameplay.Camera;
 using TDOM.Gameplay.Core;
 using TDOM.Gameplay.Locomotion;
+using TDOM.Gameplay.Vfx;
 using TDOM.Unity;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
@@ -67,6 +68,9 @@ namespace TDOM.Unity.Player
 
         [SerializeField]
         private VfxDash _vfxDash;
+
+        [SerializeField]
+        private DestelloGolpe _destelloGolpe;
 
         [SerializeField]
         private float _sensitivity = 120f;
@@ -232,6 +236,9 @@ namespace TDOM.Unity.Player
             if (_vfxDash == null)
                 _vfxDash = GetComponentInChildren<VfxDash>();
 
+            if (_destelloGolpe == null)
+                _destelloGolpe = GetComponentInChildren<DestelloGolpe>();
+
             if (IsServer && _definition != null && _definition.Energy != null)
             {
                 _energyPool = new EnergyPool(
@@ -250,6 +257,7 @@ namespace TDOM.Unity.Player
             }
 
             EstadoVida.OnValueChanged += OnEstadoVidaChanged;
+            Vida.OnValueChanged += OnVidaChanged;
             AplicarEstadoVida();
 
             _characterId = GetCharacterId();
@@ -326,6 +334,12 @@ namespace TDOM.Unity.Player
             AplicarEstadoVida();
         }
 
+        private void OnVidaChanged(float anterior, float actual)
+        {
+            if (_destelloGolpe != null && CurvaDestelloGolpe.EsGolpe(anterior, actual))
+                _destelloGolpe.Disparar();
+        }
+
         private void AplicarEstadoVida()
         {
             _combat?.EstablecerIncapacitado(EstaAbatidoOMuerto);
@@ -337,6 +351,7 @@ namespace TDOM.Unity.Player
             CameraSettingsService.SensibilidadCambiada -= OnSensibilidadCambiada;
             DestruirOverlayRespawn();
             EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
+            Vida.OnValueChanged -= OnVidaChanged;
             _healthPool = null;
             _vidasJugadores.Clear();
             if (IsServer)
@@ -351,6 +366,7 @@ namespace TDOM.Unity.Player
             CameraSettingsService.SensibilidadCambiada -= OnSensibilidadCambiada;
             DestruirOverlayRespawn();
             EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
+            Vida.OnValueChanged -= OnVidaChanged;
             if (IsServer)
             {
                 BossController.DejarDeObservarJefe(OnBossSpawned);

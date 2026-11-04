@@ -198,8 +198,26 @@ classDiagram
         <<NetworkBehaviour>>
         -CapturarContextoVfxDash(dt)
         -LanzarVfxDash()
+        -OnVidaChanged(anterior, actual)
     }
 
     VfxDash ..> ContextoDashVfx : color y nube del dash
     VfxDash --> VfxRed : ventisca, chispas y nube
     PlayerRoot --> VfxDash : estado antes del dash y lanzamiento
+
+    class CurvaDestelloGolpe {
+        <<POCO>>
+        +Activo bool
+        +EsGolpe(vidaAnterior, vidaActual)$ bool
+        +Reiniciar()
+        +Avanzar(dt, curva, intensidadMaxima) float
+    }
+    class DestelloGolpe {
+        <<MonoBehaviour>>
+        +Disparar()
+        -Aplicar(intensidad)
+    }
+
+    DestelloGolpe ..> CurvaDestelloGolpe : intensidad por tiempo
+    PlayerRoot --> DestelloGolpe : Vida baja (cada cliente)
+    PlayerRoot ..> CurvaDestelloGolpe : EsGolpe
