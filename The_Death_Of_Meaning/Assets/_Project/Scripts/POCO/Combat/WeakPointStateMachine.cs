@@ -142,20 +142,34 @@ namespace TDOM.Gameplay.Combat
             return _estados[ojo] == EstadoOjo.Abierto;
         }
 
+        public bool GolpeDisparo(int ojo)
+        {
+            ValidarOjo(ojo);
+
+            if (_estados[ojo] == EstadoOjo.Brillando)
+            {
+                _estados[ojo] = EstadoOjo.Abierto;
+                _timers[ojo] = 0f;
+                return false;
+            }
+
+            return _estados[ojo] == EstadoOjo.Abierto;
+        }
+
         public bool ResolverImpacto(int ojo, TipoImpactoOjo tipo, bool atacanteEsAyla)
         {
             if (tipo == TipoImpactoOjo.Melee)
-                return atacanteEsAyla && GolpeMelee(ojo) == ResultadoGolpe.Rebote;
+                return GolpeMelee(ojo) == ResultadoGolpe.Rebote;
 
-            return !atacanteEsAyla && Disparo(ojo);
+            return !atacanteEsAyla && GolpeDisparo(ojo);
         }
 
         public bool ResolverImpacto(int ojo, TipoImpactoOjo tipo)
         {
-            bool estabaAbierto = Disparo(ojo);
             if (tipo == TipoImpactoOjo.Melee)
-                GolpeMelee(ojo);
-            return estabaAbierto;
+                return GolpeMelee(ojo) == ResultadoGolpe.Rebote;
+
+            return GolpeDisparo(ojo);
         }
 
         public void Tick(float dt)

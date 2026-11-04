@@ -226,8 +226,7 @@ namespace TDOM.Unity.Combat
         private AttackEvent _eventoGiros;
         private Coroutine _golpeDiferido;
         private Coroutine _barridoMelee;
-        private readonly HashSet<(ulong, HitZone)> _zonasGolpeadas =
-            new HashSet<(ulong, HitZone)>();
+        private readonly HashSet<ulong> _objetivosGolpeados = new HashSet<ulong>();
 
         /// <summary>
         /// Energia que costara el cargado que se esta preparando (0 si no se esta cargando).
@@ -643,7 +642,7 @@ namespace TDOM.Unity.Combat
             if (!giros)
             {
                 CancelarGolpeDiferido();
-                _zonasGolpeadas.Clear();
+                _objetivosGolpeados.Clear();
                 if (retardo > 0f)
                     _golpeDiferido = StartCoroutine(GolpeDiferido(evento, retardo, ligeros));
                 else
@@ -814,8 +813,10 @@ namespace TDOM.Unity.Combat
                 {
                     if (imp.Objeto != null)
                     {
+                        if (!_objetivosGolpeados.Add(imp.Objeto.NetworkObjectId))
+                            continue;
+
                         huboImpacto = true;
-                        _zonasGolpeadas.Add((imp.Objeto.NetworkObjectId, imp.Zona));
                         ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, ReferenciaZona(imp));
                     }
                 }
@@ -880,7 +881,7 @@ namespace TDOM.Unity.Combat
                 {
                     if (imp.Objeto == null)
                         continue;
-                    if (!_zonasGolpeadas.Add((imp.Objeto.NetworkObjectId, imp.Zona)))
+                    if (!_objetivosGolpeados.Add(imp.Objeto.NetworkObjectId))
                         continue;
 
                     huboNuevo = true;
@@ -915,6 +916,8 @@ namespace TDOM.Unity.Combat
                 _eventoGiros.Damage * factor
             );
 
+            _objetivosGolpeados.Clear();
+
             if (_logCombo)
                 Debug.Log(
                     $"[Combo][{NombrePersonaje}] giro {indice} {(esFinal ? "(final) " : "")}daño {evento.Damage}"
@@ -924,7 +927,7 @@ namespace TDOM.Unity.Combat
             var impactos = _hitbox.DetectarImpactos(_radioHitbox, _alcanceHitbox);
             foreach (var imp in impactos)
             {
-                if (imp.Objeto == null)
+                if (imp.Objeto == null || !_objetivosGolpeados.Add(imp.Objeto.NetworkObjectId))
                     continue;
                 huboImpacto = true;
                 ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, ReferenciaZona(imp));
@@ -1097,6 +1100,9 @@ namespace TDOM.Unity.Combat
             )
                 return;
 
+            if (obj.GetComponentInParent<PlayerRoot>() != null)
+                return;
+
             if (hitZoneRef.TryGet(out HitZone hitZone) && hitZone != null)
             {
                 if (hitZone.NetworkObject != obj)
@@ -1116,6 +1122,10 @@ namespace TDOM.Unity.Combat
             }
 
             obj.GetComponent<AtaquesArek>()?.RegistrarImpacto(OwnerClientId);
+
+            var damageable = obj.GetComponent<IDamageable>();
+            if (damageable != null)
+                damageable.RecibirDanio(evento.Damage);
 
             Debug.Log(
                 $"[SERVER] {tipo} validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño"

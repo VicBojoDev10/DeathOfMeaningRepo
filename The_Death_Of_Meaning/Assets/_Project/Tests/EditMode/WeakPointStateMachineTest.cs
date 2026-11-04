@@ -155,24 +155,25 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
-        public void El_golpe_de_zendre_a_un_ojo_no_lo_abre_ni_hace_danio()
+        public void El_golpe_de_zendre_a_un_ojo_se_comporta_como_el_de_ayla()
         {
             var maquina = MaquinaEnFase1();
             int abierto = AbrirUnOjo(maquina);
             int brillando = Buscar(maquina, EstadoOjo.Brillando);
 
             Assert.IsFalse(maquina.ResolverImpacto(brillando, TipoImpactoOjo.Melee, false));
-            Assert.IsFalse(maquina.ResolverImpacto(abierto, TipoImpactoOjo.Melee, false));
-            Assert.AreEqual(EstadoOjo.Brillando, maquina.Estado(brillando));
+            Assert.IsTrue(maquina.ResolverImpacto(abierto, TipoImpactoOjo.Melee, false));
+            Assert.AreEqual(EstadoOjo.Abierto, maquina.Estado(brillando));
         }
 
         [Test]
-        public void Disparo_SobreOjoBrillando_NoHaceDanio()
+        public void Disparo_SobreOjoBrillando_LoAbreSinHacerDanio()
         {
             var maquina = MaquinaEnFase1();
             int ojo = Buscar(maquina, EstadoOjo.Brillando);
 
-            Assert.IsFalse(maquina.Disparo(ojo));
+            Assert.IsFalse(maquina.ResolverImpacto(ojo, TipoImpactoOjo.Disparo, false));
+            Assert.AreEqual(EstadoOjo.Abierto, maquina.Estado(ojo));
         }
 
         [Test]
