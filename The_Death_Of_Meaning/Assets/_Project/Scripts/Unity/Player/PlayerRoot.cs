@@ -13,6 +13,7 @@ using TDOM.Unity.Input;
 using TDOM.Unity.Level;
 using TDOM.Unity.Locomotion;
 using TDOM.Unity.Settings;
+using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
@@ -65,9 +66,19 @@ namespace TDOM.Unity.Player
         private GrappleVisual _grappleVisual;
 
         [SerializeField]
+        private VfxRed _vfxRed;
+
+        [SerializeField]
+        private VfxBase _vfxGancho;
+
+        [SerializeField]
+        private Transform _origenVfxGancho;
+
+        [SerializeField]
         private float _sensitivity = 120f;
 
         private const float MultiplicadorSensibilidadGancho = 0.35f;
+        private const float DistanciaMinimaDireccionVfxGancho = 0.001f;
 
         private bool _ganchoActivoPrevio;
         private float _mantenerOrientacionGanchoHasta;
@@ -224,6 +235,9 @@ namespace TDOM.Unity.Player
 
             if (_grappleVisual == null)
                 _grappleVisual = GetComponentInChildren<GrappleVisual>();
+
+            if (_vfxRed == null)
+                _vfxRed = GetComponentInChildren<VfxRed>();
 
             if (IsServer && _definition != null && _definition.Energy != null)
             {
@@ -776,7 +790,22 @@ namespace TDOM.Unity.Player
                 _fijacion.Liberar();
                 _camera.PunchFov(8f, 0.2f);
                 _feedback?.RegistrarAccionCamara(0.2f);
+                LanzarVfxGancho();
             }
+        }
+
+        private void LanzarVfxGancho()
+        {
+            if (_vfxRed == null || _vfxGancho == null)
+                return;
+
+            Transform origen = _origenVfxGancho != null ? _origenVfxGancho : transform;
+            Vector3 haciaGancho = _locomocion.PuntoGancho - origen.position;
+            Quaternion rotacion =
+                haciaGancho.sqrMagnitude > DistanciaMinimaDireccionVfxGancho
+                    ? Quaternion.LookRotation(haciaGancho.normalized)
+                    : transform.rotation;
+            _vfxRed.Lanzar(_vfxGancho, origen.position, rotacion);
         }
 
         private void ActualizarYawObjetivoGancho()
