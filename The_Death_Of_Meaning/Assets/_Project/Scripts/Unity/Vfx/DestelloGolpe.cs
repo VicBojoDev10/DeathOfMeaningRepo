@@ -29,7 +29,7 @@ namespace TDOM.Unity.Vfx
         }
 
         [SerializeField]
-        private float _duracion = 0.3f;
+        private float _duracion = 0.6f;
 
         [SerializeField]
         private AnimationCurve _curva = new AnimationCurve(
