@@ -682,7 +682,26 @@ namespace TDOM.Unity.Player
                 LanzarVfxEnPies(_vfxSalto);
 
             if (_detectorVfxSalto.Aterrizaje)
-                LanzarVfxEnPies(_vfxAterrizaje);
+                LanzarVfxAterrizaje();
+        }
+
+        private void LanzarVfxAterrizaje()
+        {
+            if (_vfxRed == null || _vfxAterrizaje == null)
+                return;
+
+            _vfxRed.Lanzar(_vfxAterrizaje, BaseDelControlador(), transform.rotation);
+        }
+
+        private Vector3 BaseDelControlador()
+        {
+            CharacterController controlador = _motor != null ? _motor.Controller : null;
+            if (controlador == null)
+                return transform.position;
+
+            Vector3 pies = transform.position;
+            pies.y = controlador.bounds.min.y + _separacionVfxDelSuelo;
+            return pies;
         }
 
         private void LanzarVfxEnPies(VfxBase efecto)
