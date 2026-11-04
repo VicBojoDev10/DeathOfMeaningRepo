@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Combat;
-using TDOM.Gameplay.Core;
 using TDOM.Gameplay.Vfx;
 using TDOM.Unity;
 using TDOM.Unity.Camera;
@@ -13,6 +12,7 @@ using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Serialization;
+using ComboPhase = TDOM.Gameplay.Core.ComboPhase;
 
 namespace TDOM.Unity.Combat
 {
@@ -154,7 +154,7 @@ namespace TDOM.Unity.Combat
         [SerializeField, Min(0f)]
         [Tooltip(
             "Segundos tras iniciar un golpe en los que el hitbox sigue detectando mientras la espada "
-                + "se mueve con la animacion. Cada zona se golpea una sola vez por golpe. "
+                + "se mueve con la animacion. Cada objetivo se golpea una sola vez por golpe. "
                 + "0 = solo se detecta al iniciar el golpe, con la espada todavia en reposo."
         )]
         private float _ventanaBarridoMelee = 0.35f;
@@ -859,8 +859,8 @@ namespace TDOM.Unity.Combat
 
         // El golpe de ImpactarMelee se detecta cuando arranca la animacion, con la espada aun en
         // reposo. Este barrido repite la deteccion mientras la espada se mueve, para que un ojo
-        // alcanzado a mitad del tajo cuente. Cada zona se reporta una sola vez por golpe (un
-        // segundo reporte sobre un ojo abierto seria un rebote, es decir, danio).
+        // alcanzado a mitad del tajo cuente. Cada objetivo se reporta una sola vez por golpe,
+        // aunque varios colliders o zonas del mismo NetworkObject entren en el hitbox.
         private IEnumerator BarridoMelee(AttackEvent evento, float retardo, int ligeros)
         {
             if (retardo > 0f)
@@ -1122,10 +1122,6 @@ namespace TDOM.Unity.Combat
             }
 
             obj.GetComponent<AtaquesArek>()?.RegistrarImpacto(OwnerClientId);
-
-            var damageable = obj.GetComponent<IDamageable>();
-            if (damageable != null)
-                damageable.RecibirDanio(evento.Damage);
 
             Debug.Log(
                 $"[SERVER] {tipo} validado contra {objetivoId} ({obj.name}): {evento.Damage} de daño"
