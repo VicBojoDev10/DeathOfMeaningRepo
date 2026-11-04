@@ -70,6 +70,9 @@ namespace TDOM.Unity.Player
         private VfxDash _vfxDash;
 
         [SerializeField]
+        private DestelloGolpe _destelloGolpe;
+
+        [SerializeField]
         private VfxRed _vfxRed;
 
         [SerializeField]
@@ -272,6 +275,9 @@ namespace TDOM.Unity.Player
             if (_vfxDash == null)
                 _vfxDash = GetComponentInChildren<VfxDash>();
 
+            if (_destelloGolpe == null)
+                _destelloGolpe = GetComponentInChildren<DestelloGolpe>();
+
             if (_vfxRed == null)
                 _vfxRed = GetComponentInChildren<VfxRed>();
 
@@ -295,6 +301,7 @@ namespace TDOM.Unity.Player
             }
 
             EstadoVida.OnValueChanged += OnEstadoVidaChanged;
+            Vida.OnValueChanged += OnVidaChanged;
             AplicarEstadoVida();
 
             _characterId = GetCharacterId();
@@ -371,6 +378,12 @@ namespace TDOM.Unity.Player
             AplicarEstadoVida();
         }
 
+        private void OnVidaChanged(float anterior, float actual)
+        {
+            if (_destelloGolpe != null && CurvaDestelloGolpe.EsGolpe(anterior, actual))
+                _destelloGolpe.Disparar();
+        }
+
         private void AplicarEstadoVida()
         {
             _combat?.EstablecerIncapacitado(EstaAbatidoOMuerto);
@@ -382,6 +395,7 @@ namespace TDOM.Unity.Player
             CameraSettingsService.SensibilidadCambiada -= OnSensibilidadCambiada;
             DestruirOverlayRespawn();
             EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
+            Vida.OnValueChanged -= OnVidaChanged;
             _healthPool = null;
             _vidasJugadores.Clear();
             if (IsServer)
@@ -396,6 +410,7 @@ namespace TDOM.Unity.Player
             CameraSettingsService.SensibilidadCambiada -= OnSensibilidadCambiada;
             DestruirOverlayRespawn();
             EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
+            Vida.OnValueChanged -= OnVidaChanged;
             if (IsServer)
             {
                 BossController.DejarDeObservarJefe(OnBossSpawned);

@@ -9,14 +9,10 @@ namespace TDOM.Unity
     public abstract class AtaqueArekBase : NetworkBehaviour
     {
         private const float DuracionFlashDebugGolpe = 0.2f;
-        private const float DuracionFlashRojo = 0.25f;
-        private static readonly Color ColorFlashRojo = new Color(1f, 0f, 0f, 0.4f);
 
         private readonly NetworkVariable<ulong> _lanzadorId = new NetworkVariable<ulong>();
 
         private ulong _lanzadorPendiente;
-
-        private float _finFlashRojo;
 
         private VfxRed _vfxJefe;
 
@@ -63,22 +59,6 @@ namespace TDOM.Unity
         }
 
         protected abstract void AlSpawnear();
-
-        protected void MostrarFlashRojo()
-        {
-            _finFlashRojo = Time.unscaledTime + DuracionFlashRojo;
-        }
-
-        private void OnGUI()
-        {
-            if (Time.unscaledTime >= _finFlashRojo)
-                return;
-
-            Color colorAnterior = GUI.color;
-            GUI.color = ColorFlashRojo;
-            GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
-            GUI.color = colorAnterior;
-        }
 
         internal static void NotificarGolpeAlJugadorLocal()
         {
