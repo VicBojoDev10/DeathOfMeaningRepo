@@ -16,7 +16,7 @@ MonoBehaviour:
   puntoB: {x: 0, y: 0, z: 2}
   curvatura: 0
   rotacion: 0
-  orientacion: {x: 0, y: 0, z: 25}
+  orientacion: {x: 0, y: 55, z: 25}
   duracion: 3
   color:
     serializedVersion: 2
@@ -53,7 +53,7 @@ MonoBehaviour:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 1.5
+      value: 3
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -62,7 +62,7 @@ MonoBehaviour:
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 1.5
+      value: 3
       inSlope: 0
       outSlope: 0
       tangentMode: 0
