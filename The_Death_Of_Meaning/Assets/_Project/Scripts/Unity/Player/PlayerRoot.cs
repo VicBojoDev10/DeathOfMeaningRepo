@@ -244,6 +244,7 @@ namespace TDOM.Unity.Player
 
             EstadoVida.OnValueChanged += OnEstadoVidaChanged;
             AplicarEstadoVida();
+            if (IsServer) ArenaEncounterNetwork.Instance?.NotificarEstadoVida(this, EstadoVida.Value);
 
             _characterId = GetCharacterId();
 
@@ -317,6 +318,7 @@ namespace TDOM.Unity.Player
         private void OnEstadoVidaChanged(PlayerLifeState anterior, PlayerLifeState actual)
         {
             AplicarEstadoVida();
+            ArenaEncounterNetwork.Instance?.NotificarEstadoVida(this, actual);
         }
 
         private void AplicarEstadoVida()
@@ -504,6 +506,8 @@ namespace TDOM.Unity.Player
         {
             if (!IsOwner)
                 return;
+
+            ArenaEncounterNetwork.Instance?.DesregistrarJugador(this);
 
             _locomocion?.Reiniciar();
             _motor?.ResetPlataforma();
