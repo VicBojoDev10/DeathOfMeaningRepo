@@ -175,14 +175,22 @@ namespace TDOM.Unity.Player
         private bool BloqueoPorAtaqueAereo =>
             _combat != null && _combat.MovimientoLimitado && !_locomocion.State.IsGrounded;
 
-        private bool MovimientoBloqueado =>
-            (_combat != null && _combat.BloqueaMovimiento)
-            || (_anchorLauncher != null && _anchorLauncher.AnclaActiva)
-            || (
+        private bool BloqueoAnimacionMovimiento =>
+            (
                 _characterId == CharacterIds.Zendre
                 && _zendreLocomotionAnimator != null
                 && _zendreLocomotionAnimator.AnimationMovementLocked
+            )
+            || (
+                _characterId == CharacterIds.Ayla
+                && _aylaAnimator != null
+                && _aylaAnimator.AnimationMovementLocked
             );
+
+        private bool MovimientoBloqueado =>
+            (_combat != null && _combat.BloqueaMovimiento)
+            || (_anchorLauncher != null && _anchorLauncher.AnclaActiva)
+            || BloqueoAnimacionMovimiento;
 
         public CharacterIds CharacterId => _characterId;
         public float CostoEnergiaPendiente => _combat != null ? _combat.CostoCargaPendiente : 0f;
@@ -1004,11 +1012,7 @@ namespace TDOM.Unity.Player
             if (!IsOwner || !_initialSpawnApplied)
                 return;
 
-            if (
-                _characterId == CharacterIds.Zendre
-                && _zendreLocomotionAnimator != null
-                && _zendreLocomotionAnimator.AnimationMovementLocked
-            )
+            if (BloqueoAnimacionMovimiento)
                 _locomocion.CancelarDashEnCurso();
 
             var input = _inputReader.Read();
@@ -1032,13 +1036,13 @@ namespace TDOM.Unity.Player
 
             if (!EstaAbatidoOMuerto)
             {
-                if (!_locomocion.ClimbActivo)
+                if (!_locomocion.ClimbActivo && !BloqueoAnimacionMovimiento)
                 {
                     AlinearConCamaraAlAtacar(input, apuntando);
                     IntentarEscaladaEnBorde(input);
                 }
 
-                if (!_locomocion.ClimbActivo)
+                if (!_locomocion.ClimbActivo && !BloqueoAnimacionMovimiento)
                 {
                     // Dash cancela el combo en cualquier punto (solo si el dash está disponible).
                     if (
@@ -1078,18 +1082,19 @@ namespace TDOM.Unity.Player
                     IntentarGanchoApuntado();
             }
 
-            var intent = EstaAbatidoOMuerto
-                ? _locomocion.TickIncapacitado(dt)
-                : _locomocion.Tick(
-                    input,
-                    _look.YawRotation,
-                    dt,
-                    MovimientoBloqueado || BloqueoPorAtaqueAereo,
-                    transform.position,
-                    ModoPistola,
-                    _combat != null ? _combat.MultiplicadorVelocidadAtaque : 1f,
-                    _combat != null && _combat.GravedadReducidaPorAtaque
-                );
+            var intent =
+                EstaAbatidoOMuerto || BloqueoAnimacionMovimiento
+                    ? _locomocion.TickIncapacitado(dt)
+                    : _locomocion.Tick(
+                        input,
+                        _look.YawRotation,
+                        dt,
+                        MovimientoBloqueado || BloqueoPorAtaqueAereo,
+                        transform.position,
+                        ModoPistola,
+                        _combat != null ? _combat.MultiplicadorVelocidadAtaque : 1f,
+                        _combat != null && _combat.GravedadReducidaPorAtaque
+                    );
             bool ganchoActivoActual = _locomocion.GanchoActivo;
             if (_ganchoActivoPrevio && !ganchoActivoActual)
             {
@@ -1131,10 +1136,7 @@ namespace TDOM.Unity.Player
             {
                 intent = new MotionIntent(Vector3.zero, ignoreGravity: true);
             }
-            bool bloquearTodoMovimiento =
-                _characterId == CharacterIds.Zendre
-                && _zendreLocomotionAnimator != null
-                && _zendreLocomotionAnimator.AnimationMovementLocked;
+            bool bloquearTodoMovimiento = BloqueoAnimacionMovimiento;
             if (bloquearTodoMovimiento)
             {
                 _locomocion.CancelarDashEnCurso();
