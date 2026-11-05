@@ -229,7 +229,11 @@ namespace TDOM.Unity
         private void OnGUI()
         {
             if (!IsSpawned || !IsServer) return;
-            GUILayout.BeginArea(new Rect(10, 10, 230, 90), "Encuentro AREK (F8)", GUI.skin.window);
+            GUILayout.BeginArea(
+                new Rect(Mathf.Max(10, Screen.width - 240), Mathf.Max(10, Screen.height - 100), 230, 90),
+                "Encuentro AREK (F8)",
+                GUI.skin.window
+            );
             GUILayout.Label($"Fase: {Fase.Value}");
             if (GUILayout.Button("Forzar Presentación + JefeRevelado") ||
                 (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.F8))

@@ -6,4 +6,6 @@ En `NArenaArek`, `ColliderArena` (ID 1) marca el acceso y `ColliderArenaInside` 
 
 Los jugadores `Abatido` o `Muerto` no cuentan. Si uno cae abatido dentro, el inicio espera hasta que vuelva a `Vivo`; si se levanta dentro sigue presente. El respawn del KillPlane retira su presencia y el trigger lo registra de nuevo al volver a entrar. Al desconectarse se elimina su `ClientId`.
 
+Cuando la arena queda sellada, el KillPlane usa `RespawnAylaArena` o `RespawnZendreArena` según el personaje. Antes de sellarla conserva los puntos de respawn generales. Los dos empties están sueltos en `NetworkSetup`, asignados directamente al KillPlane y sus posiciones se pueden ajustar al blockout.
+
 La presentación puede suscribirse a `JefeRevelado` y llamar `IniciarCombate()` en el servidor al terminar. El evento sirve también para invocar la revelación del jefe en ambos clientes. Para depurar en el Editor como servidor/host, usa F8 o el botón **Forzar Presentación + JefeRevelado**; **Forzar Combate** avanza la fase. El reinicio de partida restablece fase, presencia y evento de una sola vez.
