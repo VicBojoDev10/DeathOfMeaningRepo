@@ -383,6 +383,8 @@ namespace TDOM.Unity
             if (!IsServer || _inicioPartidaEnProceso || !_seleccion.PuedeIniciar)
                 return;
 
+            ArenaEncounterNetwork.Instance?.ReiniciarServidor();
+
             PauseManager.Instance?.RestablecerResultadoDesdeServidor();
             LimpiarMinionsEnServidor();
             _inicioPartidaEnProceso = true;
