@@ -311,7 +311,8 @@ namespace TDOM.Unity.Player
             EstadoVida.OnValueChanged += OnEstadoVidaChanged;
             Vida.OnValueChanged += OnVidaChanged;
             AplicarEstadoVida();
-            if (IsServer) ArenaEncounterNetwork.Instance?.NotificarEstadoVida(this, EstadoVida.Value);
+            if (IsServer)
+                ArenaEncounterNetwork.Instance?.NotificarEstadoVida(this, EstadoVida.Value);
 
             _characterId = GetCharacterId();
 

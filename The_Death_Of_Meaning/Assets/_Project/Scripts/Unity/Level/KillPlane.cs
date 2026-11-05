@@ -20,15 +20,25 @@ namespace TDOM.Unity.Level
 
         private Transform ObtenerRespawn(PlayerRoot player)
         {
-            if (ArenaEncounterNetwork.Instance != null && ArenaEncounterNetwork.Instance.ArenaSellada.Value)
+            if (
+                ArenaEncounterNetwork.Instance != null
+                && ArenaEncounterNetwork.Instance.ArenaSellada.Value
+            )
             {
                 Transform respawnArena = player.CharacterId switch
                 {
-                    CharacterIds.Ayla => ObtenerPuntoArena(ref _respawnAylaArena, "RespawnAylaArena"),
-                    CharacterIds.Zendre => ObtenerPuntoArena(ref _respawnZendreArena, "RespawnZendreArena"),
+                    CharacterIds.Ayla => ObtenerPuntoArena(
+                        ref _respawnAylaArena,
+                        "RespawnAylaArena"
+                    ),
+                    CharacterIds.Zendre => ObtenerPuntoArena(
+                        ref _respawnZendreArena,
+                        "RespawnZendreArena"
+                    ),
                     _ => ObtenerPuntoArena(ref _respawnAylaArena, "RespawnAylaArena"),
                 };
-                if (respawnArena != null) return respawnArena;
+                if (respawnArena != null)
+                    return respawnArena;
             }
 
             return player.CharacterId switch
@@ -44,7 +54,8 @@ namespace TDOM.Unity.Level
             if (punto == null)
             {
                 var objeto = GameObject.Find(nombre);
-                if (objeto != null) punto = objeto.transform;
+                if (objeto != null)
+                    punto = objeto.transform;
             }
             return punto;
         }
