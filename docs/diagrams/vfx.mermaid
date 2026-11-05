@@ -181,3 +181,70 @@ classDiagram
     PlayerCombat --> IOrigenVfxGolpe : centro de la hoja
     PlayerCombat ..> MarcoTajo : posicion y avance
     PlayerCombat --> VfxRed : silueta por golpe ligero
+
+    class ContextoDashVfx {
+        <<POCO>>
+        +Tipo : TipoDashVfx
+        +Nube : NubeDashVfx
+        +GanchoReciente : bool
+        +Capturar(enSuelo, corriendo, cancelaAtaque, ganchoActivo, dt)
+    }
+    class VfxDash {
+        <<MonoBehaviour>>
+        +Capturar(enSuelo, corriendo, cancelaAtaque, ganchoActivo, dt)
+        +Lanzar(posicion, velocidad, rotacionPorDefecto)
+    }
+    class PlayerRoot {
+        <<NetworkBehaviour>>
+        -CapturarContextoVfxDash(dt)
+        -LanzarVfxDash()
+        -OnVidaChanged(anterior, actual)
+        -LanzarVfxGancho()
+        -DetenerVfxGancho()
+        -ActualizarVfxSaltoAterrizaje()
+        -LanzarVfxEnPies(efecto)
+        -LanzarVfxDobleSalto()
+    }
+
+    VfxDash ..> ContextoDashVfx : color y nube del dash
+    VfxDash --> VfxRed : ventisca, chispas y nube
+    PlayerRoot --> VfxDash : estado antes del dash y lanzamiento
+    PlayerRoot --> VfxRed : espada del gancho de la mano al punto de enganche
+
+    class DetectorSaltoAterrizaje {
+        <<POCO>>
+        +SaltoDesdeSuelo : bool
+        +Aterrizaje : bool
+        +Actualizar(enSuelo, saltoEnCurso, saltoAereo, velocidadVertical)
+    }
+    class ColorPolvoSuelo {
+        <<static, POCO>>
+        +Calcular(haySuelo, colorSuelo, colorSinSuelo, aclarado) Color
+    }
+    class VfxExplosionSuelo {
+        <<MonoBehaviour>>
+        #AlIniciar()
+    }
+
+    VfxExplosion <|-- VfxExplosionSuelo
+    VfxExplosionSuelo ..> ColorPolvoSuelo : color del polvo segun el suelo
+    PlayerRoot ..> DetectorSaltoAterrizaje : salto desde el suelo y aterrizaje
+    PlayerRoot --> VfxRed : salto y aterrizaje en los pies
+    PlayerRoot --> VfxRed : anillo del doble salto de Ayla
+
+    class CurvaDestelloGolpe {
+        <<POCO>>
+        +Activo bool
+        +EsGolpe(vidaAnterior, vidaActual)$ bool
+        +Reiniciar()
+        +Avanzar(dt, curva, intensidadMaxima) float
+    }
+    class DestelloGolpe {
+        <<MonoBehaviour>>
+        +Disparar()
+        -Aplicar(intensidad)
+    }
+
+    DestelloGolpe ..> CurvaDestelloGolpe : intensidad por tiempo
+    PlayerRoot --> DestelloGolpe : Vida baja (cada cliente)
+    PlayerRoot ..> CurvaDestelloGolpe : EsGolpe

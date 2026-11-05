@@ -159,6 +159,9 @@ namespace TDOM.Unity
 
         public override void OnNetworkDespawn()
         {
+            if (IsServer)
+                LimpiarColumnasEnServidor();
+
             _logicaMovimiento.ResetearObjetivo();
             _ataquesEnCurso.Clear();
             _bloqueo.Reiniciar();
@@ -662,6 +665,21 @@ namespace TDOM.Unity
             _columnas.RemoveAt(indice);
             if (columna != null)
                 columna.Hundir();
+        }
+
+        /// <summary>Elimina inmediatamente todas las columnas al finalizar o reiniciar la partida.</summary>
+        public void LimpiarColumnasEnServidor()
+        {
+            if (!IsServer)
+                return;
+
+            for (int i = _columnas.Count - 1; i >= 0; i--)
+            {
+                ColumnaMortero columna = _columnas[i].Columna;
+                _columnas.RemoveAt(i);
+                if (columna != null && columna.IsSpawned)
+                    columna.NetworkObject.Despawn(true);
+            }
         }
 
         // TW-116: opcional, detrás de limpiarColumnasAlCambiarFase.
