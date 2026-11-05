@@ -6,6 +6,7 @@ using TDOM.Data;
 using TDOM.Gameplay.Camera;
 using TDOM.Gameplay.Core;
 using TDOM.Gameplay.Locomotion;
+using TDOM.Gameplay.Vfx;
 using TDOM.Unity;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
@@ -13,6 +14,7 @@ using TDOM.Unity.Input;
 using TDOM.Unity.Level;
 using TDOM.Unity.Locomotion;
 using TDOM.Unity.Settings;
+using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
@@ -65,10 +67,50 @@ namespace TDOM.Unity.Player
         private GrappleVisual _grappleVisual;
 
         [SerializeField]
+        private VfxDash _vfxDash;
+
+        [SerializeField]
+        private DestelloGolpe _destelloGolpe;
+
+        [SerializeField]
+        private VfxRed _vfxRed;
+
+        [SerializeField]
+        private VfxBase _vfxGancho;
+
+        [SerializeField]
+        private Transform _origenVfxGancho;
+
+        [SerializeField]
+        private VfxBase _vfxSalto;
+
+        [SerializeField]
+        private VfxBase _vfxAterrizaje;
+
+        [SerializeField]
+        private float _velocidadMinimaVfxAterrizaje = 6f;
+
+        [SerializeField]
+        private float _distanciaVfxAlSuelo = 2f;
+
+        [SerializeField]
+        private float _alturaRayoVfxSuelo = 1f;
+
+        [SerializeField]
+        private float _separacionVfxDelSuelo = 0.05f;
+
+        private DetectorSaltoAterrizaje _detectorVfxSalto;
+
+        [SerializeField]
+        private VfxBase _vfxDobleSalto;
+
+        [SerializeField]
+        private Transform _origenVfxDobleSalto;
+
+        [SerializeField]
         private float _sensitivity = 120f;
 
         private const float MultiplicadorSensibilidadGancho = 0.35f;
-
         private bool _ganchoActivoPrevio;
         private float _mantenerOrientacionGanchoHasta;
         private bool _hayYawObjetivoGancho;
@@ -135,7 +177,12 @@ namespace TDOM.Unity.Player
 
         private bool MovimientoBloqueado =>
             (_combat != null && _combat.BloqueaMovimiento)
-            || (_anchorLauncher != null && _anchorLauncher.AnclaActiva);
+            || (_anchorLauncher != null && _anchorLauncher.AnclaActiva)
+            || (
+                _characterId == CharacterIds.Zendre
+                && _zendreLocomotionAnimator != null
+                && _zendreLocomotionAnimator.AnimationMovementLocked
+            );
 
         public CharacterIds CharacterId => _characterId;
         public float CostoEnergiaPendiente => _combat != null ? _combat.CostoCargaPendiente : 0f;
@@ -225,6 +272,17 @@ namespace TDOM.Unity.Player
             if (_grappleVisual == null)
                 _grappleVisual = GetComponentInChildren<GrappleVisual>();
 
+            if (_vfxDash == null)
+                _vfxDash = GetComponentInChildren<VfxDash>();
+
+            if (_destelloGolpe == null)
+                _destelloGolpe = GetComponentInChildren<DestelloGolpe>();
+
+            if (_vfxRed == null)
+                _vfxRed = GetComponentInChildren<VfxRed>();
+
+            _detectorVfxSalto = new DetectorSaltoAterrizaje(_velocidadMinimaVfxAterrizaje);
+
             if (IsServer && _definition != null && _definition.Energy != null)
             {
                 _energyPool = new EnergyPool(
@@ -243,6 +301,7 @@ namespace TDOM.Unity.Player
             }
 
             EstadoVida.OnValueChanged += OnEstadoVidaChanged;
+            Vida.OnValueChanged += OnVidaChanged;
             AplicarEstadoVida();
 
             _characterId = GetCharacterId();
@@ -319,6 +378,12 @@ namespace TDOM.Unity.Player
             AplicarEstadoVida();
         }
 
+        private void OnVidaChanged(float anterior, float actual)
+        {
+            if (_destelloGolpe != null && CurvaDestelloGolpe.EsGolpe(anterior, actual))
+                _destelloGolpe.Disparar();
+        }
+
         private void AplicarEstadoVida()
         {
             _combat?.EstablecerIncapacitado(EstaAbatidoOMuerto);
@@ -330,6 +395,7 @@ namespace TDOM.Unity.Player
             CameraSettingsService.SensibilidadCambiada -= OnSensibilidadCambiada;
             DestruirOverlayRespawn();
             EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
+            Vida.OnValueChanged -= OnVidaChanged;
             _healthPool = null;
             _vidasJugadores.Clear();
             if (IsServer)
@@ -344,6 +410,7 @@ namespace TDOM.Unity.Player
             CameraSettingsService.SensibilidadCambiada -= OnSensibilidadCambiada;
             DestruirOverlayRespawn();
             EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
+            Vida.OnValueChanged -= OnVidaChanged;
             if (IsServer)
             {
                 BossController.DejarDeObservarJefe(OnBossSpawned);
@@ -505,6 +572,8 @@ namespace TDOM.Unity.Player
             if (!IsOwner)
                 return;
 
+            _zendreLocomotionAnimator?.RestablecerBloqueoDanio();
+
             _locomocion?.Reiniciar();
             _motor?.ResetPlataforma();
 
@@ -608,6 +677,103 @@ namespace TDOM.Unity.Player
                     || _ganchoActivoPrevio;
                 _feedback.OnAterrizajeFuerte(_locomocion.VelocidadImpacto, hayOtraAccionDeCamara);
             }
+        }
+
+        private void CapturarContextoVfxDash(float dt)
+        {
+            if (_vfxDash == null)
+                return;
+
+            _vfxDash.Capturar(
+                _locomocion.State.IsGrounded,
+                _locomocion.Corriendo,
+                _combat != null && (_combat.AtaqueActivo || _combat.PuedeCancelarConDash),
+                _locomocion.GanchoActivo,
+                dt
+            );
+        }
+
+        private void LanzarVfxDash()
+        {
+            if (_vfxDash != null)
+                _vfxDash.Lanzar(transform.position, _locomocion.State.Velocity, transform.rotation);
+        }
+
+        private void ActualizarVfxSaltoAterrizaje()
+        {
+            if (_detectorVfxSalto == null)
+                return;
+
+            _detectorVfxSalto.Actualizar(
+                _locomocion.State.IsGrounded,
+                _locomocion.SaltoEnCurso,
+                _locomocion.SaltoAereo,
+                _locomocion.State.Velocity.y
+            );
+
+            if (_detectorVfxSalto.SaltoDesdeSuelo)
+                LanzarVfxEnPies(_vfxSalto);
+
+            if (_detectorVfxSalto.Aterrizaje)
+                LanzarVfxAterrizaje();
+        }
+
+        private void LanzarVfxAterrizaje()
+        {
+            if (_vfxRed == null || _vfxAterrizaje == null)
+                return;
+
+            _vfxRed.Lanzar(_vfxAterrizaje, BaseDelControlador(), transform.rotation);
+        }
+
+        private Vector3 BaseDelControlador()
+        {
+            CharacterController controlador = _motor != null ? _motor.Controller : null;
+            if (controlador == null)
+                return transform.position;
+
+            Vector3 pies = transform.position;
+            pies.y = controlador.bounds.min.y + _separacionVfxDelSuelo;
+            return pies;
+        }
+
+        private void LanzarVfxEnPies(VfxBase efecto)
+        {
+            if (_vfxRed == null || efecto == null)
+                return;
+
+            if (!BuscarSueloBajoLosPies(out RaycastHit impacto))
+            {
+                _vfxRed.Lanzar(efecto, transform.position, transform.rotation);
+                return;
+            }
+
+            Vector3 posicion = impacto.point + impacto.normal * _separacionVfxDelSuelo;
+            Quaternion rotacion =
+                Quaternion.FromToRotation(Vector3.up, impacto.normal) * transform.rotation;
+            _vfxRed.Lanzar(efecto, posicion, rotacion);
+        }
+
+        private bool BuscarSueloBajoLosPies(out RaycastHit impacto)
+        {
+            Vector3 origen = transform.position + Vector3.up * _alturaRayoVfxSuelo;
+            return Physics.Raycast(
+                origen,
+                Vector3.down,
+                out impacto,
+                _alturaRayoVfxSuelo + _distanciaVfxAlSuelo,
+                Physics.DefaultRaycastLayers,
+                QueryTriggerInteraction.Ignore
+            );
+        }
+
+        private void LanzarVfxDobleSalto()
+        {
+            if (_vfxRed == null || _vfxDobleSalto == null)
+                return;
+
+            Transform origen = _origenVfxDobleSalto != null ? _origenVfxDobleSalto : transform;
+            _vfxRed.Lanzar(_vfxDobleSalto, origen.position, transform.rotation);
         }
 
         private void AplicarMiradaACamara()
@@ -776,7 +942,25 @@ namespace TDOM.Unity.Player
                 _fijacion.Liberar();
                 _camera.PunchFov(8f, 0.2f);
                 _feedback?.RegistrarAccionCamara(0.2f);
+                LanzarVfxGancho();
             }
+        }
+
+        private void LanzarVfxGancho()
+        {
+            if (_vfxRed == null || _vfxGancho == null)
+                return;
+
+            Transform origen = _origenVfxGancho != null ? _origenVfxGancho : transform;
+            _vfxRed.LanzarEntre(_vfxGancho, origen.position, _locomocion.PuntoGancho);
+        }
+
+        private void DetenerVfxGancho()
+        {
+            if (_vfxRed == null || _vfxGancho == null)
+                return;
+
+            _vfxRed.Detener(_vfxGancho);
         }
 
         private void ActualizarYawObjetivoGancho()
@@ -820,6 +1004,13 @@ namespace TDOM.Unity.Player
             if (!IsOwner || !_initialSpawnApplied)
                 return;
 
+            if (
+                _characterId == CharacterIds.Zendre
+                && _zendreLocomotionAnimator != null
+                && _zendreLocomotionAnimator.AnimationMovementLocked
+            )
+                _locomocion.CancelarDashEnCurso();
+
             var input = _inputReader.Read();
             bool apuntando =
                 input.AimHeld && PuedeApuntar && !EstaAbatidoOMuerto && !_locomocion.ClimbActivo;
@@ -837,6 +1028,7 @@ namespace TDOM.Unity.Player
                 );
 
             _motor.ProbeGround(_locomocion.State);
+            CapturarContextoVfxDash(dt);
 
             if (!EstaAbatidoOMuerto)
             {
@@ -900,7 +1092,10 @@ namespace TDOM.Unity.Player
                 );
             bool ganchoActivoActual = _locomocion.GanchoActivo;
             if (_ganchoActivoPrevio && !ganchoActivoActual)
+            {
                 _mantenerOrientacionGanchoHasta = Time.time + 0.55f;
+                DetenerVfxGancho();
+            }
             if (_aylaAnimator != null)
             {
                 _aylaAnimator.SetClimbingState(_locomocion.ClimbActivo);
@@ -936,34 +1131,53 @@ namespace TDOM.Unity.Player
             {
                 intent = new MotionIntent(Vector3.zero, ignoreGravity: true);
             }
-            _motor.Apply(intent, dt, plataformaAnclada);
+            bool bloquearTodoMovimiento =
+                _characterId == CharacterIds.Zendre
+                && _zendreLocomotionAnimator != null
+                && _zendreLocomotionAnimator.AnimationMovementLocked;
+            if (bloquearTodoMovimiento)
+            {
+                _locomocion.CancelarDashEnCurso();
+                _motor.CancelarEmpuje();
+            }
+            else
+            {
+                _motor.Apply(intent, dt, plataformaAnclada);
+            }
             bool alineandoConGancho =
                 ganchoActivoActual || Time.time < _mantenerOrientacionGanchoHasta;
-            _facing.Tick(
-                _locomocion.State.Velocity,
-                _look.Yaw,
-                apuntando
-                    || ModoPistola
-                    || alineandoConGancho
-                    || (_combat != null && _combat.MovimientoLimitado),
-                dt,
-                alineandoConGancho ? 0.5f : 1f
-            );
-            transform.rotation = _facing.Rotacion;
+            if (!bloquearTodoMovimiento)
+            {
+                _facing.Tick(
+                    _locomocion.State.Velocity,
+                    _look.Yaw,
+                    apuntando
+                        || ModoPistola
+                        || alineandoConGancho
+                        || (_combat != null && _combat.MovimientoLimitado),
+                    dt,
+                    alineandoConGancho ? 0.5f : 1f
+                );
+                transform.rotation = _facing.Rotacion;
+            }
             AplicarMiradaACamara();
 
             DispararFeedbackDeLocomocion();
+            ActualizarVfxSaltoAterrizaje();
             if (
                 _locomocion.SaltoAereo
                 && _characterId == CharacterIds.Ayla
                 && _aylaAnimator != null
             )
                 _aylaAnimator.IniciarDobleSalto();
+            if (_locomocion.SaltoAereo && _characterId == CharacterIds.Ayla)
+                LanzarVfxDobleSalto();
             if (_locomocion.DashIniciado)
             {
                 if (_characterId == CharacterIds.Zendre)
                     _zendreLocomotionAnimator?.IniciarAssault();
                 DashEmbestidaIniciada?.Invoke();
+                LanzarVfxDash();
             }
             RegistrarDesplazamientoLateralEnCamara(input.Move);
 

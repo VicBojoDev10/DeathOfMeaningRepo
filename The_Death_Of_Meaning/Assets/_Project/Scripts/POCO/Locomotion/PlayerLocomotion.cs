@@ -45,6 +45,16 @@ namespace TDOM.Gameplay.Locomotion
         public float CooldownGanchoNormalizado =>
             _grapple != null ? _grapple.CooldownNormalizado : 0f;
 
+        public void CancelarDashEnCurso()
+        {
+            _dash?.Cancelar();
+            State.Velocity = new Vector3(0f, State.Velocity.y, 0f);
+            if (State.Phase == LocomotionPhase.Dashing)
+                State.Phase = State.IsGrounded
+                    ? LocomotionPhase.Grounded
+                    : LocomotionPhase.Airborne;
+        }
+
         public PlayerLocomotion(
             GravityModel gravity,
             JumpResolver jump,

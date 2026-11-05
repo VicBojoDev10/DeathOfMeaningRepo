@@ -336,7 +336,6 @@ namespace TDOM.Unity
         [Rpc(SendTo.SpecifiedInParams)]
         private void JugadorGolpeadoRpc(RpcParams rpcParams = default)
         {
-            MostrarFlashRojo();
             NotificarGolpeAlJugadorLocal();
         }
 

@@ -1,5 +1,6 @@
 using TDOM.Gameplay.Combat;
 using TDOM.Unity;
+using TDOM.Unity.Player;
 using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
@@ -80,7 +81,7 @@ namespace TDOM.Unity.Combat
                 )
             )
             {
-                if (hit.collider.GetComponentInParent<PlayerCombat>() != null)
+                if (hit.collider.GetComponentInParent<PlayerRoot>() != null)
                 {
                     transform.position = pos + paso;
                     return;

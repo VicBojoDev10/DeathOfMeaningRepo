@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using TDOM.Unity.Player;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -116,6 +117,7 @@ namespace TDOM.Unity.Combat
                     c.GetComponentInParent<HitZone>()
                 ))
                 .Where(i => i.Objeto != null)
+                .Where(i => i.Objeto.GetComponentInParent<PlayerRoot>() == null)
                 .Where(i => _owner == null || i.Objeto != _owner);
 
         public Vector3 Centro(float alcance) => Origen.position + Origen.forward * alcance;
