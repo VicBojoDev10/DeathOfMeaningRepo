@@ -161,6 +161,7 @@ namespace TDOM.Unity.Player
         private readonly List<HealthPool> _vidasJugadores = new List<HealthPool>();
 
         private FeedbackDirector _feedback;
+        private ArenaEncounterNetwork _arenaEncounter;
         private CharacterIds _characterId = CharacterIds.None;
         private bool _initialSpawnApplied;
         private bool _originResetLogged;
@@ -263,6 +264,7 @@ namespace TDOM.Unity.Player
 
         public override void OnNetworkSpawn()
         {
+            _arenaEncounter = BuscarEncuentroArena();
             _zendreLocomotionAnimator = GetComponent<ZendrePlayerLocomotionAnimator>();
             _anchorLauncher = GetComponentInChildren<AnchorLauncher>();
             _combat = GetComponentInChildren<PlayerCombat>();
@@ -312,7 +314,7 @@ namespace TDOM.Unity.Player
             Vida.OnValueChanged += OnVidaChanged;
             AplicarEstadoVida();
             if (IsServer)
-                ArenaEncounterNetwork.Instance?.NotificarEstadoVida(this, EstadoVida.Value);
+                BuscarEncuentroArena()?.NotificarEstadoVida(this, EstadoVida.Value);
 
             _characterId = GetCharacterId();
 
@@ -386,7 +388,32 @@ namespace TDOM.Unity.Player
         private void OnEstadoVidaChanged(PlayerLifeState anterior, PlayerLifeState actual)
         {
             AplicarEstadoVida();
-            ArenaEncounterNetwork.Instance?.NotificarEstadoVida(this, actual);
+            BuscarEncuentroArena()?.NotificarEstadoVida(this, actual);
+        }
+
+        private ArenaEncounterNetwork BuscarEncuentroArena()
+        {
+            if (_arenaEncounter != null && _arenaEncounter.IsSpawned)
+                return _arenaEncounter;
+
+            if (NetworkManager == null || NetworkManager.SpawnManager == null)
+                return null;
+
+            foreach (NetworkObject objeto in NetworkManager.SpawnManager.SpawnedObjectsList)
+            {
+                if (
+                    objeto != null
+                    && objeto.IsSpawned
+                    && objeto.TryGetComponent(out ArenaEncounterNetwork encuentro)
+                )
+                {
+                    _arenaEncounter = encuentro;
+                    return _arenaEncounter;
+                }
+            }
+
+            _arenaEncounter = null;
+            return null;
         }
 
         private void OnVidaChanged(float anterior, float actual)
@@ -407,6 +434,7 @@ namespace TDOM.Unity.Player
             DestruirOverlayRespawn();
             EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
             Vida.OnValueChanged -= OnVidaChanged;
+            _arenaEncounter = null;
             _healthPool = null;
             _vidasJugadores.Clear();
             if (IsServer)
@@ -583,7 +611,7 @@ namespace TDOM.Unity.Player
             if (!IsOwner)
                 return;
 
-            ArenaEncounterNetwork.Instance?.DesregistrarJugador(this);
+            BuscarEncuentroArena()?.DesregistrarJugador(this);
 
             _zendreLocomotionAnimator?.RestablecerBloqueoDanio();
 
