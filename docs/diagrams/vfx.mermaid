@@ -274,6 +274,13 @@ classDiagram
     VfxEmbestidaLanzador --> VfxRed : efecto, detencion e impacto
     PlayerRoot --> VfxEmbestidaLanzador : inicio y estado de la embestida de Zendre
 
+    class AnchorLauncher {
+        <<NetworkBehaviour>>
+        -LanzarVfxAncla(direccion)
+    }
+
+    AnchorLauncher --> VfxRed : salida del ancla hacia el apuntado (dueño)
+
     class CurvaDestelloGolpe {
         <<POCO>>
         +Activo bool
