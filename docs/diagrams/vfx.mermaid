@@ -104,7 +104,7 @@ classDiagram
     VfxDisparo --> VfxDisparoProfile
     VfxCarga --> VfxCargaProfile
     class VfxCargaSeguida {
-        +Seguir(objetivo)
+        +Seguir(referencia, puntos)
     }
     VfxCarga <|-- VfxCargaSeguida
 
@@ -172,7 +172,8 @@ classDiagram
         -LanzarArcosGiro()
         -MostrarCarga(activa)
         -ActivarVfxCarga(efecto, activa)
-        -SeguirConVfxCarga(efecto, objetivo)
+        -SeguirConVfxCarga(efecto, puntos)
+        -ActualizarVfxCargaDisparo()
     }
 
     EstelaEspada ..> MuestrasEstela : guarda la hoja cada frame
@@ -254,7 +255,7 @@ classDiagram
     }
     class VfxEmbestida {
         <<MonoBehaviour>>
-        +Seguir(objetivo)
+        +Seguir(referencia, puntos)
         #AlIniciar()
         #Avanzar(t)
     }
