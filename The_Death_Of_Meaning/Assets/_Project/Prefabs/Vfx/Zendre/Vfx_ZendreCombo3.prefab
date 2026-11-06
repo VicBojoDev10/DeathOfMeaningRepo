@@ -604,7 +604,7 @@ ParticleSystem:
         m_RotationOrder: 4
     randomizeRotationDirection: 0
     gravitySource: 0
-    maxNumParticles: 28
+    maxNumParticles: 44
     customEmitterVelocity: {x: 0, y: 0, z: 0}
     size3D: 0
     rotation3D: 0
@@ -980,7 +980,7 @@ ParticleSystem:
       countCurve:
         serializedVersion: 2
         minMaxState: 0
-        scalar: 24
+        scalar: 40
         minScalar: 30
         maxCurve:
           serializedVersion: 2
@@ -5117,7 +5117,7 @@ ParticleSystem:
       serializedVersion: 2
       minMaxState: 0
       minColor: {r: 1, g: 1, b: 1, a: 1}
-      maxColor: {r: 0.08, g: 0.14, b: 0.9, a: 0.65}
+      maxColor: {r: 0.02, g: 0.12, b: 0.9, a: 0.85}
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}
@@ -5181,7 +5181,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 2.2
+      scalar: 3.2
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -9743,7 +9743,7 @@ ParticleSystemRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9e66f304f0663924a8c4f1a6a6daddc7, type: 2}
+  - {fileID: 2100000, guid: 07dd0bdebf3919a4b88be9491504388f, type: 2}
   - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
@@ -10137,7 +10137,7 @@ PrefabInstance:
     - target: {fileID: 8218380490342750831, guid: 7d7e457260e1b4147bfe7e755eb38956, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
-      objectReference: {fileID: 2100000, guid: 9e66f304f0663924a8c4f1a6a6daddc7, type: 2}
+      objectReference: {fileID: 2100000, guid: 07dd0bdebf3919a4b88be9491504388f, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:

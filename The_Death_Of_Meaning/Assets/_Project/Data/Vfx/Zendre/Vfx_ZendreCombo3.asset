@@ -20,8 +20,8 @@ MonoBehaviour:
   duracion: 0.38
   color:
     serializedVersion: 2
-    key0: {r: 0.62, g: 0.7, b: 1, a: 1}
-    key1: {r: 0.08, g: 0.15, b: 1, a: 1}
+    key0: {r: 0.05, g: 0.25, b: 1, a: 1}
+    key1: {r: 0, g: 0.05, b: 0.8, a: 1}
     key2: {r: 0, g: 0, b: 0, a: 0}
     key3: {r: 0, g: 0, b: 0, a: 0}
     key4: {r: 0, g: 0, b: 0, a: 0}
@@ -53,7 +53,7 @@ MonoBehaviour:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 1.6
+      value: 1.8
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -62,7 +62,7 @@ MonoBehaviour:
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 1.6
+      value: 1.8
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -132,6 +132,6 @@ MonoBehaviour:
     m_RotationOrder: 4
   orientarATrayectoria: 1
   particulasResiduales: 0
-  ancho: 2.2
+  ancho: 3.2
   aparicion: 0.02
   desaparicion: 0.12
