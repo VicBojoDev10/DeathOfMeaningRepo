@@ -2,6 +2,7 @@ using TDOM.Data;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Input;
 using TDOM.Unity.Player;
+using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -25,6 +26,12 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private GameObject _anclaPrefab;
+
+        [SerializeField]
+        private VfxRed _vfxRed;
+
+        [SerializeField]
+        private VfxBase _vfxAncla;
 
         private bool _esperandoSoltar;
         private bool _incapacitado;
@@ -89,10 +96,9 @@ namespace TDOM.Unity.Combat
             {
                 _cooldown.Disparar();
                 AnclaActiva = true;
-                LanzarAnclaRpc(
-                    _origen.position,
-                    _root.ResolverApuntado(_origen.position).Direction
-                );
+                var direccion = _root.ResolverApuntado(_origen.position).Direction;
+                LanzarAnclaRpc(_origen.position, direccion);
+                LanzarVfxAncla(direccion);
             }
             else if (AnclaActiva && !holdingL2R1)
             {
@@ -104,6 +110,14 @@ namespace TDOM.Unity.Combat
             {
                 _esperandoSoltar = false;
             }
+        }
+
+        private void LanzarVfxAncla(Vector3 direccion)
+        {
+            if (_vfxRed == null || _vfxAncla == null || direccion == Vector3.zero)
+                return;
+
+            _vfxRed.Lanzar(_vfxAncla, _origen.position, Quaternion.LookRotation(direccion));
         }
 
         [Rpc(SendTo.Server)]
