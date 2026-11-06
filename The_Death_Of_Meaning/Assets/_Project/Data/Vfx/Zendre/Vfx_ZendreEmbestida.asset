@@ -130,8 +130,10 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  aparicion: 0.05
-  desaparicion: 0.08
+  aparicion: 0
+  desaparicion: 0
+  velocidadMinimaGiro: 1
+  suavizadoGiro: 12
   longitudLineas: 2
   grosorLineas: 0.05
   lineasPorSegundo: 220
