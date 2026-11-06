@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 702201eec332ad745af1a5641b9ac40e, type: 3}
   m_Name: Vfx_ZendreCargaDisparo
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.VfxCargaProfile
-  puntoA: {x: 0, y: -0.1, z: 0.6}
-  puntoB: {x: 0, y: -0.1, z: 1.6}
+  puntoA: {x: 0, y: 0, z: 0.1}
+  puntoB: {x: 0, y: 0, z: 1.1}
   curvatura: 0
   rotacion: 0
   orientacion: {x: 0, y: 0, z: 0}
@@ -21,7 +21,7 @@ MonoBehaviour:
   color:
     serializedVersion: 2
     key0: {r: 0.55, g: 0.85, b: 1, a: 1}
-    key1: {r: 0.25, g: 0.6, b: 1, a: 1}
+    key1: {r: 0.05, g: 0.25, b: 1, a: 1}
     key2: {r: 0, g: 0, b: 0, a: 0}
     key3: {r: 0, g: 0, b: 0, a: 0}
     key4: {r: 0, g: 0, b: 0, a: 0}
@@ -55,15 +55,15 @@ MonoBehaviour:
       time: 0
       value: 1.2
       inSlope: 0
-      outSlope: 0.79999995
+      outSlope: 0.29999995
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 2
-      inSlope: 0.79999995
+      value: 1.5
+      inSlope: 0.29999995
       outSlope: 0
       tangentMode: 0
       weightedMode: 0
@@ -102,7 +102,7 @@ MonoBehaviour:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0.6
+      value: 0.35
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -111,7 +111,7 @@ MonoBehaviour:
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 1
+      value: 0.55
       inSlope: 0
       outSlope: 0
       tangentMode: 0

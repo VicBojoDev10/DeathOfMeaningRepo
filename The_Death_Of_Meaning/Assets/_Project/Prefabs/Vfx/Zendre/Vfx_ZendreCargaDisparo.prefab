@@ -12,6 +12,58 @@ PrefabInstance:
       propertyPath: m_Name
       value: Vfx_ZendreCargaDisparo
       objectReference: {fileID: 0}
+    - target: {fileID: 1969142846068511779, guid: 6c8fd238fe66b734a88780b0cb59f870, type: 3}
+      propertyPath: lengthInSec
+      value: 0.85
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969142846068511779, guid: 6c8fd238fe66b734a88780b0cb59f870, type: 3}
+      propertyPath: ShapeModule.radius.value
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969142846068511779, guid: 6c8fd238fe66b734a88780b0cb59f870, type: 3}
+      propertyPath: InitialModule.startSize.scalar
+      value: 0.09
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969142846068511779, guid: 6c8fd238fe66b734a88780b0cb59f870, type: 3}
+      propertyPath: InitialModule.startSpeed.scalar
+      value: -1.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969142846068511779, guid: 6c8fd238fe66b734a88780b0cb59f870, type: 3}
+      propertyPath: InitialModule.startSize.minScalar
+      value: 0.03
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969142846068511779, guid: 6c8fd238fe66b734a88780b0cb59f870, type: 3}
+      propertyPath: InitialModule.startLifetime.scalar
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969142846068511779, guid: 6c8fd238fe66b734a88780b0cb59f870, type: 3}
+      propertyPath: InitialModule.startSpeed.minScalar
+      value: -1.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969142846068511779, guid: 6c8fd238fe66b734a88780b0cb59f870, type: 3}
+      propertyPath: InitialModule.startColor.minMaxState
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969142846068511779, guid: 6c8fd238fe66b734a88780b0cb59f870, type: 3}
+      propertyPath: InitialModule.startLifetime.minScalar
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969142846068511779, guid: 6c8fd238fe66b734a88780b0cb59f870, type: 3}
+      propertyPath: InitialModule.startColor.maxGradient.key0.g
+      value: 0.85
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969142846068511779, guid: 6c8fd238fe66b734a88780b0cb59f870, type: 3}
+      propertyPath: InitialModule.startColor.maxGradient.key0.r
+      value: 0.55
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969142846068511779, guid: 6c8fd238fe66b734a88780b0cb59f870, type: 3}
+      propertyPath: InitialModule.startColor.maxGradient.key1.g
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969142846068511779, guid: 6c8fd238fe66b734a88780b0cb59f870, type: 3}
+      propertyPath: InitialModule.startColor.maxGradient.key1.r
+      value: 0.05
+      objectReference: {fileID: 0}
     - target: {fileID: 2052450755407781063, guid: 6c8fd238fe66b734a88780b0cb59f870, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
