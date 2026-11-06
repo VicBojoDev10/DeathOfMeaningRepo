@@ -219,6 +219,18 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private float _radioDisparo = 0.5f;
+
+        [Header("Vfx en red del disparo cargado")]
+        [SerializeField]
+        [Tooltip(
+            "Energia que se concentra en el origen del disparo mientras se mantiene la carga. "
+                + "Vacio: sin efecto."
+        )]
+        private VfxBase _vfxCargaDisparo;
+
+        [SerializeField]
+        [Tooltip("Efecto que sale del origen del disparo al soltar el cargado. Vacio: sin efecto.")]
+        private VfxBase _vfxLiberacionDisparo;
         private bool _cargaVisibleMelee;
         private bool _incapacitado;
         private bool _girosEnCurso;
@@ -255,6 +267,7 @@ namespace TDOM.Unity.Combat
             _poseGirosActiva = false;
             _cargaVisibleMelee = false;
             MostrarCarga(false);
+            LanzarVfxCargaDisparo(false);
             _combatAnimator?.CancelarAtaque(false);
         }
 
@@ -513,8 +526,36 @@ namespace TDOM.Unity.Combat
                 {
                     MostrarCarga(estaCargando);
                     CargaRpc(estaCargando);
+                    LanzarVfxCargaDisparo(estaCargando);
                 }
             }
+        }
+
+        private void LanzarVfxCargaDisparo(bool activa)
+        {
+            if (_vfxRed == null || _vfxCargaDisparo == null)
+                return;
+
+            if (!activa)
+            {
+                _vfxRed.Detener(_vfxCargaDisparo);
+                return;
+            }
+
+            Transform origen = _origenDisparo != null ? _origenDisparo : transform;
+            _vfxRed.Lanzar(_vfxCargaDisparo, origen.position, origen.rotation);
+        }
+
+        private void LanzarVfxLiberacionDisparo()
+        {
+            if (_vfxRed == null || _vfxLiberacionDisparo == null || _origenDisparo == null)
+                return;
+
+            _vfxRed.Lanzar(
+                _vfxLiberacionDisparo,
+                _origenDisparo.position,
+                Quaternion.LookRotation(DireccionDeDisparo(), Vector3.up)
+            );
         }
 
         private void EjecutarDisparo(AttackEvent evento)
@@ -536,6 +577,8 @@ namespace TDOM.Unity.Combat
                 _combatAnimator.PlayShot(evento.ComboIndex, cargado);
             if (_vfx != null)
                 _vfx.Disparo(cargado);
+            if (cargado)
+                LanzarVfxLiberacionDisparo();
             _debugFeedback?.FlashActive(0.1f);
             if (_feedback != null)
                 _feedback.OnAtaquePropio();
