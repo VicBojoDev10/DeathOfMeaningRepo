@@ -171,7 +171,8 @@ namespace TDOM.Unity.Combat
                 return;
             }
 
-            var go = Instantiate(_anclaPrefab, origen, Quaternion.identity);
+            var rotacion = dir != Vector3.zero ? Quaternion.LookRotation(dir) : Quaternion.identity;
+            var go = Instantiate(_anclaPrefab, origen, rotacion);
             var ancla = go.GetComponent<Ancla>();
 
             if (ancla != null)
