@@ -233,15 +233,25 @@ namespace TDOM.Unity.Combat
         private VfxBase _vfxCargaMelee;
 
         [SerializeField]
-        [Tooltip("Punto que sigue la carga cuerpo a cuerpo. Vacio: la raiz del jugador.")]
-        private Transform _origenCargaMelee;
+        [Tooltip(
+            "Puntos cuyo centro sigue la carga cuerpo a cuerpo, por ejemplo las dos manos. "
+                + "Vacio: la raiz del jugador."
+        )]
+        private Transform[] _origenesCargaMelee = new Transform[0];
 
         [SerializeField]
         [Tooltip(
-            "Energia que se concentra mientras se carga el disparo y sigue a Origen Disparo. "
-                + "Vacio: sin efecto."
+            "Energia que se concentra mientras se carga el disparo, despues del HoldThreshold, "
+                + "y sigue a Origen Carga Disparo. Vacio: sin efecto."
         )]
         private VfxBase _vfxCargaDisparo;
+
+        [SerializeField]
+        [Tooltip(
+            "Punto que sigue la carga del disparo, por ejemplo la mano del arma. Vacio: Origen Disparo."
+        )]
+        private Transform _origenCargaDisparo;
+        private bool _cargaVisibleDisparo;
         private bool _cargaVisibleMelee;
         private bool _incapacitado;
         private bool _girosEnCurso;
@@ -280,6 +290,7 @@ namespace TDOM.Unity.Combat
             MostrarCarga(false);
             ActivarVfxCarga(_vfxCargaMelee, false);
             ActivarVfxCarga(_vfxCargaDisparo, false);
+            _cargaVisibleDisparo = false;
             _combatAnimator?.CancelarAtaque(false);
         }
 
@@ -358,8 +369,11 @@ namespace TDOM.Unity.Combat
             _root = GetComponentInParent<PlayerRoot>();
             _origenHoja = GetComponentInChildren<IOrigenVfxGolpe>(true);
             _cargaArma = GetComponentInChildren<ICargaVfx>(true);
-            SeguirConVfxCarga(_vfxCargaMelee, _origenCargaMelee);
-            SeguirConVfxCarga(_vfxCargaDisparo, _origenDisparo);
+            SeguirConVfxCarga(_vfxCargaMelee, _origenesCargaMelee);
+            SeguirConVfxCarga(
+                _vfxCargaDisparo,
+                _origenCargaDisparo != null ? _origenCargaDisparo : _origenDisparo
+            );
 
             if (_vfx == null)
                 Debug.LogWarning($"[PlayerCombat] _vfx no asignado en {name}");
@@ -477,6 +491,7 @@ namespace TDOM.Unity.Combat
             }
 
             ProcesarCambiosDeFase(prevMeleePhase, prevDisparoPhase);
+            ActualizarVfxCargaDisparo();
 
             if (_melee != null)
             {
@@ -541,7 +556,6 @@ namespace TDOM.Unity.Combat
                 {
                     MostrarCarga(estaCargando);
                     CargaRpc(estaCargando);
-                    ActivarVfxCarga(_vfxCargaDisparo, estaCargando);
                 }
             }
         }
@@ -557,14 +571,24 @@ namespace TDOM.Unity.Combat
                 _vfxRed.Detener(efecto);
         }
 
-        private void SeguirConVfxCarga(VfxBase efecto, Transform objetivo)
+        private void ActualizarVfxCargaDisparo()
+        {
+            bool visible = _disparo != null && _disparo.CargaVisible;
+            if (visible == _cargaVisibleDisparo)
+                return;
+
+            _cargaVisibleDisparo = visible;
+            ActivarVfxCarga(_vfxCargaDisparo, visible);
+        }
+
+        private void SeguirConVfxCarga(VfxBase efecto, params Transform[] puntos)
         {
             VfxPool pool = _vfxRed != null ? _vfxRed.Pool : null;
             if (pool == null || efecto == null)
                 return;
 
             if (pool.Pedir(pool.Indice(efecto)) is VfxCargaSeguida instancia)
-                instancia.Seguir(objetivo != null ? objetivo : transform);
+                instancia.Seguir(transform, puntos);
         }
 
         private void EjecutarDisparo(AttackEvent evento)
