@@ -107,6 +107,13 @@ namespace TDOM.Unity.Combat
         };
 
         [SerializeField]
+        [Tooltip(
+            "Arco que sale ademas de las siluetas al soltar un cargado sin golpes ligeros "
+                + "previos. Vacio: sin efecto."
+        )]
+        private VfxGolpeLigero _vfxArcoCargado;
+
+        [SerializeField]
         [Tooltip("Silueta que sale al soltar, una por etapa de color de la carga.")]
         private VfxBase[] _vfxCargadoPorEtapa = new VfxBase[0];
 
@@ -716,6 +723,7 @@ namespace TDOM.Unity.Combat
                     giros,
                     ligeros
                 );
+            LanzarVfxArcoCargado(cargado && !giros && ligeros == 0, espejo);
             if (_vfx != null)
                 _vfx.Golpe(evento.ComboIndex, cargado, evento.ChargeRatio);
             LanzarVfxGolpeLigero(evento, cargado, espejo);
@@ -761,6 +769,14 @@ namespace TDOM.Unity.Combat
             StartCoroutine(
                 LanzarVfxGolpeLigeroConRetardo(_vfxPorGolpeLigero[evento.ComboIndex], espejo)
             );
+        }
+
+        private void LanzarVfxArcoCargado(bool cargadoSinLigeros, bool espejo)
+        {
+            if (!cargadoSinLigeros || _vfxRed == null || _vfxArcoCargado.Efecto == null)
+                return;
+
+            StartCoroutine(LanzarVfxGolpeLigeroConRetardo(_vfxArcoCargado, espejo));
         }
 
         private void LanzarVfxCargado(float progreso, bool espejo)
