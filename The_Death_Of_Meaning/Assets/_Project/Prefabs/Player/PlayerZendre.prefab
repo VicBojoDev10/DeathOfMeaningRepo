@@ -382,10 +382,11 @@ MonoBehaviour:
   _rangoDisparo: 25
   _radioDisparo: 0.5
   _proyectilCargadoPrefab: {fileID: 6672408528779647610, guid: a4f1c3c9b05819e4083916a7cec9748b, type: 3}
-  _vfxCargaMelee: {fileID: 6935316186839384615, guid: 6c8fd238fe66b734a88780b0cb59f870, type: 3}
-  _origenesCargaMelee:
-  - {fileID: 2277703684077328601}
-  - {fileID: 4203025943293764004}
+  _vfxCargaMelee:
+  - Efecto: {fileID: 6935316186839384615, guid: 6c8fd238fe66b734a88780b0cb59f870, type: 3}
+    Punto: {fileID: 4203025943293764004}
+  - Efecto: {fileID: 2108427828047933814, guid: df2ce93e16b00b641aee5b8391513c6b, type: 3}
+    Punto: {fileID: 2277703684077328601}
   _vfxCargaDisparo: {fileID: 2800835053225357425, guid: 3a9a84f9b9589e64db3d6f4370ab940b, type: 3}
   _origenCargaDisparo: {fileID: 4203025943293764004}
 --- !u!114 &4753092728623070081
