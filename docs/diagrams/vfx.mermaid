@@ -167,6 +167,8 @@ classDiagram
         -LanzarVfxTornadoGiro()
         -LanzarArcosGiro()
         -MostrarCarga(activa)
+        -LanzarVfxCargaDisparo(activa)
+        -LanzarVfxLiberacionDisparo()
     }
 
     EstelaEspada ..> MuestrasEstela : guarda la hoja cada frame
@@ -175,6 +177,7 @@ classDiagram
     AylaEspada ..|> ICargaVfx
     PlayerCombat --> ICargaVfx : silueta de carga (dueño + CargaRpc)
     PlayerCombat --> VfxRed : silueta del cargado por etapa
+    PlayerCombat --> VfxRed : carga y liberacion del disparo cargado
     AylaEspada --> CargaEspadaProfile : colores y emisión
     AylaEspada ..> EtapasCarga : etapa por progreso
     AylaEspada --> EstelaEspada : Animation Events
