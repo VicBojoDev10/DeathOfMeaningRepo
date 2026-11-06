@@ -50,6 +50,9 @@ namespace TDOM.Unity.Vfx
 
         protected override void Avanzar(float t)
         {
+            if (t > 0f && Principal != null && !Principal.isEmitting)
+                return;
+
             float avance = _perfil.avance.Evaluate(t);
             Visual.position = PuntoEnCurva(avance);
             Visual.rotation = MirarHacia(TangenteEnCurva(avance));
