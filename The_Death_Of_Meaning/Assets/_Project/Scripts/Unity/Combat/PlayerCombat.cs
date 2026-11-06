@@ -568,6 +568,14 @@ namespace TDOM.Unity.Combat
             }
         }
 
+        private void LanzarVfxArcoCargado(bool cargadoSinLigeros, bool espejo)
+        {
+            if (!cargadoSinLigeros || _vfxRed == null || _vfxArcoCargado.Efecto == null)
+                return;
+
+            StartCoroutine(LanzarVfxGolpeLigeroConRetardo(_vfxArcoCargado, espejo));
+        }
+
         private void ActivarVfxCarga(VfxBase efecto, bool activa)
         {
             if (_vfxRed == null || efecto == null)
@@ -769,14 +777,6 @@ namespace TDOM.Unity.Combat
             StartCoroutine(
                 LanzarVfxGolpeLigeroConRetardo(_vfxPorGolpeLigero[evento.ComboIndex], espejo)
             );
-        }
-
-        private void LanzarVfxArcoCargado(bool cargadoSinLigeros, bool espejo)
-        {
-            if (!cargadoSinLigeros || _vfxRed == null || _vfxArcoCargado.Efecto == null)
-                return;
-
-            StartCoroutine(LanzarVfxGolpeLigeroConRetardo(_vfxArcoCargado, espejo));
         }
 
         private void LanzarVfxCargado(float progreso, bool espejo)

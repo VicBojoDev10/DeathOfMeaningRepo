@@ -167,7 +167,6 @@ classDiagram
     class PlayerCombat {
         <<NetworkBehaviour>>
         -LanzarVfxGolpeLigero(evento, cargado, espejo)
-        -LanzarVfxArcoCargado(cargadoSinLigeros, espejo)
         -LanzarVfxCargado(progreso, espejo)
         -LanzarVfxTornadoGiro()
         -LanzarArcosGiro()
@@ -176,6 +175,7 @@ classDiagram
         -SeguirConVfxCarga(efecto, puntos)
         -ActualizarVfxCargaDisparo()
         -ActivarVfxCargaMelee(activa)
+        -LanzarVfxArcoCargado(cargadoSinLigeros, espejo)
     }
 
     EstelaEspada ..> MuestrasEstela : guarda la hoja cada frame
