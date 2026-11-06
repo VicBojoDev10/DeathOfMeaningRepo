@@ -274,12 +274,21 @@ classDiagram
     VfxEmbestidaLanzador --> VfxRed : efecto, detencion e impacto
     PlayerRoot --> VfxEmbestidaLanzador : inicio y estado de la embestida de Zendre
 
+    class VfxDisparoSostenido {
+        <<MonoBehaviour>>
+        +Seguir(origen)
+        +Apuntar(destino)
+    }
     class AnchorLauncher {
         <<NetworkBehaviour>>
+        -PrepararVfxAncla()
         -LanzarVfxAncla(direccion)
+        -DetenerVfxAncla()
     }
 
-    AnchorLauncher --> VfxRed : salida del ancla hacia el apuntado (dueño)
+    VfxDisparo <|-- VfxDisparoSostenido
+    AnchorLauncher --> VfxRed : salida del ancla al lanzar y detencion al terminar el gancho (dueño)
+    AnchorLauncher ..> VfxDisparoSostenido : sigue el origen y apunta al ancla (cada maquina)
 
     class CurvaDestelloGolpe {
         <<POCO>>
