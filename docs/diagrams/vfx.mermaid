@@ -103,6 +103,10 @@ classDiagram
     VfxExplosion --> VfxExplosionProfile
     VfxDisparo --> VfxDisparoProfile
     VfxCarga --> VfxCargaProfile
+    class VfxCargaSeguida {
+        +Seguir(objetivo)
+    }
+    VfxCarga <|-- VfxCargaSeguida
 
     VfxPool --> VfxCatalogo : crea las copias al inicio
     VfxPool o-- VfxBase : instancias
@@ -167,8 +171,8 @@ classDiagram
         -LanzarVfxTornadoGiro()
         -LanzarArcosGiro()
         -MostrarCarga(activa)
-        -LanzarVfxCargaDisparo(activa)
-        -LanzarVfxLiberacionDisparo()
+        -ActivarVfxCarga(efecto, activa)
+        -SeguirConVfxCarga(efecto, objetivo)
     }
 
     EstelaEspada ..> MuestrasEstela : guarda la hoja cada frame
@@ -177,7 +181,8 @@ classDiagram
     AylaEspada ..|> ICargaVfx
     PlayerCombat --> ICargaVfx : silueta de carga (dueño + CargaRpc)
     PlayerCombat --> VfxRed : silueta del cargado por etapa
-    PlayerCombat --> VfxRed : carga y liberacion del disparo cargado
+    PlayerCombat --> VfxRed : carga melee y de disparo
+    PlayerCombat ..> VfxCargaSeguida : asigna el objetivo a seguir
     AylaEspada --> CargaEspadaProfile : colores y emisión
     AylaEspada ..> EtapasCarga : etapa por progreso
     AylaEspada --> EstelaEspada : Animation Events
