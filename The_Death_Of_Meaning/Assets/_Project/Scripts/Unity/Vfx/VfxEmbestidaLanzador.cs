@@ -15,6 +15,7 @@ namespace TDOM.Unity.Vfx
         private VfxBase _impacto;
 
         private readonly DetectorFinEmbestida _detectorFin = new DetectorFinEmbestida();
+        private Quaternion _rotacionEmbestida = Quaternion.identity;
 
         private void Awake()
         {
@@ -22,21 +23,28 @@ namespace TDOM.Unity.Vfx
                 _vfxRed = GetComponentInParent<VfxRed>();
         }
 
-        public void Lanzar(Vector3 posicion, Vector3 velocidad, Quaternion rotacionPorDefecto)
+        private void Start()
         {
-            if (_vfxRed == null || _efecto == null)
+            VfxPool pool = _vfxRed != null ? _vfxRed.Pool : null;
+            if (pool == null || _efecto == null)
                 return;
 
-            Vector3 horizontal = Vector3.ProjectOnPlane(velocidad, Vector3.up);
-            Quaternion rotacion =
-                horizontal.sqrMagnitude > 0f
-                    ? Quaternion.LookRotation(horizontal, Vector3.up)
-                    : rotacionPorDefecto;
-            _vfxRed.Lanzar(_efecto, posicion, rotacion);
+            if (pool.Pedir(pool.Indice(_efecto)) is VfxEmbestida instancia)
+                instancia.Seguir(transform);
         }
 
-        public void Actualizar(bool embestidaActiva, Vector3 posicion, Quaternion rotacion)
+        public void Lanzar(Vector3 posicion, Vector3 velocidad, Quaternion rotacionPorDefecto)
         {
+            _rotacionEmbestida = RotacionDe(velocidad, rotacionPorDefecto);
+            if (_vfxRed != null && _efecto != null)
+                _vfxRed.Lanzar(_efecto, posicion, _rotacionEmbestida);
+        }
+
+        public void Actualizar(bool embestidaActiva, Vector3 posicion, Vector3 velocidad)
+        {
+            if (embestidaActiva)
+                _rotacionEmbestida = RotacionDe(velocidad, _rotacionEmbestida);
+
             _detectorFin.Actualizar(embestidaActiva);
             if (!_detectorFin.Termino || _vfxRed == null)
                 return;
@@ -44,7 +52,15 @@ namespace TDOM.Unity.Vfx
             if (_efecto != null)
                 _vfxRed.Detener(_efecto);
             if (_impacto != null)
-                _vfxRed.Lanzar(_impacto, posicion, rotacion);
+                _vfxRed.Lanzar(_impacto, posicion, _rotacionEmbestida);
+        }
+
+        private static Quaternion RotacionDe(Vector3 velocidad, Quaternion rotacionPorDefecto)
+        {
+            Vector3 horizontal = Vector3.ProjectOnPlane(velocidad, Vector3.up);
+            return horizontal.sqrMagnitude > 0f
+                ? Quaternion.LookRotation(horizontal, Vector3.up)
+                : rotacionPorDefecto;
         }
     }
 }

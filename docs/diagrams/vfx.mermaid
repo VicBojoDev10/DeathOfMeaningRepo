@@ -246,8 +246,13 @@ classDiagram
     }
     class VfxEmbestida {
         <<MonoBehaviour>>
+        +Seguir(objetivo)
         #AlIniciar()
         #Avanzar(t)
+    }
+    class DireccionEmbestida {
+        <<static, POCO>>
+        +Calcular(desplazamiento, direccionActual, velocidadMinima, suavizado, dt) Vector3
     }
     class DetectorFinEmbestida {
         <<POCO>>
@@ -257,12 +262,14 @@ classDiagram
     class VfxEmbestidaLanzador {
         <<MonoBehaviour>>
         +Lanzar(posicion, velocidad, rotacionPorDefecto)
-        +Actualizar(embestidaActiva, posicion, rotacion)
+        +Actualizar(embestidaActiva, posicion, velocidad)
     }
 
     VfxProfile <|-- VfxEmbestidaProfile
     VfxBase <|-- VfxEmbestida
     VfxEmbestida --> VfxEmbestidaProfile : lineas de velocidad y recorrido
+    VfxEmbestida ..> DireccionEmbestida : direccion al seguir al jugador
+    VfxEmbestidaLanzador ..> VfxEmbestida : asigna al jugador como objetivo
     VfxEmbestidaLanzador ..> DetectorFinEmbestida : fin de la embestida
     VfxEmbestidaLanzador --> VfxRed : efecto, detencion e impacto
     PlayerRoot --> VfxEmbestidaLanzador : inicio y estado de la embestida de Zendre

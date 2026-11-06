@@ -761,7 +761,7 @@ namespace TDOM.Unity.Player
             _vfxEmbestida.Actualizar(
                 _locomocion.DashActivo,
                 transform.position,
-                transform.rotation
+                _locomocion.State.Velocity
             );
         }
 

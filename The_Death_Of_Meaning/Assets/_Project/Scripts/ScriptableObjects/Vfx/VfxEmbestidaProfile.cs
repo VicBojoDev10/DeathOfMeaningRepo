@@ -10,6 +10,13 @@ namespace TDOM.Data
         public float aparicion = 0.05f;
         public float desaparicion = 0.1f;
 
+        [Header("Seguimiento del jugador")]
+        [Min(0f)]
+        public float velocidadMinimaGiro = 1f;
+
+        [Min(0f)]
+        public float suavizadoGiro = 12f;
+
         [Header("Lineas de velocidad")]
         [Min(0f)]
         public float longitudLineas = 2f;

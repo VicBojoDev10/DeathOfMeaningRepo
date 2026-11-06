@@ -10,8 +10,15 @@ namespace TDOM.Unity.Vfx
         private VfxEmbestidaProfile _perfil;
 
         private ParticleSystemRenderer _rendererLineas;
+        private Transform _objetivo;
+        private Vector3 _posicionPrevia;
+        private Vector3 _direccion = Vector3.forward;
 
         public override VfxProfile Perfil => _perfil;
+
+        private bool Detenido => Principal != null && !Principal.isEmitting;
+
+        public void Seguir(Transform objetivo) => _objetivo = objetivo;
 
         protected override void Awake()
         {
@@ -22,6 +29,10 @@ namespace TDOM.Unity.Vfx
 
         protected override void AlIniciar()
         {
+            _direccion = RotacionBase * Vector3.forward;
+            if (_objetivo != null)
+                _posicionPrevia = _objetivo.position;
+
             if (Principal == null)
                 return;
 
@@ -50,12 +61,41 @@ namespace TDOM.Unity.Vfx
 
         protected override void Avanzar(float t)
         {
-            if (t > 0f && Principal != null && !Principal.isEmitting)
+            if (t > 0f && Detenido)
                 return;
+
+            if (_objetivo != null)
+            {
+                ColocarEnObjetivo();
+                return;
+            }
 
             float avance = _perfil.avance.Evaluate(t);
             Visual.position = PuntoEnCurva(avance);
             Visual.rotation = MirarHacia(TangenteEnCurva(avance));
+        }
+
+        private void LateUpdate()
+        {
+            if (!Activo || _objetivo == null || Detenido)
+                return;
+
+            _direccion = DireccionEmbestida.Calcular(
+                _objetivo.position - _posicionPrevia,
+                _direccion,
+                _perfil.velocidadMinimaGiro,
+                _perfil.suavizadoGiro,
+                Time.deltaTime
+            );
+            _posicionPrevia = _objetivo.position;
+            ColocarEnObjetivo();
+        }
+
+        private void ColocarEnObjetivo()
+        {
+            Quaternion mirada = Quaternion.LookRotation(_direccion, Vector3.up);
+            Visual.position = _objetivo.position + mirada * _perfil.puntoA;
+            Visual.rotation = MirarHacia(_direccion);
         }
     }
 }
