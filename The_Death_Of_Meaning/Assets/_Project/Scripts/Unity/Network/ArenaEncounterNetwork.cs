@@ -44,6 +44,7 @@ namespace TDOM.Unity
         private readonly Dictionary<ulong, PlayerRoot> _jugadores = new();
         private readonly HashSet<ulong> _abatidos = new();
         private bool _reveladoEnEstaPartida;
+        private bool _senalJefeReveladoEnEstaPartida;
 
         public override void OnNetworkSpawn()
         {
@@ -93,6 +94,7 @@ namespace TDOM.Unity
             EntradaConsumida.Value = true;
             SolicitarPuertasRpc(true);
             AplicarTriggerEntrada(false);
+            IniciarPresentacion();
         }
 
         [Rpc(SendTo.ClientsAndHost)]
@@ -181,7 +183,7 @@ namespace TDOM.Unity
             if (!IsServer || Fase.Value != ArenaEncounterPhase.Esperando) return;
             int presentesVivos = 0;
             foreach (var (id, vol) in _presencia)
-                if (vol.Count > 0 && !_abatidos.Contains(id) && _jugadores.TryGetValue(id, out var p) &&
+                if (vol.Contains(2) && !_abatidos.Contains(id) && _jugadores.TryGetValue(id, out var p) &&
                     p != null && p.IsSpawned && p.EstadoVida.Value == PlayerLifeState.Vivo)
                     presentesVivos++;
             if (presentesVivos >= 2) IniciarPresentacion();
@@ -192,6 +194,15 @@ namespace TDOM.Unity
             if (!IsServer || _reveladoEnEstaPartida || Fase.Value != ArenaEncounterPhase.Esperando) return;
             _reveladoEnEstaPartida = true;
             Fase.Value = ArenaEncounterPhase.Presentacion;
+            GameSessionManager.Instance?.SpawnBossForEncounter();
+        }
+
+        /// <summary>Emite una sola vez la señal al llegar al plano de revelación.</summary>
+        public void NotificarJefeRevelado()
+        {
+            if (!IsServer || Fase.Value != ArenaEncounterPhase.Presentacion || _senalJefeReveladoEnEstaPartida)
+                return;
+            _senalJefeReveladoEnEstaPartida = true;
             RevelarJefeRpc();
         }
         public void IniciarCombate()
@@ -218,6 +229,7 @@ namespace TDOM.Unity
             _jugadores.Clear();
             _abatidos.Clear();
             _reveladoEnEstaPartida = false;
+            _senalJefeReveladoEnEstaPartida = false;
             ArenaSellada.Value = false;
             EntradaConsumida.Value = false;
             AplicarTriggerEntrada(true);
@@ -226,6 +238,16 @@ namespace TDOM.Unity
         }
 
 #if UNITY_EDITOR
+        private void ForzarPresentacionDebug()
+        {
+            if (!IsServer) return;
+            _senalJefeReveladoEnEstaPartida = false;
+            _reveladoEnEstaPartida = false;
+            if (Fase.Value != ArenaEncounterPhase.Esperando)
+                Fase.Value = ArenaEncounterPhase.Esperando;
+            IniciarPresentacion();
+        }
+
         private void OnGUI()
         {
             if (!IsSpawned || !IsServer) return;
@@ -238,7 +260,7 @@ namespace TDOM.Unity
             if (GUILayout.Button("Forzar Presentación + JefeRevelado") ||
                 (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.F8))
             {
-                IniciarPresentacion();
+                ForzarPresentacionDebug();
                 Event.current.Use();
             }
             if (GUILayout.Button("Forzar Combate")) IniciarCombate();

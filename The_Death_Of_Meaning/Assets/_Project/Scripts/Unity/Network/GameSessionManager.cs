@@ -255,33 +255,6 @@ namespace TDOM.Unity
                 player.EnviarSpawnInicial(spawnPoint.position, spawnPoint.rotation);
             }
 
-            if (_prefabArek == null)
-            {
-                Debug.LogError(
-                    "No se puede iniciar: falta asignar el prefab de Arek en GameSessionManager."
-                );
-            }
-            else if (!HayJefeSpawneadoEnRed())
-            {
-                Vector3 posArek =
-                    _puntoSpawnArek != null ? _puntoSpawnArek.position : new Vector3(0f, 0f, 10f);
-                Quaternion rotArek =
-                    _puntoSpawnArek != null ? _puntoSpawnArek.rotation : Quaternion.identity;
-                var goArek = Instantiate(_prefabArek, posArek, rotArek);
-                var networkObjectArek = goArek.GetComponent<NetworkObject>();
-                if (networkObjectArek == null)
-                {
-                    Debug.LogError("El prefab de Arek no tiene NetworkObject.");
-                    Destroy(goArek);
-                }
-                else
-                {
-                    networkObjectArek.Spawn();
-                    Debug.Log(
-                        $"[SPAWN][SERVER] Arek creado. id={networkObjectArek.NetworkObjectId}, posición={posArek}"
-                    );
-                }
-            }
             _inicioPartidaEnProceso = false;
             if (!_partidaIniciada)
             {
@@ -294,6 +267,30 @@ namespace TDOM.Unity
                 _inicioPartidaNotificado = true;
                 IniciarPartidaClientRpc();
             }
+        }
+
+        /// <summary>Materializa al jefe solo al iniciar su presentación en la arena.</summary>
+        public void SpawnBossForEncounter()
+        {
+            if (!IsServer || HayJefeSpawneadoEnRed()) return;
+            if (_prefabArek == null)
+            {
+                Debug.LogError("No se puede iniciar la presentación: falta el prefab de Arek.");
+                return;
+            }
+
+            Vector3 posicion = _puntoSpawnArek != null ? _puntoSpawnArek.position : new Vector3(0f, 0f, 10f);
+            Quaternion rotacion = _puntoSpawnArek != null ? _puntoSpawnArek.rotation : Quaternion.identity;
+            var jefe = Instantiate(_prefabArek, posicion, rotacion);
+            var networkObject = jefe.GetComponent<NetworkObject>();
+            if (networkObject == null)
+            {
+                Debug.LogError("El prefab de Arek no tiene NetworkObject.");
+                Destroy(jefe);
+                return;
+            }
+            networkObject.Spawn();
+            Debug.Log($"[SPAWN][SERVER] Arek creado para presentación. id={networkObject.NetworkObjectId}, posición={posicion}");
         }
 
         public void SolicitarReinicioDePartida()
