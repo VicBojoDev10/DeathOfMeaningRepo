@@ -163,6 +163,7 @@ classDiagram
     class PlayerCombat {
         <<NetworkBehaviour>>
         -LanzarVfxGolpeLigero(evento, cargado, espejo)
+        -LanzarVfxCombo(evento, cargado, espejo, ligeros)
         -LanzarVfxCargado(progreso, espejo)
         -LanzarVfxTornadoGiro()
         -LanzarArcosGiro()
@@ -181,6 +182,11 @@ classDiagram
     PlayerCombat --> IOrigenVfxGolpe : centro de la hoja
     PlayerCombat ..> MarcoTajo : posicion y avance
     PlayerCombat --> VfxRed : silueta por golpe ligero
+    class IndiceVfxCombo {
+        <<static, POCO>>
+        +Resolver(cargado, comboIndex, ligerosPrevios) int
+    }
+    PlayerCombat ..> IndiceVfxCombo : efecto de combo por golpe
 
     class ContextoDashVfx {
         <<POCO>>
