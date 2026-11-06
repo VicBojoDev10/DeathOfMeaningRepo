@@ -4,9 +4,14 @@ namespace TDOM.Unity.Vfx
 {
     public sealed class VfxCargaSeguida : VfxCarga
     {
-        private Transform _objetivo;
+        private Transform _referencia;
+        private Transform[] _puntos = new Transform[0];
 
-        public void Seguir(Transform objetivo) => _objetivo = objetivo;
+        public void Seguir(Transform referencia, params Transform[] puntos)
+        {
+            _referencia = referencia;
+            _puntos = puntos ?? new Transform[0];
+        }
 
         protected override void Avanzar(float t)
         {
@@ -22,13 +27,29 @@ namespace TDOM.Unity.Vfx
 
         private void ColocarEnObjetivo()
         {
-            if (_objetivo == null)
+            if (_referencia == null)
                 return;
 
             Visual.SetPositionAndRotation(
-                _objetivo.position + _objetivo.rotation * Perfil.puntoA,
-                _objetivo.rotation * Orientacion
+                CentroDeLosPuntos() + _referencia.rotation * Perfil.puntoA,
+                _referencia.rotation * Orientacion
             );
+        }
+
+        private Vector3 CentroDeLosPuntos()
+        {
+            Vector3 suma = Vector3.zero;
+            int cantidad = 0;
+            foreach (Transform punto in _puntos)
+            {
+                if (punto == null)
+                    continue;
+
+                suma += punto.position;
+                cantidad++;
+            }
+
+            return cantidad > 0 ? suma / cantidad : _referencia.position;
         }
     }
 }
