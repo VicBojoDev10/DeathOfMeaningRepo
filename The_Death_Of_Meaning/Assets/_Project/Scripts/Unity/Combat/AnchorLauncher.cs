@@ -35,6 +35,7 @@ namespace TDOM.Unity.Combat
 
         private bool _esperandoSoltar;
         private bool _incapacitado;
+        private VfxDisparoSostenido _vfxAnclaSostenido;
 
         public void EstablecerIncapacitado(bool incapacitado)
         {
@@ -44,6 +45,8 @@ namespace TDOM.Unity.Combat
 
             AnclaActiva = false;
             _esperandoSoltar = true;
+            if (IsOwner)
+                DetenerVfxAncla();
             if (IsServer)
                 DespawnearAncla();
         }
@@ -59,12 +62,16 @@ namespace TDOM.Unity.Combat
         public void RegistrarAncla(Ancla ancla)
         {
             AnclaActual = ancla;
+            if (_vfxAnclaSostenido != null)
+                _vfxAnclaSostenido.Apuntar(ancla != null ? ancla.transform : null);
         }
 
         public void NotificarDespawnAncla(bool conecto)
         {
             AnclaActiva = false;
             _esperandoSoltar = true;
+            if (IsOwner)
+                DetenerVfxAncla();
             if (!conecto && IsOwner && _cooldown != null)
                 _cooldown.Recortar(_perfil.FactorCooldownSinConectar);
         }
@@ -73,6 +80,22 @@ namespace TDOM.Unity.Combat
         {
             if (_perfil != null)
                 _cooldown = new CooldownTimer(_perfil.Cooldown);
+
+            PrepararVfxAncla();
+        }
+
+        private void PrepararVfxAncla()
+        {
+            if (_vfxRed == null)
+                _vfxRed = GetComponentInParent<VfxRed>();
+
+            VfxPool pool = _vfxRed != null ? _vfxRed.Pool : null;
+            if (pool == null || _vfxAncla == null)
+                return;
+
+            _vfxAnclaSostenido = pool.Pedir(pool.Indice(_vfxAncla)) as VfxDisparoSostenido;
+            if (_vfxAnclaSostenido != null)
+                _vfxAnclaSostenido.Seguir(_origen);
         }
 
         private void Update()
@@ -118,6 +141,12 @@ namespace TDOM.Unity.Combat
                 return;
 
             _vfxRed.Lanzar(_vfxAncla, _origen.position, Quaternion.LookRotation(direccion));
+        }
+
+        private void DetenerVfxAncla()
+        {
+            if (_vfxRed != null && _vfxAncla != null)
+                _vfxRed.Detener(_vfxAncla);
         }
 
         [Rpc(SendTo.Server)]
@@ -176,6 +205,7 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.Owner)]
         private void RechazarLanzamientoRpc()
         {
+            DetenerVfxAncla();
             if (_cooldown != null)
             {
                 _cooldown.Resetear();
