@@ -220,17 +220,28 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private float _radioDisparo = 0.5f;
 
-        [Header("Vfx en red del disparo cargado")]
+        [SerializeField]
+        [Tooltip("Proyectil del disparo cargado. Vacio: usa el proyectil normal.")]
+        private GameObject _proyectilCargadoPrefab;
+
+        [Header("Vfx en red de la carga")]
         [SerializeField]
         [Tooltip(
-            "Energia que se concentra en el origen del disparo mientras se mantiene la carga. "
+            "Energia que se concentra mientras se carga el ataque cuerpo a cuerpo y sigue a "
+                + "Origen Carga Melee. Vacio: sin efecto."
+        )]
+        private VfxBase _vfxCargaMelee;
+
+        [SerializeField]
+        [Tooltip("Punto que sigue la carga cuerpo a cuerpo. Vacio: la raiz del jugador.")]
+        private Transform _origenCargaMelee;
+
+        [SerializeField]
+        [Tooltip(
+            "Energia que se concentra mientras se carga el disparo y sigue a Origen Disparo. "
                 + "Vacio: sin efecto."
         )]
         private VfxBase _vfxCargaDisparo;
-
-        [SerializeField]
-        [Tooltip("Efecto que sale del origen del disparo al soltar el cargado. Vacio: sin efecto.")]
-        private VfxBase _vfxLiberacionDisparo;
         private bool _cargaVisibleMelee;
         private bool _incapacitado;
         private bool _girosEnCurso;
@@ -267,7 +278,8 @@ namespace TDOM.Unity.Combat
             _poseGirosActiva = false;
             _cargaVisibleMelee = false;
             MostrarCarga(false);
-            LanzarVfxCargaDisparo(false);
+            ActivarVfxCarga(_vfxCargaMelee, false);
+            ActivarVfxCarga(_vfxCargaDisparo, false);
             _combatAnimator?.CancelarAtaque(false);
         }
 
@@ -346,6 +358,8 @@ namespace TDOM.Unity.Combat
             _root = GetComponentInParent<PlayerRoot>();
             _origenHoja = GetComponentInChildren<IOrigenVfxGolpe>(true);
             _cargaArma = GetComponentInChildren<ICargaVfx>(true);
+            SeguirConVfxCarga(_vfxCargaMelee, _origenCargaMelee);
+            SeguirConVfxCarga(_vfxCargaDisparo, _origenDisparo);
 
             if (_vfx == null)
                 Debug.LogWarning($"[PlayerCombat] _vfx no asignado en {name}");
@@ -472,6 +486,7 @@ namespace TDOM.Unity.Combat
                     _cargaVisibleMelee = visible;
                     MostrarCarga(visible);
                     CargaRpc(visible);
+                    ActivarVfxCarga(_vfxCargaMelee, visible);
                 }
             }
         }
@@ -526,36 +541,30 @@ namespace TDOM.Unity.Combat
                 {
                     MostrarCarga(estaCargando);
                     CargaRpc(estaCargando);
-                    LanzarVfxCargaDisparo(estaCargando);
+                    ActivarVfxCarga(_vfxCargaDisparo, estaCargando);
                 }
             }
         }
 
-        private void LanzarVfxCargaDisparo(bool activa)
+        private void ActivarVfxCarga(VfxBase efecto, bool activa)
         {
-            if (_vfxRed == null || _vfxCargaDisparo == null)
+            if (_vfxRed == null || efecto == null)
                 return;
 
-            if (!activa)
-            {
-                _vfxRed.Detener(_vfxCargaDisparo);
-                return;
-            }
-
-            Transform origen = _origenDisparo != null ? _origenDisparo : transform;
-            _vfxRed.Lanzar(_vfxCargaDisparo, origen.position, origen.rotation);
+            if (activa)
+                _vfxRed.Lanzar(efecto, transform.position, transform.rotation);
+            else
+                _vfxRed.Detener(efecto);
         }
 
-        private void LanzarVfxLiberacionDisparo()
+        private void SeguirConVfxCarga(VfxBase efecto, Transform objetivo)
         {
-            if (_vfxRed == null || _vfxLiberacionDisparo == null || _origenDisparo == null)
+            VfxPool pool = _vfxRed != null ? _vfxRed.Pool : null;
+            if (pool == null || efecto == null)
                 return;
 
-            _vfxRed.Lanzar(
-                _vfxLiberacionDisparo,
-                _origenDisparo.position,
-                Quaternion.LookRotation(DireccionDeDisparo(), Vector3.up)
-            );
+            if (pool.Pedir(pool.Indice(efecto)) is VfxCargaSeguida instancia)
+                instancia.Seguir(objetivo != null ? objetivo : transform);
         }
 
         private void EjecutarDisparo(AttackEvent evento)
@@ -577,8 +586,6 @@ namespace TDOM.Unity.Combat
                 _combatAnimator.PlayShot(evento.ComboIndex, cargado);
             if (_vfx != null)
                 _vfx.Disparo(cargado);
-            if (cargado)
-                LanzarVfxLiberacionDisparo();
             _debugFeedback?.FlashActive(0.1f);
             if (_feedback != null)
                 _feedback.OnAtaquePropio();
@@ -1191,7 +1198,7 @@ namespace TDOM.Unity.Combat
                 return;
             Quaternion rotacion =
                 dir != Vector3.zero ? Quaternion.LookRotation(dir) : transform.rotation;
-            GameObject go = Instantiate(_proyectilPrefab, origen, rotacion);
+            GameObject go = Instantiate(ProyectilPara(evento), origen, rotacion);
             Proyectil proyectil = go.GetComponent<Proyectil>();
             if (proyectil != null)
             {
@@ -1204,6 +1211,11 @@ namespace TDOM.Unity.Combat
                 networkObject.Spawn();
             }
         }
+
+        private GameObject ProyectilPara(AttackEvent evento) =>
+            evento.Kind == AttackKind.Charged && _proyectilCargadoPrefab != null
+                ? _proyectilCargadoPrefab
+                : _proyectilPrefab;
 
         [Rpc(SendTo.NotOwner)]
         private void CargaRpc(bool activa)
