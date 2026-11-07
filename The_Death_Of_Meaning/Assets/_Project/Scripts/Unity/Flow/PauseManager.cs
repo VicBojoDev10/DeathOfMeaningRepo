@@ -482,6 +482,8 @@ namespace TDOM.Unity
                 if (desdePantallaFinal)
                     MostrarGameplayDespuesDePantallaFinal(ventanaFinal);
 
+                GlobalGameManager.Instance?.ReproducirMusicaTutorial();
+
                 return;
             }
 
@@ -500,6 +502,8 @@ namespace TDOM.Unity
 
                     if (desdePantallaFinal)
                         MostrarGameplayDespuesDePantallaFinal(ventanaFinal);
+
+                    GlobalGameManager.Instance?.ReproducirMusicaTutorial();
                 },
                 () =>
                 {
