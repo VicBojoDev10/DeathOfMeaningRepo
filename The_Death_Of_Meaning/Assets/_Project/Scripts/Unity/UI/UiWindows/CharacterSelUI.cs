@@ -181,8 +181,23 @@ namespace TDOM.Unity
 
         private void Volver()
         {
+            if (PartidaListaParaIniciar())
+                return;
+
             ConnectionManager.Instance?.CancelarConexion();
             UiManager.Instance?.SwitchWindow(WindowId, WindowsIds.ConnectionMenuUI);
+        }
+
+        private bool PartidaListaParaIniciar()
+        {
+            if (_manager == null || _manager.Jugadores == null || _manager.Jugadores.Count < 2)
+                return false;
+
+            foreach (var jugador in _manager.Jugadores)
+                if (!jugador.Ready)
+                    return false;
+
+            return true;
         }
 
         private void MostrarMensajeDesconexion()

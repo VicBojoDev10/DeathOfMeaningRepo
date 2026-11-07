@@ -216,7 +216,6 @@ namespace TDOM.Unity
 
             foreach (var jugador in Jugadores)
             {
-                // Un RPC de listo repetido nunca debe crear un segundo PlayerRoot para el mismo cliente.
                 if (BuscarJugadorSpawneado(jugador.ClientId) != null)
                     continue;
 
@@ -268,8 +267,6 @@ namespace TDOM.Unity
                 IniciarPartidaClientRpc();
             }
         }
-
-        /// <summary>Materializa al jefe solo al iniciar su presentación en la arena.</summary>
         public void SpawnBossForEncounter()
         {
             if (!IsServer || HayJefeSpawneadoEnRed()) return;
@@ -339,8 +336,6 @@ namespace TDOM.Unity
                 {
                     if (IsServer)
                         ReiniciarPartidaDesdePausa();
-
-                    // La carga ya cubre la pantalla; podemos cambiar la ventana debajo.
                     UiManager.Instance?.CloseWindow("victoriaui");
                     UiManager.Instance?.CloseWindow(WindowsIds.RetryPopUpUI);
                     (UiManager.Instance?.GetWindow(WindowsIds.PausaUI) as PausaUI)?.SetPopupActivo(
@@ -423,7 +418,6 @@ namespace TDOM.Unity
             Debug.Log($"[GameSessionManager] Jefes despawneados al reiniciar: {despawneados}.");
         }
 
-        // TW-278: al ganar, perder o reiniciar no deben quedar minions ni orbes de la partida.
         private void LimpiarMinionsEnServidor()
         {
             if (!IsServer || NetworkManager == null || NetworkManager.SpawnManager == null)
@@ -431,20 +425,16 @@ namespace TDOM.Unity
 
             PowerUpsSpawnController.LimpiarEnServidor();
 
-            // Snapshot: despawnear modifica SpawnedObjectsList.
             var objetosSpawneados = new List<NetworkObject>(
                 NetworkManager.SpawnManager.SpawnedObjectsList
             );
 
-            // Vaciar también el registro del jefe para no conservar referencias a columnas
-            // que ya no existen (la limpieza es inmediata incluso tras victoria o derrota).
             foreach (var objeto in objetosSpawneados)
             {
                 if (objeto != null && objeto.TryGetComponent(out AtaquesArek ataques))
                     ataques.LimpiarColumnasEnServidor();
             }
 
-            // Limpieza de respaldo para columnas que hayan quedado fuera del registro del jefe.
             objetosSpawneados = new List<NetworkObject>(
                 NetworkManager.SpawnManager.SpawnedObjectsList
             );
@@ -458,7 +448,6 @@ namespace TDOM.Unity
                     objeto.Despawn(true);
             }
 
-            // Se busca primero y se limpia después: despawnear modifica SpawnedObjectsList.
             MinionSpawner spawner = null;
             foreach (var objeto in NetworkManager.SpawnManager.SpawnedObjectsList)
             {
@@ -503,7 +492,10 @@ namespace TDOM.Unity
 
             if (UiManager.Instance != null)
             {
-                UiManager.Instance.SwitchWindow(WindowsIds.ChSelectionUI, WindowsIds.GamePlayUI);
+                UiManager.Instance.CloseWindow(WindowsIds.ConnectionMenuUI);
+                UiManager.Instance.CloseWindow(WindowsIds.CancelHostUI);
+                UiManager.Instance.CloseWindow(WindowsIds.ChSelectionUI);
+                UiManager.Instance.ShowWindow(WindowsIds.GamePlayUI);
             }
         }
 

@@ -430,6 +430,18 @@ namespace TDOM.Unity.Player
             StartCoroutine(RespawnConFundidoRutina(position, rotation));
         }
 
+        public void TeletransportarARespawnArenaDesdeServidor(Vector3 position, Quaternion rotation)
+        {
+            if (IsServer)
+                TeletransportarARespawnArenaRpc(position, rotation);
+        }
+
+        [Rpc(SendTo.Owner)]
+        private void TeletransportarARespawnArenaRpc(Vector3 position, Quaternion rotation)
+        {
+            RespawnConFundido(position, rotation);
+        }
+
         private IEnumerator RespawnConFundidoRutina(Vector3 position, Quaternion rotation)
         {
             _respawnEnCurso = true;
