@@ -148,13 +148,6 @@ namespace TDOM.Unity.Flow
                 return;
 
             float transcurrido = (float)(NetworkManager.ServerTime.Time - _inicioRed);
-            if (!_revelado && transcurrido >= _momentoRevelado)
-            {
-                _revelado = true;
-                if (IsServer)
-                    ArenaEncounterNetwork.Instance.NotificarJefeRevelado();
-            }
-
             float duracion = _timeline != null ? (float)_timeline.duration : 4f;
             if (!_revelado && transcurrido >= Mathf.Min(_momentoRevelado, duracion))
             {
