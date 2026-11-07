@@ -3,6 +3,7 @@ using System.Collections;
 using TDOM.Unity;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
+using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -23,6 +24,7 @@ namespace TDOM.Unity.Flow
         private bool _revelado;
         private bool _terminada;
         private bool _suscrito;
+        private bool _suscritoRevelado;
         private bool _presentacionIniciada;
         private double _inicioRed;
 
@@ -34,11 +36,16 @@ namespace TDOM.Unity.Flow
         public override void OnNetworkDespawn()
         {
             if (ArenaEncounterNetwork.Instance != null)
+            {
                 ArenaEncounterNetwork.Instance.Fase.OnValueChanged -= AlCambiarFase;
+                ArenaEncounterNetwork.Instance.JefeRevelado -= AlRevelarJefe;
+            }
             _suscrito = false;
+            _suscritoRevelado = false;
             _presentacionIniciada = false;
             BossController.DejarDeObservarJefe(AlSpawnearJefe);
             if (_jefe != null && IsServer) _jefe.Pausar(false);
+            GameplayLocal()?.SetHudVisible(true);
         }
 
         private void AlCambiarFase(ArenaEncounterPhase anterior, ArenaEncounterPhase actual)
@@ -62,6 +69,11 @@ namespace TDOM.Unity.Flow
                 encuentro.Fase.OnValueChanged += AlCambiarFase;
                 _suscrito = true;
             }
+            if (!_suscritoRevelado)
+            {
+                encuentro.JefeRevelado += AlRevelarJefe;
+                _suscritoRevelado = true;
+            }
             if (encuentro.Fase.Value == ArenaEncounterPhase.Presentacion)
                 SolicitarInicioSincronizado();
         }
@@ -81,13 +93,19 @@ namespace TDOM.Unity.Flow
             _inicioRed = horaInicio;
             _revelado = false;
             _terminada = false;
+            var jugador = JugadorLocal();
+            jugador?.SetControlCinematica(true);
+            jugador?.SetCamaraCedida(true);
+            GameplayLocal()?.SetHudVisible(false, true);
             if (_timeline != null)
             {
                 _timeline.time = Math.Max(0d, NetworkManager.ServerTime.Time - horaInicio);
                 _timeline.extrapolationMode = DirectorWrapMode.Hold;
                 _timeline.Play();
+                Debug.Log("[ArenaBossPresentation] Timeline Entering_Bossfight iniciado.");
             }
-            JugadorLocal()?.SetControlCinematica(true);
+            else
+                Debug.LogError("[ArenaBossPresentation] Falta asignar PlayableDirector del Timeline de entrada.");
             if (IsServer)
             {
                 BossController.ObservarJefe(NetworkManager, AlSpawnearJefe);
@@ -151,12 +169,15 @@ namespace TDOM.Unity.Flow
         private IEnumerator DevolverCamaraYControl()
         {
             var jugador = JugadorLocal();
-            jugador?.SetCamaraCedida(false);
+            var camaraJugador = jugador != null ? jugador.CamaraCinematica : null;
+            if (camaraJugador != null)
+                camaraJugador.Priority.Value = 100;
             if (_timeline != null) _timeline.Stop();
 
-            // Stop libera la cámara del Timeline; Cinemachine mezcla desde su último estado al rig local.
             yield return null;
-            var cerebro = FindObjectOfType<CinemachineBrain>();
+            var cerebro = camaraJugador != null
+                ? CinemachineCore.FindPotentialTargetBrain(camaraJugador)
+                : null;
             if (cerebro != null)
             {
                 float limite = cerebro.DefaultBlend.Time + _margenEsperaBlend;
@@ -168,8 +189,10 @@ namespace TDOM.Unity.Flow
                 }
             }
 
-            if (_timeline != null) _timeline.Stop();
+            if (camaraJugador != null)
+                camaraJugador.Priority.Value = jugador.PrioridadBaseCamara;
             jugador?.SetControlCinematica(false);
+            GameplayLocal()?.SetHudVisible(true);
             if (IsServer)
             {
                 _jefe?.Pausar(false);
@@ -184,6 +207,11 @@ namespace TDOM.Unity.Flow
                 ArenaEncounterNetwork.Instance.Fase.Value == ArenaEncounterPhase.Presentacion)
                 _jefe.Pausar(true);
         }
+
+        private void AlRevelarJefe() => GameplayLocal()?.SetHudVisible(false, true);
+
+        private GameplayUI GameplayLocal() =>
+            UiManager.Instance?.GetWindow(WindowsIds.GamePlayUI) as GameplayUI;
 
         private PlayerRoot JugadorLocal()
         {

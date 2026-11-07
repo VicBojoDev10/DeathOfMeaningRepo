@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Player;
+using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -94,6 +95,7 @@ namespace TDOM.Unity
             EntradaConsumida.Value = true;
             SolicitarPuertasRpc(true);
             AplicarTriggerEntrada(false);
+            Debug.Log("[ArenaEncounterNetwork] ColliderArena activó la presentación.");
             IniciarPresentacion();
         }
 
@@ -183,7 +185,7 @@ namespace TDOM.Unity
             if (!IsServer || Fase.Value != ArenaEncounterPhase.Esperando) return;
             int presentesVivos = 0;
             foreach (var (id, vol) in _presencia)
-                if (vol.Contains(2) && !_abatidos.Contains(id) && _jugadores.TryGetValue(id, out var p) &&
+                if (vol.Count > 0 && !_abatidos.Contains(id) && _jugadores.TryGetValue(id, out var p) &&
                     p != null && p.IsSpawned && p.EstadoVida.Value == PlayerLifeState.Vivo)
                     presentesVivos++;
             if (presentesVivos >= 2) IniciarPresentacion();
@@ -194,10 +196,12 @@ namespace TDOM.Unity
             if (!IsServer || _reveladoEnEstaPartida || Fase.Value != ArenaEncounterPhase.Esperando) return;
             _reveladoEnEstaPartida = true;
             Fase.Value = ArenaEncounterPhase.Presentacion;
-            GameSessionManager.Instance?.SpawnBossForEncounter();
+            if (GameSessionManager.Instance == null)
+                Debug.LogError("[ArenaEncounterNetwork] No se encontró GameSessionManager para crear al jefe.");
+            else
+                GameSessionManager.Instance.SpawnBossForEncounter();
+            Debug.Log("[ArenaEncounterNetwork] Fase Presentacion iniciada.");
         }
-
-        /// <summary>Emite una sola vez la señal al llegar al plano de revelación.</summary>
         public void NotificarJefeRevelado()
         {
             if (!IsServer || Fase.Value != ArenaEncounterPhase.Presentacion || _senalJefeReveladoEnEstaPartida)
@@ -232,22 +236,23 @@ namespace TDOM.Unity
             _senalJefeReveladoEnEstaPartida = false;
             ArenaSellada.Value = false;
             EntradaConsumida.Value = false;
+            // El reinicio ocurre sin descargar la escena, así que las puertas
+            // necesitan recibir explícitamente el estado inicial cerrado.
+            SolicitarPuertasRpc(false);
             AplicarTriggerEntrada(true);
             AplicarTriggersArena(true);
             Fase.Value = ArenaEncounterPhase.Esperando;
+            RestablecerHudClientRpc();
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void RestablecerHudClientRpc()
+        {
+            var gameplay = UiManager.Instance?.GetWindow(WindowsIds.GamePlayUI) as GameplayUI;
+            gameplay?.SetHudVisible(true, false);
         }
 
 #if UNITY_EDITOR
-        private void ForzarPresentacionDebug()
-        {
-            if (!IsServer) return;
-            _senalJefeReveladoEnEstaPartida = false;
-            _reveladoEnEstaPartida = false;
-            if (Fase.Value != ArenaEncounterPhase.Esperando)
-                Fase.Value = ArenaEncounterPhase.Esperando;
-            IniciarPresentacion();
-        }
-
         private void OnGUI()
         {
             if (!IsSpawned || !IsServer) return;
@@ -260,7 +265,7 @@ namespace TDOM.Unity
             if (GUILayout.Button("Forzar Presentación + JefeRevelado") ||
                 (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.F8))
             {
-                ForzarPresentacionDebug();
+                IniciarPresentacion();
                 Event.current.Use();
             }
             if (GUILayout.Button("Forzar Combate")) IniciarCombate();

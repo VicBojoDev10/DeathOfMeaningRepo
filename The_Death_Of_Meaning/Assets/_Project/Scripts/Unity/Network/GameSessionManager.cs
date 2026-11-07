@@ -384,6 +384,7 @@ namespace TDOM.Unity
 
             PauseManager.Instance?.RestablecerResultadoDesdeServidor();
             LimpiarMinionsEnServidor();
+            DespawnearJefesEnServidor();
             _inicioPartidaEnProceso = true;
             var objetosSpawneados = new List<NetworkObject>(
                 NetworkManager.SpawnManager.SpawnedObjectsList
@@ -394,17 +395,32 @@ namespace TDOM.Unity
                     continue;
 
                 bool esJugador = objeto.TryGetComponent(out TDOM.Unity.Player.PlayerRoot _);
-                bool esJefe = objeto.TryGetComponent(out BossController _);
                 bool esAtaque = objeto.TryGetComponent(out AtaqueArekBase _);
                 bool esAncla = objeto.TryGetComponent(out Ancla _);
                 bool esProyectil = objeto.TryGetComponent(out Proyectil _);
-                if (esJugador || esJefe || esAtaque || esAncla || esProyectil)
+                if (esJugador || esAtaque || esAncla || esProyectil)
                     objeto.Despawn(true);
             }
 
             _inicioPartidaEnProceso = false;
             VerificarInicioPartida();
             IniciarCronometro();
+        }
+
+        private void DespawnearJefesEnServidor()
+        {
+            if (!IsServer || NetworkManager?.SpawnManager == null) return;
+
+            var objetos = new List<NetworkObject>(NetworkManager.SpawnManager.SpawnedObjectsList);
+            int despawneados = 0;
+            foreach (var objeto in objetos)
+            {
+                if (objeto == null || !objeto.IsSpawned || !objeto.TryGetComponent(out BossController _))
+                    continue;
+                objeto.Despawn(true);
+                despawneados++;
+            }
+            Debug.Log($"[GameSessionManager] Jefes despawneados al reiniciar: {despawneados}.");
         }
 
         // TW-278: al ganar, perder o reiniciar no deben quedar minions ni orbes de la partida.

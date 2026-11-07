@@ -13,6 +13,7 @@ using TDOM.Unity.Input;
 using TDOM.Unity.Level;
 using TDOM.Unity.Locomotion;
 using TDOM.Unity.Settings;
+using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
@@ -545,6 +546,10 @@ namespace TDOM.Unity.Player
             if (IsOwner && _camera != null)
                 _camera.CederPrioridad(cedida);
         }
+
+        public CinemachineCamera CamaraCinematica => IsOwner ? _camera?.CamaraCinematica : null;
+
+        public int PrioridadBaseCamara => _camera != null ? _camera.PrioridadBase : 0;
 
         private CharacterIds GetCharacterId()
         {
