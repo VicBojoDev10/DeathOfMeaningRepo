@@ -19,6 +19,10 @@ namespace TDOM.Unity
     /// </summary>
     public class AtaqueTentaculo : AtaqueArekBase
     {
+        private const float FactorMitadTentaculo = 0.5f;
+        private const float InclinacionLevantado = -90f;
+        private const float InclinacionAcostado = 0f;
+
         [Header("Visuales")]
         [SerializeField]
         private Transform _tentaculoVisual;
@@ -251,10 +255,16 @@ namespace TDOM.Unity
             if (vfx == null || _vfxTentaculo == null)
                 return;
 
-            Vector3 puntoBajo =
-                transform.position + _rotacionBase * Vector3.forward * _perfil.largo;
-            Vector3 puntoAlto = puntoBajo + Vector3.up * _perfil.largo;
-            vfx.LanzarEntre(_vfxTentaculo, puntoAlto, puntoBajo);
+            Vector3 centroLocal = new Vector3(
+                0f,
+                _perfil.alto * FactorMitadTentaculo,
+                _perfil.largo * FactorMitadTentaculo
+            );
+            Vector3 centroLevantado =
+                transform.position + RotacionConInclinacion(InclinacionLevantado) * centroLocal;
+            Vector3 centroAcostado =
+                transform.position + RotacionConInclinacion(InclinacionAcostado) * centroLocal;
+            vfx.LanzarEntre(_vfxTentaculo, centroLevantado, centroAcostado);
         }
 
         private void CambiarFase(FaseTentaculo nueva)
