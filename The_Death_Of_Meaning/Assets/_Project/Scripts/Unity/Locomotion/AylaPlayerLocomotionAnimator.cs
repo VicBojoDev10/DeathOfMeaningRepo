@@ -1,5 +1,7 @@
+using TDOM.Gameplay.Core;
 using TDOM.Unity.Level;
 using TDOM.Unity.Locomotion;
+using TDOM.Unity.Player;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -18,6 +20,14 @@ namespace TDOM.Unity
         private static readonly int GanchoHash = Animator.StringToHash("Gancho");
         private static readonly int DashHash = Animator.StringToHash("Dash");
         private static readonly int ClimbingHash = Animator.StringToHash("Climbing");
+        private static readonly int DamageHash = Animator.StringToHash("Damage");
+        private static readonly int DamageStateHash = Animator.StringToHash("Damage");
+        private static readonly int DeadHash = Animator.StringToHash("Dead");
+        private static readonly int ReviveHash = Animator.StringToHash("Revive");
+        private static readonly int DeadStateHash = Animator.StringToHash("Dead");
+        private static readonly int ReviveStateHash = Animator.StringToHash("AylaRevive");
+        private const float DamageBlendMinimum = 20f;
+        private const float DamageBlendMaximum = 50f;
         private static readonly int DobleSaltoTiempoHash = Animator.StringToHash(
             "DobleSaltoTiempo"
         );
@@ -94,6 +104,16 @@ namespace TDOM.Unity
         private Vector3 _posLocalBase;
         private Quaternion _rotLocalBase = Quaternion.identity;
         private float _dobleSaltoTiempo;
+        private PlayerRoot _playerRoot;
+        private bool _damageParameterActive;
+        private bool _damageMovementLocked;
+        private bool _damageStateObserved;
+        private bool _lifeMovementLocked;
+        private bool _deadSignalPending;
+        private bool _reviveSignalPending;
+        private bool _reviveStateObserved;
+
+        public bool AnimationMovementLocked => _damageMovementLocked || _lifeMovementLocked;
 
         private void Awake()
         {
@@ -280,10 +300,116 @@ namespace TDOM.Unity
             _climbAnimando = false;
             _dashHasta = 0f;
             _dobleSaltoTiempo = 0f;
+            _playerRoot = GetComponentInParent<PlayerRoot>();
+            _damageParameterActive = false;
+            _damageMovementLocked = false;
+            _damageStateObserved = false;
+            _lifeMovementLocked = false;
+            _deadSignalPending = false;
+            _reviveSignalPending = false;
+            _reviveStateObserved = false;
+            if (_playerRoot != null)
+            {
+                _playerRoot.Vida.OnValueChanged += AlCambiarVida;
+                _playerRoot.EstadoVida.OnValueChanged += AlCambiarEstadoVida;
+            }
+            if (_animator != null)
+            {
+                _animator.SetFloat(DamageHash, 0f);
+                _animator.SetBool(ReviveHash, false);
+                if (_playerRoot != null)
+                    InicializarEstadoVida(_playerRoot.EstadoVida.Value);
+            }
             ApplyAimState(false);
             ApplyGanchoState(false);
             ApplyDashState(false);
             ApplyClimbingState(false);
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            if (_playerRoot != null)
+            {
+                _playerRoot.Vida.OnValueChanged -= AlCambiarVida;
+                _playerRoot.EstadoVida.OnValueChanged -= AlCambiarEstadoVida;
+            }
+
+            _playerRoot = null;
+            _damageParameterActive = false;
+            _damageMovementLocked = false;
+            _damageStateObserved = false;
+            _lifeMovementLocked = false;
+            _deadSignalPending = false;
+            _reviveSignalPending = false;
+            _reviveStateObserved = false;
+            base.OnNetworkDespawn();
+        }
+
+        private void InicializarEstadoVida(PlayerLifeState estado)
+        {
+            if (_animator == null)
+                return;
+
+            bool iniciarMuerte = estado != PlayerLifeState.Vivo;
+            _animator.SetBool(DeadHash, iniciarMuerte);
+            _animator.SetBool(ReviveHash, false);
+            _lifeMovementLocked = iniciarMuerte;
+            _deadSignalPending = iniciarMuerte;
+            _reviveSignalPending = false;
+            _reviveStateObserved = false;
+        }
+
+        private void AlCambiarEstadoVida(PlayerLifeState anterior, PlayerLifeState actual)
+        {
+            if (_animator == null)
+                return;
+
+            bool iniciarMuerte = anterior == PlayerLifeState.Vivo && actual != PlayerLifeState.Vivo;
+            bool iniciarRevive = anterior != PlayerLifeState.Vivo && actual == PlayerLifeState.Vivo;
+
+            if (iniciarMuerte)
+            {
+                // La muerte tiene prioridad si el último golpe coincidió con una animación de daño.
+                _animator.SetFloat(DamageHash, 0f);
+                _damageParameterActive = false;
+                _damageMovementLocked = false;
+                _damageStateObserved = false;
+                _animator.SetBool(ReviveHash, false);
+                _reviveSignalPending = false;
+                _reviveStateObserved = false;
+                _animator.SetBool(DeadHash, true);
+                _lifeMovementLocked = true;
+                _deadSignalPending = true;
+            }
+            else if (iniciarRevive)
+            {
+                _animator.SetBool(DeadHash, false);
+                _deadSignalPending = false;
+                _animator.SetBool(ReviveHash, true);
+                _lifeMovementLocked = true;
+                _reviveSignalPending = true;
+                _reviveStateObserved = false;
+            }
+        }
+
+        private void AlCambiarVida(float vidaAnterior, float vidaActual)
+        {
+            if (_animator == null || vidaActual <= 0f)
+                return;
+
+            float danioRecibido = vidaAnterior - vidaActual;
+            if (danioRecibido <= 0f)
+                return;
+
+            // El blend tree de Ayla usa umbrales 20 y 50. Limitar aquí evita enviar
+            // valores fuera de su rango y mantiene el nivel de reacción por golpe.
+            _animator.SetFloat(
+                DamageHash,
+                Mathf.Clamp(danioRecibido, DamageBlendMinimum, DamageBlendMaximum)
+            );
+            _damageParameterActive = true;
+            _damageMovementLocked = true;
+            _damageStateObserved = false;
         }
 
         private void Update()
@@ -291,6 +417,9 @@ namespace TDOM.Unity
             float dt = Time.deltaTime;
             if (dt <= 0f)
                 return;
+
+            ActualizarSenalesEstadoVida();
+            ActualizarParametroDanio();
 
             Vector3 pos = transform.position;
             Vector3 desplazamiento = pos - _ultimaPos;
@@ -363,6 +492,75 @@ namespace TDOM.Unity
                 _animator.SetBool(JumpHash, isJumping);
                 _animator.SetBool(WalkHash, isWalking);
                 _animator.SetBool(RunHash, _isSprinting && !isJumping);
+            }
+        }
+
+        private void ActualizarSenalesEstadoVida()
+        {
+            if (_animator == null || _animator.layerCount == 0)
+                return;
+
+            AnimatorStateInfo actual = _animator.GetCurrentAnimatorStateInfo(0);
+            bool enTransicion = _animator.IsInTransition(0);
+            AnimatorStateInfo siguiente = enTransicion
+                ? _animator.GetNextAnimatorStateInfo(0)
+                : default(AnimatorStateInfo);
+            bool enEstadoDead =
+                actual.shortNameHash == DeadStateHash
+                || (enTransicion && siguiente.shortNameHash == DeadStateHash);
+            bool enEstadoRevive =
+                actual.shortNameHash == ReviveStateHash
+                || (enTransicion && siguiente.shortNameHash == ReviveStateHash);
+            bool enEstadoDanio =
+                actual.shortNameHash == DamageStateHash
+                || (enTransicion && siguiente.shortNameHash == DamageStateHash);
+
+            if (_deadSignalPending && enEstadoDead)
+            {
+                _animator.SetBool(DeadHash, false);
+                _deadSignalPending = false;
+            }
+
+            if (_reviveSignalPending && enEstadoRevive)
+            {
+                _animator.SetBool(ReviveHash, false);
+                _reviveSignalPending = false;
+                _reviveStateObserved = true;
+            }
+
+            if (enEstadoRevive)
+                _reviveStateObserved = true;
+            else if (_reviveStateObserved)
+            {
+                _lifeMovementLocked = false;
+                _reviveStateObserved = false;
+            }
+
+            if (enEstadoDanio)
+                _damageStateObserved = true;
+            else if (_damageStateObserved)
+            {
+                _damageMovementLocked = false;
+                _damageStateObserved = false;
+            }
+        }
+
+        private void ActualizarParametroDanio()
+        {
+            if (_animator == null || _animator.layerCount == 0 || !_damageParameterActive)
+                return;
+
+            // Se conserva el valor durante la animación para que el blend tree lo use.
+            // Al comenzar la transición de salida se limpia, evitando reentrar a Damage
+            // desde Any State una vez que Ayla vuelve a Locomotion.
+            if (
+                _animator.IsInTransition(0)
+                && _animator.GetCurrentAnimatorStateInfo(0).shortNameHash == DamageStateHash
+                && _animator.GetNextAnimatorStateInfo(0).shortNameHash != DamageStateHash
+            )
+            {
+                _animator.SetFloat(DamageHash, 0f);
+                _damageParameterActive = false;
             }
         }
 

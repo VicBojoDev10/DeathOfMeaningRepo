@@ -64,7 +64,8 @@ namespace TDOM.Unity
             EntradaConsumida.OnValueChanged -= AlCambiarEntradaConsumida;
             if (NetworkManager != null)
                 NetworkManager.OnClientDisconnectCallback -= AlDesconectar;
-            if (Instance == this) Instance = null;
+            if (Instance == this)
+                Instance = null;
             _presencia.Clear();
             _jugadores.Clear();
             _abatidos.Clear();
@@ -72,26 +73,33 @@ namespace TDOM.Unity
 
         public void Registrar(PlayerRoot jugador, int volumen, bool entro)
         {
-            if (jugador == null || !jugador.IsSpawned) return;
-            if (IsServer) ActualizarPresencia(jugador.OwnerClientId, jugador, volumen, entro);
-            else if (jugador.IsOwner) RegistrarRpc(jugador.OwnerClientId, volumen, entro);
+            if (jugador == null || !jugador.IsSpawned)
+                return;
+            if (IsServer)
+                ActualizarPresencia(jugador.OwnerClientId, jugador, volumen, entro);
+            else if (jugador.IsOwner)
+                RegistrarRpc(jugador.OwnerClientId, volumen, entro);
             if (entro && volumen == 1)
             {
-                if (IsServer) AbrirAcceso();
-                else if (jugador.IsOwner) SolicitarPuertasServidorRpc(jugador.OwnerClientId);
+                if (IsServer)
+                    AbrirAcceso();
+                else if (jugador.IsOwner)
+                    SolicitarPuertasServidorRpc(jugador.OwnerClientId);
             }
         }
 
         [Rpc(SendTo.Server)]
         private void SolicitarPuertasServidorRpc(ulong clientId, RpcParams rpc = default)
         {
-            if (rpc.Receive.SenderClientId != clientId) return;
+            if (rpc.Receive.SenderClientId != clientId)
+                return;
             AbrirAcceso();
         }
 
         private void AbrirAcceso()
         {
-            if (!IsServer || EntradaConsumida.Value || ArenaSellada.Value) return;
+            if (!IsServer || EntradaConsumida.Value || ArenaSellada.Value)
+                return;
             EntradaConsumida.Value = true;
             SolicitarPuertasRpc(true);
             AplicarTriggerEntrada(false);
@@ -105,9 +113,14 @@ namespace TDOM.Unity
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         private void RegistrarRpc(ulong clientId, int volumen, bool entro, RpcParams rpc = default)
         {
-            if (rpc.Receive.SenderClientId != clientId || NetworkManager == null ||
-                !NetworkManager.ConnectedClients.TryGetValue(clientId, out var cliente) ||
-                !cliente.PlayerObject || !cliente.PlayerObject.TryGetComponent(out PlayerRoot jugador)) return;
+            if (
+                rpc.Receive.SenderClientId != clientId
+                || NetworkManager == null
+                || !NetworkManager.ConnectedClients.TryGetValue(clientId, out var cliente)
+                || !cliente.PlayerObject
+                || !cliente.PlayerObject.TryGetComponent(out PlayerRoot jugador)
+            )
+                return;
             ActualizarPresencia(clientId, jugador, volumen, entro);
         }
 
@@ -116,16 +129,21 @@ namespace TDOM.Unity
             _jugadores[id] = jugador;
             if (!_presencia.TryGetValue(id, out var volumenes))
                 _presencia[id] = volumenes = new HashSet<int>();
-            if (entro) volumenes.Add(volumen);
-            else volumenes.Remove(volumen);
-            if (volumenes.Count == 0) _presencia.Remove(id);
+            if (entro)
+                volumenes.Add(volumen);
+            else
+                volumenes.Remove(volumen);
+            if (volumenes.Count == 0)
+                _presencia.Remove(id);
             ComprobarInicio();
-            if (entro && volumen == 2) ComprobarSelladoArena();
+            if (entro && volumen == 2)
+                ComprobarSelladoArena();
         }
 
         private void ComprobarSelladoArena()
         {
-            if (!IsServer || ArenaSellada.Value || ContarVivosEnVolumen(2) < 2) return;
+            if (!IsServer || ArenaSellada.Value || ContarVivosEnVolumen(2) < 2)
+                return;
             ArenaSellada.Value = true;
             SolicitarPuertasRpc(false);
             AplicarTriggersArena(false);
@@ -135,16 +153,23 @@ namespace TDOM.Unity
         {
             int total = 0;
             foreach (var (id, volumenes) in _presencia)
-                if (volumenes.Contains(volumen) && !_abatidos.Contains(id) &&
-                    _jugadores.TryGetValue(id, out var jugador) && jugador != null && jugador.IsSpawned &&
-                    jugador.EstadoVida.Value == PlayerLifeState.Vivo)
+                if (
+                    volumenes.Contains(volumen)
+                    && !_abatidos.Contains(id)
+                    && _jugadores.TryGetValue(id, out var jugador)
+                    && jugador != null
+                    && jugador.IsSpawned
+                    && jugador.EstadoVida.Value == PlayerLifeState.Vivo
+                )
                     total++;
             return total;
         }
 
-        private void AlCambiarSelloArena(bool anterior, bool actual) => AplicarTriggersArena(!actual);
+        private void AlCambiarSelloArena(bool anterior, bool actual) =>
+            AplicarTriggersArena(!actual);
 
-        private void AlCambiarEntradaConsumida(bool anterior, bool actual) => AplicarTriggerEntrada(!actual);
+        private void AlCambiarEntradaConsumida(bool anterior, bool actual) =>
+            AplicarTriggerEntrada(!actual);
 
         private static void AplicarTriggersArena(bool habilitados) =>
             TriggersArenaHabilitados?.Invoke(habilitados);
@@ -154,24 +179,32 @@ namespace TDOM.Unity
 
         public void NotificarEstadoVida(PlayerRoot jugador, PlayerLifeState estado)
         {
-            if (!IsServer || jugador == null) return;
-            if (estado == PlayerLifeState.Vivo) _abatidos.Remove(jugador.OwnerClientId);
-            else _abatidos.Add(jugador.OwnerClientId);
+            if (!IsServer || jugador == null)
+                return;
+            if (estado == PlayerLifeState.Vivo)
+                _abatidos.Remove(jugador.OwnerClientId);
+            else
+                _abatidos.Add(jugador.OwnerClientId);
             ComprobarInicio();
-            if (estado == PlayerLifeState.Vivo) ComprobarSelladoArena();
+            if (estado == PlayerLifeState.Vivo)
+                ComprobarSelladoArena();
         }
 
         public void DesregistrarJugador(PlayerRoot jugador)
         {
-            if (jugador == null) return;
-            if (IsServer) Retirar(jugador.OwnerClientId);
-            else if (jugador.IsOwner) RetirarRpc(jugador.OwnerClientId);
+            if (jugador == null)
+                return;
+            if (IsServer)
+                Retirar(jugador.OwnerClientId);
+            else if (jugador.IsOwner)
+                RetirarRpc(jugador.OwnerClientId);
         }
 
         [Rpc(SendTo.Server)]
         private void RetirarRpc(ulong clientId, RpcParams rpc = default)
         {
-            if (rpc.Receive.SenderClientId == clientId) Retirar(clientId);
+            if (rpc.Receive.SenderClientId == clientId)
+                Retirar(clientId);
         }
 
         private void Retirar(ulong id)
@@ -182,18 +215,27 @@ namespace TDOM.Unity
 
         private void ComprobarInicio()
         {
-            if (!IsServer || Fase.Value != ArenaEncounterPhase.Esperando) return;
+            if (!IsServer || Fase.Value != ArenaEncounterPhase.Esperando)
+                return;
             int presentesVivos = 0;
             foreach (var (id, vol) in _presencia)
-                if (vol.Count > 0 && !_abatidos.Contains(id) && _jugadores.TryGetValue(id, out var p) &&
-                    p != null && p.IsSpawned && p.EstadoVida.Value == PlayerLifeState.Vivo)
+                if (
+                    vol.Count > 0
+                    && !_abatidos.Contains(id)
+                    && _jugadores.TryGetValue(id, out var p)
+                    && p != null
+                    && p.IsSpawned
+                    && p.EstadoVida.Value == PlayerLifeState.Vivo
+                )
                     presentesVivos++;
-            if (presentesVivos >= 2) IniciarPresentacion();
+            if (presentesVivos >= 2)
+                IniciarPresentacion();
         }
 
         private void IniciarPresentacion()
         {
-            if (!IsServer || _reveladoEnEstaPartida || Fase.Value != ArenaEncounterPhase.Esperando) return;
+            if (!IsServer || _reveladoEnEstaPartida || Fase.Value != ArenaEncounterPhase.Esperando)
+                return;
             _reveladoEnEstaPartida = true;
             Fase.Value = ArenaEncounterPhase.Presentacion;
             if (GameSessionManager.Instance == null)
@@ -209,6 +251,7 @@ namespace TDOM.Unity
             _senalJefeReveladoEnEstaPartida = true;
             RevelarJefeRpc();
         }
+
         public void IniciarCombate()
         {
             if (IsServer && Fase.Value == ArenaEncounterPhase.Presentacion)
@@ -228,7 +271,8 @@ namespace TDOM.Unity
 
         public void ReiniciarServidor()
         {
-            if (!IsServer) return;
+            if (!IsServer)
+                return;
             _presencia.Clear();
             _jugadores.Clear();
             _abatidos.Clear();
@@ -255,20 +299,29 @@ namespace TDOM.Unity
 #if UNITY_EDITOR
         private void OnGUI()
         {
-            if (!IsSpawned || !IsServer) return;
+            if (!IsSpawned || !IsServer)
+                return;
             GUILayout.BeginArea(
-                new Rect(Mathf.Max(10, Screen.width - 240), Mathf.Max(10, Screen.height - 100), 230, 90),
+                new Rect(
+                    Mathf.Max(10, Screen.width - 240),
+                    Mathf.Max(10, Screen.height - 100),
+                    230,
+                    90
+                ),
                 "Encuentro AREK (F8)",
                 GUI.skin.window
             );
             GUILayout.Label($"Fase: {Fase.Value}");
-            if (GUILayout.Button("Forzar Presentación + JefeRevelado") ||
-                (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.F8))
+            if (
+                GUILayout.Button("Forzar Presentación + JefeRevelado")
+                || (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.F8)
+            )
             {
                 IniciarPresentacion();
                 Event.current.Use();
             }
-            if (GUILayout.Button("Forzar Combate")) IniciarCombate();
+            if (GUILayout.Button("Forzar Combate"))
+                IniciarCombate();
             GUILayout.EndArea();
         }
 #endif

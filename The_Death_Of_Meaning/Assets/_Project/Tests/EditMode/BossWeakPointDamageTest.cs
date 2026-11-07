@@ -66,13 +66,13 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
-        public void Disparo_a_un_ojo_brillando_no_es_admitido()
+        public void Disparo_a_un_ojo_brillando_lo_abre_sin_danio()
         {
             var danio = new BossWeakPointDamage(CrearOjos(), CrearFases());
             int ojo = Buscar(danio, EstadoOjo.Brillando);
 
             Assert.IsFalse(danio.AdmiteImpacto(ojo, TipoImpactoOjo.Disparo));
-            Assert.AreEqual(EstadoOjo.Brillando, danio.Estado(ojo));
+            Assert.AreEqual(EstadoOjo.Abierto, danio.Estado(ojo));
         }
 
         [Test]

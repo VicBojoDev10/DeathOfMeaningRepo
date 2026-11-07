@@ -325,11 +325,10 @@ namespace TDOM.Unity
                 );
         }
 
-        // Mismo feedback que la Mano: impacto de cámara, flash de debug y flash rojo de pantalla.
+        // Mismo feedback que la Mano: impacto de cámara y flash de debug.
         [Rpc(SendTo.SpecifiedInParams)]
         private void JugadorGolpeadoRpc(RpcParams rpcParams = default)
         {
-            MostrarFlashRojo();
             NotificarGolpeAlJugadorLocal();
         }
 
