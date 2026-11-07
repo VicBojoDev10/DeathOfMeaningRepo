@@ -199,6 +199,7 @@ namespace TDOM.Unity.Player
 
         public CharacterIds CharacterId => _characterId;
         public float CostoEnergiaPendiente => _combat != null ? _combat.CostoCargaPendiente : 0f;
+
         public void EmpujarPorCombo(float adelante, float arriba, float duracion)
         {
             if (_motor == null)
@@ -676,6 +677,7 @@ namespace TDOM.Unity.Player
                 return CharacterIds.Zendre;
             return CharacterIds.None;
         }
+
         public void RestaurarEnergiaPorCambioDeFase()
         {
             if (!IsServer || _energyPool == null)
@@ -684,6 +686,7 @@ namespace TDOM.Unity.Player
             _energyPool.RestoreMaxOnPhaseChange();
             Energia.Value = _energyPool.Current;
         }
+
         public void SacudidaCambioDeFase()
         {
             if (IsOwner && _feedback != null)
@@ -1333,6 +1336,7 @@ namespace TDOM.Unity.Player
                     return false;
             }
         }
+
         public bool AplicarPowerUp(PowerUpProfile perfil)
         {
             if (perfil == null || !NecesitaPowerUp(perfil.Efecto))

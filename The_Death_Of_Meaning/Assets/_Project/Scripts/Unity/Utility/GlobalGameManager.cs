@@ -83,14 +83,16 @@ namespace TDOM.Unity
 
         public void ReproducirMusicaTutorial()
         {
-            if (AudioManager.Instance == null) return;
+            if (AudioManager.Instance == null)
+                return;
             AudioManager.Instance.Stop(combatMusicName);
             AudioManager.Instance.Play(tutorialMusicName);
         }
 
         public void DetenerMusicaPartida()
         {
-            if (AudioManager.Instance == null) return;
+            if (AudioManager.Instance == null)
+                return;
             AudioManager.Instance.Stop(combatMusicName);
             AudioManager.Instance.Stop(tutorialMusicName);
         }

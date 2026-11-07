@@ -239,14 +239,21 @@ namespace TDOM.Unity
             _reveladoEnEstaPartida = true;
             Fase.Value = ArenaEncounterPhase.Presentacion;
             if (GameSessionManager.Instance == null)
-                Debug.LogError("[ArenaEncounterNetwork] No se encontró GameSessionManager para crear al jefe.");
+                Debug.LogError(
+                    "[ArenaEncounterNetwork] No se encontró GameSessionManager para crear al jefe."
+                );
             else
                 GameSessionManager.Instance.SpawnBossForEncounter();
             Debug.Log("[ArenaEncounterNetwork] Fase Presentacion iniciada.");
         }
+
         public void NotificarJefeRevelado()
         {
-            if (!IsServer || Fase.Value != ArenaEncounterPhase.Presentacion || _senalJefeReveladoEnEstaPartida)
+            if (
+                !IsServer
+                || Fase.Value != ArenaEncounterPhase.Presentacion
+                || _senalJefeReveladoEnEstaPartida
+            )
                 return;
             _senalJefeReveladoEnEstaPartida = true;
             RevelarJefeRpc();

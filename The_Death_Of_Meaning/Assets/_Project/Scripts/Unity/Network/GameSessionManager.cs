@@ -268,17 +268,21 @@ namespace TDOM.Unity
                 IniciarPartidaClientRpc();
             }
         }
+
         public void SpawnBossForEncounter()
         {
-            if (!IsServer || HayJefeSpawneadoEnRed()) return;
+            if (!IsServer || HayJefeSpawneadoEnRed())
+                return;
             if (_prefabArek == null)
             {
                 Debug.LogError("No se puede iniciar la presentación: falta el prefab de Arek.");
                 return;
             }
 
-            Vector3 posicion = _puntoSpawnArek != null ? _puntoSpawnArek.position : new Vector3(0f, 0f, 10f);
-            Quaternion rotacion = _puntoSpawnArek != null ? _puntoSpawnArek.rotation : Quaternion.identity;
+            Vector3 posicion =
+                _puntoSpawnArek != null ? _puntoSpawnArek.position : new Vector3(0f, 0f, 10f);
+            Quaternion rotacion =
+                _puntoSpawnArek != null ? _puntoSpawnArek.rotation : Quaternion.identity;
             var jefe = Instantiate(_prefabArek, posicion, rotacion);
             var networkObject = jefe.GetComponent<NetworkObject>();
             if (networkObject == null)
@@ -288,7 +292,9 @@ namespace TDOM.Unity
                 return;
             }
             networkObject.Spawn();
-            Debug.Log($"[SPAWN][SERVER] Arek creado para presentación. id={networkObject.NetworkObjectId}, posición={posicion}");
+            Debug.Log(
+                $"[SPAWN][SERVER] Arek creado para presentación. id={networkObject.NetworkObjectId}, posición={posicion}"
+            );
         }
 
         public void SolicitarReinicioDePartida()
@@ -408,13 +414,18 @@ namespace TDOM.Unity
 
         private void DespawnearJefesEnServidor()
         {
-            if (!IsServer || NetworkManager?.SpawnManager == null) return;
+            if (!IsServer || NetworkManager?.SpawnManager == null)
+                return;
 
             var objetos = new List<NetworkObject>(NetworkManager.SpawnManager.SpawnedObjectsList);
             int despawneados = 0;
             foreach (var objeto in objetos)
             {
-                if (objeto == null || !objeto.IsSpawned || !objeto.TryGetComponent(out BossController _))
+                if (
+                    objeto == null
+                    || !objeto.IsSpawned
+                    || !objeto.TryGetComponent(out BossController _)
+                )
                     continue;
                 objeto.Despawn(true);
                 despawneados++;

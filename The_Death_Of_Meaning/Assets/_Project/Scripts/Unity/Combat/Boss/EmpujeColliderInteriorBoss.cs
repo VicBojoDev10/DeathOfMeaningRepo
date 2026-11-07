@@ -44,18 +44,25 @@ namespace TDOM.Unity.Combat
                 return;
 
             ulong id = jugador.NetworkObjectId;
-            if (_proximoRespawn.TryGetValue(id, out float proximoRespawn) && Time.time < proximoRespawn)
+            if (
+                _proximoRespawn.TryGetValue(id, out float proximoRespawn)
+                && Time.time < proximoRespawn
+            )
                 return;
 
             _proximoRespawn[id] = Time.time + 1f;
             Transform respawn = ObtenerRespawnArena(jugador.CharacterId);
             if (respawn != null)
-                jugador.TeletransportarARespawnArenaDesdeServidor(respawn.position, respawn.rotation);
+                jugador.TeletransportarARespawnArenaDesdeServidor(
+                    respawn.position,
+                    respawn.rotation
+                );
         }
 
         private static Transform ObtenerRespawnArena(CharacterIds personaje)
         {
-            string nombre = personaje == CharacterIds.Zendre ? "RespawnZendreArena" : "RespawnAylaArena";
+            string nombre =
+                personaje == CharacterIds.Zendre ? "RespawnZendreArena" : "RespawnAylaArena";
             GameObject punto = GameObject.Find(nombre);
             return punto != null ? punto.transform : null;
         }

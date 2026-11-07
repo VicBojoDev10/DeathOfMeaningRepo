@@ -107,7 +107,9 @@ namespace TDOM.Unity.Flow
             {
                 string idPendiente = _cinematicaPendiente;
                 _cinematicaPendiente = null;
-                Debug.Log($"[CinematicDirector] Reproduciendo cinemática pendiente '{idPendiente}'.");
+                Debug.Log(
+                    $"[CinematicDirector] Reproduciendo cinemática pendiente '{idPendiente}'."
+                );
                 Reproducir(idPendiente);
             }
 
@@ -156,7 +158,9 @@ namespace TDOM.Unity.Flow
             _directorActual.Stop();
             _directorActual.time = 0d;
             _salidaActual = CrearSalida(entrada.CamaraDeSalida);
-            Debug.Log($"[CinematicDirector] Iniciando '{id}' con director '{_directorActual.name}'.");
+            Debug.Log(
+                $"[CinematicDirector] Iniciando '{id}' con director '{_directorActual.name}'."
+            );
             _flujo.IniciarCinematicaSincronizada(id);
         }
 
@@ -242,9 +246,10 @@ namespace TDOM.Unity.Flow
 
             yield return null;
 
-            var cerebro = camaraJugador != null
-                ? CinemachineCore.FindPotentialTargetBrain(camaraJugador)
-                : null;
+            var cerebro =
+                camaraJugador != null
+                    ? CinemachineCore.FindPotentialTargetBrain(camaraJugador)
+                    : null;
             if (cerebro != null)
             {
                 float limite = cerebro.DefaultBlend.Time + _margenEsperaBlend;
@@ -259,15 +264,18 @@ namespace TDOM.Unity.Flow
             if (camaraJugador != null && jugador != null)
                 camaraJugador.Priority.Value = jugador.PrioridadBaseCamara;
         }
+
         private void RepararBindingsTimelines()
         {
             var camaraPrincipal = UnityEngine.Camera.main;
-            var cerebro = camaraPrincipal != null
-                ? camaraPrincipal.GetComponent<CinemachineBrain>()
-                : null;
+            var cerebro =
+                camaraPrincipal != null ? camaraPrincipal.GetComponent<CinemachineBrain>() : null;
             foreach (var entrada in _catalogo)
             {
-                if (entrada.Director == null || entrada.Director.playableAsset is not TimelineAsset timeline)
+                if (
+                    entrada.Director == null
+                    || entrada.Director.playableAsset is not TimelineAsset timeline
+                )
                     continue;
 
                 foreach (var output in timeline.outputs)
@@ -311,7 +319,8 @@ namespace TDOM.Unity.Flow
 
                 string nombreCamara = NombreCamaraTimeline(entrada.Id, indice++);
                 var objetoCamara = GameObject.Find(nombreCamara);
-                var camara = objetoCamara != null ? objetoCamara.GetComponent<CinemachineCamera>() : null;
+                var camara =
+                    objetoCamara != null ? objetoCamara.GetComponent<CinemachineCamera>() : null;
                 if (camara != null)
                     entrada.Director.SetReferenceValue(shot.VirtualCamera.exposedName, camara);
                 else
@@ -322,19 +331,21 @@ namespace TDOM.Unity.Flow
             }
         }
 
-        private static string NombreCamaraTimeline(string id, int indice) => id switch
-        {
-            "prueba" => indice == 0 ? "CamCinematicaPrueba" : "CamCinematicaJugadores",
-            "fase_2" => indice == 0 ? "CamFaseCerca" : "CamFaseLejos",
-            _ => string.Empty,
-        };
+        private static string NombreCamaraTimeline(string id, int indice) =>
+            id switch
+            {
+                "prueba" => indice == 0 ? "CamCinematicaPrueba" : "CamCinematicaJugadores",
+                "fase_2" => indice == 0 ? "CamFaseCerca" : "CamFaseLejos",
+                _ => string.Empty,
+            };
 
-        private static Animator AnimatorDeTimeline(string id) => id switch
-        {
-            "prueba" => GameObject.Find("PivoteOrbita")?.GetComponent<Animator>(),
-            "fase_2" => GameObject.Find("CamFaseCerca")?.GetComponent<Animator>(),
-            _ => null,
-        };
+        private static Animator AnimatorDeTimeline(string id) =>
+            id switch
+            {
+                "prueba" => GameObject.Find("PivoteOrbita")?.GetComponent<Animator>(),
+                "fase_2" => GameObject.Find("CamFaseCerca")?.GetComponent<Animator>(),
+                _ => null,
+            };
 
         private ICinematicExit CrearSalida(CinemachineCamera camaraDeSalida) =>
             camaraDeSalida != null
@@ -438,8 +449,10 @@ namespace TDOM.Unity.Flow
                 $"[CinematicDirector] Boss cambió de fase {anterior} -> {actual}; "
                     + $"servidor={IsServer}, estado={_flujo.Estado}, cinemática='{id}'."
             );
-            if (!_entradas.ContainsKey(id)) return;
-            if (!IsServer) return;
+            if (!_entradas.ContainsKey(id))
+                return;
+            if (!IsServer)
+                return;
 
             if (!EnGameplay)
             {

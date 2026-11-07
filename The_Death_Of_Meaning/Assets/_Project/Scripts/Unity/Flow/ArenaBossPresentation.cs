@@ -4,21 +4,30 @@ using TDOM.Unity;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
 using TDOM.Unity.UI;
+using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Playables;
-using Unity.Cinemachine;
 
 namespace TDOM.Unity.Flow
 {
     public sealed class ArenaBossPresentation : NetworkBehaviour
     {
-        [SerializeField] private PlayableDirector _timeline;
-        [SerializeField, Min(0f)] private float _momentoRevelado = 1.5f;
-        [SerializeField, Min(0f)] private float _margenEsperaBlend = 0.5f;
-        [SerializeField, Min(0f)] private float _duracionRegresoCamara = 2.25f;
-        [SerializeField] private bool _permitirSaltarEnEditor = true;
+        [SerializeField]
+        private PlayableDirector _timeline;
+
+        [SerializeField, Min(0f)]
+        private float _momentoRevelado = 1.5f;
+
+        [SerializeField, Min(0f)]
+        private float _margenEsperaBlend = 0.5f;
+
+        [SerializeField, Min(0f)]
+        private float _duracionRegresoCamara = 2.25f;
+
+        [SerializeField]
+        private bool _permitirSaltarEnEditor = true;
 
         private BossController _jefe;
         private bool _revelado;
@@ -44,7 +53,8 @@ namespace TDOM.Unity.Flow
             _suscritoRevelado = false;
             _presentacionIniciada = false;
             BossController.DejarDeObservarJefe(AlSpawnearJefe);
-            if (_jefe != null && IsServer) _jefe.Pausar(false);
+            if (_jefe != null && IsServer)
+                _jefe.Pausar(false);
             GameplayLocal()?.SetHudVisible(true);
         }
 
@@ -63,7 +73,8 @@ namespace TDOM.Unity.Flow
         private void IntentarSuscribirEncuentro()
         {
             var encuentro = ArenaEncounterNetwork.Instance;
-            if (encuentro == null || !encuentro.IsSpawned) return;
+            if (encuentro == null || !encuentro.IsSpawned)
+                return;
             if (!_suscrito)
             {
                 encuentro.Fase.OnValueChanged += AlCambiarFase;
@@ -80,7 +91,8 @@ namespace TDOM.Unity.Flow
 
         private void SolicitarInicioSincronizado()
         {
-            if (_presentacionIniciada) return;
+            if (_presentacionIniciada)
+                return;
             _presentacionIniciada = true;
             if (IsServer)
                 IniciarRpc(NetworkManager.ServerTime.Time);
@@ -106,7 +118,9 @@ namespace TDOM.Unity.Flow
                 Debug.Log("[ArenaBossPresentation] Timeline Entering_Bossfight iniciado.");
             }
             else
-                Debug.LogError("[ArenaBossPresentation] Falta asignar PlayableDirector del Timeline de entrada.");
+                Debug.LogError(
+                    "[ArenaBossPresentation] Falta asignar PlayableDirector del Timeline de entrada."
+                );
             if (IsServer)
             {
                 BossController.ObservarJefe(NetworkManager, AlSpawnearJefe);
@@ -116,7 +130,8 @@ namespace TDOM.Unity.Flow
 
         private void Update()
         {
-            if (!IsSpawned) return;
+            if (!IsSpawned)
+                return;
             IntentarSuscribirEncuentro();
             if (ArenaEncounterNetwork.Instance == null)
                 return;
@@ -126,34 +141,43 @@ namespace TDOM.Unity.Flow
                 _terminada = false;
                 return;
             }
-            if (ArenaEncounterNetwork.Instance.Fase.Value != ArenaEncounterPhase.Presentacion || _terminada) return;
+            if (
+                ArenaEncounterNetwork.Instance.Fase.Value != ArenaEncounterPhase.Presentacion
+                || _terminada
+            )
+                return;
 
             float transcurrido = (float)(NetworkManager.ServerTime.Time - _inicioRed);
             if (!_revelado && transcurrido >= _momentoRevelado)
             {
                 _revelado = true;
-                if (IsServer) ArenaEncounterNetwork.Instance.NotificarJefeRevelado();
+                if (IsServer)
+                    ArenaEncounterNetwork.Instance.NotificarJefeRevelado();
             }
 
             float duracion = _timeline != null ? (float)_timeline.duration : 4f;
             if (!_revelado && transcurrido >= Mathf.Min(_momentoRevelado, duracion))
             {
                 _revelado = true;
-                if (IsServer) ArenaEncounterNetwork.Instance.NotificarJefeRevelado();
+                if (IsServer)
+                    ArenaEncounterNetwork.Instance.NotificarJefeRevelado();
             }
             // Inicia la mezcla mientras la cámara del Timeline todavía conserva el último plano.
             bool tocaRegreso = transcurrido >= Mathf.Max(0f, duracion - _duracionRegresoCamara);
             if (InputSaltar() || tocaRegreso)
             {
-                if (IsServer) FinalizarRpc();
+                if (IsServer)
+                    FinalizarRpc();
             }
         }
 
         private bool InputSaltar()
         {
 #if UNITY_EDITOR
-            return IsServer && _permitirSaltarEnEditor && Keyboard.current != null &&
-                Keyboard.current.spaceKey.wasPressedThisFrame;
+            return IsServer
+                && _permitirSaltarEnEditor
+                && Keyboard.current != null
+                && Keyboard.current.spaceKey.wasPressedThisFrame;
 #else
             return false;
 #endif
@@ -162,7 +186,8 @@ namespace TDOM.Unity.Flow
         [Rpc(SendTo.ClientsAndHost)]
         private void FinalizarRpc()
         {
-            if (_terminada) return;
+            if (_terminada)
+                return;
             _terminada = true;
             StartCoroutine(DevolverCamaraYControl());
         }
@@ -173,12 +198,14 @@ namespace TDOM.Unity.Flow
             var camaraJugador = jugador != null ? jugador.CamaraCinematica : null;
             if (camaraJugador != null)
                 camaraJugador.Priority.Value = 100;
-            if (_timeline != null) _timeline.Stop();
+            if (_timeline != null)
+                _timeline.Stop();
 
             yield return null;
-            var cerebro = camaraJugador != null
-                ? CinemachineCore.FindPotentialTargetBrain(camaraJugador)
-                : null;
+            var cerebro =
+                camaraJugador != null
+                    ? CinemachineCore.FindPotentialTargetBrain(camaraJugador)
+                    : null;
             if (cerebro != null)
             {
                 float limite = cerebro.DefaultBlend.Time + _margenEsperaBlend;
@@ -204,8 +231,11 @@ namespace TDOM.Unity.Flow
         private void AlSpawnearJefe(BossController jefe)
         {
             _jefe = jefe;
-            if (IsServer && ArenaEncounterNetwork.Instance != null &&
-                ArenaEncounterNetwork.Instance.Fase.Value == ArenaEncounterPhase.Presentacion)
+            if (
+                IsServer
+                && ArenaEncounterNetwork.Instance != null
+                && ArenaEncounterNetwork.Instance.Fase.Value == ArenaEncounterPhase.Presentacion
+            )
                 _jefe.Pausar(true);
         }
 
@@ -216,9 +246,11 @@ namespace TDOM.Unity.Flow
 
         private PlayerRoot JugadorLocal()
         {
-            if (NetworkManager?.LocalClient == null) return null;
+            if (NetworkManager?.LocalClient == null)
+                return null;
             foreach (var objeto in NetworkManager.LocalClient.OwnedObjects)
-                if (objeto.TryGetComponent(out PlayerRoot jugador)) return jugador;
+                if (objeto.TryGetComponent(out PlayerRoot jugador))
+                    return jugador;
             return null;
         }
     }

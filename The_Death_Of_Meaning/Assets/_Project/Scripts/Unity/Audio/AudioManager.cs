@@ -241,7 +241,11 @@ namespace TDOM.Unity.Audio
 
         public void PlayMusicImmediate(string soundName)
         {
-            if (!TryGetData(soundName, out AudioData data) || data.audioType != AudioType.Music || data.clip == null)
+            if (
+                !TryGetData(soundName, out AudioData data)
+                || data.audioType != AudioType.Music
+                || data.clip == null
+            )
                 return;
 
             if (_currentMusic != null && _currentMusic != GetOrCreateSource(data))
