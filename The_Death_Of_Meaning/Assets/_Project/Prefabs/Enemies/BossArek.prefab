@@ -4726,7 +4726,7 @@ Transform:
   m_GameObject: {fileID: 816749632807873409}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.13}
+  m_LocalPosition: {x: 0, y: 0, z: 0.059}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4751,7 +4751,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 1.1
+  m_Radius: 0.64
   m_Height: 3.19
   m_Direction: 1
   m_Center: {x: 0, y: 0.5, z: -0.16}
@@ -4767,8 +4767,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85d4097a6ef448d7aa0e197b5ad23e91, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.EmpujeColliderInteriorBoss
-  _distanciaEmpuje: 4
-  _duracionEmpuje: 0.25
 --- !u!1 &830401804153674706
 GameObject:
   m_ObjectHideFlags: 0

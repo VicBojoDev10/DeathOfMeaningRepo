@@ -73,6 +73,7 @@ namespace TDOM.Unity
         [Rpc(SendTo.ClientsAndHost)]
         private void MostrarVictoriaClientRpc(float tiempoFinal)
         {
+            GlobalGameManager.Instance?.DetenerMusicaPartida();
             var ui = UiManager.Instance;
 
             void MostrarVictoria()
@@ -328,6 +329,8 @@ namespace TDOM.Unity
                     _reinicioVictoriaEnCurso = false;
                 }
 
+                GlobalGameManager.Instance?.ReproducirMusicaTutorial();
+
                 return;
             }
 
@@ -342,6 +345,7 @@ namespace TDOM.Unity
                         false
                     );
                     UiManager.Instance?.ShowWindow(WindowsIds.GamePlayUI);
+                    GlobalGameManager.Instance?.ReproducirMusicaTutorial();
                 },
                 () =>
                 {
@@ -485,11 +489,6 @@ namespace TDOM.Unity
             PartidaIniciada?.Invoke();
             OnPartidaIniciada?.Invoke();
 
-            if (TDOM.Unity.Audio.AudioManager.Instance != null)
-            {
-                TDOM.Unity.Audio.AudioManager.Instance.Play("battle");
-            }
-
             if (UiManager.Instance != null)
             {
                 UiManager.Instance.CloseWindow(WindowsIds.ConnectionMenuUI);
@@ -514,6 +513,7 @@ namespace TDOM.Unity
         [Rpc(SendTo.ClientsAndHost)]
         private void MostrarDerrotaClientRpc(int fase)
         {
+            GlobalGameManager.Instance?.DetenerMusicaPartida();
             var ui = UiManager.Instance;
 
             void MostrarDerrota()
@@ -567,6 +567,7 @@ namespace TDOM.Unity
         [Rpc(SendTo.ClientsAndHost)]
         private void MostrarVictoriaDebugClientRpc()
         {
+            GlobalGameManager.Instance?.DetenerMusicaPartida();
             var ui = UiManager.Instance;
 
             void MostrarVictoria()

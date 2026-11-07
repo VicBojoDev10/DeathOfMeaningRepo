@@ -97,6 +97,7 @@ namespace TDOM.Unity.Flow
             jugador?.SetControlCinematica(true);
             jugador?.SetCamaraCedida(true);
             GameplayLocal()?.SetHudVisible(false, true);
+            GlobalGameManager.Instance?.ReproducirMusicaCombateInmediata();
             if (_timeline != null)
             {
                 _timeline.time = Math.Max(0d, NetworkManager.ServerTime.Time - horaInicio);

@@ -8,7 +8,9 @@ namespace TDOM.Unity
     {
         [Header("Música")]
         private string menuMusicName = "mainmenu";
+        private string tutorialMusicName = "tutorial";
         private string combatMusicName = "battle";
+        private ArenaEncounterNetwork _encuentroSuscrito;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void AutoCrearInstancia()
@@ -28,7 +30,10 @@ namespace TDOM.Unity
         private void Start()
         {
             ReproducirMusicaMenu();
+            IntentarSuscribirRevelacion();
         }
+
+        private void Update() => IntentarSuscribirRevelacion();
 
         private void OnEnable()
         {
@@ -38,6 +43,20 @@ namespace TDOM.Unity
         private void OnDisable()
         {
             GameSessionManager.PartidaIniciada -= OnPartidaIniciada;
+            if (_encuentroSuscrito != null)
+                _encuentroSuscrito.JefeRevelado -= ReproducirMusicaCombate;
+            _encuentroSuscrito = null;
+        }
+
+        private void IntentarSuscribirRevelacion()
+        {
+            var encuentro = ArenaEncounterNetwork.Instance;
+            if (encuentro == _encuentroSuscrito || encuentro == null || !encuentro.IsSpawned)
+                return;
+            if (_encuentroSuscrito != null)
+                _encuentroSuscrito.JefeRevelado -= ReproducirMusicaCombate;
+            _encuentroSuscrito = encuentro;
+            _encuentroSuscrito.JefeRevelado += ReproducirMusicaCombate;
         }
 
         public void ReproducirMusicaMenu()
@@ -56,9 +75,29 @@ namespace TDOM.Unity
             }
         }
 
+        public void ReproducirMusicaCombateInmediata()
+        {
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlayMusicImmediate(combatMusicName);
+        }
+
+        public void ReproducirMusicaTutorial()
+        {
+            if (AudioManager.Instance == null) return;
+            AudioManager.Instance.Stop(combatMusicName);
+            AudioManager.Instance.Play(tutorialMusicName);
+        }
+
+        public void DetenerMusicaPartida()
+        {
+            if (AudioManager.Instance == null) return;
+            AudioManager.Instance.Stop(combatMusicName);
+            AudioManager.Instance.Stop(tutorialMusicName);
+        }
+
         private void OnPartidaIniciada()
         {
-            ReproducirMusicaCombate();
+            ReproducirMusicaTutorial();
         }
     }
 }
