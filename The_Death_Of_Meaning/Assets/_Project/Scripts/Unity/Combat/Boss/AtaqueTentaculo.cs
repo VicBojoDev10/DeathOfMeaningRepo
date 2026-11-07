@@ -4,6 +4,7 @@ using TDOM.Gameplay.Core;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
+using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -31,6 +32,10 @@ namespace TDOM.Unity
 
         [SerializeField]
         private AvisoParpadeo _avisoParpadeo;
+
+        [Header("Vfx")]
+        [SerializeField]
+        private VfxBase _vfxTentaculo;
 
         private enum FaseTentaculo
         {
@@ -212,7 +217,10 @@ namespace TDOM.Unity
             {
                 case FaseTentaculo.Aviso:
                     if (_tiempoEnFase >= _perfil.aviso)
+                    {
                         CambiarFase(FaseTentaculo.Azote);
+                        LanzarVfxAzote();
+                    }
                     break;
 
                 case FaseTentaculo.Azote:
@@ -235,6 +243,18 @@ namespace TDOM.Unity
                     }
                     break;
             }
+        }
+
+        private void LanzarVfxAzote()
+        {
+            var vfx = VfxJefe;
+            if (vfx == null || _vfxTentaculo == null)
+                return;
+
+            Vector3 puntoBajo =
+                transform.position + _rotacionBase * Vector3.forward * _perfil.largo;
+            Vector3 puntoAlto = puntoBajo + Vector3.up * _perfil.largo;
+            vfx.LanzarEntre(_vfxTentaculo, puntoAlto, puntoBajo);
         }
 
         private void CambiarFase(FaseTentaculo nueva)
