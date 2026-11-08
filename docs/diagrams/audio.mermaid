@@ -38,9 +38,14 @@ classDiagram
         -SfxBanco _dash
         -SfxBanco _gancho
         -SfxBanco _dobleSalto
+        -SfxBanco _embestidaArranque
+        -SfxBanco _embestidaAvance
+        -SfxBanco _embestidaFinal
         +Dash()
         +Gancho()
         +DobleSalto()
+        +EmbestidaInicio()
+        +ActualizarEmbestida(activa)
     }
 
     class Proyectil {
@@ -123,3 +128,4 @@ classDiagram
     PlayerRoot --> SfxLocomocion : eventos de locomocion, solo el owner
     SfxLocomocion --> SfxRed
     Proyectil --> SfxRed : impacto, lo lanza el servidor
+    SfxLocomocion ..> DetectorFinEmbestida
