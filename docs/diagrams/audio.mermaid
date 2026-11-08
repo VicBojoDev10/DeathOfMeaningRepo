@@ -56,7 +56,7 @@ classDiagram
 
     class SfxCatalogo {
         <<ScriptableObject>>
-        +bancos
+        +bancos solo agregar al final, el indice viaja por red
     }
 
     class AudioManager {
@@ -79,6 +79,7 @@ classDiagram
 
     class SfxRed {
         <<NetworkBehaviour>>
+        -AudioManager _audio se guarda en OnNetworkSpawn
         +Reproducir(banco, posicion)
         +ReproducirEnEmisor(banco)
         +Detener(banco)
