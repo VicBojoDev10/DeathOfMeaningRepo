@@ -116,6 +116,8 @@ namespace TDOM.Unity.Audio
             _soundsContainer = new GameObject("SoundsContainer");
             _soundsContainer.transform.SetParent(transform);
             _vocesSfx = new VocesSfx3D(_soundsContainer.transform, _sfxGroup);
+            if (_sfxCatalogo == null)
+                Debug.LogWarning("[AudioManager] Sin SfxCatalogo asignado: los SFX 3D no sonarán");
             PrepareLists();
         }
 
