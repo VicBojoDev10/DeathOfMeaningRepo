@@ -259,6 +259,8 @@ namespace TDOM.Unity.Combat
             _poseGirosActiva = false;
             _cargaVisibleMelee = false;
             MostrarCarga(false);
+            if (_sfx != null)
+                _sfx.Carga(false);
             _combatAnimator?.CancelarAtaque(false);
         }
 
@@ -465,6 +467,8 @@ namespace TDOM.Unity.Combat
                     _cargaVisibleMelee = visible;
                     MostrarCarga(visible);
                     CargaRpc(visible);
+                    if (_sfx != null)
+                        _sfx.Carga(visible);
                 }
             }
         }
@@ -643,8 +647,7 @@ namespace TDOM.Unity.Combat
                 );
             if (_vfx != null)
                 _vfx.Golpe(evento.ComboIndex, cargado, evento.ChargeRatio);
-            if (_sfx != null && !cargado)
-                _sfx.Golpe(evento.ComboIndex);
+            ReproducirSfxGolpe(evento.ComboIndex, cargado);
             LanzarVfxGolpeLigero(evento, cargado, espejo);
             _debugFeedback?.FlashActive(0.1f);
 
@@ -668,6 +671,17 @@ namespace TDOM.Unity.Combat
                 giros,
                 ligeros
             );
+        }
+
+        private void ReproducirSfxGolpe(int comboIndex, bool cargado)
+        {
+            if (_sfx == null)
+                return;
+
+            if (cargado)
+                _sfx.LiberacionCargado();
+            else
+                _sfx.Golpe(comboIndex);
         }
 
         private void LanzarVfxGolpeLigero(AttackEvent evento, bool cargado, bool espejo)
