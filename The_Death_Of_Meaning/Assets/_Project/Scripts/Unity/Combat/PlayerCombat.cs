@@ -523,6 +523,8 @@ namespace TDOM.Unity.Combat
                 {
                     MostrarCarga(estaCargando);
                     CargaRpc(estaCargando);
+                    if (_sfx != null)
+                        _sfx.Carga(estaCargando);
                 }
             }
         }
@@ -567,8 +569,14 @@ namespace TDOM.Unity.Combat
 
         private void ReproducirSfxDisparo(bool cargado)
         {
-            if (_sfx == null || cargado)
+            if (_sfx == null)
                 return;
+
+            if (cargado)
+            {
+                _sfx.LiberacionCargado();
+                return;
+            }
 
             _sfx.Disparo(_origenDisparo != null ? _origenDisparo.position : transform.position);
         }
