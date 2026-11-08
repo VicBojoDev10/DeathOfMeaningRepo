@@ -9,6 +9,20 @@ namespace TDOM.Unity.Audio
         [SerializeField]
         private SfxBanco _sfxPrueba;
 
+        private static bool _avisoSinAudioManager;
+        private AudioManager _audio;
+
+        public override void OnNetworkSpawn()
+        {
+            base.OnNetworkSpawn();
+            _audio = AudioManager.Instance;
+            if (_audio == null && !_avisoSinAudioManager)
+            {
+                _avisoSinAudioManager = true;
+                Debug.LogWarning("[SfxRed] No hay AudioManager en escena: los SFX no sonarán");
+            }
+        }
+
         public void Reproducir(SfxBanco banco, Vector3 posicion) => Enviar(banco, posicion, false);
 
         public void ReproducirEnEmisor(SfxBanco banco) => Enviar(banco, transform.position, true);
@@ -40,10 +54,8 @@ namespace TDOM.Unity.Audio
                 PedirReproducirSfxRpc(indice, posicion, seguirEmisor);
         }
 
-        private static int IndiceDe(SfxBanco banco) =>
-            AudioManager.Instance != null
-                ? AudioManager.Instance.IndiceSfx(banco)
-                : AudioManager.SinSfx;
+        private int IndiceDe(SfxBanco banco) =>
+            _audio != null ? _audio.IndiceSfx(banco) : AudioManager.SinSfx;
 
         [Rpc(SendTo.Server)]
         private void PedirReproducirSfxRpc(
@@ -67,12 +79,11 @@ namespace TDOM.Unity.Audio
         [Rpc(SendTo.ClientsAndHost)]
         private void ReproducirSfxRpc(int indice, Vector3 posicion, bool seguirEmisor)
         {
-            AudioManager audio = AudioManager.Instance;
-            if (audio == null)
+            if (_audio == null)
                 return;
 
-            audio.ReproducirSfx(
-                audio.SfxPorIndice(indice),
+            _audio.ReproducirSfx(
+                _audio.SfxPorIndice(indice),
                 posicion,
                 seguirEmisor ? transform : null,
                 NetworkObjectId
@@ -82,9 +93,8 @@ namespace TDOM.Unity.Audio
         [Rpc(SendTo.ClientsAndHost)]
         private void DetenerSfxRpc(int indice)
         {
-            AudioManager audio = AudioManager.Instance;
-            if (audio != null)
-                audio.DetenerSfx(audio.SfxPorIndice(indice), NetworkObjectId);
+            if (_audio != null)
+                _audio.DetenerSfx(_audio.SfxPorIndice(indice), NetworkObjectId);
         }
     }
 }
