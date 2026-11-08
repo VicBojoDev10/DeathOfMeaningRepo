@@ -33,7 +33,8 @@ classDiagram
     class SfxLocomocion {
         <<MonoBehaviour>>
         -SfxBanco _dash
-        +Dash()
+        -SfxBanco _dashAire
+        +Dash(enSuelo)
     }
 
     class SubidaIntensidadSfx {
