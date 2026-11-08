@@ -239,6 +239,26 @@ namespace TDOM.Unity.Audio
 
         public void Play(string soundName) => PlaySound(soundName);
 
+        public void PlayMusicImmediate(string soundName)
+        {
+            if (
+                !TryGetData(soundName, out AudioData data)
+                || data.audioType != AudioType.Music
+                || data.clip == null
+            )
+                return;
+
+            if (_currentMusic != null && _currentMusic != GetOrCreateSource(data))
+                FadeTo(_currentMusic, 0f, 0f, true);
+
+            AudioSource source = GetOrCreateSource(data);
+            ApplySettings(source, data);
+            FadeTo(source, 0f, 0f, true);
+            source.volume = data.volume;
+            source.Play();
+            _currentMusic = source;
+        }
+
         public void Stop(string soundName) => StopSound(soundName);
 
         public void PlaySound(string soundName)
