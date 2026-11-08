@@ -11,6 +11,9 @@ namespace TDOM.Unity.Audio
         [SerializeField]
         private SfxBanco _dash;
 
+        [SerializeField]
+        private SfxBanco _gancho;
+
         private void Awake()
         {
             if (_red == null)
@@ -18,6 +21,8 @@ namespace TDOM.Unity.Audio
         }
 
         public void Dash() => ReproducirSiExiste(_dash);
+
+        public void Gancho() => ReproducirSiExiste(_gancho);
 
         private void ReproducirSiExiste(SfxBanco banco)
         {
