@@ -73,6 +73,8 @@ namespace TDOM.Unity.Player
         [SerializeField]
         private SfxLocomocion _sfxLocomocion;
 
+        private bool _enSueloAntesDelDash;
+
         [SerializeField]
         private VfxEmbestidaLanzador _vfxEmbestida;
 
@@ -735,6 +737,7 @@ namespace TDOM.Unity.Player
 
         private void CapturarContextoVfxDash(float dt)
         {
+            _enSueloAntesDelDash = _locomocion.State.IsGrounded;
             if (_vfxDash == null)
                 return;
 
@@ -1250,7 +1253,7 @@ namespace TDOM.Unity.Player
                 DashEmbestidaIniciada?.Invoke();
                 LanzarVfxDash();
                 if (_sfxLocomocion != null)
-                    _sfxLocomocion.Dash();
+                    _sfxLocomocion.Dash(_enSueloAntesDelDash);
             }
             ActualizarVfxEmbestida();
             RegistrarDesplazamientoLateralEnCamara(input.Move);
