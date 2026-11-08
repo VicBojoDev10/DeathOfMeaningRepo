@@ -1,5 +1,6 @@
 using TDOM.Data;
 using TDOM.Gameplay.Core;
+using TDOM.Unity.Audio;
 using TDOM.Unity.Input;
 using TDOM.Unity.Player;
 using Unity.Netcode;
@@ -25,6 +26,11 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private GameObject _anclaPrefab;
+
+        [SerializeField]
+        private SfxBanco _sfxLanzamiento;
+
+        private SfxRed _sfxRed;
 
         private bool _esperandoSoltar;
         private bool _incapacitado;
@@ -66,6 +72,7 @@ namespace TDOM.Unity.Combat
         {
             if (_perfil != null)
                 _cooldown = new CooldownTimer(_perfil.Cooldown);
+            _sfxRed = GetComponentInParent<SfxRed>();
         }
 
         private void Update()
@@ -142,6 +149,14 @@ namespace TDOM.Unity.Combat
                 netObj.Spawn();
                 _anclaSpawnada = netObj;
             }
+
+            ReproducirSfxLanzamiento(origen);
+        }
+
+        private void ReproducirSfxLanzamiento(Vector3 origen)
+        {
+            if (_sfxRed != null && _sfxLanzamiento != null)
+                _sfxRed.Reproducir(_sfxLanzamiento, origen);
         }
 
         [Rpc(SendTo.Server)]
