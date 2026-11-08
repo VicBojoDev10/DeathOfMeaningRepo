@@ -36,6 +36,19 @@ namespace TDOM.Gameplay.Core
             return true;
         }
 
+        /// <summary>Aplica una orden autoritativa de red aunque el estado local se haya desfasado.</summary>
+        public bool IniciarCinematicaSincronizada(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+                return false;
+
+            IdActual = id;
+            _restanteTransicion = 0f;
+            _transicionRetenida = false;
+            CambiarA(EstadoFlujo.Cinematica);
+            return true;
+        }
+
         public void TerminarCinematica()
         {
             if (Estado != EstadoFlujo.Cinematica)

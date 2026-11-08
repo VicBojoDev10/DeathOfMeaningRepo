@@ -46,7 +46,9 @@ namespace TDOM.Unity.Level
             if (!_contactos.TryGetValue(player, out var colliders))
                 _contactos[player] = colliders = new HashSet<Collider>();
             if (colliders.Add(other) && colliders.Count == 1)
+            {
                 ArenaEncounterNetwork.Instance?.Registrar(player, _volumeId, true);
+            }
         }
 
         private void OnTriggerExit(Collider other)
