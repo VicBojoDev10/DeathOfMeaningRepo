@@ -11,13 +11,17 @@ namespace TDOM.Unity.Audio
         [SerializeField]
         private SfxBanco _dash;
 
+        [SerializeField]
+        private SfxBanco _dashAire;
+
         private void Awake()
         {
             if (_red == null)
                 _red = GetComponentInParent<SfxRed>();
         }
 
-        public void Dash() => ReproducirSiExiste(_dash);
+        public void Dash(bool enSuelo) =>
+            ReproducirSiExiste(enSuelo || _dashAire == null ? _dash : _dashAire);
 
         private void ReproducirSiExiste(SfxBanco banco)
         {
