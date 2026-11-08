@@ -25,6 +25,9 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private SfxBanco _sfxImpactoAmbiente;
 
+        [SerializeField]
+        private SfxBanco _sfxImpactoJefe;
+
         private SfxRed _sfxRed;
 
         private Vector3 _direccion;
@@ -132,8 +135,9 @@ namespace TDOM.Unity.Combat
 
         private void ReproducirSfxImpacto(Vector3 punto, bool enJefe)
         {
-            if (_sfxRed != null && !enJefe && _sfxImpactoAmbiente != null)
-                _sfxRed.Reproducir(_sfxImpactoAmbiente, punto);
+            SfxBanco banco = enJefe ? _sfxImpactoJefe : _sfxImpactoAmbiente;
+            if (_sfxRed != null && banco != null)
+                _sfxRed.Reproducir(banco, punto);
         }
 
         private void DespawnProyectil()
