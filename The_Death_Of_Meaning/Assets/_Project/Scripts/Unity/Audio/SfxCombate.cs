@@ -16,6 +16,9 @@ namespace TDOM.Unity.Audio
         private SfxBanco[] _golpesCombo = new SfxBanco[0];
 
         [SerializeField]
+        private SfxBanco _disparo;
+
+        [SerializeField]
         private SfxBanco _cargaLoop;
 
         [SerializeField]
@@ -33,6 +36,12 @@ namespace TDOM.Unity.Audio
         {
             ReproducirSiExiste(_ataqueNormal);
             ReproducirDe(_golpesCombo, comboIndex);
+        }
+
+        public void Disparo(Vector3 origen)
+        {
+            if (_red != null && _disparo != null)
+                _red.Reproducir(_disparo, origen);
         }
 
         public void Carga(bool activa)
