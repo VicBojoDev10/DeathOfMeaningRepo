@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TDOM.Data;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -45,6 +46,10 @@ namespace TDOM.Unity.Audio
         [SerializeField, Min(0f)]
         private float _musicFade = 0.5f;
 
+        [Header("Sfx 3D")]
+        [SerializeField]
+        private SfxCatalogo _sfxCatalogo;
+
         [HideInInspector]
         [Header("Audio Test")]
         public string _soundNameTest;
@@ -55,6 +60,7 @@ namespace TDOM.Unity.Audio
 
         private const string PrefsPrefix = "vol_";
         private const float MinLinear = 0.0001f;
+        public const int SinSfx = -1;
 
         private GameObject _soundsContainer;
         private readonly Dictionary<string, AudioData> _dataByName = new Dictionary<
@@ -68,6 +74,7 @@ namespace TDOM.Unity.Audio
         private readonly Dictionary<AudioSource, Coroutine> _fades =
             new Dictionary<AudioSource, Coroutine>();
         private AudioSource _currentMusic;
+        private VocesSfx3D _vocesSfx;
 
         #endregion
 
@@ -94,6 +101,12 @@ namespace TDOM.Unity.Audio
                 ApplyAllSavedVolumes();
         }
 
+        private void LateUpdate()
+        {
+            if (Instance == this)
+                _vocesSfx?.Actualizar();
+        }
+
         #endregion
 
         #region private methods
@@ -102,6 +115,7 @@ namespace TDOM.Unity.Audio
         {
             _soundsContainer = new GameObject("SoundsContainer");
             _soundsContainer.transform.SetParent(transform);
+            _vocesSfx = new VocesSfx3D(_soundsContainer.transform, _sfxGroup);
             PrepareLists();
         }
 
@@ -292,6 +306,26 @@ namespace TDOM.Unity.Audio
                 source.Stop();
             }
         }
+
+        public int IndiceSfx(SfxBanco banco) =>
+            _sfxCatalogo != null && banco != null
+                ? System.Array.IndexOf(_sfxCatalogo.bancos, banco)
+                : SinSfx;
+
+        public SfxBanco SfxPorIndice(int indice) =>
+            _sfxCatalogo != null && indice >= 0 && indice < _sfxCatalogo.bancos.Length
+                ? _sfxCatalogo.bancos[indice]
+                : null;
+
+        public void ReproducirSfx(
+            SfxBanco banco,
+            Vector3 posicion,
+            Transform seguir = null,
+            ulong emisor = 0
+        ) => _vocesSfx?.Reproducir(banco, posicion, seguir, emisor);
+
+        public void DetenerSfx(SfxBanco banco, ulong emisor = 0) =>
+            _vocesSfx?.Detener(banco, emisor);
 
         public float GetVolume(AudioChannel channel) =>
             PlayerPrefs.GetFloat(PrefsPrefix + channel, 1f);
