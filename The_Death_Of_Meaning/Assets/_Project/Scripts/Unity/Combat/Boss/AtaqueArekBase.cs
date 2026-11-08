@@ -1,3 +1,5 @@
+using TDOM.Data;
+using TDOM.Unity.Audio;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
 using TDOM.Unity.Vfx;
@@ -16,6 +18,8 @@ namespace TDOM.Unity
 
         private VfxRed _vfxJefe;
 
+        private SfxRed _sfxJefe;
+
         protected AtaquesArek Lanzador { get; private set; }
 
         /// <summary>VFX en red del jefe (VfxRed de la raíz de AREK); null si no lo tiene.</summary>
@@ -27,6 +31,34 @@ namespace TDOM.Unity
                     _vfxJefe = Lanzador.GetComponentInParent<VfxRed>();
                 return _vfxJefe;
             }
+        }
+
+        protected SfxRed SfxJefe
+        {
+            get
+            {
+                if (_sfxJefe == null && Lanzador != null)
+                    _sfxJefe = Lanzador.GetComponentInParent<SfxRed>();
+                return _sfxJefe;
+            }
+        }
+
+        protected void ReproducirSfxEnJefe(SfxBanco banco)
+        {
+            if (IsServer && banco != null && SfxJefe != null)
+                SfxJefe.ReproducirEnEmisor(banco);
+        }
+
+        protected void ReproducirSfxEn(SfxBanco banco, Vector3 punto)
+        {
+            if (IsServer && banco != null && SfxJefe != null)
+                SfxJefe.Reproducir(banco, punto);
+        }
+
+        protected void DetenerSfxJefe(SfxBanco banco)
+        {
+            if (IsServer && banco != null && SfxJefe != null)
+                SfxJefe.Detener(banco);
         }
 
         // Se llama antes de Spawn(): la NetworkVariable aun no conoce su NetworkBehaviour, asi que

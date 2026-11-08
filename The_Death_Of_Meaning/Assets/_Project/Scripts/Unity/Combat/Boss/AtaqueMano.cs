@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using TDOM.Data;
+using TDOM.Gameplay.Audio;
 using TDOM.Gameplay.Combat;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Camera;
@@ -50,6 +51,15 @@ namespace TDOM.Unity
 
         [SerializeField]
         private Transform _puntaEstela;
+
+        [Header("Sonido")]
+        [SerializeField]
+        private SfxBanco _sfxAviso;
+
+        [SerializeField]
+        private SfxBanco _sfxGolpe;
+
+        private readonly DetectorFlancoSfx _inicioBarrido = new DetectorFlancoSfx();
 
         // Tuning: lo lee de AtaquesArek (BossArek.prefab) al spawnear.
         private AtaqueManoProfile _perfil;
@@ -180,6 +190,7 @@ namespace TDOM.Unity
                 _jugadoresGolpeados.Clear();
 
                 AvisoRpc(origen, piso, _rotacionBase, _sentido);
+                ReproducirSfxEnJefe(_sfxAviso);
             }
         }
 
@@ -240,6 +251,9 @@ namespace TDOM.Unity
                 return;
 
             transform.rotation = _rotacionBase * Quaternion.Euler(0f, estado.Angulo, 0f);
+
+            if (_inicioBarrido.Actualizar(estado.Fase == FaseManotazo.Barrido))
+                ReproducirSfxEnJefe(_sfxGolpe);
 
             // Daño solo en el barrido, con la columna completa.
             if (estado.DanoActivo)
