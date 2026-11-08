@@ -6,6 +6,7 @@ using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.Gameplay.Vfx;
 using TDOM.Unity;
+using TDOM.Unity.Audio;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Player;
 using TDOM.Unity.Vfx;
@@ -39,6 +40,9 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private CombatVfx _vfx;
+
+        [SerializeField]
+        private SfxCombate _sfx;
 
         [Serializable]
         private struct VfxGolpeLigero
@@ -333,6 +337,8 @@ namespace TDOM.Unity.Combat
             _root = GetComponentInParent<PlayerRoot>();
             _origenHoja = GetComponentInChildren<IOrigenVfxGolpe>(true);
             _cargaArma = GetComponentInChildren<ICargaVfx>(true);
+            if (_sfx == null)
+                _sfx = GetComponent<SfxCombate>();
 
             if (_vfx == null)
                 Debug.LogWarning($"[PlayerCombat] _vfx no asignado en {name}");
@@ -637,6 +643,8 @@ namespace TDOM.Unity.Combat
                 );
             if (_vfx != null)
                 _vfx.Golpe(evento.ComboIndex, cargado, evento.ChargeRatio);
+            if (_sfx != null && !cargado)
+                _sfx.Golpe(evento.ComboIndex);
             LanzarVfxGolpeLigero(evento, cargado, espejo);
             _debugFeedback?.FlashActive(0.1f);
 
