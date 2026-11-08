@@ -92,6 +92,10 @@ classDiagram
         -ReproducirSfxCaida()
     }
 
+    class AtaqueRayo {
+        -SfxBanco _sfxCarga
+    }
+
     class SubidaIntensidadSfx {
         <<static, POCO>>
         +Factor(tiempo, duracion) float
@@ -172,3 +176,4 @@ classDiagram
     AtaqueMano ..> DetectorFlancoSfx
     AtaqueArekBase <|-- AtaqueTentaculo
     AtaqueArekBase <|-- AtaqueMortero
+    AtaqueArekBase <|-- AtaqueRayo
