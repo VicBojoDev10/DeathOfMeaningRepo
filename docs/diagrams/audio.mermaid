@@ -55,6 +55,12 @@ classDiagram
         -ReproducirSfxImpacto(punto, enJefe)
     }
 
+    class AnchorLauncher {
+        <<NetworkBehaviour>>
+        -SfxBanco _sfxLanzamiento
+        -ReproducirSfxLanzamiento(origen)
+    }
+
     class SubidaIntensidadSfx {
         <<static, POCO>>
         +Factor(tiempo, duracion) float
@@ -129,3 +135,4 @@ classDiagram
     SfxLocomocion --> SfxRed
     Proyectil --> SfxRed : impacto, lo lanza el servidor
     SfxLocomocion ..> DetectorFinEmbestida
+    AnchorLauncher --> SfxRed : lanzamiento validado en el servidor
