@@ -69,18 +69,21 @@ classDiagram
         +SfxPorIndice(indice) SfxBanco
         +ReproducirSfx(banco, posicion, seguir, emisor)
         +DetenerSfx(banco, emisor)
+        +DetenerLoopsDe(emisor)
         +SetVolume(channel, linear)
     }
 
     class VocesSfx3D {
         +Reproducir(banco, posicion, seguir, emisor)
         +Detener(banco, emisor)
+        +DetenerLoopsDe(emisor)
         +Actualizar()
     }
 
     class SfxRed {
         <<NetworkBehaviour>>
         -AudioManager _audio se guarda en OnNetworkSpawn
+        +OnNetworkDespawn() detiene sus loops
         +Reproducir(banco, posicion)
         +ReproducirEnEmisor(banco)
         +Detener(banco)
