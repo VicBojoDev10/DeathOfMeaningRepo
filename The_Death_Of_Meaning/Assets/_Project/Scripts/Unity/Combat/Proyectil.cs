@@ -1,5 +1,7 @@
+using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.Unity;
+using TDOM.Unity.Audio;
 using TDOM.Unity.Player;
 using Unity.Netcode;
 using UnityEngine;
@@ -20,6 +22,11 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private LayerMask _capas = (1 << 0) | (1 << 6);
 
+        [SerializeField]
+        private SfxBanco _sfxImpactoAmbiente;
+
+        private SfxRed _sfxRed;
+
         private Vector3 _direccion;
         private float _daño;
         private ulong _atacanteId;
@@ -32,6 +39,11 @@ namespace TDOM.Unity.Combat
         public LayerMask Capas => _capas;
         public float Daño => _daño;
         public Vector3 Direccion => _direccion;
+
+        private void Awake()
+        {
+            _sfxRed = GetComponent<SfxRed>();
+        }
 
         public void Inicializar(
             Vector3 dir,
@@ -107,11 +119,21 @@ namespace TDOM.Unity.Combat
                 Debug.Log(
                     $"[Proyectil] Impacto con {hit.collider.name} en capa {LayerMask.LayerToName(hit.collider.gameObject.layer)} (HitZone: {hz != null}, Daño: {_daño})"
                 );
+                ReproducirSfxImpacto(
+                    hit.point,
+                    hz != null || hit.collider.GetComponentInParent<AtaquesArek>() != null
+                );
                 DespawnProyectil();
                 return;
             }
 
             transform.position = pos + paso;
+        }
+
+        private void ReproducirSfxImpacto(Vector3 punto, bool enJefe)
+        {
+            if (_sfxRed != null && !enJefe && _sfxImpactoAmbiente != null)
+                _sfxRed.Reproducir(_sfxImpactoAmbiente, punto);
         }
 
         private void DespawnProyectil()
