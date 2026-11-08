@@ -802,6 +802,18 @@ namespace TDOM.Unity.Player
                 LanzarVfxAterrizaje();
         }
 
+        private void ReproducirSfxSaltoAterrizaje()
+        {
+            if (_sfxLocomocion == null || _detectorVfxSalto == null)
+                return;
+
+            if (_detectorVfxSalto.SaltoDesdeSuelo)
+                _sfxLocomocion.Salto();
+
+            if (_detectorVfxSalto.Aterrizaje)
+                _sfxLocomocion.Aterrizaje();
+        }
+
         private void LanzarVfxAterrizaje()
         {
             if (_vfxRed == null || _vfxAterrizaje == null)
@@ -1244,6 +1256,7 @@ namespace TDOM.Unity.Player
 
             DispararFeedbackDeLocomocion();
             ActualizarVfxSaltoAterrizaje();
+            ReproducirSfxSaltoAterrizaje();
             if (
                 _locomocion.SaltoAereo
                 && _characterId == CharacterIds.Ayla
