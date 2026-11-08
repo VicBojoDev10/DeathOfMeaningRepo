@@ -31,6 +31,10 @@ namespace TDOM.Unity
         [SerializeField]
         private Material _materialRayo;
 
+        [Header("Sonido")]
+        [SerializeField]
+        private SfxBanco _sfxCarga;
+
         private enum FaseRayo
         {
             Aviso,
@@ -88,6 +92,13 @@ namespace TDOM.Unity
             _golpeados.Clear();
 
             AvisoRpc(_origenServidor, _finalesServidor);
+            ReproducirSfxEn(_sfxCarga, _origenServidor);
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            DetenerSfxJefe(_sfxCarga);
+            base.OnNetworkDespawn();
         }
 
         // Reparte _lineas direcciones en el abanico, con un desfase aleatorio común para que el
@@ -186,6 +197,7 @@ namespace TDOM.Unity
                     {
                         CambiarFase(FaseRayo.Activo);
                         RayoRpc();
+                        DetenerSfxJefe(_sfxCarga);
                     }
                     break;
 
