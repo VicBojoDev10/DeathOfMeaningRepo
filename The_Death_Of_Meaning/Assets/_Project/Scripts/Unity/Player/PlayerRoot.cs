@@ -8,6 +8,7 @@ using TDOM.Gameplay.Core;
 using TDOM.Gameplay.Locomotion;
 using TDOM.Gameplay.Vfx;
 using TDOM.Unity;
+using TDOM.Unity.Audio;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Input;
@@ -68,6 +69,9 @@ namespace TDOM.Unity.Player
 
         [SerializeField]
         private VfxDash _vfxDash;
+
+        [SerializeField]
+        private SfxLocomocion _sfxLocomocion;
 
         [SerializeField]
         private VfxEmbestidaLanzador _vfxEmbestida;
@@ -287,6 +291,9 @@ namespace TDOM.Unity.Player
 
             if (_vfxDash == null)
                 _vfxDash = GetComponentInChildren<VfxDash>();
+
+            if (_sfxLocomocion == null)
+                _sfxLocomocion = GetComponentInChildren<SfxLocomocion>();
 
             if (_vfxEmbestida == null)
                 _vfxEmbestida = GetComponentInChildren<VfxEmbestidaLanzador>();
@@ -1238,6 +1245,8 @@ namespace TDOM.Unity.Player
                     _zendreLocomotionAnimator?.IniciarAssault();
                 DashEmbestidaIniciada?.Invoke();
                 LanzarVfxDash();
+                if (_sfxLocomocion != null)
+                    _sfxLocomocion.Dash();
             }
             ActualizarVfxEmbestida();
             RegistrarDesplazamientoLateralEnCamara(input.Move);
