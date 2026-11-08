@@ -23,6 +23,13 @@ namespace TDOM.Unity.Audio
             }
         }
 
+        public override void OnNetworkDespawn()
+        {
+            if (_audio != null)
+                _audio.DetenerLoopsDe(NetworkObjectId);
+            base.OnNetworkDespawn();
+        }
+
         public void Reproducir(SfxBanco banco, Vector3 posicion) => Enviar(banco, posicion, false);
 
         public void ReproducirEnEmisor(SfxBanco banco) => Enviar(banco, transform.position, true);
