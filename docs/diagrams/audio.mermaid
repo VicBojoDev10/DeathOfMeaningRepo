@@ -1,0 +1,75 @@
+classDiagram
+    class VariacionSfx {
+        <<static, POCO>>
+        +PitchMinimo
+        +SinClip
+        +Volumen(volumenBase, variacion, aleatorio01) float
+        +Pitch(pitchBase, variacion, aleatorio01) float
+        +IndiceClip(cantidad, anterior, aleatorio01) int
+    }
+
+    class SeleccionVozSfx {
+        <<static, POCO>>
+        +CrearNueva
+        +Elegir(ocupadas, inicios, maximo) int
+    }
+
+    class SfxBanco {
+        <<ScriptableObject>>
+        +clips
+        +volumen, variacionVolumen
+        +pitch, variacionPitch
+        +retraso
+        +loop
+        +mezcla3D, distanciaMinima, distanciaMaxima, atenuacion
+        +maximoVoces
+    }
+
+    class SfxCatalogo {
+        <<ScriptableObject>>
+        +bancos
+    }
+
+    class AudioManager {
+        <<Singleton>>
+        -SfxCatalogo _sfxCatalogo
+        -AudioMixerGroup _sfxGroup
+        +Play(soundName)
+        +IndiceSfx(banco) int
+        +SfxPorIndice(indice) SfxBanco
+        +ReproducirSfx(banco, posicion, seguir, emisor)
+        +DetenerSfx(banco, emisor)
+        +SetVolume(channel, linear)
+    }
+
+    class VocesSfx3D {
+        +Reproducir(banco, posicion, seguir, emisor)
+        +Detener(banco, emisor)
+        +Actualizar()
+    }
+
+    class SfxRed {
+        <<NetworkBehaviour>>
+        +Reproducir(banco, posicion)
+        +ReproducirEnEmisor(banco)
+        +Detener(banco)
+        -PedirReproducirSfxRpc() SendTo.Server
+        -ReproducirSfxRpc() SendTo.ClientsAndHost
+        -PedirDetenerSfxRpc() SendTo.Server
+        -DetenerSfxRpc() SendTo.ClientsAndHost
+    }
+
+    class SfxAnimacion {
+        <<MonoBehaviour>>
+        +ReproducirSfx(banco)
+        +DetenerSfx(banco)
+    }
+
+    SfxCatalogo o-- SfxBanco
+    AudioManager --> SfxCatalogo
+    AudioManager *-- VocesSfx3D
+    VocesSfx3D ..> VariacionSfx
+    VocesSfx3D ..> SeleccionVozSfx
+    VocesSfx3D ..> SfxBanco
+    SfxRed ..> AudioManager : indice del banco en el catalogo
+    SfxAnimacion --> SfxRed : evento de animacion, solo el owner
