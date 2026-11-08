@@ -61,6 +61,24 @@ classDiagram
         -ReproducirSfxLanzamiento(origen)
     }
 
+    class DetectorFlancoSfx {
+        <<POCO>>
+        +Actualizar(activo) bool
+    }
+
+    class AtaqueArekBase {
+        <<NetworkBehaviour, abstract>>
+        #SfxJefe SfxRed
+        #ReproducirSfxEnJefe(banco)
+        #ReproducirSfxEn(banco, punto)
+        #DetenerSfxJefe(banco)
+    }
+
+    class AtaqueMano {
+        -SfxBanco _sfxAviso
+        -SfxBanco _sfxGolpe
+    }
+
     class SubidaIntensidadSfx {
         <<static, POCO>>
         +Factor(tiempo, duracion) float
@@ -136,3 +154,6 @@ classDiagram
     Proyectil --> SfxRed : impacto, lo lanza el servidor
     SfxLocomocion ..> DetectorFinEmbestida
     AnchorLauncher --> SfxRed : lanzamiento validado en el servidor
+    AtaqueArekBase <|-- AtaqueMano
+    AtaqueArekBase --> SfxRed : SfxRed de la raiz de AREK, solo el servidor
+    AtaqueMano ..> DetectorFlancoSfx

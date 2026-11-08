@@ -20,7 +20,7 @@ Si el diagrama quedó desactualizado respecto al código del PR, el PR está mal
 | `boss.mermaid` | `BossController`, fases, scheduler de ataques de Arek y sus RPCs |
 | `minions.mermaid` | `MinionSpawner`, `MinionSpawnRule`, `MinionController`, `MinionBrain` y sus RPCs |
 | `vfx.mermaid` | `VfxBase`, las familias (Origen-final, Explosión, Disparo, Carga), `TrayectoriaVfx`, `VfxPool` y `VfxRed` |
-| `audio.mermaid` | `AudioManager`, `SfxBanco`, `SfxCatalogo`, `VocesSfx3D` (pool de AudioSource 3D), `VariacionSfx`, `SeleccionVozSfx`, `SfxRed`, `SfxAnimacion`, `SfxCombate`, `SfxLocomocion`, `SfxPorIndice` y `SubidaIntensidadSfx` |
+| `audio.mermaid` | `AudioManager`, `SfxBanco`, `SfxCatalogo`, `VocesSfx3D` (pool de AudioSource 3D), `VariacionSfx`, `SeleccionVozSfx`, `SfxRed`, `SfxAnimacion`, `SfxCombate`, `SfxLocomocion`, `SfxPorIndice`, `SubidaIntensidadSfx`, `DetectorFlancoSfx` y los sonidos de los ataques de AREK |
 | `cinematic-flow.mermaid` | `CinematicDirector`, `GameFlowStateMachine` y la sincronización de cinemáticas en red |
 
 ## Nomenclatura
