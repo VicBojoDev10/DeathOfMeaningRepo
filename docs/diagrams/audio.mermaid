@@ -85,6 +85,11 @@ classDiagram
         -ZonaDelGolpe() Vector3
     }
 
+    class AtaqueMortero {
+        -SfxBanco _sfxLanzamiento
+        -ReproducirSfxLanzamiento()
+    }
+
     class SubidaIntensidadSfx {
         <<static, POCO>>
         +Factor(tiempo, duracion) float
@@ -164,3 +169,4 @@ classDiagram
     AtaqueArekBase --> SfxRed : SfxRed de la raiz de AREK, solo el servidor
     AtaqueMano ..> DetectorFlancoSfx
     AtaqueArekBase <|-- AtaqueTentaculo
+    AtaqueArekBase <|-- AtaqueMortero
