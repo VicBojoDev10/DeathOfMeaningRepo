@@ -24,9 +24,11 @@ classDiagram
         <<MonoBehaviour>>
         -SfxBanco _ataqueNormal
         -SfxBanco[] _golpesCombo
+        -SfxBanco _disparo
         -SfxBanco _cargaLoop
         -SfxBanco _liberacionCargado
         +Golpe(comboIndex)
+        +Disparo(origen)
         +Carga(activa)
         +LiberacionCargado()
     }
