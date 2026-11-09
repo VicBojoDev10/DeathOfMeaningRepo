@@ -112,7 +112,8 @@ classDiagram
     VocesSfx3D ..> SfxBanco
     SfxRed ..> AudioManager : indice del banco en el catalogo
     SfxAnimacion --> SfxRed : evento de animacion, solo el owner
-    PlayerCombat --> SfxCombate : golpe del combo, solo el owner
+    PlayerCombat --> SfxCombate : golpe al arrancar su animacion, solo el owner
+    PlayerCombatAnimator ..> PlayerCombat : GolpeLigeroIniciado
     SfxCombate ..> SfxPorIndice
     SfxCombate --> SfxRed
     VocesSfx3D ..> SubidaIntensidadSfx
