@@ -47,6 +47,8 @@ namespace TDOM.Unity.Camera
         private Coroutine _rutinaTiltActual;
 
         public ThirdPersonCameraConfig Config => _config;
+        public CinemachineCamera CamaraCinematica => _camara;
+        public int PrioridadBase => _prioridadBase;
         public Transform CamaraTransform => _camara != null ? _camara.transform : transform;
         public CameraStance Stance => _stances.Stance;
 

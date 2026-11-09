@@ -73,6 +73,7 @@ namespace TDOM.Unity
         [Rpc(SendTo.ClientsAndHost)]
         private void MostrarVictoriaClientRpc(float tiempoFinal)
         {
+            GlobalGameManager.Instance?.DetenerMusicaPartida();
             var ui = UiManager.Instance;
 
             void MostrarVictoria()
@@ -216,7 +217,6 @@ namespace TDOM.Unity
 
             foreach (var jugador in Jugadores)
             {
-                // Un RPC de listo repetido nunca debe crear un segundo PlayerRoot para el mismo cliente.
                 if (BuscarJugadorSpawneado(jugador.ClientId) != null)
                     continue;
 
@@ -255,33 +255,6 @@ namespace TDOM.Unity
                 player.EnviarSpawnInicial(spawnPoint.position, spawnPoint.rotation);
             }
 
-            if (_prefabArek == null)
-            {
-                Debug.LogError(
-                    "No se puede iniciar: falta asignar el prefab de Arek en GameSessionManager."
-                );
-            }
-            else if (!HayJefeSpawneadoEnRed())
-            {
-                Vector3 posArek =
-                    _puntoSpawnArek != null ? _puntoSpawnArek.position : new Vector3(0f, 0f, 10f);
-                Quaternion rotArek =
-                    _puntoSpawnArek != null ? _puntoSpawnArek.rotation : Quaternion.identity;
-                var goArek = Instantiate(_prefabArek, posArek, rotArek);
-                var networkObjectArek = goArek.GetComponent<NetworkObject>();
-                if (networkObjectArek == null)
-                {
-                    Debug.LogError("El prefab de Arek no tiene NetworkObject.");
-                    Destroy(goArek);
-                }
-                else
-                {
-                    networkObjectArek.Spawn();
-                    Debug.Log(
-                        $"[SPAWN][SERVER] Arek creado. id={networkObjectArek.NetworkObjectId}, posición={posArek}"
-                    );
-                }
-            }
             _inicioPartidaEnProceso = false;
             if (!_partidaIniciada)
             {
@@ -294,6 +267,34 @@ namespace TDOM.Unity
                 _inicioPartidaNotificado = true;
                 IniciarPartidaClientRpc();
             }
+        }
+
+        public void SpawnBossForEncounter()
+        {
+            if (!IsServer || HayJefeSpawneadoEnRed())
+                return;
+            if (_prefabArek == null)
+            {
+                Debug.LogError("No se puede iniciar la presentación: falta el prefab de Arek.");
+                return;
+            }
+
+            Vector3 posicion =
+                _puntoSpawnArek != null ? _puntoSpawnArek.position : new Vector3(0f, 0f, 10f);
+            Quaternion rotacion =
+                _puntoSpawnArek != null ? _puntoSpawnArek.rotation : Quaternion.identity;
+            var jefe = Instantiate(_prefabArek, posicion, rotacion);
+            var networkObject = jefe.GetComponent<NetworkObject>();
+            if (networkObject == null)
+            {
+                Debug.LogError("El prefab de Arek no tiene NetworkObject.");
+                Destroy(jefe);
+                return;
+            }
+            networkObject.Spawn();
+            Debug.Log(
+                $"[SPAWN][SERVER] Arek creado para presentación. id={networkObject.NetworkObjectId}, posición={posicion}"
+            );
         }
 
         public void SolicitarReinicioDePartida()
@@ -334,6 +335,8 @@ namespace TDOM.Unity
                     _reinicioVictoriaEnCurso = false;
                 }
 
+                GlobalGameManager.Instance?.ReproducirMusicaTutorial();
+
                 return;
             }
 
@@ -342,14 +345,13 @@ namespace TDOM.Unity
                 {
                     if (IsServer)
                         ReiniciarPartidaDesdePausa();
-
-                    // La carga ya cubre la pantalla; podemos cambiar la ventana debajo.
                     UiManager.Instance?.CloseWindow("victoriaui");
                     UiManager.Instance?.CloseWindow(WindowsIds.RetryPopUpUI);
                     (UiManager.Instance?.GetWindow(WindowsIds.PausaUI) as PausaUI)?.SetPopupActivo(
                         false
                     );
                     UiManager.Instance?.ShowWindow(WindowsIds.GamePlayUI);
+                    GlobalGameManager.Instance?.ReproducirMusicaTutorial();
                 },
                 () =>
                 {
@@ -383,8 +385,11 @@ namespace TDOM.Unity
             if (!IsServer || _inicioPartidaEnProceso || !_seleccion.PuedeIniciar)
                 return;
 
+            ArenaEncounterNetwork.Instance?.ReiniciarServidor();
+
             PauseManager.Instance?.RestablecerResultadoDesdeServidor();
             LimpiarMinionsEnServidor();
+            DespawnearJefesEnServidor();
             _inicioPartidaEnProceso = true;
             var objetosSpawneados = new List<NetworkObject>(
                 NetworkManager.SpawnManager.SpawnedObjectsList
@@ -395,11 +400,10 @@ namespace TDOM.Unity
                     continue;
 
                 bool esJugador = objeto.TryGetComponent(out TDOM.Unity.Player.PlayerRoot _);
-                bool esJefe = objeto.TryGetComponent(out BossController _);
                 bool esAtaque = objeto.TryGetComponent(out AtaqueArekBase _);
                 bool esAncla = objeto.TryGetComponent(out Ancla _);
                 bool esProyectil = objeto.TryGetComponent(out Proyectil _);
-                if (esJugador || esJefe || esAtaque || esAncla || esProyectil)
+                if (esJugador || esAtaque || esAncla || esProyectil)
                     objeto.Despawn(true);
             }
 
@@ -408,7 +412,27 @@ namespace TDOM.Unity
             IniciarCronometro();
         }
 
-        // TW-278: al ganar, perder o reiniciar no deben quedar minions ni orbes de la partida.
+        private void DespawnearJefesEnServidor()
+        {
+            if (!IsServer || NetworkManager?.SpawnManager == null)
+                return;
+
+            var objetos = new List<NetworkObject>(NetworkManager.SpawnManager.SpawnedObjectsList);
+            int despawneados = 0;
+            foreach (var objeto in objetos)
+            {
+                if (
+                    objeto == null
+                    || !objeto.IsSpawned
+                    || !objeto.TryGetComponent(out BossController _)
+                )
+                    continue;
+                objeto.Despawn(true);
+                despawneados++;
+            }
+            Debug.Log($"[GameSessionManager] Jefes despawneados al reiniciar: {despawneados}.");
+        }
+
         private void LimpiarMinionsEnServidor()
         {
             if (!IsServer || NetworkManager == null || NetworkManager.SpawnManager == null)
@@ -416,20 +440,16 @@ namespace TDOM.Unity
 
             PowerUpsSpawnController.LimpiarEnServidor();
 
-            // Snapshot: despawnear modifica SpawnedObjectsList.
             var objetosSpawneados = new List<NetworkObject>(
                 NetworkManager.SpawnManager.SpawnedObjectsList
             );
 
-            // Vaciar también el registro del jefe para no conservar referencias a columnas
-            // que ya no existen (la limpieza es inmediata incluso tras victoria o derrota).
             foreach (var objeto in objetosSpawneados)
             {
                 if (objeto != null && objeto.TryGetComponent(out AtaquesArek ataques))
                     ataques.LimpiarColumnasEnServidor();
             }
 
-            // Limpieza de respaldo para columnas que hayan quedado fuera del registro del jefe.
             objetosSpawneados = new List<NetworkObject>(
                 NetworkManager.SpawnManager.SpawnedObjectsList
             );
@@ -443,7 +463,6 @@ namespace TDOM.Unity
                     objeto.Despawn(true);
             }
 
-            // Se busca primero y se limpia después: despawnear modifica SpawnedObjectsList.
             MinionSpawner spawner = null;
             foreach (var objeto in NetworkManager.SpawnManager.SpawnedObjectsList)
             {
@@ -481,14 +500,12 @@ namespace TDOM.Unity
             PartidaIniciada?.Invoke();
             OnPartidaIniciada?.Invoke();
 
-            if (TDOM.Unity.Audio.AudioManager.Instance != null)
-            {
-                TDOM.Unity.Audio.AudioManager.Instance.Play("battle");
-            }
-
             if (UiManager.Instance != null)
             {
-                UiManager.Instance.SwitchWindow(WindowsIds.ChSelectionUI, WindowsIds.GamePlayUI);
+                UiManager.Instance.CloseWindow(WindowsIds.ConnectionMenuUI);
+                UiManager.Instance.CloseWindow(WindowsIds.CancelHostUI);
+                UiManager.Instance.CloseWindow(WindowsIds.ChSelectionUI);
+                UiManager.Instance.ShowWindow(WindowsIds.GamePlayUI);
             }
         }
 
@@ -507,6 +524,7 @@ namespace TDOM.Unity
         [Rpc(SendTo.ClientsAndHost)]
         private void MostrarDerrotaClientRpc(int fase)
         {
+            GlobalGameManager.Instance?.DetenerMusicaPartida();
             var ui = UiManager.Instance;
 
             void MostrarDerrota()
@@ -560,6 +578,7 @@ namespace TDOM.Unity
         [Rpc(SendTo.ClientsAndHost)]
         private void MostrarVictoriaDebugClientRpc()
         {
+            GlobalGameManager.Instance?.DetenerMusicaPartida();
             var ui = UiManager.Instance;
 
             void MostrarVictoria()

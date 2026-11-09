@@ -98,6 +98,14 @@ namespace TDOM.Unity.Combat
             },
         };
 
+        [Header("Vfx en red del combo")]
+        [SerializeField]
+        [Tooltip(
+            "Efecto que sale ademas del vfx del golpe ligero, uno por golpe del combo: golpe 1, "
+                + "golpe 2 y cargado tras un ligero. Vacio: sin efecto extra."
+        )]
+        private VfxGolpeLigero[] _vfxComboPorGolpe = new VfxGolpeLigero[0];
+
         [Header("Vfx en red del cargado")]
         [SerializeField]
         private VfxGolpeLigero _vfxCargado = new VfxGolpeLigero
@@ -638,6 +646,7 @@ namespace TDOM.Unity.Combat
             if (_vfx != null)
                 _vfx.Golpe(evento.ComboIndex, cargado, evento.ChargeRatio);
             LanzarVfxGolpeLigero(evento, cargado, espejo);
+            LanzarVfxCombo(evento, cargado, espejo, ligeros);
             _debugFeedback?.FlashActive(0.1f);
 
             if (!giros)
@@ -680,6 +689,22 @@ namespace TDOM.Unity.Combat
             StartCoroutine(
                 LanzarVfxGolpeLigeroConRetardo(_vfxPorGolpeLigero[evento.ComboIndex], espejo)
             );
+        }
+
+        private void LanzarVfxCombo(AttackEvent evento, bool cargado, bool espejo, int ligeros)
+        {
+            if (_vfxRed == null || (cargado && _girosEnCurso))
+                return;
+
+            int indice = IndiceVfxCombo.Resolver(cargado, evento.ComboIndex, ligeros);
+            if (
+                indice < 0
+                || indice >= _vfxComboPorGolpe.Length
+                || _vfxComboPorGolpe[indice].Efecto == null
+            )
+                return;
+
+            StartCoroutine(LanzarVfxGolpeLigeroConRetardo(_vfxComboPorGolpe[indice], espejo));
         }
 
         private void LanzarVfxCargado(float progreso, bool espejo)
