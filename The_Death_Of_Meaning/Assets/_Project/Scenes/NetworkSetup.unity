@@ -732,7 +732,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.SniperMinionSpawner
   _prefabMinion: {fileID: 8802607873738733211, guid: ad30c28dc7628d849910010102a0f8ce, type: 3}
-  _intervaloSpawn: 12
+  _intervaloSpawn: 40
   _maxVivos: 2
   _tablaDrop: {fileID: 11400000, guid: f95d0a8d51284481952843b3d003df4a, type: 2}
   _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
@@ -1244,8 +1244,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.SniperMinionSpawner
   _prefabMinion: {fileID: 8802607873738733211, guid: ad30c28dc7628d849910010102a0f8ce, type: 3}
-  _intervaloSpawn: 12
-  _maxVivos: 2
+  _intervaloSpawn: 60
+  _maxVivos: 1
   _tablaDrop: {fileID: 11400000, guid: f95d0a8d51284481952843b3d003df4a, type: 2}
   _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
   _prefabPickup: {fileID: 5000000000000001, guid: 7ae2df0a15144145bd7e6931db29bcce, type: 3}
@@ -1420,6 +1420,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlataformasColiseo (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 5014704784177351197, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      propertyPath: m_NavMeshData
+      value: 
+      objectReference: {fileID: 23800000, guid: 10e28f55f3afb4843a75249b77fa5392, type: 2}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: radius
       value: 57.6
@@ -2166,6 +2170,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5014704784177351197, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      propertyPath: m_NavMeshData
+      value: 
+      objectReference: {fileID: 23800000, guid: 8cee2823393f999488f68f61e2474983, type: 2}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: sense
       value: -1
@@ -2290,6 +2298,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5014704784177351197, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      propertyPath: m_NavMeshData
+      value: 
+      objectReference: {fileID: 23800000, guid: 0c942eb39c2072f4ca375ee96a3242b0, type: 2}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: sense
       value: -1
@@ -2399,8 +2411,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.SniperMinionSpawner
   _prefabMinion: {fileID: 8802607873738733211, guid: ad30c28dc7628d849910010102a0f8ce, type: 3}
-  _intervaloSpawn: 15
-  _maxVivos: 2
+  _intervaloSpawn: 60
+  _maxVivos: 1
   _tablaDrop: {fileID: 11400000, guid: f95d0a8d51284481952843b3d003df4a, type: 2}
   _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
   _prefabPickup: {fileID: 5000000000000001, guid: 7ae2df0a15144145bd7e6931db29bcce, type: 3}
@@ -3174,7 +3186,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.SniperMinionSpawner
   _prefabMinion: {fileID: 8802607873738733211, guid: ad30c28dc7628d849910010102a0f8ce, type: 3}
-  _intervaloSpawn: 12
+  _intervaloSpawn: 30
   _maxVivos: 2
   _tablaDrop: {fileID: 11400000, guid: f95d0a8d51284481952843b3d003df4a, type: 2}
   _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
@@ -3297,6 +3309,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5014704784177351197, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      propertyPath: m_NavMeshData
+      value: 
+      objectReference: {fileID: 23800000, guid: ea3939dbd876b194f87559492fd8e786, type: 2}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: radius
       value: 63.2
@@ -3378,6 +3394,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlataformasColiseo (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 5014704784177351197, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      propertyPath: m_NavMeshData
+      value: 
+      objectReference: {fileID: 23800000, guid: 1075e50d4df2e0a4595c803c8d6088ce, type: 2}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: sense
       value: -1
@@ -3467,6 +3487,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5014704784177351197, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      propertyPath: m_NavMeshData
+      value: 
+      objectReference: {fileID: 23800000, guid: b3b48af0ff139c34abd7902f4c1ef44b, type: 2}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: radius
       value: 32
@@ -3648,8 +3672,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.SniperMinionSpawner
   _prefabMinion: {fileID: 8802607873738733211, guid: ad30c28dc7628d849910010102a0f8ce, type: 3}
-  _intervaloSpawn: 12
-  _maxVivos: 2
+  _intervaloSpawn: 15
+  _maxVivos: 1
   _tablaDrop: {fileID: 11400000, guid: f95d0a8d51284481952843b3d003df4a, type: 2}
   _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
   _prefabPickup: {fileID: 5000000000000001, guid: 7ae2df0a15144145bd7e6931db29bcce, type: 3}
@@ -3698,7 +3722,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.SniperMinionSpawner
   _prefabMinion: {fileID: 8802607873738733211, guid: ad30c28dc7628d849910010102a0f8ce, type: 3}
-  _intervaloSpawn: 12
+  _intervaloSpawn: 80
   _maxVivos: 2
   _tablaDrop: {fileID: 11400000, guid: f95d0a8d51284481952843b3d003df4a, type: 2}
   _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
@@ -3993,8 +4017,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.SniperMinionSpawner
   _prefabMinion: {fileID: 8802607873738733211, guid: ad30c28dc7628d849910010102a0f8ce, type: 3}
-  _intervaloSpawn: 12
-  _maxVivos: 2
+  _intervaloSpawn: 30
+  _maxVivos: 1
   _tablaDrop: {fileID: 11400000, guid: f95d0a8d51284481952843b3d003df4a, type: 2}
   _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
   _prefabPickup: {fileID: 5000000000000001, guid: 7ae2df0a15144145bd7e6931db29bcce, type: 3}
@@ -9289,6 +9313,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlataformasColiseo
       objectReference: {fileID: 0}
+    - target: {fileID: 5014704784177351197, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      propertyPath: m_NavMeshData
+      value: 
+      objectReference: {fileID: 23800000, guid: 0e7fa680ee38532419b684ffd48c1c10, type: 2}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: centerArena
       value: 

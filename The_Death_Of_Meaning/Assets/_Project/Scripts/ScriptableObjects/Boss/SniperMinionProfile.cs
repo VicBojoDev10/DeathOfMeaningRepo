@@ -12,12 +12,20 @@ namespace TDOM.Data
         [Min(0f)]
         public float danio = 15f;
 
-        [Min(1)]
+        [Min(.5f)]
         public float cadenciaDisparo = 4;
 
         [Header("Movimiento")]
         [Min(0f)]
         public float velocidad = 3.5f;
+
+        [Tooltip("Radio máximo de movimiento desde el punto donde apareció, dentro de su plataforma.")]
+        [Min(0.5f)]
+        public float radioMovimiento = 0.8f;
+
+        [Tooltip("Frecuencia con la que ajusta su posición hacia el jugador.")]
+        [Min(0.2f)]
+        public float intervaloMovimiento = 2f;
 
         [Header("Ataque")]
         [Tooltip("Distancia en XZ a la que deja de perseguir y empieza el combo.")]
@@ -42,7 +50,7 @@ namespace TDOM.Data
         [Header("Spawn")]
         [Tooltip("Radio del círculo alrededor de la plataforma donde aparecen los minions.")]
         [Min(0f)]
-        public float radioSpawn = 1.5f;
+        public float radioSpawn = 0.8f;
 
         [Tooltip(
             "Si no hay NavMesh en el radio base, se prueba esta distancia más lejos cada vez."
