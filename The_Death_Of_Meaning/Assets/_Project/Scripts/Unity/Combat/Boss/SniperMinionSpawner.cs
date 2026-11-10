@@ -150,7 +150,10 @@ namespace TDOM.Unity
 
             if (!TryElegirPosicionSpawn(out Vector3 posicionSpawn))
             {
-                Debug.LogWarning($"[{nameof(SniperMinionSpawner)}] No se encontró un punto válido sobre la plataforma {name}.");
+                Debug.LogWarning(
+                    $"[{nameof(SniperMinionSpawner)}] No se encontró un punto de NavMesh sobre {(_plataforma != null ? _plataforma.name : name)} " +
+                    $"(Agent Type ID {_filtroNavMesh.agentTypeID}, spawner bajo plataforma: {_plataforma != null && transform.IsChildOf(_plataforma)}). Revisa el bake y que SniperMinionArek use el mismo Agent Type."
+                );
                 Destroy(instancia);
                 return;
             }
@@ -224,8 +227,7 @@ namespace TDOM.Unity
             }
 
             if (NavMesh.SamplePosition(centro, out NavMeshHit centroHit, 2f, _filtroNavMesh)
-                && EsPuntoDeEstaPlataforma(centroHit.position)
-                && TieneMargenDelBorde(centroHit.position, 0.1f))
+                && EsPuntoDeEstaPlataforma(centroHit.position))
             {
                 posicion = centroHit.position;
                 return true;
