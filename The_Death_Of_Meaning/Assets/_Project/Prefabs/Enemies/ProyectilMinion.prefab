@@ -70,7 +70,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 3ba6274f9f4563349b25e5797058e924, type: 2}
+  - {fileID: 2100000, guid: 8d5a1d15429de5343977c00227329855, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -113,8 +113,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Radius: 0.7556322
+  m_Center: {x: 0, y: -0.06338248, z: 0}
 --- !u!114 &4894158723780889040
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -201,9 +201,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.Proyectil
   ShowTopMostFoldoutHeaderGroup: 1
-  _velocidad: 27
-  _vidaMax: 2.2
-  _radio: 0.15
+  _velocidad: 29
+  _vidaMax: 2.8
+  _radio: 0.18
+  _vfxImpactoJefe: {fileID: 0}
   _capas:
     serializedVersion: 2
     m_Bits: 65

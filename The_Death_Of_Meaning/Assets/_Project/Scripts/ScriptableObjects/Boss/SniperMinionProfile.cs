@@ -20,7 +20,7 @@ namespace TDOM.Data
         public float velocidad = 3.5f;
 
         [Tooltip("Radio máximo de movimiento desde el punto donde apareció, dentro de su plataforma.")]
-        [Min(0.5f)]
+        [Min(0.2f)]
         public float radioMovimiento = 0.8f;
 
         [Tooltip("Frecuencia con la que ajusta su posición hacia el jugador.")]

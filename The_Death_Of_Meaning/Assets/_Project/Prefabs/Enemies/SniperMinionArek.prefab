@@ -101,7 +101,6 @@ GameObject:
   - component: {fileID: 2214073891147598274}
   - component: {fileID: 4141759100288527218}
   - component: {fileID: 4134396818888122007}
-  - component: {fileID: 5150537944851991849}
   - component: {fileID: 68829085748316538}
   - component: {fileID: 6513402276119838501}
   - component: {fileID: 3443554195037143427}
@@ -202,28 +201,6 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
---- !u!195 &5150537944851991849
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8802607873738733211}
-  m_Enabled: 1
-  m_AgentTypeID: -334000983
-  m_Radius: 0.5
-  m_Speed: 3.5
-  m_Acceleration: 8
-  avoidancePriority: 50
-  m_AngularSpeed: 120
-  m_StoppingDistance: 0
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 1
-  m_BaseOffset: 0.5
-  m_WalkableMask: 1
-  m_ObstacleAvoidanceType: 4
 --- !u!114 &68829085748316538
 MonoBehaviour:
   m_ObjectHideFlags: 0

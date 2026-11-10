@@ -3,10 +3,8 @@ using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Level;
-using Unity.AI.Navigation;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.AI;
 
 namespace TDOM.Unity
 {
@@ -19,6 +17,7 @@ namespace TDOM.Unity
         [SerializeField] private GameObject _prefabMinion;
         [SerializeField] private float _intervaloSpawn = 12f;
         [SerializeField] private int _maxVivos = 2;
+        [SerializeField, Min(0f)] private float _distanciaMinimaEntreSnipers = 0.65f;
 
         [Header("Drops")]
         [SerializeField] private TablaDropProfile _tablaDrop;
@@ -31,10 +30,8 @@ namespace TDOM.Unity
         private ReglaDropPowerUp _reglaDrop;
         private float _siguienteSpawn;
         private bool _activo;
-        private NavMeshSurface _superficiePlataforma;
         private Transform _plataforma;
-        private bool _navMeshPreparado;
-        private NavMeshQueryFilter _filtroNavMesh;
+        private Collider[] _collidersPlataforma;
 
         private void OnEnable()
         {
@@ -117,187 +114,162 @@ namespace TDOM.Unity
                 return;
             }
 
-            GameObject instancia = Instantiate(_prefabMinion, transform.position, transform.rotation);
-            SniperMinionController minion = instancia.GetComponent<SniperMinionController>();
-            NetworkObject networkObject = instancia.GetComponent<NetworkObject>();
-            if (minion == null || networkObject == null)
+            SniperMinionController minionPrefab = _prefabMinion.GetComponent<SniperMinionController>();
+            NetworkObject networkObjectPrefab = _prefabMinion.GetComponent<NetworkObject>();
+            if (minionPrefab == null || networkObjectPrefab == null)
             {
                 Debug.LogError($"[{nameof(SniperMinionSpawner)}] El prefab requiere SniperMinionController y NetworkObject.");
-                Destroy(instancia);
                 return;
             }
 
             PlataformaCircular plataforma = GetComponentInParent<PlataformaCircular>();
             _plataforma = plataforma != null ? plataforma.transform : transform.parent;
-            NavMeshAgent agentePrefab = _prefabMinion.GetComponent<NavMeshAgent>();
-            if (agentePrefab == null)
+            _collidersPlataforma = _plataforma != null
+                ? _plataforma.GetComponentsInChildren<Collider>()
+                : System.Array.Empty<Collider>();
+            if (_plataforma == null || !TieneColliderDePlataforma())
             {
-                Debug.LogError($"[{nameof(SniperMinionSpawner)}] El prefab sniper necesita NavMeshAgent.");
-                Destroy(instancia);
-                return;
-            }
-            _filtroNavMesh = new NavMeshQueryFilter
-            {
-                agentTypeID = agentePrefab.agentTypeID,
-                areaMask = agentePrefab.areaMask,
-            };
-
-            if (!PrepararNavMeshPlataforma())
-            {
-                Destroy(instancia);
+                Debug.LogError($"[{nameof(SniperMinionSpawner)}] {name} debe estar dentro de una plataforma con Collider.");
                 return;
             }
 
-            if (!TryElegirPosicionSpawn(out Vector3 posicionSpawn))
+            if (!TryElegirPosicionSpawn(out Vector3 puntoSuperficie))
             {
                 Debug.LogWarning(
-                    $"[{nameof(SniperMinionSpawner)}] No se encontró un punto de NavMesh sobre {(_plataforma != null ? _plataforma.name : name)} " +
-                    $"(Agent Type ID {_filtroNavMesh.agentTypeID}, spawner bajo plataforma: {_plataforma != null && transform.IsChildOf(_plataforma)}). Revisa el bake y que SniperMinionArek use el mismo Agent Type."
+                    $"[{nameof(SniperMinionSpawner)}] No se encontró la superficie de { _plataforma.name } cerca del spawner. " +
+                    "Comprueba que la plataforma tenga un Collider que cubra la zona caminable."
                 );
-                Destroy(instancia);
                 return;
             }
 
-            instancia.transform.SetPositionAndRotation(posicionSpawn, transform.rotation);
-            minion.ConfigurarPlataforma(_plataforma, _superficiePlataforma);
+            // El modelo exportado tiene la cara superior en su eje local +Z.
+            Vector3 normal = _plataforma.forward;
+            Quaternion rotacionSpawn = Quaternion.LookRotation(_plataforma.up, normal);
+            float altura = ObtenerAlturaPrefab(normal, rotacionSpawn);
+            GameObject instancia = Instantiate(_prefabMinion, puntoSuperficie + normal * altura, rotacionSpawn);
+            SniperMinionController minion = instancia.GetComponent<SniperMinionController>();
+            NetworkObject networkObject = instancia.GetComponent<NetworkObject>();
+            minion.ConfigurarPlataforma(_plataforma, _collidersPlataforma, puntoSuperficie, altura);
             minion.Murio += AlMorirMinion;
             _vivos.Add(minion);
             networkObject.Spawn(true);
         }
 
-        private bool PrepararNavMeshPlataforma()
+        private bool TieneColliderDePlataforma()
         {
-            if (_navMeshPreparado)
-                return _superficiePlataforma != null && _superficiePlataforma.navMeshData != null;
+            foreach (Collider collider in _collidersPlataforma)
+                if (collider != null && collider.enabled && !collider.isTrigger)
+                    return true;
+            return false;
+        }
 
-            _navMeshPreparado = true;
-            if (_plataforma == null)
+        private bool TryElegirPosicionSpawn(out Vector3 puntoSuperficie)
+        {
+            SniperMinionProfile perfil = _prefabMinion != null
+                ? _prefabMinion.GetComponent<SniperMinionController>()?.Perfil
+                : null;
+            float radio = perfil != null ? Mathf.Clamp(perfil.radioSpawn, 0.25f, 0.8f) : 0.5f;
+
+            for (int intento = 0; intento < 32; intento++)
             {
-                Debug.LogError($"[{nameof(SniperMinionSpawner)}] El spawner {name} no está dentro de una plataforma.");
-                return false;
+                Vector3 candidato = transform.position;
+                if (intento > 0)
+                {
+                    Vector2 aleatorio = Random.insideUnitCircle * radio;
+                    candidato += _plataforma.right * aleatorio.x + _plataforma.up * aleatorio.y;
+                }
+
+                if (TryProyectarEnPlataforma(candidato, out puntoSuperficie)
+                    && TieneEspacioParaSpawn(puntoSuperficie))
+                    return true;
             }
 
-            _superficiePlataforma = _plataforma.GetComponent<NavMeshSurface>();
-            if (_superficiePlataforma == null)
-                _superficiePlataforma = _plataforma.gameObject.AddComponent<NavMeshSurface>();
+            puntoSuperficie = default;
+            return false;
+        }
 
-            _superficiePlataforma.agentTypeID = _filtroNavMesh.agentTypeID;
-            // Children representa la jerarquía actual de esta plataforma (incluida la raíz).
-            _superficiePlataforma.collectObjects = CollectObjects.Children;
-            _superficiePlataforma.useGeometry = NavMeshCollectGeometry.RenderMeshes;
-            int layerSniperPlataforma = LayerMask.NameToLayer("SniperPlatform");
-            if (layerSniperPlataforma < 0)
+        private bool TryProyectarEnPlataforma(Vector3 candidato, out Vector3 puntoSuperficie)
+        {
+            Vector3 normal = _plataforma.forward;
+            bool encontro = false;
+            float distanciaMasCercana = float.MaxValue;
+            puntoSuperficie = default;
+
+            foreach (Collider collider in _collidersPlataforma)
             {
-                Debug.LogError(
-                    $"[{nameof(SniperMinionSpawner)}] No existe la layer SniperPlatform. " +
-                    $"No se horneará la jerarquía completa para evitar incluir geometría ajena a { _plataforma.name }."
+                if (collider == null || !collider.enabled || collider.isTrigger)
+                    continue;
+
+                float distanciaRayo = Mathf.Max(5f, collider.bounds.extents.magnitude * 2f + 2f);
+                Vector3 arriba = candidato + normal * distanciaRayo;
+                Vector3 abajo = candidato - normal * distanciaRayo;
+                if (collider.Raycast(new Ray(arriba, -normal), out RaycastHit hitArriba, distanciaRayo * 2f))
+                {
+                    float distancia = (hitArriba.point - candidato).sqrMagnitude;
+                    if (distancia < distanciaMasCercana)
+                    {
+                        distanciaMasCercana = distancia;
+                        puntoSuperficie = hitArriba.point;
+                        encontro = true;
+                    }
+                }
+                if (collider.Raycast(new Ray(abajo, normal), out RaycastHit hitAbajo, distanciaRayo * 2f))
+                {
+                    float distancia = (hitAbajo.point - candidato).sqrMagnitude;
+                    if (distancia < distanciaMasCercana)
+                    {
+                        distanciaMasCercana = distancia;
+                        puntoSuperficie = hitAbajo.point;
+                        encontro = true;
+                    }
+                }
+            }
+
+            return encontro;
+        }
+
+        private bool TieneEspacioParaSpawn(Vector3 puntoSuperficie)
+        {
+            if (NetworkManager.Singleton == null || NetworkManager.Singleton.SpawnManager == null)
+                return true;
+
+            foreach (NetworkObject objeto in NetworkManager.Singleton.SpawnManager.SpawnedObjectsList)
+            {
+                if (objeto == null || !objeto.TryGetComponent(out SniperMinionController sniper))
+                    continue;
+                if (sniper.Plataforma != _plataforma)
+                    continue;
+
+                Vector3 separacionEnPlano = Vector3.ProjectOnPlane(
+                    sniper.transform.position - puntoSuperficie,
+                    _plataforma.forward
                 );
-                return false;
-            }
-
-            _superficiePlataforma.layerMask = 1 << layerSniperPlataforma;
-            if (!TieneGeometriaEnLayer(layerSniperPlataforma))
-            {
-                Debug.LogError(
-                    $"[{nameof(SniperMinionSpawner)}] No hay Renderer ni Collider en la layer SniperPlatform " +
-                    $"dentro de la jerarquía de {_plataforma.name}. Asigna esa layer a la geometría de la plataforma."
-                );
-                return false;
-            }
-
-            _superficiePlataforma.minRegionArea = 0f;
-            _superficiePlataforma.ignoreNavMeshAgent = true;
-            _superficiePlataforma.ignoreNavMeshObstacle = true;
-            // Reconstruye una vez con esta jerarquía, aunque hubiera datos horneados con All.
-            _superficiePlataforma.BuildNavMesh();
-
-            if (_superficiePlataforma.navMeshData == null)
-            {
-                Debug.LogError($"[{nameof(SniperMinionSpawner)}] No se pudo hornear el NavMesh de {name}.");
-                return false;
+                if (separacionEnPlano.sqrMagnitude < _distanciaMinimaEntreSnipers * _distanciaMinimaEntreSnipers)
+                    return false;
             }
 
             return true;
         }
 
-        private bool TryElegirPosicionSpawn(out Vector3 posicion)
+        private float ObtenerAlturaPrefab(Vector3 normal, Quaternion rotacionSpawn)
         {
-            SniperMinionProfile perfil = _prefabMinion != null
-                ? _prefabMinion.GetComponent<SniperMinionController>()?.Perfil
-                : null;
-            float radio = perfil != null ? Mathf.Max(0.25f, perfil.radioSpawn) : 1.5f;
-            Vector3 centro = transform.position;
-            for (int intento = 0; intento < 16; intento++)
-            {
-                Vector2 aleatorio = Random.insideUnitCircle.normalized * Random.Range(radio * 0.55f, radio);
-                Vector3 candidato = centro + new Vector3(aleatorio.x, 0f, aleatorio.y);
-                if (!NavMesh.SamplePosition(candidato, out NavMeshHit hit, 0.8f, _filtroNavMesh))
-                    continue;
-                if (!EsPuntoDeEstaPlataforma(hit.position))
-                    continue;
-                if (!TieneMargenDelBorde(hit.position, 0.12f))
-                    continue;
+            Collider collider = _prefabMinion.GetComponent<Collider>();
+            if (collider == null)
+                return 0.5f;
 
-                posicion = hit.position;
-                return true;
+            if (collider is BoxCollider caja)
+            {
+                Vector3 escala = caja.transform.lossyScale;
+                escala = new Vector3(Mathf.Abs(escala.x), Mathf.Abs(escala.y), Mathf.Abs(escala.z));
+                Vector3 semiextensiones = Vector3.Scale(caja.size * 0.5f, escala);
+                Vector3 normalLocal = Quaternion.Inverse(rotacionSpawn) * normal;
+                return Mathf.Abs(normalLocal.x) * semiextensiones.x
+                    + Mathf.Abs(normalLocal.y) * semiextensiones.y
+                    + Mathf.Abs(normalLocal.z) * semiextensiones.z
+                    + 0.02f;
             }
 
-            if (NavMesh.SamplePosition(centro, out NavMeshHit centroHit, 2f, _filtroNavMesh)
-                && EsPuntoDeEstaPlataforma(centroHit.position))
-            {
-                posicion = centroHit.position;
-                return true;
-            }
-
-            posicion = default;
-            return false;
-        }
-
-        private bool TieneMargenDelBorde(Vector3 punto, float margen)
-        {
-            return NavMesh.FindClosestEdge(punto, out NavMeshHit borde, _filtroNavMesh)
-                && borde.distance >= margen;
-        }
-
-        private bool TieneGeometriaEnLayer(int layer)
-        {
-            foreach (Renderer renderer in _plataforma.GetComponentsInChildren<Renderer>())
-            {
-                if (renderer.gameObject.layer == layer)
-                    return true;
-            }
-
-            foreach (Collider collider in _plataforma.GetComponentsInChildren<Collider>())
-            {
-                if (collider.gameObject.layer == layer)
-                    return true;
-            }
-
-            return false;
-        }
-
-        private bool EsPuntoDeEstaPlataforma(Vector3 punto)
-        {
-            if (_plataforma == null || _superficiePlataforma == null)
-                return false;
-
-            Collider[] colliders = _plataforma.GetComponentsInChildren<Collider>();
-            Vector3 origen = punto + Vector3.up * 1.25f;
-            foreach (RaycastHit hit in Physics.RaycastAll(origen, Vector3.down, 3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
-            {
-                if (!hit.collider.transform.IsChildOf(_plataforma) && hit.collider.transform != _plataforma)
-                    continue;
-                if ((hit.point - punto).sqrMagnitude > 1f)
-                    continue;
-
-                for (int i = 0; i < colliders.Length; i++)
-                {
-                    if (colliders[i] == hit.collider)
-                        return true;
-                }
-            }
-
-            return false;
+            return 0.5f;
         }
 
         private void PrepararDrops()

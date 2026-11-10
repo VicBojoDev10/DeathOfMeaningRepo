@@ -3,16 +3,14 @@ using System.Collections;
 using TDOM.Data;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
-using Unity.AI.Navigation;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.AI;
 using Random = UnityEngine.Random;
 
 
 namespace TDOM.Unity
 {
-    [RequireComponent(typeof(NavMeshAgent), typeof(HitZone))]
+    [RequireComponent(typeof(HitZone))]
     public class SniperMinionController : NetworkBehaviour
     {
         [SerializeField]
@@ -45,34 +43,38 @@ namespace TDOM.Unity
 
         public bool EstaMuerto => _muerto;
         public SniperMinionProfile Perfil => _perfil;
+        public Transform Plataforma => _plataforma;
 
-        private NavMeshAgent _agente;
         private HitZone _zona;
         private Collider[] _colliders;
         private bool _muerto;
         private float _siguienteDisparo;
         private PlayerRoot _objetivo;
         private Transform _plataforma;
+        private Collider[] _collidersPlataforma;
         private float _siguienteMovimiento;
         private Vector3 _anclaLocalPlataforma;
-        private Vector3 _ultimaPosicionDestino;
-        private Vector3 _ultimaPosicionPlataforma;
-        private Quaternion _ultimaRotacionPlataforma;
-        private bool _tieneDestino;
+        private float _alturaSobreSuperficie;
+        private Vector2 _desplazamientoActual;
+        private Vector2 _desplazamientoDestino;
 
-        /// <summary>Configura la navegación de plataforma antes de sincronizar el NetworkObject.</summary>
-        public void ConfigurarPlataforma(Transform plataforma, NavMeshSurface superficie)
+        /// <summary>Fija el punto de anclaje y la superficie física de la plataforma antes del spawn de red.</summary>
+        public void ConfigurarPlataforma(
+            Transform plataforma,
+            Collider[] collidersPlataforma,
+            Vector3 puntoSuperficie,
+            float alturaSobreSuperficie
+        )
         {
             _plataforma = plataforma;
-            _superficiePlataforma = superficie;
+            _collidersPlataforma = collidersPlataforma;
+            _anclaLocalPlataforma = plataforma.InverseTransformPoint(puntoSuperficie);
+            _alturaSobreSuperficie = alturaSobreSuperficie;
         }
-
-        private NavMeshSurface _superficiePlataforma;
 
         private void Awake()
         {
             _zona = GetComponent<HitZone>();
-            _agente = GetComponent<NavMeshAgent>();
             _colliders = GetComponentsInChildren<Collider>();
 
             if (_renderer == null)
@@ -95,29 +97,15 @@ namespace TDOM.Unity
                 Debug.LogError("[SniperMinionController] Asigna el prefab de bala en el inspector.");
 
             if (!IsServer)
-            {
-                if (_agente != null)
-                    _agente.enabled = false;
                 return;
-            }
 
-            if (_agente == null || _superficiePlataforma == null || _superficiePlataforma.navMeshData == null)
+            if (_plataforma == null || _collidersPlataforma == null || _collidersPlataforma.Length == 0)
             {
-                Debug.LogError("[SniperMinionController] Falta el NavMeshAgent o el NavMesh de su plataforma.");
+                Debug.LogError("[SniperMinionController] Falta la plataforma o sus colliders.");
                 return;
             }
 
             Vida.Value = _perfil.vida;
-            _agente.speed = _perfil.velocidad;
-            _agente.stoppingDistance = 0.25f;
-            if (!_agente.Warp(transform.position))
-                Debug.LogWarning($"[SniperMinionController] No se pudo colocar {name} sobre el NavMesh de su plataforma.");
-            _anclaLocalPlataforma = _plataforma != null ? _plataforma.InverseTransformPoint(transform.position) : transform.position;
-            if (_plataforma != null)
-            {
-                _ultimaPosicionPlataforma = _plataforma.position;
-                _ultimaRotacionPlataforma = _plataforma.rotation;
-            }
             _siguienteMovimiento = Time.time + Random.Range(0.25f, 1f);
             _siguienteDisparo = Time.time + 1f / Mathf.Max(1, _perfil.cadenciaDisparo);
             _zona.DanioRegistrado += AlRecibirDanio;
@@ -139,8 +127,8 @@ namespace TDOM.Unity
             if (!IsServer || !IsSpawned || _muerto || _perfil == null)
                 return;
 
-            AcompanharMovimientoPlataforma();
             ActualizarDestinoMovimiento();
+            AcompanharMovimientoPlataforma();
 
             _objetivo = BuscarObjetivoMasCercano();
             if (_objetivo == null)
@@ -149,7 +137,12 @@ namespace TDOM.Unity
             Vector3 origen = _puntoDisparo != null ? _puntoDisparo.position : transform.position;
             Vector3 direccion = _objetivo.transform.position - origen;
             if (direccion.sqrMagnitude > 0.0001f)
-                transform.rotation = Quaternion.LookRotation(new Vector3(direccion.x, 0f, direccion.z));
+            {
+                Vector3 arriba = _plataforma != null ? _plataforma.up : Vector3.up;
+                direccion = Vector3.ProjectOnPlane(direccion, arriba);
+                if (direccion.sqrMagnitude > 0.0001f)
+                    transform.rotation = Quaternion.LookRotation(direccion, arriba);
+            }
 
             if (Time.time >= _siguienteDisparo)
             {
@@ -160,101 +153,89 @@ namespace TDOM.Unity
 
         private void AcompanharMovimientoPlataforma()
         {
-            if (_plataforma == null || _agente == null || !_agente.enabled)
+            // La posición se calcula siempre desde el ancla local: el minion acompaña
+            // traslación y rotación de la plataforma incluso cuando espera su siguiente paso.
+            Vector3 ancla = _plataforma.TransformPoint(_anclaLocalPlataforma);
+            Vector3 candidato = ancla
+                + _plataforma.right * _desplazamientoActual.x
+                + _plataforma.up * _desplazamientoActual.y;
+            if (!TryProyectarEnPlataforma(candidato, out Vector3 superficie))
                 return;
 
-            Vector3 posicionLocalAnterior = Quaternion.Inverse(_ultimaRotacionPlataforma)
-                * (transform.position - _ultimaPosicionPlataforma);
-            Vector3 posicionActualizada = _plataforma.position + _plataforma.rotation * posicionLocalAnterior;
-            Vector3 deltaPlataforma = posicionActualizada - transform.position;
-            if (deltaPlataforma.sqrMagnitude > 0.0001f)
-                _agente.Warp(posicionActualizada);
-
-            _ultimaPosicionPlataforma = _plataforma.position;
-            _ultimaRotacionPlataforma = _plataforma.rotation;
+            Vector3 posicionObjetivo = superficie + _plataforma.forward * _alturaSobreSuperficie;
+            transform.position = posicionObjetivo;
         }
 
         private void ActualizarDestinoMovimiento()
         {
-            if (_plataforma == null || _agente == null || !_agente.enabled || !_agente.isOnNavMesh || Time.time < _siguienteMovimiento)
-                return;
-
-            _siguienteMovimiento = Time.time + Mathf.Max(0.2f, _perfil.intervaloMovimiento);
-            PlayerRoot jugador = BuscarObjetivoMasCercano();
-            if (jugador == null)
-                return;
-
-            Vector3 origenAncla = _plataforma.TransformPoint(_anclaLocalPlataforma);
-            Vector3 haciaJugador = jugador.transform.position - origenAncla;
-            haciaJugador.y = 0f;
-            if (haciaJugador.sqrMagnitude < 0.01f)
-                return;
-
-            float radioMovimiento = Mathf.Max(0.5f, _perfil.radioMovimiento);
-            Vector3 sesgoJugador = haciaJugador.normalized * Mathf.Min(0.3f, radioMovimiento * 0.3f);
-            NavMeshQueryFilter filtro = new NavMeshQueryFilter
-            {
-                agentTypeID = _agente.agentTypeID,
-                areaMask = _agente.areaMask,
-            };
-            NavMeshHit hit = default;
-            bool encontroDestino = false;
-            for (int intento = 0; intento < 12; intento++)
-            {
-                Vector2 paseo = Random.insideUnitCircle * (radioMovimiento * 0.55f);
-                Vector3 deseado = origenAncla + sesgoJugador + new Vector3(paseo.x, 0f, paseo.y);
-                if (!NavMesh.SamplePosition(deseado, out hit, 0.75f, filtro))
-                    continue;
-                if (!EsPuntoSobrePlataforma(hit.position))
-                    continue;
-                if ((hit.position - origenAncla).sqrMagnitude > radioMovimiento * radioMovimiento)
-                    continue;
-                if (!NavMesh.FindClosestEdge(hit.position, out NavMeshHit borde, filtro) || borde.distance < 0.12f)
-                    continue;
-
-                encontroDestino = true;
-                break;
-            }
-
-            if (!encontroDestino)
-                return;
-            if (_tieneDestino && (hit.position - _ultimaPosicionDestino).sqrMagnitude < 0.2f)
-                return;
-
-            NavMeshPath ruta = new NavMeshPath();
-            if (!_agente.CalculatePath(hit.position, ruta) || ruta.status != NavMeshPathStatus.PathComplete)
-                return;
-
-            _ultimaPosicionDestino = hit.position;
-            _tieneDestino = true;
-            _agente.SetDestination(hit.position);
-        }
-
-        private bool EsPuntoSobrePlataforma(Vector3 punto)
-        {
             if (_plataforma == null)
-                return false;
+                return;
 
-            Collider[] colliders = _plataforma.GetComponentsInChildren<Collider>();
-            foreach (RaycastHit hit in Physics.RaycastAll(
-                punto + Vector3.up * 1.25f,
-                Vector3.down,
-                3f,
-                Physics.DefaultRaycastLayers,
-                QueryTriggerInteraction.Ignore
-            ))
+            if (Time.time >= _siguienteMovimiento)
             {
-                if (hit.collider.transform.IsChildOf(_plataforma) || hit.collider.transform == _plataforma)
+                _siguienteMovimiento = Time.time + Mathf.Max(0.2f, _perfil.intervaloMovimiento);
+                float radio = Mathf.Clamp(_perfil.radioMovimiento, 0f, 0.25f);
+                for (int intento = 0; intento < 12; intento++)
                 {
-                    for (int i = 0; i < colliders.Length; i++)
-                    {
-                        if (colliders[i] == hit.collider && (hit.point - punto).sqrMagnitude <= 1f)
-                            return true;
-                    }
+                    Vector2 destino = Random.insideUnitCircle * radio;
+                    Vector3 ancla = _plataforma.TransformPoint(_anclaLocalPlataforma);
+                    Vector3 candidato = ancla + _plataforma.right * destino.x + _plataforma.up * destino.y;
+                    if (!TryProyectarEnPlataforma(candidato, out _))
+                        continue;
+                    _desplazamientoDestino = destino;
+                    break;
                 }
             }
 
-            return false;
+            float velocidadPaseo = Mathf.Clamp(_perfil.velocidad, 0.05f, 0.3f);
+            _desplazamientoActual = Vector2.MoveTowards(
+                _desplazamientoActual,
+                _desplazamientoDestino,
+                velocidadPaseo * Time.deltaTime
+            );
+        }
+
+        private bool TryProyectarEnPlataforma(Vector3 candidato, out Vector3 puntoSuperficie)
+        {
+            puntoSuperficie = default;
+            if (_plataforma == null || _collidersPlataforma == null)
+                return false;
+
+            // El modelo exportado tiene la cara superior en su eje local +Z.
+            Vector3 normal = _plataforma.forward;
+            float distanciaMasCercana = float.MaxValue;
+            bool encontro = false;
+            foreach (Collider collider in _collidersPlataforma)
+            {
+                if (collider == null || !collider.enabled || collider.isTrigger)
+                    continue;
+
+                float distanciaRayo = Mathf.Max(5f, collider.bounds.extents.magnitude * 2f + 2f);
+                Vector3 arriba = candidato + normal * distanciaRayo;
+                Vector3 abajo = candidato - normal * distanciaRayo;
+                if (collider.Raycast(new Ray(arriba, -normal), out RaycastHit hitArriba, distanciaRayo * 2f))
+                    ConsiderarHit(hitArriba, candidato, ref distanciaMasCercana, ref puntoSuperficie, ref encontro);
+                if (collider.Raycast(new Ray(abajo, normal), out RaycastHit hitAbajo, distanciaRayo * 2f))
+                    ConsiderarHit(hitAbajo, candidato, ref distanciaMasCercana, ref puntoSuperficie, ref encontro);
+            }
+
+            return encontro;
+        }
+
+        private static void ConsiderarHit(
+            RaycastHit hit,
+            Vector3 candidato,
+            ref float distanciaMasCercana,
+            ref Vector3 puntoSuperficie,
+            ref bool encontro
+        )
+        {
+            float distancia = (hit.point - candidato).sqrMagnitude;
+            if (distancia >= distanciaMasCercana)
+                return;
+            distanciaMasCercana = distancia;
+            puntoSuperficie = hit.point;
+            encontro = true;
         }
 
         private PlayerRoot BuscarObjetivoMasCercano()
@@ -294,8 +275,16 @@ namespace TDOM.Unity
                 return;
             }
 
-            // Por ahora solo validamos la creación y sincronización visual; el daño se añadirá después.
-            proyectil.Inicializar(direccion, 0f, NetworkManager.ServerClientId);
+            // El daño y el impacto se resuelven en servidor dentro de Proyectil.
+            proyectil.Inicializar(
+                direccion,
+                _perfil.danio,
+                NetworkManager.ServerClientId,
+                atacanteEsAyla: false,
+                dañaJugador: true,
+                plataformaIgnorada: _plataforma,
+                emisorIgnorado: transform
+            );
             networkObject.Spawn(true);
         }
 
