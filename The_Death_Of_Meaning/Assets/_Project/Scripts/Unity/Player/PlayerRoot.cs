@@ -8,6 +8,7 @@ using TDOM.Gameplay.Core;
 using TDOM.Gameplay.Locomotion;
 using TDOM.Gameplay.Vfx;
 using TDOM.Unity;
+using TDOM.Unity.Audio;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Input;
@@ -69,6 +70,11 @@ namespace TDOM.Unity.Player
 
         [SerializeField]
         private VfxDash _vfxDash;
+
+        [SerializeField]
+        private SfxLocomocion _sfxLocomocion;
+
+        private bool _enSueloAntesDelDash;
 
         [SerializeField]
         private VfxEmbestidaLanzador _vfxEmbestida;
@@ -280,6 +286,9 @@ namespace TDOM.Unity.Player
 
             if (_vfxDash == null)
                 _vfxDash = GetComponentInChildren<VfxDash>();
+
+            if (_sfxLocomocion == null)
+                _sfxLocomocion = GetComponentInChildren<SfxLocomocion>();
 
             if (_vfxEmbestida == null)
                 _vfxEmbestida = GetComponentInChildren<VfxEmbestidaLanzador>();
@@ -735,6 +744,7 @@ namespace TDOM.Unity.Player
 
         private void CapturarContextoVfxDash(float dt)
         {
+            _enSueloAntesDelDash = _locomocion.State.IsGrounded;
             if (_vfxDash == null)
                 return;
 
@@ -1014,6 +1024,8 @@ namespace TDOM.Unity.Player
                 _camera.PunchFov(8f, 0.2f);
                 _feedback?.RegistrarAccionCamara(0.2f);
                 LanzarVfxGancho();
+                if (_sfxLocomocion != null)
+                    _sfxLocomocion.Gancho();
             }
         }
 
@@ -1230,12 +1242,16 @@ namespace TDOM.Unity.Player
                 _aylaAnimator.IniciarDobleSalto();
             if (_locomocion.SaltoAereo && _characterId == CharacterIds.Ayla)
                 LanzarVfxDobleSalto();
+            if (_locomocion.SaltoAereo && _sfxLocomocion != null)
+                _sfxLocomocion.DobleSalto();
             if (_locomocion.DashIniciado)
             {
                 if (_characterId == CharacterIds.Zendre)
                     _zendreLocomotionAnimator?.IniciarAssault();
                 DashEmbestidaIniciada?.Invoke();
                 LanzarVfxDash();
+                if (_sfxLocomocion != null)
+                    _sfxLocomocion.Dash(_enSueloAntesDelDash);
             }
             ActualizarVfxEmbestida();
             RegistrarDesplazamientoLateralEnCamara(input.Move);

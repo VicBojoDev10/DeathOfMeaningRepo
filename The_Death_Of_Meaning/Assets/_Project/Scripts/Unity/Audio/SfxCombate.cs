@@ -10,7 +10,18 @@ namespace TDOM.Unity.Audio
         private SfxRed _red;
 
         [SerializeField]
+        private SfxBanco _ataqueNormal;
+
+        [SerializeField]
         private SfxBanco[] _golpesCombo = new SfxBanco[0];
+
+        [SerializeField]
+        private SfxBanco _cargaLoop;
+
+        [SerializeField]
+        private SfxBanco _liberacionCargado;
+
+        private bool _cargando;
 
         private void Awake()
         {
@@ -18,13 +29,35 @@ namespace TDOM.Unity.Audio
                 _red = GetComponentInParent<SfxRed>();
         }
 
-        public void Golpe(int comboIndex) => ReproducirDe(_golpesCombo, comboIndex);
-
-        private void ReproducirDe(SfxBanco[] bancos, int indice)
+        public void Golpe(int comboIndex)
         {
-            int elegido = SfxPorIndice.Elegir(indice, bancos.Length);
-            if (_red != null && elegido != SfxPorIndice.SinSfx)
-                _red.ReproducirEnEmisor(bancos[elegido]);
+            int elegido = SfxPorIndice.Elegir(comboIndex, _golpesCombo.Length);
+            bool hayCombo = elegido != SfxPorIndice.SinSfx && _golpesCombo[elegido] != null;
+            ReproducirSiExiste(hayCombo ? _golpesCombo[elegido] : _ataqueNormal);
+        }
+
+        public void Carga(bool activa)
+        {
+            if (_red == null || _cargaLoop == null || activa == _cargando)
+                return;
+
+            _cargando = activa;
+            if (activa)
+                _red.ReproducirEnEmisor(_cargaLoop);
+            else
+                _red.Detener(_cargaLoop);
+        }
+
+        public void LiberacionCargado()
+        {
+            Carga(false);
+            ReproducirSiExiste(_liberacionCargado);
+        }
+
+        private void ReproducirSiExiste(SfxBanco banco)
+        {
+            if (_red != null && banco != null)
+                _red.ReproducirEnEmisor(banco);
         }
     }
 }
