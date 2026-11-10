@@ -305,6 +305,7 @@ GameObject:
   - component: {fileID: 5755043755142038320}
   - component: {fileID: 5159035239191926110}
   - component: {fileID: 2844092179625338467}
+  - component: {fileID: 1009531786959097161}
   m_Layer: 0
   m_Name: Circle
   m_TagString: Untagged
@@ -360,7 +361,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -405,6 +406,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.6784351, y: 1.678435, z: 0.93691283}
   m_Center: {x: 2.9683557, y: 0, z: -0.14277269}
+--- !u!114 &1009531786959097161
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 520084195809388702}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09fb2c5f145047846ac8e94ce0994dbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: AllIn13DShaderAssemebly::AllIn13DShader.AllIn13DShaderComponent
+  currRenderer: {fileID: 5159035239191926110}
 --- !u!1 &543967916333928429
 GameObject:
   m_ObjectHideFlags: 0
