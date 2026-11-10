@@ -182,13 +182,15 @@ namespace TDOM.Unity
             _superficiePlataforma.collectObjects = CollectObjects.Children;
             _superficiePlataforma.useGeometry = NavMeshCollectGeometry.RenderMeshes;
             int layerSniperPlataforma = LayerMask.NameToLayer("SniperPlatform");
-            if (layerSniperPlataforma >= 0)
+            if (layerSniperPlataforma >= 0 && TieneGeometriaEnLayer(layerSniperPlataforma))
                 _superficiePlataforma.layerMask = 1 << layerSniperPlataforma;
+            else
+                _superficiePlataforma.layerMask = ~0;
             _superficiePlataforma.minRegionArea = 0f;
             _superficiePlataforma.ignoreNavMeshAgent = true;
             _superficiePlataforma.ignoreNavMeshObstacle = true;
-            if (_superficiePlataforma.navMeshData == null)
-                _superficiePlataforma.BuildNavMesh();
+            // Reconstruye una vez con esta jerarquía, aunque hubiera datos horneados con All.
+            _superficiePlataforma.BuildNavMesh();
 
             if (_superficiePlataforma.navMeshData == null)
             {
@@ -214,7 +216,7 @@ namespace TDOM.Unity
                     continue;
                 if (!EsPuntoDeEstaPlataforma(hit.position))
                     continue;
-                if (!TieneMargenDelBorde(hit.position, 0.65f))
+                if (!TieneMargenDelBorde(hit.position, 0.12f))
                     continue;
 
                 posicion = hit.position;
@@ -223,7 +225,7 @@ namespace TDOM.Unity
 
             if (NavMesh.SamplePosition(centro, out NavMeshHit centroHit, 2f, _filtroNavMesh)
                 && EsPuntoDeEstaPlataforma(centroHit.position)
-                && TieneMargenDelBorde(centroHit.position, 0.4f))
+                && TieneMargenDelBorde(centroHit.position, 0.1f))
             {
                 posicion = centroHit.position;
                 return true;
@@ -237,6 +239,23 @@ namespace TDOM.Unity
         {
             return NavMesh.FindClosestEdge(punto, out NavMeshHit borde, _filtroNavMesh)
                 && borde.distance >= margen;
+        }
+
+        private bool TieneGeometriaEnLayer(int layer)
+        {
+            foreach (Renderer renderer in _plataforma.GetComponentsInChildren<Renderer>())
+            {
+                if (renderer.gameObject.layer == layer)
+                    return true;
+            }
+
+            foreach (Collider collider in _plataforma.GetComponentsInChildren<Collider>())
+            {
+                if (collider.gameObject.layer == layer)
+                    return true;
+            }
+
+            return false;
         }
 
         private bool EsPuntoDeEstaPlataforma(Vector3 punto)

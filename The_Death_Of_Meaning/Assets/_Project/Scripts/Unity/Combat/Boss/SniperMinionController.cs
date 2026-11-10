@@ -209,7 +209,7 @@ namespace TDOM.Unity
                     continue;
                 if ((hit.position - origenAncla).sqrMagnitude > radioMovimiento * radioMovimiento)
                     continue;
-                if (!NavMesh.FindClosestEdge(hit.position, out NavMeshHit borde, filtro) || borde.distance < 0.55f)
+                if (!NavMesh.FindClosestEdge(hit.position, out NavMeshHit borde, filtro) || borde.distance < 0.12f)
                     continue;
 
                 encontroDestino = true;
