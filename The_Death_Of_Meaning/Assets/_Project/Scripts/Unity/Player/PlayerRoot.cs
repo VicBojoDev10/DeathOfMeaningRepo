@@ -16,6 +16,7 @@ using TDOM.Unity.Level;
 using TDOM.Unity.Locomotion;
 using TDOM.Unity.Settings;
 using TDOM.Unity.Vfx;
+using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
@@ -205,10 +206,6 @@ namespace TDOM.Unity.Player
         public CharacterIds CharacterId => _characterId;
         public float CostoEnergiaPendiente => _combat != null ? _combat.CostoCargaPendiente : 0f;
 
-        /// <summary>
-        /// Empujon corto hacia el frente con cada golpe de combo. El saltito vertical solo se
-        /// da en el aire: en el suelo solo avanza.
-        /// </summary>
         public void EmpujarPorCombo(float adelante, float arriba, float duracion)
         {
             if (_motor == null)
@@ -218,10 +215,6 @@ namespace TDOM.Unity.Player
             _motor.Empujar(transform.forward, adelante, enElAire ? arriba : 0f, duracion);
         }
 
-        /// <summary>
-        /// Solo servidor: empuja al jugador en la dirección horizontal dada. El motor lo mueve su
-        /// dueño, así que el servidor se lo pide por RPC.
-        /// </summary>
         public void EmpujarDesdeServidor(
             Vector3 direccion,
             float distancia,
@@ -548,6 +541,18 @@ namespace TDOM.Unity.Player
             StartCoroutine(RespawnConFundidoRutina(position, rotation));
         }
 
+        public void TeletransportarARespawnArenaDesdeServidor(Vector3 position, Quaternion rotation)
+        {
+            if (IsServer)
+                TeletransportarARespawnArenaRpc(position, rotation);
+        }
+
+        [Rpc(SendTo.Owner)]
+        private void TeletransportarARespawnArenaRpc(Vector3 position, Quaternion rotation)
+        {
+            RespawnConFundido(position, rotation);
+        }
+
         private IEnumerator RespawnConFundidoRutina(Vector3 position, Quaternion rotation)
         {
             _respawnEnCurso = true;
@@ -667,6 +672,10 @@ namespace TDOM.Unity.Player
                 _camera.CederPrioridad(cedida);
         }
 
+        public CinemachineCamera CamaraCinematica => IsOwner ? _camera?.CamaraCinematica : null;
+
+        public int PrioridadBaseCamara => _camera != null ? _camera.PrioridadBase : 0;
+
         private CharacterIds GetCharacterId()
         {
             if (_definition == null || string.IsNullOrEmpty(_definition.DisplayName))
@@ -678,7 +687,6 @@ namespace TDOM.Unity.Player
             return CharacterIds.None;
         }
 
-        // TW-116: el jefe lo llama en el servidor al entrar a una fase nueva.
         public void RestaurarEnergiaPorCambioDeFase()
         {
             if (!IsServer || _energyPool == null)
@@ -688,7 +696,6 @@ namespace TDOM.Unity.Player
             Energia.Value = _energyPool.Current;
         }
 
-        // TW-116: sacudida local por el cambio de fase del jefe.
         public void SacudidaCambioDeFase()
         {
             if (IsOwner && _feedback != null)
@@ -1008,8 +1015,6 @@ namespace TDOM.Unity.Player
             var apuntado = ResolverApuntado(transform.position, out Collider impactado);
             if (!apuntado.HasHit || impactado.GetComponentInParent<PlayerRoot>() != null)
                 return;
-
-            // Contra el jefe el gancho engancha pero corta el jalón antes de tocarlo.
             bool haciaJefe = impactado.GetComponentInParent<BossController>() != null;
             if (_locomocion.IntentarGancho(transform.position, apuntado.TargetPoint, haciaJefe))
             {
@@ -1044,8 +1049,6 @@ namespace TDOM.Unity.Player
             if (_locomocion == null || !_locomocion.GanchoActivo)
                 return;
 
-            // Reevaluar desde la posicion actual evita conservar un angulo obsoleto
-            // cuando Ayla inicia el gancho de lado o mirando en sentido contrario.
             Vector3 haciaGancho = _locomocion.PuntoGancho - transform.position;
             haciaGancho.y = 0f;
             if (haciaGancho.sqrMagnitude <= 0.001f)
@@ -1112,7 +1115,6 @@ namespace TDOM.Unity.Player
 
                 if (!_locomocion.ClimbActivo && !BloqueoAnimacionMovimiento)
                 {
-                    // Dash cancela el combo en cualquier punto (solo si el dash está disponible).
                     if (
                         _combat != null
                         && input.DashPressed
@@ -1122,7 +1124,6 @@ namespace TDOM.Unity.Player
                     )
                         _combat.CancelarMeleePorDash();
 
-                    // Salto también cancela el combo (si hay salto disponible).
                     if (
                         _combat != null
                         && input.JumpPressed
@@ -1173,10 +1174,7 @@ namespace TDOM.Unity.Player
             {
                 _aylaAnimator.SetClimbingState(_locomocion.ClimbActivo);
                 _aylaAnimator.SetSprintState(_locomocion.Corriendo);
-                // La pose del gancho dura mientras el jalon siga activo y no se ataque.
-                // Saltar cancela el gancho en la locomocion, asi que tambien la apaga.
                 _aylaAnimator.SetGanchoState(_locomocion.GanchoActivo && !AtaqueActivo);
-                // Pose del dash (y camara mas cerca) mientras dura el desplazamiento.
                 _aylaAnimator.SetDashState(_locomocion.DashActivo);
             }
             _feedback?.ActualizarZoomDash(
@@ -1351,7 +1349,6 @@ namespace TDOM.Unity.Player
             }
         }
 
-        /// <summary>Solo servidor: aplica el efecto del perfil. False si no lo necesitaba.</summary>
         public bool AplicarPowerUp(PowerUpProfile perfil)
         {
             if (perfil == null || !NecesitaPowerUp(perfil.Efecto))
