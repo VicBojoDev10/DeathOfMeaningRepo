@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 9061922124357125397}
   - component: {fileID: 3007160760147129180}
   - component: {fileID: 5014704784177351197}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: PlataformasColiseo
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -148,7 +148,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshSurface
   m_SerializedVersion: 0
   m_AgentTypeID: -334000983
-  m_CollectObjects: 0
+  m_CollectObjects: 2
   m_Size: {x: 10, y: 10, z: 10}
   m_Center: {x: 0, y: 2, z: 0}
   m_LayerMask:

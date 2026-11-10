@@ -182,13 +182,29 @@ namespace TDOM.Unity
                 _superficiePlataforma = _plataforma.gameObject.AddComponent<NavMeshSurface>();
 
             _superficiePlataforma.agentTypeID = _filtroNavMesh.agentTypeID;
+            // Children representa la jerarquía actual de esta plataforma (incluida la raíz).
             _superficiePlataforma.collectObjects = CollectObjects.Children;
             _superficiePlataforma.useGeometry = NavMeshCollectGeometry.RenderMeshes;
             int layerSniperPlataforma = LayerMask.NameToLayer("SniperPlatform");
-            if (layerSniperPlataforma >= 0 && TieneGeometriaEnLayer(layerSniperPlataforma))
-                _superficiePlataforma.layerMask = 1 << layerSniperPlataforma;
-            else
-                _superficiePlataforma.layerMask = ~0;
+            if (layerSniperPlataforma < 0)
+            {
+                Debug.LogError(
+                    $"[{nameof(SniperMinionSpawner)}] No existe la layer SniperPlatform. " +
+                    $"No se horneará la jerarquía completa para evitar incluir geometría ajena a { _plataforma.name }."
+                );
+                return false;
+            }
+
+            _superficiePlataforma.layerMask = 1 << layerSniperPlataforma;
+            if (!TieneGeometriaEnLayer(layerSniperPlataforma))
+            {
+                Debug.LogError(
+                    $"[{nameof(SniperMinionSpawner)}] No hay Renderer ni Collider en la layer SniperPlatform " +
+                    $"dentro de la jerarquía de {_plataforma.name}. Asigna esa layer a la geometría de la plataforma."
+                );
+                return false;
+            }
+
             _superficiePlataforma.minRegionArea = 0f;
             _superficiePlataforma.ignoreNavMeshAgent = true;
             _superficiePlataforma.ignoreNavMeshObstacle = true;
