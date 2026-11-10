@@ -4929,6 +4929,7 @@ GameObject:
   - component: {fileID: 7315515814886922568}
   - component: {fileID: 2640082041839070175}
   - component: {fileID: 8416501883112718312}
+  - component: {fileID: 5930865018262658876}
   m_Layer: 0
   m_Name: PlayerAyla
   m_TagString: Player
@@ -5123,6 +5124,7 @@ MonoBehaviour:
   _inputReader: {fileID: 76253369680155383}
   _grappleVisual: {fileID: 8501239841203941202}
   _vfxDash: {fileID: 0}
+  _sfxLocomocion: {fileID: 5930865018262658876}
   _vfxEmbestida: {fileID: 0}
   _destelloGolpe: {fileID: 0}
   _vfxRed: {fileID: 0}
@@ -5656,6 +5658,25 @@ MonoBehaviour:
   - {fileID: 11400000, guid: fb6cd3a37f527734da92a3f4baf663dc, type: 2}
   - {fileID: 11400000, guid: c721d315ac420d440b91739b7ed49032, type: 2}
   - {fileID: 11400000, guid: 718f6969a53c4c146bb6655513245efa, type: 2}
+  _cargaLoop: {fileID: 11400000, guid: a745e939ba8540843b414cf9e66f8dc8, type: 2}
+  _liberacionCargado: {fileID: 11400000, guid: c2eb72363b1cf0c4c90de713fdbdef90, type: 2}
+--- !u!114 &5930865018262658876
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2229917530308356307}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 123fa668c0bce2144a1762cd2206df01, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Audio.SfxLocomocion
+  _red: {fileID: 2640082041839070175}
+  _dash: {fileID: 11400000, guid: a29f991c11f66be448ea764e28b98411, type: 2}
+  _dashAire: {fileID: 11400000, guid: 599af1b48fb4dd8459afe2cec063829b, type: 2}
+  _gancho: {fileID: 11400000, guid: 2466a95074ba3c34888b40451bc1d144, type: 2}
+  _dobleSalto: {fileID: 11400000, guid: a85d6b5bf553b3b48b7a2bffffc07a31, type: 2}
 --- !u!1 &5167135693431690079
 GameObject:
   m_ObjectHideFlags: 0

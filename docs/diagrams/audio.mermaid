@@ -22,8 +22,30 @@ classDiagram
 
     class SfxCombate {
         <<MonoBehaviour>>
+        -SfxBanco _ataqueNormal
         -SfxBanco[] _golpesCombo
+        -SfxBanco _cargaLoop
+        -SfxBanco _liberacionCargado
         +Golpe(comboIndex)
+        +Carga(activa)
+        +LiberacionCargado()
+    }
+
+    class SfxLocomocion {
+        <<MonoBehaviour>>
+        -SfxBanco _dash
+        -SfxBanco _dashAire
+        -SfxBanco _gancho
+        -SfxBanco _dobleSalto
+        +Dash(enSuelo)
+        +Gancho()
+        +DobleSalto()
+    }
+
+    class SubidaIntensidadSfx {
+        <<static, POCO>>
+        +Factor(tiempo, duracion) float
+        +Interpolar(inicial, final, factor) float
     }
 
     class SfxBanco {
@@ -33,6 +55,7 @@ classDiagram
         +pitch, variacionPitch
         +retraso
         +loop
+        +duracionSubida, volumenInicialSubida, pitchInicialSubida
         +mezcla3D, distanciaMinima, distanciaMaxima, atenuacion
         +maximoVoces
     }
@@ -51,18 +74,21 @@ classDiagram
         +SfxPorIndice(indice) SfxBanco
         +ReproducirSfx(banco, posicion, seguir, emisor)
         +DetenerSfx(banco, emisor)
+        +DetenerLoopsDe(emisor)
         +SetVolume(channel, linear)
     }
 
     class VocesSfx3D {
         +Reproducir(banco, posicion, seguir, emisor)
         +Detener(banco, emisor)
+        +DetenerLoopsDe(emisor)
         +Actualizar()
     }
 
     class SfxRed {
         <<NetworkBehaviour>>
         -AudioManager _audio se guarda en OnNetworkSpawn
+        +OnNetworkDespawn() detiene sus loops
         +Reproducir(banco, posicion)
         +ReproducirEnEmisor(banco)
         +Detener(banco)
@@ -86,6 +112,10 @@ classDiagram
     VocesSfx3D ..> SfxBanco
     SfxRed ..> AudioManager : indice del banco en el catalogo
     SfxAnimacion --> SfxRed : evento de animacion, solo el owner
-    PlayerCombat --> SfxCombate : golpe del combo, solo el owner
+    PlayerCombat --> SfxCombate : golpe al arrancar su animacion, solo el owner
+    PlayerCombatAnimator ..> PlayerCombat : GolpeLigeroIniciado
     SfxCombate ..> SfxPorIndice
     SfxCombate --> SfxRed
+    VocesSfx3D ..> SubidaIntensidadSfx
+    PlayerRoot --> SfxLocomocion : eventos de locomocion, solo el owner
+    SfxLocomocion --> SfxRed

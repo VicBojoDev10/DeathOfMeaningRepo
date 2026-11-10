@@ -349,6 +349,8 @@ namespace TDOM.Unity.Audio
         public void DetenerSfx(SfxBanco banco, ulong emisor = 0) =>
             _vocesSfx?.Detener(banco, emisor);
 
+        public void DetenerLoopsDe(ulong emisor) => _vocesSfx?.DetenerLoopsDe(emisor);
+
         public float GetVolume(AudioChannel channel) =>
             PlayerPrefs.GetFloat(PrefsPrefix + channel, 1f);
 
