@@ -2,7 +2,10 @@ using UnityEngine;
 
 namespace TDOM.Data
 {
-    [CreateAssetMenu(fileName = "SniperMinionProfile", menuName = "TDOM/Boss/Sniper Minion Profile")]
+    [CreateAssetMenu(
+        fileName = "SniperMinionProfile",
+        menuName = "TDOM/Boss/Sniper Minion Profile"
+    )]
     public sealed class SniperMinionProfile : ScriptableObject
     {
         [Header("Stats (Confluence: vida 100, daño 15, disparo)")]
@@ -19,7 +22,9 @@ namespace TDOM.Data
         [Min(0f)]
         public float velocidad = 3.5f;
 
-        [Tooltip("Radio máximo de movimiento desde el punto donde apareció, dentro de su plataforma.")]
+        [Tooltip(
+            "Radio máximo de movimiento desde el punto donde apareció, dentro de su plataforma."
+        )]
         [Min(0.2f)]
         public float radioMovimiento = 0.8f;
 
@@ -66,6 +71,5 @@ namespace TDOM.Data
         [Tooltip("Segundos que tarda el cubo en encogerse antes del Despawn.")]
         [Min(0f)]
         public float duracionMuerte = 0.5f;
-
     }
 }

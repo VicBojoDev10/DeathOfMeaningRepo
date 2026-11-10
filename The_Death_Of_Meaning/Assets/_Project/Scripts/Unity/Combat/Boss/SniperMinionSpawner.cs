@@ -14,15 +14,27 @@ namespace TDOM.Unity
         private static readonly HashSet<SniperMinionSpawner> Instancias = new();
 
         [Header("Spawn")]
-        [SerializeField] private GameObject _prefabMinion;
-        [SerializeField] private float _intervaloSpawn = 12f;
-        [SerializeField] private int _maxVivos = 2;
-        [SerializeField, Min(0f)] private float _distanciaMinimaEntreSnipers = 0.65f;
+        [SerializeField]
+        private GameObject _prefabMinion;
+
+        [SerializeField]
+        private float _intervaloSpawn = 12f;
+
+        [SerializeField]
+        private int _maxVivos = 2;
+
+        [SerializeField, Min(0f)]
+        private float _distanciaMinimaEntreSnipers = 0.65f;
 
         [Header("Drops")]
-        [SerializeField] private TablaDropProfile _tablaDrop;
-        [SerializeField] private PowerUpCatalogo _catalogo;
-        [SerializeField] private GameObject _prefabPickup;
+        [SerializeField]
+        private TablaDropProfile _tablaDrop;
+
+        [SerializeField]
+        private PowerUpCatalogo _catalogo;
+
+        [SerializeField]
+        private GameObject _prefabPickup;
 
         private readonly List<SniperMinionController> _vivos = new();
         private readonly List<PowerUpPickup> _pickupsVivos = new();
@@ -51,10 +63,19 @@ namespace TDOM.Unity
 
         private void Update()
         {
-            if (!_activo || _jefe == null || NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
+            if (
+                !_activo
+                || _jefe == null
+                || NetworkManager.Singleton == null
+                || !NetworkManager.Singleton.IsServer
+            )
                 return;
 
-            if (_jefe.Pausado || PauseManager.PausadoGlobal || PauseManager.ResultadoGlobal != ResultadoPartida.EnCurso)
+            if (
+                _jefe.Pausado
+                || PauseManager.PausadoGlobal
+                || PauseManager.ResultadoGlobal != ResultadoPartida.EnCurso
+            )
                 return;
 
             _vivos.RemoveAll(minion => minion == null);
@@ -109,35 +130,43 @@ namespace TDOM.Unity
         {
             if (_prefabMinion == null)
             {
-                Debug.LogError($"[{nameof(SniperMinionSpawner)}] Falta el prefab de francotirador en {name}.");
+                Debug.LogError(
+                    $"[{nameof(SniperMinionSpawner)}] Falta el prefab de francotirador en {name}."
+                );
                 _activo = false;
                 return;
             }
 
-            SniperMinionController minionPrefab = _prefabMinion.GetComponent<SniperMinionController>();
+            SniperMinionController minionPrefab =
+                _prefabMinion.GetComponent<SniperMinionController>();
             NetworkObject networkObjectPrefab = _prefabMinion.GetComponent<NetworkObject>();
             if (minionPrefab == null || networkObjectPrefab == null)
             {
-                Debug.LogError($"[{nameof(SniperMinionSpawner)}] El prefab requiere SniperMinionController y NetworkObject.");
+                Debug.LogError(
+                    $"[{nameof(SniperMinionSpawner)}] El prefab requiere SniperMinionController y NetworkObject."
+                );
                 return;
             }
 
             PlataformaCircular plataforma = GetComponentInParent<PlataformaCircular>();
             _plataforma = plataforma != null ? plataforma.transform : transform.parent;
-            _collidersPlataforma = _plataforma != null
-                ? _plataforma.GetComponentsInChildren<Collider>()
-                : System.Array.Empty<Collider>();
+            _collidersPlataforma =
+                _plataforma != null
+                    ? _plataforma.GetComponentsInChildren<Collider>()
+                    : System.Array.Empty<Collider>();
             if (_plataforma == null || !TieneColliderDePlataforma())
             {
-                Debug.LogError($"[{nameof(SniperMinionSpawner)}] {name} debe estar dentro de una plataforma con Collider.");
+                Debug.LogError(
+                    $"[{nameof(SniperMinionSpawner)}] {name} debe estar dentro de una plataforma con Collider."
+                );
                 return;
             }
 
             if (!TryElegirPosicionSpawn(out Vector3 puntoSuperficie))
             {
                 Debug.LogWarning(
-                    $"[{nameof(SniperMinionSpawner)}] No se encontró la superficie de { _plataforma.name } cerca del spawner. " +
-                    "Comprueba que la plataforma tenga un Collider que cubra la zona caminable."
+                    $"[{nameof(SniperMinionSpawner)}] No se encontró la superficie de {_plataforma.name} cerca del spawner. "
+                        + "Comprueba que la plataforma tenga un Collider que cubra la zona caminable."
                 );
                 return;
             }
@@ -146,7 +175,11 @@ namespace TDOM.Unity
             Vector3 normal = _plataforma.forward;
             Quaternion rotacionSpawn = Quaternion.LookRotation(_plataforma.up, normal);
             float altura = ObtenerAlturaPrefab(normal, rotacionSpawn);
-            GameObject instancia = Instantiate(_prefabMinion, puntoSuperficie + normal * altura, rotacionSpawn);
+            GameObject instancia = Instantiate(
+                _prefabMinion,
+                puntoSuperficie + normal * altura,
+                rotacionSpawn
+            );
             SniperMinionController minion = instancia.GetComponent<SniperMinionController>();
             NetworkObject networkObject = instancia.GetComponent<NetworkObject>();
             minion.ConfigurarPlataforma(_plataforma, _collidersPlataforma, puntoSuperficie, altura);
@@ -165,9 +198,10 @@ namespace TDOM.Unity
 
         private bool TryElegirPosicionSpawn(out Vector3 puntoSuperficie)
         {
-            SniperMinionProfile perfil = _prefabMinion != null
-                ? _prefabMinion.GetComponent<SniperMinionController>()?.Perfil
-                : null;
+            SniperMinionProfile perfil =
+                _prefabMinion != null
+                    ? _prefabMinion.GetComponent<SniperMinionController>()?.Perfil
+                    : null;
             float radio = perfil != null ? Mathf.Clamp(perfil.radioSpawn, 0.25f, 0.8f) : 0.5f;
 
             for (int intento = 0; intento < 32; intento++)
@@ -179,8 +213,10 @@ namespace TDOM.Unity
                     candidato += _plataforma.right * aleatorio.x + _plataforma.up * aleatorio.y;
                 }
 
-                if (TryProyectarEnPlataforma(candidato, out puntoSuperficie)
-                    && TieneEspacioParaSpawn(puntoSuperficie))
+                if (
+                    TryProyectarEnPlataforma(candidato, out puntoSuperficie)
+                    && TieneEspacioParaSpawn(puntoSuperficie)
+                )
                     return true;
             }
 
@@ -203,7 +239,13 @@ namespace TDOM.Unity
                 float distanciaRayo = Mathf.Max(5f, collider.bounds.extents.magnitude * 2f + 2f);
                 Vector3 arriba = candidato + normal * distanciaRayo;
                 Vector3 abajo = candidato - normal * distanciaRayo;
-                if (collider.Raycast(new Ray(arriba, -normal), out RaycastHit hitArriba, distanciaRayo * 2f))
+                if (
+                    collider.Raycast(
+                        new Ray(arriba, -normal),
+                        out RaycastHit hitArriba,
+                        distanciaRayo * 2f
+                    )
+                )
                 {
                     float distancia = (hitArriba.point - candidato).sqrMagnitude;
                     if (distancia < distanciaMasCercana)
@@ -213,7 +255,13 @@ namespace TDOM.Unity
                         encontro = true;
                     }
                 }
-                if (collider.Raycast(new Ray(abajo, normal), out RaycastHit hitAbajo, distanciaRayo * 2f))
+                if (
+                    collider.Raycast(
+                        new Ray(abajo, normal),
+                        out RaycastHit hitAbajo,
+                        distanciaRayo * 2f
+                    )
+                )
                 {
                     float distancia = (hitAbajo.point - candidato).sqrMagnitude;
                     if (distancia < distanciaMasCercana)
@@ -233,7 +281,9 @@ namespace TDOM.Unity
             if (NetworkManager.Singleton == null || NetworkManager.Singleton.SpawnManager == null)
                 return true;
 
-            foreach (NetworkObject objeto in NetworkManager.Singleton.SpawnManager.SpawnedObjectsList)
+            foreach (
+                NetworkObject objeto in NetworkManager.Singleton.SpawnManager.SpawnedObjectsList
+            )
             {
                 if (objeto == null || !objeto.TryGetComponent(out SniperMinionController sniper))
                     continue;
@@ -244,7 +294,10 @@ namespace TDOM.Unity
                     sniper.transform.position - puntoSuperficie,
                     _plataforma.forward
                 );
-                if (separacionEnPlano.sqrMagnitude < _distanciaMinimaEntreSnipers * _distanciaMinimaEntreSnipers)
+                if (
+                    separacionEnPlano.sqrMagnitude
+                    < _distanciaMinimaEntreSnipers * _distanciaMinimaEntreSnipers
+                )
                     return false;
             }
 
@@ -279,9 +332,10 @@ namespace TDOM.Unity
 
             float[] pesos = new float[_tablaDrop.Entradas.Length];
             for (int i = 0; i < pesos.Length; i++)
-                pesos[i] = _catalogo.IndiceDe(_tablaDrop.Entradas[i].Perfil) >= 0
-                    ? _tablaDrop.Entradas[i].Peso
-                    : 0f;
+                pesos[i] =
+                    _catalogo.IndiceDe(_tablaDrop.Entradas[i].Perfil) >= 0
+                        ? _tablaDrop.Entradas[i].Peso
+                        : 0f;
 
             _reglaDrop = new ReglaDropPowerUp(
                 _tablaDrop.ProbabilidadDrop,
@@ -319,7 +373,9 @@ namespace TDOM.Unity
             NetworkObject networkObject = instancia.GetComponent<NetworkObject>();
             if (pickup == null || networkObject == null)
             {
-                Debug.LogError($"[{nameof(SniperMinionSpawner)}] El prefab de pickup requiere PowerUpPickup y NetworkObject.");
+                Debug.LogError(
+                    $"[{nameof(SniperMinionSpawner)}] El prefab de pickup requiere PowerUpPickup y NetworkObject."
+                );
                 Destroy(instancia);
                 return;
             }
@@ -348,7 +404,8 @@ namespace TDOM.Unity
 
         private void Limpiar()
         {
-            bool puedeDespawnear = NetworkManager.Singleton != null && !NetworkManager.Singleton.ShutdownInProgress;
+            bool puedeDespawnear =
+                NetworkManager.Singleton != null && !NetworkManager.Singleton.ShutdownInProgress;
             foreach (SniperMinionController minion in _vivos.ToArray())
             {
                 if (minion == null)

@@ -90,7 +90,9 @@ namespace TDOM.Unity.Combat
                         if (!jugador.EstaAbatidoOMuerto)
                         {
                             jugador.AplicarDanioEnServidor(_daño);
-                            Debug.Log($"[Proyectil] Daño de {_daño:F1} aplicado al jugador {jugador.OwnerClientId}.");
+                            Debug.Log(
+                                $"[Proyectil] Daño de {_daño:F1} aplicado al jugador {jugador.OwnerClientId}."
+                            );
                         }
                         DespawnProyectil();
                         return;
@@ -102,7 +104,9 @@ namespace TDOM.Unity.Combat
 
                 if (_dañaJugador)
                 {
-                    Debug.Log($"[Proyectil enemigo] Impactó con {hit.collider.name}, sin PlayerRoot.");
+                    Debug.Log(
+                        $"[Proyectil enemigo] Impactó con {hit.collider.name}, sin PlayerRoot."
+                    );
                     DespawnProyectil();
                     return;
                 }
@@ -186,7 +190,8 @@ namespace TDOM.Unity.Combat
 
         private static bool EsParteDe(Transform objetivo, Transform raizIgnorada)
         {
-            return raizIgnorada != null && (objetivo == raizIgnorada || objetivo.IsChildOf(raizIgnorada));
+            return raizIgnorada != null
+                && (objetivo == raizIgnorada || objetivo.IsChildOf(raizIgnorada));
         }
 
         private void LanzarVfxImpacto(VfxBase efecto, RaycastHit hit)

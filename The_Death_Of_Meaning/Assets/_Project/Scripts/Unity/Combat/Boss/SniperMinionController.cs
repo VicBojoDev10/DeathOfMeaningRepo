@@ -7,7 +7,6 @@ using Unity.Netcode;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-
 namespace TDOM.Unity
 {
     [RequireComponent(typeof(HitZone))]
@@ -89,17 +88,25 @@ namespace TDOM.Unity
         {
             if (_perfil == null)
             {
-                Debug.LogError("[SniperMinionController] Falta asignar SniperMinionProfile en el prefab.");
+                Debug.LogError(
+                    "[SniperMinionController] Falta asignar SniperMinionProfile en el prefab."
+                );
                 return;
             }
 
             if (_prefabBala == null)
-                Debug.LogError("[SniperMinionController] Asigna el prefab de bala en el inspector.");
+                Debug.LogError(
+                    "[SniperMinionController] Asigna el prefab de bala en el inspector."
+                );
 
             if (!IsServer)
                 return;
 
-            if (_plataforma == null || _collidersPlataforma == null || _collidersPlataforma.Length == 0)
+            if (
+                _plataforma == null
+                || _collidersPlataforma == null
+                || _collidersPlataforma.Length == 0
+            )
             {
                 Debug.LogError("[SniperMinionController] Falta la plataforma o sus colliders.");
                 return;
@@ -156,7 +163,8 @@ namespace TDOM.Unity
             // La posición se calcula siempre desde el ancla local: el minion acompaña
             // traslación y rotación de la plataforma incluso cuando espera su siguiente paso.
             Vector3 ancla = _plataforma.TransformPoint(_anclaLocalPlataforma);
-            Vector3 candidato = ancla
+            Vector3 candidato =
+                ancla
                 + _plataforma.right * _desplazamientoActual.x
                 + _plataforma.up * _desplazamientoActual.y;
             if (!TryProyectarEnPlataforma(candidato, out Vector3 superficie))
@@ -179,7 +187,8 @@ namespace TDOM.Unity
                 {
                     Vector2 destino = Random.insideUnitCircle * radio;
                     Vector3 ancla = _plataforma.TransformPoint(_anclaLocalPlataforma);
-                    Vector3 candidato = ancla + _plataforma.right * destino.x + _plataforma.up * destino.y;
+                    Vector3 candidato =
+                        ancla + _plataforma.right * destino.x + _plataforma.up * destino.y;
                     if (!TryProyectarEnPlataforma(candidato, out _))
                         continue;
                     _desplazamientoDestino = destino;
@@ -213,10 +222,34 @@ namespace TDOM.Unity
                 float distanciaRayo = Mathf.Max(5f, collider.bounds.extents.magnitude * 2f + 2f);
                 Vector3 arriba = candidato + normal * distanciaRayo;
                 Vector3 abajo = candidato - normal * distanciaRayo;
-                if (collider.Raycast(new Ray(arriba, -normal), out RaycastHit hitArriba, distanciaRayo * 2f))
-                    ConsiderarHit(hitArriba, candidato, ref distanciaMasCercana, ref puntoSuperficie, ref encontro);
-                if (collider.Raycast(new Ray(abajo, normal), out RaycastHit hitAbajo, distanciaRayo * 2f))
-                    ConsiderarHit(hitAbajo, candidato, ref distanciaMasCercana, ref puntoSuperficie, ref encontro);
+                if (
+                    collider.Raycast(
+                        new Ray(arriba, -normal),
+                        out RaycastHit hitArriba,
+                        distanciaRayo * 2f
+                    )
+                )
+                    ConsiderarHit(
+                        hitArriba,
+                        candidato,
+                        ref distanciaMasCercana,
+                        ref puntoSuperficie,
+                        ref encontro
+                    );
+                if (
+                    collider.Raycast(
+                        new Ray(abajo, normal),
+                        out RaycastHit hitAbajo,
+                        distanciaRayo * 2f
+                    )
+                )
+                    ConsiderarHit(
+                        hitAbajo,
+                        candidato,
+                        ref distanciaMasCercana,
+                        ref puntoSuperficie,
+                        ref encontro
+                    );
             }
 
             return encontro;
@@ -270,7 +303,9 @@ namespace TDOM.Unity
             NetworkObject networkObject = bala.GetComponent<NetworkObject>();
             if (proyectil == null || networkObject == null)
             {
-                Debug.LogError("[SniperMinionController] El prefab de bala necesita Proyectil y NetworkObject.");
+                Debug.LogError(
+                    "[SniperMinionController] El prefab de bala necesita Proyectil y NetworkObject."
+                );
                 Destroy(bala);
                 return;
             }
@@ -340,6 +375,5 @@ namespace TDOM.Unity
 
             _visual.localScale = Vector3.zero;
         }
-
     }
 }
