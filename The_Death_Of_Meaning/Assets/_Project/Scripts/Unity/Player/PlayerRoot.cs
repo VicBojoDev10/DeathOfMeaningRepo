@@ -1024,6 +1024,8 @@ namespace TDOM.Unity.Player
                 _camera.PunchFov(8f, 0.2f);
                 _feedback?.RegistrarAccionCamara(0.2f);
                 LanzarVfxGancho();
+                if (_sfxLocomocion != null)
+                    _sfxLocomocion.Gancho();
             }
         }
 
