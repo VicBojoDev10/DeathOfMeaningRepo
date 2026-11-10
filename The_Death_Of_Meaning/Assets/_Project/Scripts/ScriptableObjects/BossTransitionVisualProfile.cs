@@ -11,6 +11,14 @@ namespace TDOM.POCO.ScriptableObjects
         public AnimationCurve MezclaColor = new AnimationCurve();
         public AnimationCurve OpacidadOnda = new AnimationCurve();
         public AnimationCurve ExpansionOnda = new AnimationCurve();
+        public AnimationCurve TrazoRuna = new AnimationCurve();
+        public AnimationCurve OpacidadRuna = new AnimationCurve();
+
+        [Min(0f)]
+        public float RadioRuna;
+
+        [Min(0f)]
+        public float IntensidadRuna;
 
         [Min(0f)]
         public float IntensidadContorno;

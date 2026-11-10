@@ -46,7 +46,7 @@ namespace TDOM.Unity.Combat
         public static void DejarDeObservarJefe(Action<BossController> alAparecer) =>
             Spawned -= alAparecer;
 
-        private static bool TryEncontrarSpawneado(NetworkManager red, out BossController jefe)
+        internal static bool TryEncontrarSpawneado(NetworkManager red, out BossController jefe)
         {
             jefe = null;
             if (red == null || red.SpawnManager == null)
@@ -139,6 +139,7 @@ namespace TDOM.Unity.Combat
             ProgresoTransicionVisual.SinPausa
         );
         private bool _mostrandoTransicionVisual;
+        private float _progresoCinematica = ProgresoTransicionVisual.SinPausa;
 
         private static readonly int IdColorBase = Shader.PropertyToID("_BaseColor");
         private static readonly int IdColorEmision = Shader.PropertyToID("_EmissionColor");
@@ -221,6 +222,7 @@ namespace TDOM.Unity.Combat
         {
             _transicionVisual?.Ocultar();
             _mostrandoTransicionVisual = false;
+            _progresoCinematica = ProgresoTransicionVisual.SinPausa;
             Despawned?.Invoke(this);
             Fase.OnValueChanged -= HandleFaseChanged;
 
@@ -245,6 +247,7 @@ namespace TDOM.Unity.Combat
 
         private void HandleFaseChanged(int anterior, int actual)
         {
+            _progresoCinematica = ProgresoTransicionVisual.SinPausa;
             Debug.Log($"[BossController] Fase cambió de {anterior} a {actual}");
             AplicarColorFase(actual);
             OnFaseChanged?.Invoke(anterior, actual);
@@ -444,7 +447,8 @@ namespace TDOM.Unity.Combat
             var perfil = PerfilDeFase(Fase.Value);
             if (
                 !_transicionVisual.Corresponde(Fase.Value)
-                || _finTransicionVisual.Value <= 0d
+                || _progresoCinematica >= 1f
+                || (_finTransicionVisual.Value <= 0d && _progresoCinematica < 0f)
                 || perfil == null
             )
             {
@@ -455,12 +459,15 @@ namespace TDOM.Unity.Combat
                 return;
             }
 
-            float progreso = ProgresoTransicionVisual.Calcular(
-                _finTransicionVisual.Value,
-                NetworkManager.ServerTime.Time,
-                _restanteVisualEnPausa.Value,
-                perfil.DuracionTransicion
-            );
+            float progreso =
+                _progresoCinematica >= 0f
+                    ? _progresoCinematica
+                    : ProgresoTransicionVisual.Calcular(
+                        _finTransicionVisual.Value,
+                        NetworkManager.ServerTime.Time,
+                        _restanteVisualEnPausa.Value,
+                        perfil.DuracionTransicion
+                    );
             var anterior = PerfilDeFase(Fase.Value - 1);
             Color color = Color.Lerp(
                 anterior != null ? anterior.ColorFase : perfil.ColorFase,
@@ -471,6 +478,18 @@ namespace TDOM.Unity.Combat
                 material.SetColor(IdColorBase, color);
             _transicionVisual.Mostrar(progreso, perfil.DuracionTransicion, perfil.ColorFase);
             _mostrandoTransicionVisual = true;
+        }
+
+        public void MostrarTransicionCinematica(float progreso) =>
+            _progresoCinematica = Mathf.Clamp01(progreso);
+
+        public void TerminarTransicionCinematica()
+        {
+            _progresoCinematica = 1f;
+            _transicionVisual?.Ocultar();
+            AplicarColorFase(Fase.Value);
+            if (IsServer && _maquina != null)
+                _maquina.Tick(_maquina.TiempoTransicionRestante);
         }
 
         public void RegistrarDanioEnZona(int index, float cantidad)

@@ -17,12 +17,16 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private Renderer _onda;
 
+        [SerializeField]
+        private Renderer _runa;
+
         private static readonly int IdRimColor = Shader.PropertyToID("_RimColor");
         private static readonly int IdAlpha = Shader.PropertyToID("_GeneralAlpha");
         private static readonly int IdShake = Shader.PropertyToID("_ShakeBlend");
         private static readonly int IdDisplacement = Shader.PropertyToID("_ShakeMaxDisplacement");
         private static readonly int IdTime = Shader.PropertyToID("_TimingSeed");
         private static readonly int IdColor = Shader.PropertyToID("_Color");
+        private static readonly int IdFade = Shader.PropertyToID("_FadeAmount");
         private MaterialPropertyBlock _bloque;
         private bool _visible;
 
@@ -73,6 +77,22 @@ namespace TDOM.Unity.Combat
             _bloque.SetColor(IdColor, color * _perfil.IntensidadContorno);
             _bloque.SetFloat(IdAlpha, opacidad);
             _onda.SetPropertyBlock(_bloque);
+            MostrarRuna(progreso, color);
+        }
+
+        private void MostrarRuna(float progreso, Color color)
+        {
+            if (_runa == null)
+                return;
+
+            float opacidad = Mathf.Clamp01(_perfil.OpacidadRuna.Evaluate(progreso));
+            _runa.enabled = opacidad > 0f;
+            _runa.transform.localScale = Vector3.one * _perfil.RadioRuna;
+            _bloque.Clear();
+            _bloque.SetColor(IdColor, color * _perfil.IntensidadRuna);
+            _bloque.SetFloat(IdAlpha, opacidad);
+            _bloque.SetFloat(IdFade, 1f - Mathf.Clamp01(_perfil.TrazoRuna.Evaluate(progreso)));
+            _runa.SetPropertyBlock(_bloque);
         }
 
         private float DesplazamientoLocal(float escala) =>
@@ -86,6 +106,8 @@ namespace TDOM.Unity.Combat
                 contorno.enabled = false;
             if (_onda != null)
                 _onda.enabled = false;
+            if (_runa != null)
+                _runa.enabled = false;
             _visible = false;
         }
 

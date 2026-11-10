@@ -23,6 +23,7 @@ namespace TDOM.Unity.Flow
         }
 
         private const string PrefijoCinematicaDeFase = "fase_";
+        private const string IdFaseTres = "fase_3";
         private const float AlphaTransparente = 0f;
         private const float AlphaNegro = 1f;
         private const float AnchoPanelDebug = 200f;
@@ -54,6 +55,9 @@ namespace TDOM.Unity.Flow
         [Header("Jefe")]
         [SerializeField]
         private bool _reproducirEnCambioDeFase;
+
+        [SerializeField]
+        private Transform _encuadreFaseTres;
 
         [Header("Debug")]
         [SerializeField]
@@ -102,6 +106,11 @@ namespace TDOM.Unity.Flow
         private void Update()
         {
             _flujo.Tick(Time.deltaTime);
+
+            if (_reproduciendo && _flujo.IdActual == IdFaseTres && _directorActual != null)
+                _jefe?.MostrarTransicionCinematica(
+                    (float)(_directorActual.time / _directorActual.duration)
+                );
 
             if (IsServer && !string.IsNullOrEmpty(_cinematicaPendiente) && EnGameplay)
             {
@@ -154,6 +163,16 @@ namespace TDOM.Unity.Flow
             }
 
             _salidaActual?.Cancelar();
+            if (
+                id == IdFaseTres
+                && BossController.TryEncontrarSpawneado(NetworkManager, out var jefe)
+            )
+            {
+                _jefe = jefe;
+                if (_encuadreFaseTres != null)
+                    _encuadreFaseTres.position = jefe.transform.position;
+                jefe.MostrarTransicionCinematica(0f);
+            }
             _directorActual = entrada.Director;
             _directorActual.Stop();
             _directorActual.time = 0d;
@@ -167,6 +186,8 @@ namespace TDOM.Unity.Flow
         [Rpc(SendTo.ClientsAndHost)]
         private void TerminarRpc()
         {
+            if (_flujo.IdActual == IdFaseTres)
+                _jefe?.TerminarTransicionCinematica();
             _reproduciendo = false;
             _flujo.TerminarCinematica();
         }
@@ -216,7 +237,10 @@ namespace TDOM.Unity.Flow
             _flujo.RetenerTransicion();
             try
             {
-                if (_flujo.IdActual == "fase_2" && JugadorLocal()?.CamaraCinematica != null)
+                if (
+                    (_flujo.IdActual == "fase_2" || _flujo.IdActual == IdFaseTres)
+                    && JugadorLocal()?.CamaraCinematica != null
+                )
                     yield return RutinaSalidaACamaraJugador();
                 else if (_salidaActual != null)
                     yield return _salidaActual.Salir();
@@ -336,6 +360,7 @@ namespace TDOM.Unity.Flow
             {
                 "prueba" => indice == 0 ? "CamCinematicaPrueba" : "CamCinematicaJugadores",
                 "fase_2" => indice == 0 ? "CamFaseCerca" : "CamFaseLejos",
+                IdFaseTres => indice == 0 ? "CamFase3Runa" : "CamFase3Imponente",
                 _ => string.Empty,
             };
 
