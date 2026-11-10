@@ -80,6 +80,7 @@ GameObject:
   - component: {fileID: 2886936978579731612}
   - component: {fileID: 180704491247187337}
   - component: {fileID: 2922711178879512338}
+  - component: {fileID: 7114874718699065429}
   m_Layer: 0
   m_Name: PlayerZendre
   m_TagString: Player
@@ -634,6 +635,20 @@ MonoBehaviour:
   _vfxRed: {fileID: 180704491247187337}
   _efecto: {fileID: 475906867551664951, guid: 5f11582ba348b4f41953cbbc28869482, type: 3}
   _impacto: {fileID: 4555537441307799462, guid: 11d0a12913721fa41912de58f22f6d7f, type: 3}
+--- !u!114 &7114874718699065429
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5125041952874771469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58a3eaae9be465f45849f13202458f94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Audio.SfxRed
+  ShowTopMostFoldoutHeaderGroup: 1
+  _sfxPrueba: {fileID: 0}
 --- !u!1 &5152080394067024196
 GameObject:
   m_ObjectHideFlags: 0
