@@ -30,6 +30,13 @@ classDiagram
         +LiberacionCargado()
     }
 
+    class SfxLocomocion {
+        <<MonoBehaviour>>
+        -SfxBanco _dash
+        -SfxBanco _dashAire
+        +Dash(enSuelo)
+    }
+
     class SubidaIntensidadSfx {
         <<static, POCO>>
         +Factor(tiempo, duracion) float
@@ -104,3 +111,5 @@ classDiagram
     SfxCombate ..> SfxPorIndice
     SfxCombate --> SfxRed
     VocesSfx3D ..> SubidaIntensidadSfx
+    PlayerRoot --> SfxLocomocion : eventos de locomocion, solo el owner
+    SfxLocomocion --> SfxRed
