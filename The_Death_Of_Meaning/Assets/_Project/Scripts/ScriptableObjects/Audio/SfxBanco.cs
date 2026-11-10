@@ -24,6 +24,15 @@ namespace TDOM.Data
 
         public bool loop;
 
+        [Min(0f)]
+        public float duracionSubida;
+
+        [Range(0f, 1f)]
+        public float volumenInicialSubida = 0.3f;
+
+        [Range(0.1f, 3f)]
+        public float pitchInicialSubida = 0.8f;
+
         [Range(0f, 1f)]
         public float mezcla3D = 1f;
 

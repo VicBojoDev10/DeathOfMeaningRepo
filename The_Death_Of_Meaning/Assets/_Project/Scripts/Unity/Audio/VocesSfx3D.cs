@@ -16,6 +16,8 @@ namespace TDOM.Unity.Audio
             public Transform Seguir;
             public ulong Emisor;
             public float Inicio;
+            public float VolumenBase;
+            public float PitchBase;
 
             public bool Ocupada => Fuente != null && Fuente.isPlaying;
         }
@@ -57,6 +59,9 @@ namespace TDOM.Unity.Audio
             voz.Fuente.transform.position = seguir != null ? seguir.position : posicion;
 
             Configurar(voz.Fuente, banco, banco.clips[indiceClip]);
+            voz.VolumenBase = voz.Fuente.volume;
+            voz.PitchBase = voz.Fuente.pitch;
+            Subir(banco, voz);
             voz.Fuente.PlayDelayed(banco.retraso);
         }
 
@@ -75,12 +80,34 @@ namespace TDOM.Unity.Audio
             }
         }
 
+        public void DetenerLoopsDe(ulong emisor)
+        {
+            foreach (KeyValuePair<SfxBanco, List<Voz>> par in _vocesPorBanco)
+            {
+                if (!par.Key.loop)
+                    continue;
+
+                foreach (Voz voz in par.Value)
+                {
+                    if (voz.Emisor != emisor)
+                        continue;
+
+                    voz.Fuente.Stop();
+                    voz.Seguir = null;
+                }
+            }
+        }
+
         public void Actualizar()
         {
-            foreach (List<Voz> voces in _vocesPorBanco.Values)
+            foreach (KeyValuePair<SfxBanco, List<Voz>> par in _vocesPorBanco)
             {
-                foreach (Voz voz in voces)
+                foreach (Voz voz in par.Value)
+                {
                     Seguir(voz);
+                    if (voz.Ocupada)
+                        Subir(par.Key, voz);
+                }
             }
         }
 
@@ -96,6 +123,23 @@ namespace TDOM.Unity.Audio
             }
 
             voz.Fuente.transform.position = voz.Seguir.position;
+        }
+
+        private static void Subir(SfxBanco banco, Voz voz)
+        {
+            if (banco.duracionSubida <= 0f)
+                return;
+
+            float tiempo = Time.unscaledTime - voz.Inicio - banco.retraso;
+            float factor = SubidaIntensidadSfx.Factor(tiempo, banco.duracionSubida);
+            voz.Fuente.volume =
+                voz.VolumenBase
+                * SubidaIntensidadSfx.Interpolar(banco.volumenInicialSubida, 1f, factor);
+            voz.Fuente.pitch = SubidaIntensidadSfx.Interpolar(
+                banco.pitchInicialSubida,
+                voz.PitchBase,
+                factor
+            );
         }
 
         private int UltimoClip(SfxBanco banco) =>
