@@ -17,6 +17,9 @@ namespace TDOM.Unity.Audio
         [SerializeField]
         private SfxBanco _gancho;
 
+        [SerializeField]
+        private SfxBanco _dobleSalto;
+
         private void Awake()
         {
             if (_red == null)
@@ -27,6 +30,8 @@ namespace TDOM.Unity.Audio
             ReproducirSiExiste(enSuelo || _dashAire == null ? _dash : _dashAire);
 
         public void Gancho() => ReproducirSiExiste(_gancho);
+
+        public void DobleSalto() => ReproducirSiExiste(_dobleSalto);
 
         private void ReproducirSiExiste(SfxBanco banco)
         {

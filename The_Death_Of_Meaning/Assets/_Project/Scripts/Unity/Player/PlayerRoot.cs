@@ -1242,6 +1242,8 @@ namespace TDOM.Unity.Player
                 _aylaAnimator.IniciarDobleSalto();
             if (_locomocion.SaltoAereo && _characterId == CharacterIds.Ayla)
                 LanzarVfxDobleSalto();
+            if (_locomocion.SaltoAereo && _sfxLocomocion != null)
+                _sfxLocomocion.DobleSalto();
             if (_locomocion.DashIniciado)
             {
                 if (_characterId == CharacterIds.Zendre)
