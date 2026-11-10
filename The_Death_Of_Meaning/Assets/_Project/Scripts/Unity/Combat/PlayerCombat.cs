@@ -428,6 +428,7 @@ namespace TDOM.Unity.Combat
             {
                 _combatAnimator.ImpactoGiros += AlImpactoGiro;
                 _combatAnimator.SecuenciaGirosTerminada += AlTerminarGiros;
+                _combatAnimator.GolpeLigeroIniciado += OnGolpeLigeroIniciado;
             }
 
             if (_definition != null && _definition.Ranged != null)
@@ -448,6 +449,7 @@ namespace TDOM.Unity.Combat
             {
                 _combatAnimator.ImpactoGiros -= AlImpactoGiro;
                 _combatAnimator.SecuenciaGirosTerminada -= AlTerminarGiros;
+                _combatAnimator.GolpeLigeroIniciado -= OnGolpeLigeroIniciado;
             }
             base.OnNetworkDespawn();
         }
@@ -783,7 +785,13 @@ namespace TDOM.Unity.Combat
 
             if (cargado)
                 _sfx.LiberacionCargado();
-            else
+            else if (_combatAnimator == null)
+                _sfx.Golpe(comboIndex);
+        }
+
+        private void OnGolpeLigeroIniciado(int comboIndex)
+        {
+            if (IsOwner && _sfx != null)
                 _sfx.Golpe(comboIndex);
         }
 

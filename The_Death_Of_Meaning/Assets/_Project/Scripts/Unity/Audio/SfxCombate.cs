@@ -10,6 +10,9 @@ namespace TDOM.Unity.Audio
         private SfxRed _red;
 
         [SerializeField]
+        private SfxBanco _ataqueNormal;
+
+        [SerializeField]
         private SfxBanco[] _golpesCombo = new SfxBanco[0];
 
         [SerializeField]
@@ -26,7 +29,12 @@ namespace TDOM.Unity.Audio
                 _red = GetComponentInParent<SfxRed>();
         }
 
-        public void Golpe(int comboIndex) => ReproducirDe(_golpesCombo, comboIndex);
+        public void Golpe(int comboIndex)
+        {
+            int elegido = SfxPorIndice.Elegir(comboIndex, _golpesCombo.Length);
+            bool hayCombo = elegido != SfxPorIndice.SinSfx && _golpesCombo[elegido] != null;
+            ReproducirSiExiste(hayCombo ? _golpesCombo[elegido] : _ataqueNormal);
+        }
 
         public void Carga(bool activa)
         {
@@ -43,15 +51,13 @@ namespace TDOM.Unity.Audio
         public void LiberacionCargado()
         {
             Carga(false);
-            if (_red != null && _liberacionCargado != null)
-                _red.ReproducirEnEmisor(_liberacionCargado);
+            ReproducirSiExiste(_liberacionCargado);
         }
 
-        private void ReproducirDe(SfxBanco[] bancos, int indice)
+        private void ReproducirSiExiste(SfxBanco banco)
         {
-            int elegido = SfxPorIndice.Elegir(indice, bancos.Length);
-            if (_red != null && elegido != SfxPorIndice.SinSfx)
-                _red.ReproducirEnEmisor(bancos[elegido]);
+            if (_red != null && banco != null)
+                _red.ReproducirEnEmisor(banco);
         }
     }
 }

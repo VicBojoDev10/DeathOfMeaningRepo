@@ -144,6 +144,8 @@ namespace TDOM.Unity.Combat
         /// <summary>La secuencia de giros termino sola (no se dispara al cancelarla).</summary>
         public event Action SecuenciaGirosTerminada;
 
+        public event Action<int> GolpeLigeroIniciado;
+
         /// <summary>Animacion que sale de un cargado precedido de estos golpes basicos.</summary>
         public SalidaCargada SalidaCargadaPara(int ligerosPrevios)
         {
@@ -297,6 +299,9 @@ namespace TDOM.Unity.Combat
             _hasPendingCombo = false;
             _pendingEspejoBasico = false;
             _pendingRetardo = 0f;
+
+            if (!charged)
+                GolpeLigeroIniciado?.Invoke(comboIndex);
 
             _espejoDeseado = _pendingEspejo;
             DetenerGiros();

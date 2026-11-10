@@ -81,6 +81,7 @@ GameObject:
   - component: {fileID: 180704491247187337}
   - component: {fileID: 2922711178879512338}
   - component: {fileID: 7114874718699065429}
+  - component: {fileID: 8024801250871442147}
   m_Layer: 0
   m_Name: PlayerZendre
   m_TagString: Player
@@ -273,6 +274,7 @@ MonoBehaviour:
   _inputReader: {fileID: 4485191308997266209}
   _grappleVisual: {fileID: 0}
   _vfxDash: {fileID: 0}
+  _sfxLocomocion: {fileID: 0}
   _vfxEmbestida: {fileID: 0}
   _destelloGolpe: {fileID: 0}
   _vfxRed: {fileID: 0}
@@ -332,6 +334,7 @@ MonoBehaviour:
   _feedback: {fileID: 7054898957245270891}
   _debugFeedback: {fileID: 3869141073335305693}
   _vfx: {fileID: 6087383552892531074}
+  _sfx: {fileID: 8024801250871442147}
   _vfxRed: {fileID: 180704491247187337}
   _vfxGolpeLigero: {fileID: 8337503244343293207, guid: 08d72c306c3b8874eaed6937f723b172, type: 3}
   _origenVfxGolpeLigero: {fileID: 0}
@@ -649,6 +652,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Audio.SfxRed
   ShowTopMostFoldoutHeaderGroup: 1
   _sfxPrueba: {fileID: 0}
+--- !u!114 &8024801250871442147
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5125041952874771469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 644f9504bdf17f542a2cf7b06a8332d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Audio.SfxCombate
+  _red: {fileID: 7114874718699065429}
+  _ataqueNormal: {fileID: 11400000, guid: 205825b219c1157479bcc2bb37d41fab, type: 2}
+  _golpesCombo: []
+  _cargaLoop: {fileID: 0}
+  _liberacionCargado: {fileID: 0}
 --- !u!1 &5152080394067024196
 GameObject:
   m_ObjectHideFlags: 0
