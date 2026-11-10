@@ -431,15 +431,20 @@ namespace TDOM.Unity.Combat
             int triggerHash = Animator.StringToHash(trigger);
             foreach (var parametro in animator.parameters)
             {
-                if (parametro.nameHash != triggerHash
-                    || parametro.type != AnimatorControllerParameterType.Trigger)
+                if (
+                    parametro.nameHash != triggerHash
+                    || parametro.type != AnimatorControllerParameterType.Trigger
+                )
                     continue;
 
                 animator.SetTrigger(triggerHash);
                 return;
             }
 
-            Debug.LogWarning($"[BossController] El Animator del jefe no tiene el trigger '{trigger}'.", animator);
+            Debug.LogWarning(
+                $"[BossController] El Animator del jefe no tiene el trigger '{trigger}'.",
+                animator
+            );
         }
 
         [Rpc(SendTo.ClientsAndHost)]
