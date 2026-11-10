@@ -383,10 +383,12 @@ namespace TDOM.Unity.Combat
             foreach (var jugador in _jugadores)
             {
                 Vector3 diferencia = jugador.transform.position - transform.position;
-                if (diferencia.magnitude > radio) continue;
+                diferencia.y = 0f;
+                if (diferencia.magnitude > radio)
+                    continue;
+
                 if (_perfilReaccionRush.danio > 0f)
                     jugador.AplicarDanioEnServidor(_perfilReaccionRush.danio);
-                diferencia.y = 0f;
                 if (diferencia.sqrMagnitude < 0.0001f) diferencia = transform.forward;
                 jugador.EmpujarDesdeServidor(diferencia, _perfilReaccionRush.distanciaEmpuje,
                     _perfilReaccionRush.alturaEmpuje, _perfilReaccionRush.duracionEmpuje);
