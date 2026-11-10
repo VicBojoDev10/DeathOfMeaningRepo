@@ -12,6 +12,14 @@ namespace TDOM.Unity.Audio
         [SerializeField]
         private SfxBanco[] _golpesCombo = new SfxBanco[0];
 
+        [SerializeField]
+        private SfxBanco _cargaLoop;
+
+        [SerializeField]
+        private SfxBanco _liberacionCargado;
+
+        private bool _cargando;
+
         private void Awake()
         {
             if (_red == null)
@@ -19,6 +27,25 @@ namespace TDOM.Unity.Audio
         }
 
         public void Golpe(int comboIndex) => ReproducirDe(_golpesCombo, comboIndex);
+
+        public void Carga(bool activa)
+        {
+            if (_red == null || _cargaLoop == null || activa == _cargando)
+                return;
+
+            _cargando = activa;
+            if (activa)
+                _red.ReproducirEnEmisor(_cargaLoop);
+            else
+                _red.Detener(_cargaLoop);
+        }
+
+        public void LiberacionCargado()
+        {
+            Carga(false);
+            if (_red != null && _liberacionCargado != null)
+                _red.ReproducirEnEmisor(_liberacionCargado);
+        }
 
         private void ReproducirDe(SfxBanco[] bancos, int indice)
         {

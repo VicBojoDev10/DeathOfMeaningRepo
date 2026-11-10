@@ -23,7 +23,17 @@ classDiagram
     class SfxCombate {
         <<MonoBehaviour>>
         -SfxBanco[] _golpesCombo
+        -SfxBanco _cargaLoop
+        -SfxBanco _liberacionCargado
         +Golpe(comboIndex)
+        +Carga(activa)
+        +LiberacionCargado()
+    }
+
+    class SubidaIntensidadSfx {
+        <<static, POCO>>
+        +Factor(tiempo, duracion) float
+        +Interpolar(inicial, final, factor) float
     }
 
     class SfxBanco {
@@ -33,6 +43,7 @@ classDiagram
         +pitch, variacionPitch
         +retraso
         +loop
+        +duracionSubida, volumenInicialSubida, pitchInicialSubida
         +mezcla3D, distanciaMinima, distanciaMaxima, atenuacion
         +maximoVoces
     }
@@ -51,18 +62,21 @@ classDiagram
         +SfxPorIndice(indice) SfxBanco
         +ReproducirSfx(banco, posicion, seguir, emisor)
         +DetenerSfx(banco, emisor)
+        +DetenerLoopsDe(emisor)
         +SetVolume(channel, linear)
     }
 
     class VocesSfx3D {
         +Reproducir(banco, posicion, seguir, emisor)
         +Detener(banco, emisor)
+        +DetenerLoopsDe(emisor)
         +Actualizar()
     }
 
     class SfxRed {
         <<NetworkBehaviour>>
         -AudioManager _audio se guarda en OnNetworkSpawn
+        +OnNetworkDespawn() detiene sus loops
         +Reproducir(banco, posicion)
         +ReproducirEnEmisor(banco)
         +Detener(banco)
@@ -89,3 +103,4 @@ classDiagram
     PlayerCombat --> SfxCombate : golpe del combo, solo el owner
     SfxCombate ..> SfxPorIndice
     SfxCombate --> SfxRed
+    VocesSfx3D ..> SubidaIntensidadSfx
