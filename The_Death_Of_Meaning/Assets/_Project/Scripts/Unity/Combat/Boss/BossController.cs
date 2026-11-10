@@ -121,7 +121,9 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private AtaquesArek _ataques;
         private BossAttackScheduler _scheduler;
-        [SerializeField] private ReaccionRushProfile _perfilReaccionRush;
+
+        [SerializeField]
+        private ReaccionRushProfile _perfilReaccionRush;
         private RegistroDanioVentana _registroRush;
         private float _cooldownRush;
         private float _tiempoReaccionRush;
@@ -262,9 +264,18 @@ namespace TDOM.Unity.Combat
 
             Debug.Log($"[BossController] Daño recibido: {cantidad:F1} ({porcentajeDanio:P2})");
 
-            if (_perfilReaccionRush != null && _registroRush != null && _cooldownRush <= 0f
-                && _registroRush.Registrar(cantidad, Time.time, _perfilReaccionRush.ventanaSegundos,
-                    _vidaMaxima, _perfilReaccionRush.porcentajeVida))
+            if (
+                _perfilReaccionRush != null
+                && _registroRush != null
+                && _cooldownRush <= 0f
+                && _registroRush.Registrar(
+                    cantidad,
+                    Time.time,
+                    _perfilReaccionRush.ventanaSegundos,
+                    _vidaMaxima,
+                    _perfilReaccionRush.porcentajeVida
+                )
+            )
             {
                 IniciarReaccionRush();
             }
@@ -331,11 +342,17 @@ namespace TDOM.Unity.Combat
             if (!IsServer || _scheduler == null || Pausado)
                 return;
 
-            if (_cooldownRush > 0f) _cooldownRush = Mathf.Max(0f, _cooldownRush - Time.deltaTime);
+            if (_cooldownRush > 0f)
+                _cooldownRush = Mathf.Max(0f, _cooldownRush - Time.deltaTime);
             if (_tiempoReaccionRush > 0f)
             {
                 _tiempoReaccionRush = Mathf.Max(0f, _tiempoReaccionRush - Time.deltaTime);
-                ServerMovementTick?.Invoke(Time.deltaTime, Fase.Value, false, _scheduler.AtaqueActual);
+                ServerMovementTick?.Invoke(
+                    Time.deltaTime,
+                    Fase.Value,
+                    false,
+                    _scheduler.AtaqueActual
+                );
                 return;
             }
 
@@ -377,7 +394,8 @@ namespace TDOM.Unity.Combat
             _scheduler.Interrumpir(0f);
             ReaccionRushRpc();
 
-            if (_ataques == null) return;
+            if (_ataques == null)
+                return;
             _ataques.ListarJugadores(_jugadores);
             float radio = Mathf.Max(0f, _perfilReaccionRush.radio);
             foreach (var jugador in _jugadores)
@@ -389,9 +407,14 @@ namespace TDOM.Unity.Combat
 
                 if (_perfilReaccionRush.danio > 0f)
                     jugador.AplicarDanioEnServidor(_perfilReaccionRush.danio);
-                if (diferencia.sqrMagnitude < 0.0001f) diferencia = transform.forward;
-                jugador.EmpujarDesdeServidor(diferencia, _perfilReaccionRush.distanciaEmpuje,
-                    _perfilReaccionRush.alturaEmpuje, _perfilReaccionRush.duracionEmpuje);
+                if (diferencia.sqrMagnitude < 0.0001f)
+                    diferencia = transform.forward;
+                jugador.EmpujarDesdeServidor(
+                    diferencia,
+                    _perfilReaccionRush.distanciaEmpuje,
+                    _perfilReaccionRush.alturaEmpuje,
+                    _perfilReaccionRush.duracionEmpuje
+                );
             }
         }
 
@@ -399,9 +422,13 @@ namespace TDOM.Unity.Combat
         private void ReaccionRushRpc()
         {
             var animator = GetComponentInChildren<Animator>();
-            if (animator == null) return;
-            string trigger = _perfilReaccionRush != null ? _perfilReaccionRush.triggerAnimator : "ReaccionRush";
-            animator.SetTrigger(string.IsNullOrEmpty(trigger) ? ReaccionRushId : Animator.StringToHash(trigger));
+            if (animator == null)
+                return;
+            string trigger =
+                _perfilReaccionRush != null ? _perfilReaccionRush.triggerAnimator : "ReaccionRush";
+            animator.SetTrigger(
+                string.IsNullOrEmpty(trigger) ? ReaccionRushId : Animator.StringToHash(trigger)
+            );
         }
 
         [Rpc(SendTo.ClientsAndHost)]

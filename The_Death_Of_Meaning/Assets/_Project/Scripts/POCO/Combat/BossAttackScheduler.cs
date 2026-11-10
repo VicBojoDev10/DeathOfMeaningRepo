@@ -54,6 +54,7 @@ namespace TDOM.Gameplay.Combat
 
         private float DuracionEtapaActual =>
             _enTelegraph ? _duracionTelegraph : _cooldownEntreAtaques;
+
         public EventoAtaque Tick(float dt, out BossAttackKind ataque)
         {
             if (dt > 0f)
@@ -85,6 +86,7 @@ namespace TDOM.Gameplay.Combat
             _tiempo = 0f;
             _enTelegraph = false;
         }
+
         public void Interrumpir(float espera)
         {
             _tiempo = Math.Max(0f, espera);
