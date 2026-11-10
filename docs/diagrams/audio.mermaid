@@ -14,6 +14,18 @@ classDiagram
         +Elegir(ocupadas, inicios, maximo) int
     }
 
+    class SfxPorIndice {
+        <<static, POCO>>
+        +SinSfx
+        +Elegir(indice, cantidad) int
+    }
+
+    class SfxCombate {
+        <<MonoBehaviour>>
+        -SfxBanco[] _golpesCombo
+        +Golpe(comboIndex)
+    }
+
     class SfxBanco {
         <<ScriptableObject>>
         +clips
@@ -74,3 +86,6 @@ classDiagram
     VocesSfx3D ..> SfxBanco
     SfxRed ..> AudioManager : indice del banco en el catalogo
     SfxAnimacion --> SfxRed : evento de animacion, solo el owner
+    PlayerCombat --> SfxCombate : golpe del combo, solo el owner
+    SfxCombate ..> SfxPorIndice
+    SfxCombate --> SfxRed
