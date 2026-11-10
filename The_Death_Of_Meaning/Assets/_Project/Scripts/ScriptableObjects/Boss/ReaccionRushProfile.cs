@@ -31,6 +31,6 @@ namespace TDOM.POCO.ScriptableObjects
 
         [Min(0.1f)]
         public float duracionReaccion = 1.2f;
-        public string triggerAnimator = "ReaccionRush";
+        public string triggerAnimator = "Mano";
     }
 }

@@ -127,7 +127,6 @@ namespace TDOM.Unity.Combat
         private RegistroDanioVentana _registroRush;
         private float _cooldownRush;
         private float _tiempoReaccionRush;
-        private static readonly int ReaccionRushId = Animator.StringToHash("ReaccionRush");
         private int _indiceEnFase;
 
         [Header("Visual por fase")]
@@ -425,10 +424,22 @@ namespace TDOM.Unity.Combat
             if (animator == null)
                 return;
             string trigger =
-                _perfilReaccionRush != null ? _perfilReaccionRush.triggerAnimator : "ReaccionRush";
-            animator.SetTrigger(
-                string.IsNullOrEmpty(trigger) ? ReaccionRushId : Animator.StringToHash(trigger)
-            );
+                _perfilReaccionRush != null ? _perfilReaccionRush.triggerAnimator : "Mano";
+            if (string.IsNullOrWhiteSpace(trigger))
+                trigger = "Mano";
+
+            int triggerHash = Animator.StringToHash(trigger);
+            foreach (var parametro in animator.parameters)
+            {
+                if (parametro.nameHash != triggerHash
+                    || parametro.type != AnimatorControllerParameterType.Trigger)
+                    continue;
+
+                animator.SetTrigger(triggerHash);
+                return;
+            }
+
+            Debug.LogWarning($"[BossController] El Animator del jefe no tiene el trigger '{trigger}'.", animator);
         }
 
         [Rpc(SendTo.ClientsAndHost)]
