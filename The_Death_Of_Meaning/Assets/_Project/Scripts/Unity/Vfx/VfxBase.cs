@@ -1,4 +1,3 @@
-using System;
 using TDOM.Data;
 using TDOM.Gameplay.Vfx;
 using UnityEngine;
@@ -26,8 +25,6 @@ namespace TDOM.Unity.Vfx
         private bool _deteniendo;
 
         public abstract VfxProfile Perfil { get; }
-
-        public event Action<VfxBase> Terminado;
 
         public bool Activo { get; private set; }
         public float Tiempo { get; private set; }
@@ -254,7 +251,6 @@ namespace TDOM.Unity.Vfx
             Activo = false;
             _deteniendo = false;
             gameObject.SetActive(false);
-            Terminado?.Invoke(this);
         }
 
         private void OnDrawGizmosSelected()
