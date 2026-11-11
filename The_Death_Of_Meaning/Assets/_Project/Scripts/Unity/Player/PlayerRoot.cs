@@ -1358,6 +1358,9 @@ namespace TDOM.Unity.Player
             if (EstaAbatidoOMuerto)
                 return;
 
+            // El servidor conserva la referencia autoritativa al NetworkObject del ancla.
+            // La RPC siguiente limpia también el estado y los VFX del cliente dueño.
+            _anchorLauncher?.CancelarPorGolpe();
             InterrumpirAccionesPorGolpeRpc();
             if (Time.time < _siguienteRetrocesoJefe)
                 return;
