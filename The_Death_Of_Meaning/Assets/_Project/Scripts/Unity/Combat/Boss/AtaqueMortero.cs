@@ -340,7 +340,11 @@ namespace TDOM.Unity
                         continue;
 
                     Debug.Log($"[AREK][Mortero] golpeó a cliente {id}");
-                    damageable.RecibirDanio(_perfil.Dano, _perfil.EsInstaKill);
+                    var jugador = colisionador.GetComponentInParent<PlayerRoot>();
+                    if (jugador != null)
+                        jugador.RecibirDanioDelJefe(_perfil.Dano, punto, _perfil.EsInstaKill);
+                    else
+                        damageable.RecibirDanio(_perfil.Dano, _perfil.EsInstaKill);
                     if (netObj != null)
                         JugadorGolpeadoRpc(RpcTarget.Single(id, RpcTargetUse.Temp));
                 }

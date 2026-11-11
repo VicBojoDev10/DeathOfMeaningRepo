@@ -230,7 +230,7 @@ namespace TDOM.Unity
                 Debug.Log(
                     $"[Minion {NetworkObjectId}] golpe {_golpeDelCombo} a cliente {jugador.OwnerClientId} ({_perfil.danio:F0} de daño)"
                 );
-                jugador.AplicarDanioEnServidor(_perfil.danio);
+                jugador.RecibirDanioDelJefe(_perfil.danio, centro);
                 JugadorGolpeadoRpc(RpcTarget.Single(jugador.OwnerClientId, RpcTargetUse.Temp));
                 conecto = true;
             }
