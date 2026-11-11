@@ -28,6 +28,9 @@ namespace TDOM.Unity.Combat
         private float _daño;
         private ulong _atacanteId;
         private bool _atacanteEsAyla;
+        private bool _dañaJugador;
+        private Transform _plataformaIgnorada;
+        private Transform _emisorIgnorado;
         private float _tiempoVida;
 
         public float Velocidad => _velocidad;
@@ -41,13 +44,19 @@ namespace TDOM.Unity.Combat
             Vector3 dir,
             float daño,
             ulong atacanteId,
-            bool atacanteEsAyla = false
+            bool atacanteEsAyla = false,
+            bool dañaJugador = false,
+            Transform plataformaIgnorada = null,
+            Transform emisorIgnorado = null
         )
         {
             _direccion = dir.sqrMagnitude > 0.0001f ? dir.normalized : transform.forward;
             _daño = daño;
             _atacanteId = atacanteId;
             _atacanteEsAyla = atacanteEsAyla;
+            _dañaJugador = dañaJugador;
+            _plataformaIgnorada = plataformaIgnorada;
+            _emisorIgnorado = emisorIgnorado;
             _tiempoVida = 0f;
         }
 
@@ -68,22 +77,37 @@ namespace TDOM.Unity.Combat
             Vector3 pos = transform.position;
             Vector3 paso = _direccion * (_velocidad * dt);
             float distancia = paso.magnitude;
+            RaycastHit hit = default;
+            bool encontroImpacto = distancia > 0f && TryEncontrarImpacto(pos, distancia, out hit);
 
-            if (
-                distancia > 0f
-                && Physics.SphereCast(
-                    pos,
-                    _radio,
-                    _direccion,
-                    out RaycastHit hit,
-                    distancia,
-                    _capas
-                )
-            )
+            if (encontroImpacto)
             {
-                if (hit.collider.GetComponentInParent<PlayerRoot>() != null)
+                PlayerRoot jugador = hit.collider.GetComponentInParent<PlayerRoot>();
+                if (jugador != null)
                 {
+                    if (_dañaJugador)
+                    {
+                        if (!jugador.EstaAbatidoOMuerto)
+                        {
+                            jugador.AplicarDanioEnServidor(_daño);
+                            Debug.Log(
+                                $"[Proyectil] Daño de {_daño:F1} aplicado al jugador {jugador.OwnerClientId}."
+                            );
+                        }
+                        DespawnProyectil();
+                        return;
+                    }
+
                     transform.position = pos + paso;
+                    return;
+                }
+
+                if (_dañaJugador)
+                {
+                    Debug.Log(
+                        $"[Proyectil enemigo] Impactó con {hit.collider.name}, sin PlayerRoot."
+                    );
+                    DespawnProyectil();
                     return;
                 }
 
@@ -117,6 +141,57 @@ namespace TDOM.Unity.Combat
             }
 
             transform.position = pos + paso;
+        }
+
+        private bool TryEncontrarImpacto(Vector3 posicion, float distancia, out RaycastHit impacto)
+        {
+            impacto = default;
+            if (!_dañaJugador)
+            {
+                return Physics.SphereCast(
+                    posicion,
+                    _radio,
+                    _direccion,
+                    out impacto,
+                    distancia,
+                    _capas
+                );
+            }
+
+            RaycastHit[] impactos = Physics.SphereCastAll(
+                posicion,
+                _radio,
+                _direccion,
+                distancia,
+                ~(1 << 2),
+                QueryTriggerInteraction.Ignore
+            );
+            float distanciaMasCercana = float.MaxValue;
+            bool encontro = false;
+            foreach (RaycastHit hit in impactos)
+            {
+                if (hit.collider == null || EsImpactoIgnorado(hit.collider.transform))
+                    continue;
+                if (hit.distance >= distanciaMasCercana)
+                    continue;
+
+                impacto = hit;
+                distanciaMasCercana = hit.distance;
+                encontro = true;
+            }
+
+            return encontro;
+        }
+
+        private bool EsImpactoIgnorado(Transform objetivo)
+        {
+            return EsParteDe(objetivo, _plataformaIgnorada) || EsParteDe(objetivo, _emisorIgnorado);
+        }
+
+        private static bool EsParteDe(Transform objetivo, Transform raizIgnorada)
+        {
+            return raizIgnorada != null
+                && (objetivo == raizIgnorada || objetivo.IsChildOf(raizIgnorada));
         }
 
         private void LanzarVfxImpacto(VfxBase efecto, RaycastHit hit)

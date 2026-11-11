@@ -119,167 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &26893727
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 26893733}
-  - component: {fileID: 26893732}
-  - component: {fileID: 26893731}
-  - component: {fileID: 26893730}
-  - component: {fileID: 26893728}
-  - component: {fileID: 26893729}
-  m_Layer: 6
-  m_Name: Cube
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &26893728
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 26893727}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3727049539
-  InScenePlacedSourceGlobalObjectIdHash: 0
-  m_InScenePlacedDisabledByDefault: 0
-  DeferredDespawnTick: 0
-  Ownership: 1
-  AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
-  m_InScenePlaced: 1
-  ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 0
-  SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
-  SyncOwnerTransformWhenParented: 1
-  AllowOwnerToParent: 0
---- !u!114 &26893729
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 26893727}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d71a8f936e4b476eb3210abcf31a2902, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.HitZone
-  ShowTopMostFoldoutHeaderGroup: 1
-  _zoneIndex: 0
-  _zoneName: Eye
-  DanioAcumulado:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
---- !u!65 &26893730
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 26893727}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!23 &26893731
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 26893727}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_MaskInteraction: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &26893732
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 26893727}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!4 &26893733
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 26893727}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 123.61, y: 29.69, z: 1.74}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &30788409
 GameObject:
   m_ObjectHideFlags: 0
@@ -658,8 +497,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 63864440}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.025839435, y: 0.68932074, z: -0.024616143, w: 0.7235767}
-  m_LocalPosition: {x: 5.8716316, y: 12.67712, z: 0.19739151}
+  m_LocalRotation: {x: 0.08001122, y: -0.67420167, z: 0.0738472, w: 0.7304773}
+  m_LocalPosition: {x: 15.700001, y: -3.8077126, z: 1.4000001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -687,6 +526,57 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!1 &94214086
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 94214087}
+  - component: {fileID: 94214088}
+  m_Layer: 0
+  m_Name: SniperMiniomsSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &94214087
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 94214086}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.0041, y: 0.004, z: 0.0049}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 933984027}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &94214088
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 94214086}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 208b1c40a445a3945889ff487793ebbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.SniperMinionSpawner
+  _prefabMinion: {fileID: 8802607873738733211, guid: ad30c28dc7628d849910010102a0f8ce, type: 3}
+  _intervaloSpawn: 40
+  _maxVivos: 2
+  _distanciaMinimaEntreSnipers: 0.65
+  _tablaDrop: {fileID: 11400000, guid: f95d0a8d51284481952843b3d003df4a, type: 2}
+  _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
+  _prefabPickup: {fileID: 5000000000000001, guid: 7ae2df0a15144145bd7e6931db29bcce, type: 3}
 --- !u!1 &110558757
 GameObject:
   m_ObjectHideFlags: 0
@@ -1149,6 +1039,57 @@ Transform:
   m_Children: []
   m_Father: {fileID: 225381495}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &390053847
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 390053848}
+  - component: {fileID: 390053849}
+  m_Layer: 0
+  m_Name: SniperMiniomsSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &390053848
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 390053847}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.00421, y: 0.00538, z: 0.0051}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1618003804}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &390053849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 390053847}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 208b1c40a445a3945889ff487793ebbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.SniperMinionSpawner
+  _prefabMinion: {fileID: 8802607873738733211, guid: ad30c28dc7628d849910010102a0f8ce, type: 3}
+  _intervaloSpawn: 60
+  _maxVivos: 1
+  _distanciaMinimaEntreSnipers: 0.65
+  _tablaDrop: {fileID: 11400000, guid: f95d0a8d51284481952843b3d003df4a, type: 2}
+  _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
+  _prefabPickup: {fileID: 5000000000000001, guid: 7ae2df0a15144145bd7e6931db29bcce, type: 3}
 --- !u!1 &453334999
 GameObject:
   m_ObjectHideFlags: 0
@@ -1320,6 +1261,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlataformasColiseo (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 5014704784177351197, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      propertyPath: m_NavMeshData
+      value: 
+      objectReference: {fileID: 23800000, guid: 10e28f55f3afb4843a75249b77fa5392, type: 2}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: radius
       value: 57.6
@@ -1334,13 +1279,21 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: angularVelocity
-      value: 15
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 6723181135681617, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1459004243}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+--- !u!4 &472926402 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6723181135681617, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+  m_PrefabInstance: {fileID: 472926401}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &571431184
 GameObject:
   m_ObjectHideFlags: 0
@@ -1758,7 +1711,7 @@ MonoBehaviour:
   m_Center: {x: 0, y: 2, z: 0}
   m_LayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 119
   m_UseGeometry: 0
   m_DefaultArea: 0
   m_GenerateLinks: 0
@@ -2058,6 +2011,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5014704784177351197, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      propertyPath: m_NavMeshData
+      value: 
+      objectReference: {fileID: 23800000, guid: 8cee2823393f999488f68f61e2474983, type: 2}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: sense
       value: -1
@@ -2080,13 +2037,21 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: angularVelocity
-      value: 13
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 6723181135681617, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1924703165}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+--- !u!4 &882578741 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6723181135681617, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+  m_PrefabInstance: {fileID: 882578740}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &890906199
 GameObject:
   m_ObjectHideFlags: 0
@@ -2174,6 +2139,14 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5014704784177351197, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      propertyPath: m_NavMeshData
+      value: 
+      objectReference: {fileID: 23800000, guid: 0c942eb39c2072f4ca375ee96a3242b0, type: 2}
+    - target: {fileID: 5014704784177351197, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      propertyPath: m_CollectObjects
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: sense
       value: -1
@@ -2192,13 +2165,21 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: angularVelocity
-      value: 18
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 6723181135681617, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 94214087}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+--- !u!4 &933984027 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6723181135681617, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+  m_PrefabInstance: {fileID: 933984026}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1040823277
 GameObject:
   m_ObjectHideFlags: 0
@@ -2230,6 +2211,57 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1060912621
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1060912622}
+  - component: {fileID: 1060912623}
+  m_Layer: 0
+  m_Name: SniperMiniomsSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1060912622
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1060912621}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.0037, y: 0.0051, z: 0.0064}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8847288376934426754}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1060912623
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1060912621}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 208b1c40a445a3945889ff487793ebbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.SniperMinionSpawner
+  _prefabMinion: {fileID: 8802607873738733211, guid: ad30c28dc7628d849910010102a0f8ce, type: 3}
+  _intervaloSpawn: 10
+  _maxVivos: 1
+  _distanciaMinimaEntreSnipers: 0.65
+  _tablaDrop: {fileID: 11400000, guid: f95d0a8d51284481952843b3d003df4a, type: 2}
+  _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
+  _prefabPickup: {fileID: 5000000000000001, guid: 7ae2df0a15144145bd7e6931db29bcce, type: 3}
 --- !u!1 &1075050568
 GameObject:
   m_ObjectHideFlags: 0
@@ -2955,6 +2987,57 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1117280042}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+--- !u!1 &1459004242
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1459004243}
+  - component: {fileID: 1459004244}
+  m_Layer: 0
+  m_Name: SniperMiniomsSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1459004243
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1459004242}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.00582, y: 0.0034, z: 0.0051}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 472926402}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1459004244
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1459004242}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 208b1c40a445a3945889ff487793ebbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.SniperMinionSpawner
+  _prefabMinion: {fileID: 8802607873738733211, guid: ad30c28dc7628d849910010102a0f8ce, type: 3}
+  _intervaloSpawn: 10
+  _maxVivos: 2
+  _distanciaMinimaEntreSnipers: 0.65
+  _tablaDrop: {fileID: 11400000, guid: f95d0a8d51284481952843b3d003df4a, type: 2}
+  _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
+  _prefabPickup: {fileID: 5000000000000001, guid: 7ae2df0a15144145bd7e6931db29bcce, type: 3}
 --- !u!1 &1474567682
 GameObject:
   m_ObjectHideFlags: 0
@@ -3073,6 +3156,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5014704784177351197, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      propertyPath: m_NavMeshData
+      value: 
+      objectReference: {fileID: 23800000, guid: ea3939dbd876b194f87559492fd8e786, type: 2}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: radius
       value: 63.2
@@ -3087,13 +3174,21 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: angularVelocity
-      value: 18
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 6723181135681617, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1650629113}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+--- !u!4 &1493421126 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6723181135681617, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+  m_PrefabInstance: {fileID: 1493421125}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1528219138
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3146,6 +3241,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlataformasColiseo (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 5014704784177351197, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      propertyPath: m_NavMeshData
+      value: 
+      objectReference: {fileID: 23800000, guid: 1075e50d4df2e0a4595c803c8d6088ce, type: 2}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: sense
       value: -1
@@ -3164,13 +3263,21 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: angularVelocity
-      value: 13
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 6723181135681617, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1642350994}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+--- !u!4 &1528219139 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6723181135681617, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+  m_PrefabInstance: {fileID: 1528219138}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1618003803
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3227,6 +3334,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5014704784177351197, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      propertyPath: m_NavMeshData
+      value: 
+      objectReference: {fileID: 23800000, guid: b3b48af0ff139c34abd7902f4c1ef44b, type: 2}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: radius
       value: 32
@@ -3241,13 +3352,21 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: angularVelocity
-      value: 15
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 6723181135681617, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 390053848}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+--- !u!4 &1618003804 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6723181135681617, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+  m_PrefabInstance: {fileID: 1618003803}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1633586670
 GameObject:
   m_ObjectHideFlags: 0
@@ -3355,6 +3474,108 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1642350993
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1642350994}
+  - component: {fileID: 1642350995}
+  m_Layer: 0
+  m_Name: SniperMiniomsSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1642350994
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1642350993}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.0059, y: 0.0056, z: 0.0111}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1528219139}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1642350995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1642350993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 208b1c40a445a3945889ff487793ebbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.SniperMinionSpawner
+  _prefabMinion: {fileID: 8802607873738733211, guid: ad30c28dc7628d849910010102a0f8ce, type: 3}
+  _intervaloSpawn: 15
+  _maxVivos: 1
+  _distanciaMinimaEntreSnipers: 0.65
+  _tablaDrop: {fileID: 11400000, guid: f95d0a8d51284481952843b3d003df4a, type: 2}
+  _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
+  _prefabPickup: {fileID: 5000000000000001, guid: 7ae2df0a15144145bd7e6931db29bcce, type: 3}
+--- !u!1 &1650629112
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1650629113}
+  - component: {fileID: 1650629114}
+  m_Layer: 0
+  m_Name: SniperMinimosSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1650629113
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1650629112}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.0116, y: 0.00745, z: 0.00536}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1493421126}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1650629114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1650629112}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 208b1c40a445a3945889ff487793ebbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.SniperMinionSpawner
+  _prefabMinion: {fileID: 8802607873738733211, guid: ad30c28dc7628d849910010102a0f8ce, type: 3}
+  _intervaloSpawn: 80
+  _maxVivos: 2
+  _distanciaMinimaEntreSnipers: 0.65
+  _tablaDrop: {fileID: 11400000, guid: f95d0a8d51284481952843b3d003df4a, type: 2}
+  _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
+  _prefabPickup: {fileID: 5000000000000001, guid: 7ae2df0a15144145bd7e6931db29bcce, type: 3}
 --- !u!1 &1714317134
 GameObject:
   m_ObjectHideFlags: 0
@@ -3600,6 +3821,57 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1924703164
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1924703165}
+  - component: {fileID: 1924703166}
+  m_Layer: 0
+  m_Name: SniperMiniomsSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1924703165
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1924703164}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.0045, y: 0.00497, z: 0.0046}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 882578741}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1924703166
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1924703164}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 208b1c40a445a3945889ff487793ebbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.SniperMinionSpawner
+  _prefabMinion: {fileID: 8802607873738733211, guid: ad30c28dc7628d849910010102a0f8ce, type: 3}
+  _intervaloSpawn: 30
+  _maxVivos: 1
+  _distanciaMinimaEntreSnipers: 0.65
+  _tablaDrop: {fileID: 11400000, guid: f95d0a8d51284481952843b3d003df4a, type: 2}
+  _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
+  _prefabPickup: {fileID: 5000000000000001, guid: 7ae2df0a15144145bd7e6931db29bcce, type: 3}
 --- !u!1 &1925544215
 GameObject:
   m_ObjectHideFlags: 0
@@ -8891,19 +9163,31 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlataformasColiseo
       objectReference: {fileID: 0}
+    - target: {fileID: 5014704784177351197, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      propertyPath: m_NavMeshData
+      value: 
+      objectReference: {fileID: 23800000, guid: 0e7fa680ee38532419b684ffd48c1c10, type: 2}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: centerArena
       value: 
       objectReference: {fileID: 453335000}
     - target: {fileID: 9061922124357125397, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
       propertyPath: angularVelocity
-      value: 18
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 6723181135681617, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1060912622}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+--- !u!4 &8847288376934426754 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6723181135681617, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+  m_PrefabInstance: {fileID: 8847288376934426753}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -8914,7 +9198,6 @@ SceneRoots:
   - {fileID: 1890281990}
   - {fileID: 1075050571}
   - {fileID: 1117280042}
-  - {fileID: 26893733}
   - {fileID: 5405297533655853679}
   - {fileID: 3443063804820025216}
   - {fileID: 85802601234731314}
