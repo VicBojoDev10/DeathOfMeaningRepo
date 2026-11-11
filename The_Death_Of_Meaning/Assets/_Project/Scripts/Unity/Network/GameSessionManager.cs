@@ -471,6 +471,7 @@ namespace TDOM.Unity
             }
 
             spawner?.LimpiarTodos();
+            SniperMinionSpawner.LimpiarTodos();
         }
 
         public void PrepararSalidaAlMenu() => _cerrandoSesionPorSalida = true;
