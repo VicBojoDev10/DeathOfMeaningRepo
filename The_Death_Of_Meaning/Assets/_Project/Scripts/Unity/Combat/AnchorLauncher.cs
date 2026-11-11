@@ -2,6 +2,7 @@ using TDOM.Data;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Input;
 using TDOM.Unity.Player;
+using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -26,8 +27,15 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private GameObject _anclaPrefab;
 
+        [SerializeField]
+        private VfxRed _vfxRed;
+
+        [SerializeField]
+        private VfxBase _vfxAncla;
+
         private bool _esperandoSoltar;
         private bool _incapacitado;
+        private VfxDisparoSostenido _vfxAnclaSostenido;
 
         public void EstablecerIncapacitado(bool incapacitado)
         {
@@ -37,6 +45,8 @@ namespace TDOM.Unity.Combat
 
             AnclaActiva = false;
             _esperandoSoltar = true;
+            if (IsOwner)
+                DetenerVfxAncla();
             if (IsServer)
                 DespawnearAncla();
         }
@@ -52,12 +62,16 @@ namespace TDOM.Unity.Combat
         public void RegistrarAncla(Ancla ancla)
         {
             AnclaActual = ancla;
+            if (_vfxAnclaSostenido != null)
+                _vfxAnclaSostenido.Apuntar(ancla != null ? ancla.transform : null);
         }
 
         public void NotificarDespawnAncla(bool conecto)
         {
             AnclaActiva = false;
             _esperandoSoltar = true;
+            if (IsOwner)
+                DetenerVfxAncla();
             if (!conecto && IsOwner && _cooldown != null)
                 _cooldown.Recortar(_perfil.FactorCooldownSinConectar);
         }
@@ -66,6 +80,22 @@ namespace TDOM.Unity.Combat
         {
             if (_perfil != null)
                 _cooldown = new CooldownTimer(_perfil.Cooldown);
+
+            PrepararVfxAncla();
+        }
+
+        private void PrepararVfxAncla()
+        {
+            if (_vfxRed == null)
+                _vfxRed = GetComponentInParent<VfxRed>();
+
+            VfxPool pool = _vfxRed != null ? _vfxRed.Pool : null;
+            if (pool == null || _vfxAncla == null)
+                return;
+
+            _vfxAnclaSostenido = pool.Pedir(pool.Indice(_vfxAncla)) as VfxDisparoSostenido;
+            if (_vfxAnclaSostenido != null)
+                _vfxAnclaSostenido.Seguir(_origen);
         }
 
         private void Update()
@@ -89,10 +119,9 @@ namespace TDOM.Unity.Combat
             {
                 _cooldown.Disparar();
                 AnclaActiva = true;
-                LanzarAnclaRpc(
-                    _origen.position,
-                    _root.ResolverApuntado(_origen.position).Direction
-                );
+                var direccion = _root.ResolverApuntado(_origen.position).Direction;
+                LanzarAnclaRpc(_origen.position, direccion);
+                LanzarVfxAncla(direccion);
             }
             else if (AnclaActiva && !holdingL2R1)
             {
@@ -104,6 +133,20 @@ namespace TDOM.Unity.Combat
             {
                 _esperandoSoltar = false;
             }
+        }
+
+        private void LanzarVfxAncla(Vector3 direccion)
+        {
+            if (_vfxRed == null || _vfxAncla == null || direccion == Vector3.zero)
+                return;
+
+            _vfxRed.Lanzar(_vfxAncla, _origen.position, Quaternion.LookRotation(direccion));
+        }
+
+        private void DetenerVfxAncla()
+        {
+            if (_vfxRed != null && _vfxAncla != null)
+                _vfxRed.Detener(_vfxAncla);
         }
 
         [Rpc(SendTo.Server)]
@@ -128,7 +171,8 @@ namespace TDOM.Unity.Combat
                 return;
             }
 
-            var go = Instantiate(_anclaPrefab, origen, Quaternion.identity);
+            var rotacion = dir != Vector3.zero ? Quaternion.LookRotation(dir) : Quaternion.identity;
+            var go = Instantiate(_anclaPrefab, origen, rotacion);
             var ancla = go.GetComponent<Ancla>();
 
             if (ancla != null)
@@ -162,6 +206,7 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.Owner)]
         private void RechazarLanzamientoRpc()
         {
+            DetenerVfxAncla();
             if (_cooldown != null)
             {
                 _cooldown.Resetear();

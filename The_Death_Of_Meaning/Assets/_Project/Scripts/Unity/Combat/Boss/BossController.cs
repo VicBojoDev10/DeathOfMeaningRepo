@@ -34,6 +34,7 @@ namespace TDOM.Unity.Combat
         public string Nombre => _identidad != null ? _identidad.Nombre : string.Empty;
 
         public static event Action<BossController> Spawned;
+        public static event Action<BossController> Despawned;
 
         public static void ObservarJefe(NetworkManager red, Action<BossController> alAparecer)
         {
@@ -61,6 +62,9 @@ namespace TDOM.Unity.Combat
         }
 
         public event Action<int, int> OnFaseChanged;
+
+        /// <summary>Evento autoritativo: la fase cambió por el flujo de daño del servidor.</summary>
+        public event Action<int, int> FaseIniciadaEnServidor;
 
         /// <summary>Tick de movimiento emitido solo por el servidor para BossMovement.</summary>
         public event Action<float, int, bool, BossAttackKind> ServerMovementTick;
@@ -205,6 +209,7 @@ namespace TDOM.Unity.Combat
 
         public override void OnNetworkDespawn()
         {
+            Despawned?.Invoke(this);
             Fase.OnValueChanged -= HandleFaseChanged;
 
             if (_maquina != null)
@@ -260,7 +265,9 @@ namespace TDOM.Unity.Combat
 
         private void EntrarAFase(int nuevaFase)
         {
+            int faseAnterior = Fase.Value;
             CambiarFase(nuevaFase);
+            FaseIniciadaEnServidor?.Invoke(faseAnterior, nuevaFase);
             _indiceEnFase = 0;
             RestaurarEnergiaJugadores();
             CambioDeFaseRpc(nuevaFase);

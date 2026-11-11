@@ -186,7 +186,7 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
-        public void OjoAbierto_PasaAEnfriandoALos10s_YACerradoALos15s()
+        public void OjoAbierto_PasaAEnfriandoALos10s_YACerradoALos11s()
         {
             var maquina = MaquinaEnFase1();
             int ojo = AbrirUnOjo(maquina);
@@ -197,7 +197,7 @@ namespace TDOM.Tests.EditMode
             maquina.Tick(0.1f);
             Assert.AreEqual(EstadoOjo.Enfriando, maquina.Estado(ojo));
 
-            maquina.Tick(4.9f);
+            maquina.Tick(0.9f);
             Assert.AreEqual(EstadoOjo.Enfriando, maquina.Estado(ojo));
 
             maquina.Tick(0.1f);

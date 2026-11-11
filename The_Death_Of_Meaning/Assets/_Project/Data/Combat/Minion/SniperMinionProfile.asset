@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 773f9c34b4273e5419140df5a2ba10ea, type: 3}
+  m_Name: SniperMinionProfile
+  m_EditorClassIdentifier: TDOM.Data::TDOM.Data.SniperMinionProfile
+  vida: 70
+  danio: 15
+  cadenciaDisparo: 0.8
+  velocidad: 0.2
+  radioMovimiento: 0.3
+  intervaloMovimiento: 2
+  rangoAtaque: 5
+  duracionAviso: 0.4
+  duracionRecuperar: 1
+  tamanioGolpe: {x: 1.2, y: 1.2, z: 1.5}
+  colorAviso: {r: 1, g: 0.97164285, b: 0, a: 1}
+  inclinacionAviso: 20
+  radioSpawn: 0.8
+  pasoRadioSpawn: 2
+  intentosSpawn: 5
+  duracionMuerte: 0.5

@@ -10,7 +10,7 @@ namespace TDOM.POCO.ScriptableObjects
         public float DuracionAbierto = 10f;
 
         [Min(0f)]
-        public float Cooldown = 5f;
+        public float Cooldown = 1f;
 
         [Tooltip(
             "Segundos que un ojo brilla sin que Ayla lo golpee antes de cerrarse y encenderse otro. 0 = no caduca."

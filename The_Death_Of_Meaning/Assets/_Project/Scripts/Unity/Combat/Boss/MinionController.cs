@@ -55,6 +55,7 @@ namespace TDOM.Unity
         // Solo servidor.
         private MinionBrain _brain;
         private int _golpeDelCombo;
+        private float _siguienteGolpePermitido;
         private readonly HashSet<ulong> _golpeados = new HashSet<ulong>();
         private readonly List<PlayerRoot> _jugadores = new List<PlayerRoot>();
         private readonly List<MinionCandidato> _candidatos = new List<MinionCandidato>();
@@ -150,7 +151,8 @@ namespace TDOM.Unity
                     AvisoRpc();
                     break;
                 case EventoMinion.Golpe:
-                    Golpear();
+                    if (Time.time >= _siguienteGolpePermitido && Golpear())
+                        _siguienteGolpePermitido = Time.time + 1f;
                     break;
             }
         }
@@ -199,8 +201,8 @@ namespace TDOM.Unity
                 transform.rotation = Quaternion.LookRotation(hacia.normalized, Vector3.up);
         }
 
-        // Igual que los ataques del jefe: detecta y reporta, no resta vida (no hay sistema de vida).
-        private void Golpear()
+        // El servidor detecta el golpe y aplica el daño directamente al jugador.
+        private bool Golpear()
         {
             Vector3 mitad = _perfil.tamanioGolpe * 0.5f;
             Vector3 centro = transform.position + transform.forward * mitad.z;
@@ -214,6 +216,7 @@ namespace TDOM.Unity
             );
 
             _golpeados.Clear();
+            bool conecto = false;
             foreach (var hit in hits)
             {
                 var jugador = hit.GetComponentInParent<PlayerRoot>();
@@ -225,10 +228,14 @@ namespace TDOM.Unity
                     continue;
 
                 Debug.Log(
-                    $"[Minion {NetworkObjectId}] golpe {_golpeDelCombo} a cliente {jugador.OwnerClientId} ({_perfil.danio:F0} de daño, sin restar vida)"
+                    $"[Minion {NetworkObjectId}] golpe {_golpeDelCombo} a cliente {jugador.OwnerClientId} ({_perfil.danio:F0} de daño)"
                 );
+                jugador.AplicarDanioEnServidor(_perfil.danio);
                 JugadorGolpeadoRpc(RpcTarget.Single(jugador.OwnerClientId, RpcTargetUse.Temp));
+                conecto = true;
             }
+
+            return conecto;
         }
 
         private void AlRecibirDanio(float cantidad)

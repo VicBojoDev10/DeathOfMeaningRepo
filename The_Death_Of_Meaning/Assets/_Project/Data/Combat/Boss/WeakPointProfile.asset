@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: WeakPointProfile
   m_EditorClassIdentifier: TDOM.Data::TDOM.POCO.ScriptableObjects.WeakPointProfile
   DuracionAbierto: 10
-  Cooldown: 5
+  Cooldown: 1
   DuracionBrillando: 12
   Semilla: 0
   OjosActivosPorFase: 0200000002000000020000000300000003000000
@@ -21,3 +21,4 @@ MonoBehaviour:
   ColorBrillando: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   ColorAbierto: {r: 1, g: 0, b: 0, a: 1}
   ColorEnfriando: {r: 0, g: 0, b: 1, a: 1}
+  IntensidadGlow: 2

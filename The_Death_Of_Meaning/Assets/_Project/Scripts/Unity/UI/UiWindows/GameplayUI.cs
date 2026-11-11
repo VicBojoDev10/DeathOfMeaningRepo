@@ -120,12 +120,23 @@ namespace TDOM.Unity
 
         public void SetHudVisible(bool visible)
         {
+            SetHudVisible(visible, visible);
+        }
+
+        public void SetHudVisible(bool visible, bool barraJefeVisible)
+        {
             _hudVisible = visible;
             if (canvasGroup != null)
                 canvasGroup.alpha = visible ? 1f : 0f;
 
             if (_barraVidaJefe != null)
-                _barraVidaJefe.CambiarVisibilidadHud(visible);
+                _barraVidaJefe.CambiarVisibilidadHud(barraJefeVisible);
+        }
+
+        public override void Show()
+        {
+            SetHudVisible(true);
+            base.Show();
         }
 
         public override void Initialize()

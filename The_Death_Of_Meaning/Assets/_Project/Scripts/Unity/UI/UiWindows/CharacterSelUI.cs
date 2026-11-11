@@ -38,6 +38,7 @@ namespace TDOM.Unity
         private Image _zendreImg;
         private Image _aylaImg;
         private GameSessionManager _manager;
+        private bool _confirmandoListo;
 
         private void Awake()
         {
@@ -124,6 +125,7 @@ namespace TDOM.Unity
                 return;
             DesenlazarManager();
             _manager = manager;
+            _confirmandoListo = false;
             _manager.Jugadores.OnListChanged += ActualizarUI;
             _manager.OnJugadorDesconectado += MostrarMensajeDesconexion;
             _manager.PersonajeRechazado += MostrarRechazo;
@@ -176,13 +178,36 @@ namespace TDOM.Unity
         private void MarcarListo()
         {
             if (_manager != null)
+            {
+                _confirmandoListo = true;
+                if (backButton != null)
+                    backButton.interactable = false;
                 _manager.MarcarListoRpc();
+            }
         }
 
         private void Volver()
         {
+            if (_confirmandoListo)
+                return;
+
+            if (PartidaListaParaIniciar())
+                return;
+
             ConnectionManager.Instance?.CancelarConexion();
             UiManager.Instance?.SwitchWindow(WindowId, WindowsIds.ConnectionMenuUI);
+        }
+
+        private bool PartidaListaParaIniciar()
+        {
+            if (_manager == null || _manager.Jugadores == null || _manager.Jugadores.Count < 2)
+                return false;
+
+            foreach (var jugador in _manager.Jugadores)
+                if (!jugador.Ready)
+                    return false;
+
+            return true;
         }
 
         private void MostrarMensajeDesconexion()

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Player;
+using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -44,6 +45,7 @@ namespace TDOM.Unity
         private readonly Dictionary<ulong, PlayerRoot> _jugadores = new();
         private readonly HashSet<ulong> _abatidos = new();
         private bool _reveladoEnEstaPartida;
+        private bool _senalJefeReveladoEnEstaPartida;
 
         public override void OnNetworkSpawn()
         {
@@ -101,6 +103,8 @@ namespace TDOM.Unity
             EntradaConsumida.Value = true;
             SolicitarPuertasRpc(true);
             AplicarTriggerEntrada(false);
+            Debug.Log("[ArenaEncounterNetwork] ColliderArena activó la presentación.");
+            IniciarPresentacion();
         }
 
         [Rpc(SendTo.ClientsAndHost)]
@@ -234,6 +238,24 @@ namespace TDOM.Unity
                 return;
             _reveladoEnEstaPartida = true;
             Fase.Value = ArenaEncounterPhase.Presentacion;
+            if (GameSessionManager.Instance == null)
+                Debug.LogError(
+                    "[ArenaEncounterNetwork] No se encontró GameSessionManager para crear al jefe."
+                );
+            else
+                GameSessionManager.Instance.SpawnBossForEncounter();
+            Debug.Log("[ArenaEncounterNetwork] Fase Presentacion iniciada.");
+        }
+
+        public void NotificarJefeRevelado()
+        {
+            if (
+                !IsServer
+                || Fase.Value != ArenaEncounterPhase.Presentacion
+                || _senalJefeReveladoEnEstaPartida
+            )
+                return;
+            _senalJefeReveladoEnEstaPartida = true;
             RevelarJefeRpc();
         }
 
@@ -262,11 +284,23 @@ namespace TDOM.Unity
             _jugadores.Clear();
             _abatidos.Clear();
             _reveladoEnEstaPartida = false;
+            _senalJefeReveladoEnEstaPartida = false;
             ArenaSellada.Value = false;
             EntradaConsumida.Value = false;
+            // El reinicio ocurre sin descargar la escena, así que las puertas
+            // necesitan recibir explícitamente el estado inicial cerrado.
+            SolicitarPuertasRpc(false);
             AplicarTriggerEntrada(true);
             AplicarTriggersArena(true);
             Fase.Value = ArenaEncounterPhase.Esperando;
+            RestablecerHudClientRpc();
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void RestablecerHudClientRpc()
+        {
+            var gameplay = UiManager.Instance?.GetWindow(WindowsIds.GamePlayUI) as GameplayUI;
+            gameplay?.SetHudVisible(true, false);
         }
 
 #if UNITY_EDITOR
