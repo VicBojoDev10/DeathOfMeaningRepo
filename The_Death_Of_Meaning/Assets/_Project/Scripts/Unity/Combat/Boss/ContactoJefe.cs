@@ -80,8 +80,7 @@ namespace TDOM.Unity.Combat
 
                 float dano =
                     jugador.CharacterId == CharacterIds.Ayla ? _perfil.danoAyla : _perfil.dano;
-                jugador.RecibirDanio(dano);
-                Empujar(jugador, puntoContacto);
+                jugador.RecibirDanioDelJefe(dano, puntoContacto);
             }
         }
 
@@ -132,27 +131,5 @@ namespace TDOM.Unity.Combat
             return toca;
         }
 
-        // 180 grados respecto al contacto: del punto tocado hacia el jugador, en horizontal.
-        private void Empujar(PlayerRoot jugador, Vector3 puntoContacto)
-        {
-            if (_perfil.empujeDistancia <= 0f && _perfil.empujeAltura <= 0f)
-                return;
-
-            Vector3 direccion = jugador.transform.position - puntoContacto;
-            direccion.y = 0f;
-            if (direccion.sqrMagnitude < 1e-4f)
-            {
-                // El punto cae justo en el eje del jugador: se aleja del centro del jefe.
-                direccion = jugador.transform.position - transform.position;
-                direccion.y = 0f;
-            }
-
-            jugador.EmpujarDesdeServidor(
-                direccion,
-                _perfil.empujeDistancia,
-                _perfil.empujeAltura,
-                _perfil.empujeDuracion
-            );
-        }
     }
 }

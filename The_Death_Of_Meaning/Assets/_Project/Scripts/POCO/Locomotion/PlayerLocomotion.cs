@@ -55,6 +55,19 @@ namespace TDOM.Gameplay.Locomotion
                     : LocomotionPhase.Airborne;
         }
 
+        public void CancelarGanchoEnCurso()
+        {
+            if (_grapple == null || !_grapple.Activo)
+                return;
+
+            _grapple.Cancelar();
+            State.Velocity = new Vector3(0f, State.Velocity.y, 0f);
+            if (State.Phase == LocomotionPhase.Grappling)
+                State.Phase = State.IsGrounded
+                    ? LocomotionPhase.Grounded
+                    : LocomotionPhase.Airborne;
+        }
+
         public PlayerLocomotion(
             GravityModel gravity,
             JumpResolver jump,

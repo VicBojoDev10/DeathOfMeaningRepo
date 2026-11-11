@@ -5139,6 +5139,10 @@ MonoBehaviour:
   _vfxDobleSalto: {fileID: 4555537441307799462, guid: 08592d46a2b072647b9bd7948b2dbc12, type: 3}
   _origenVfxDobleSalto: {fileID: 0}
   _sensitivity: 120
+  _distanciaRetrocesoJefe: 10
+  _alturaRetrocesoJefe: 2
+  _duracionRetrocesoJefe: 0.3
+  _inmunidadRetrocesoJefe: 0
   _alturaMaxima: 80
   Energia:
     UpdateTraits:
@@ -5216,11 +5220,17 @@ MonoBehaviour:
     Giro: {x: 0, y: 0, z: -45}
     GiroEspejo: {x: 0, y: 0, z: 45}
     Retardo: 0.27527505
+  _vfxComboPorGolpe: []
   _vfxCargado:
     Efecto: {fileID: 0}
     Giro: {x: 0, y: 0, z: 45}
     GiroEspejo: {x: 0, y: 0, z: -45}
     Retardo: 0.75
+  _vfxArcoCargado:
+    Efecto: {fileID: 0}
+    Giro: {x: 0, y: 0, z: 0}
+    GiroEspejo: {x: 0, y: 0, z: 0}
+    Retardo: 0
   _vfxCargadoPorEtapa:
   - {fileID: 2884108901446239930, guid: 24f306be62a0ff54fb88dc60829ecdbc, type: 3}
   - {fileID: 1468182131369145917, guid: 2981b4704fcd53846b702762c1ea7b5b, type: 3}
@@ -5257,6 +5267,10 @@ MonoBehaviour:
   _origenDisparo: {fileID: 0}
   _rangoDisparo: 25
   _radioDisparo: 0.5
+  _proyectilCargadoPrefab: {fileID: 0}
+  _vfxCargaMelee: []
+  _vfxCargaDisparo: {fileID: 0}
+  _origenCargaDisparo: {fileID: 0}
 --- !u!114 &80633533661117880
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5654,6 +5668,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Audio.SfxCombate
   _red: {fileID: 2640082041839070175}
+  _ataqueNormal: {fileID: 0}
   _golpesCombo:
   - {fileID: 11400000, guid: fb6cd3a37f527734da92a3f4baf663dc, type: 2}
   - {fileID: 11400000, guid: c721d315ac420d440b91739b7ed49032, type: 2}
