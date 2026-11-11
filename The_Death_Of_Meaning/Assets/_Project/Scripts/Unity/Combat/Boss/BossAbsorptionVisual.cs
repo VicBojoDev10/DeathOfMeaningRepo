@@ -27,6 +27,7 @@ namespace TDOM.Unity.Combat
         private static readonly int IdRim = Shader.PropertyToID("_RimColor");
         private const float VueltaCompleta = Mathf.PI * 2f;
         private const int FilasOrbita = 2;
+        private const string EtiquetaCamaraPrincipal = "MainCamera";
         private MaterialPropertyBlock _bloque;
         private UnityEngine.Camera _camara;
 
@@ -47,6 +48,13 @@ namespace TDOM.Unity.Combat
 
         private void MostrarSimbolos(float progreso)
         {
+            if (
+                _camara == null
+                || !_camara.isActiveAndEnabled
+                || !_camara.CompareTag(EtiquetaCamaraPrincipal)
+            )
+                _camara = UnityEngine.Camera.main;
+
             int porFila = Mathf.CeilToInt((float)_simbolos.Length / FilasOrbita);
             for (int i = 0; i < _simbolos.Length; i++)
             {

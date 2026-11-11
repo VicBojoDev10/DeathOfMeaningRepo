@@ -9,10 +9,10 @@ namespace TDOM.Unity.Combat
         private BossTransitionVisualProfile _perfil;
 
         [SerializeField]
-        private Renderer[] _fuentes;
+        private Renderer[] _fuentes = System.Array.Empty<Renderer>();
 
         [SerializeField]
-        private Renderer[] _contornos;
+        private Renderer[] _contornos = System.Array.Empty<Renderer>();
 
         [SerializeField]
         private Renderer _onda;
@@ -55,7 +55,15 @@ namespace TDOM.Unity.Combat
             for (int i = 0; i < _contornos.Length; i++)
             {
                 var contorno = _contornos[i];
-                var fuente = _fuentes[i];
+                if (contorno == null)
+                    continue;
+
+                var fuente = i < _fuentes.Length ? _fuentes[i] : null;
+                if (fuente == null)
+                {
+                    contorno.enabled = false;
+                    continue;
+                }
                 contorno.enabled =
                     carga > 0f && fuente.enabled && fuente.gameObject.activeInHierarchy;
                 Vector3 escala = fuente.transform.lossyScale;
@@ -127,7 +135,8 @@ namespace TDOM.Unity.Combat
             if (!_visible)
                 return;
             foreach (var contorno in _contornos)
-                contorno.enabled = false;
+                if (contorno != null)
+                    contorno.enabled = false;
             if (_onda != null)
                 _onda.enabled = false;
             if (_runa != null)
@@ -138,5 +147,16 @@ namespace TDOM.Unity.Combat
         }
 
         private void OnDisable() => Ocultar();
+
+        private void OnValidate()
+        {
+            _fuentes ??= System.Array.Empty<Renderer>();
+            _contornos ??= System.Array.Empty<Renderer>();
+            if (_fuentes.Length != _contornos.Length)
+                Debug.LogWarning(
+                    "Cada contorno de transición debe tener una fuente asignada.",
+                    this
+                );
+        }
     }
 }
