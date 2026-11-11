@@ -46,7 +46,7 @@ namespace TDOM.Gameplay.Combat
         public WeakPointStateMachine(
             int totalOjos = 12,
             float duracionAbierto = 10f,
-            float cooldown = 5f,
+            float cooldown = 1f,
             int semilla = 0,
             IReadOnlyList<int> ojosPorFase = null,
             float duracionBrillando = 0f

@@ -23,6 +23,9 @@ namespace TDOM.Unity.Flow
         }
 
         private const string PrefijoCinematicaDeFase = "fase_";
+        private const string IdFaseTres = "fase_3";
+        private const string IdFaseCuatro = "fase_4";
+        private const string IdFaseCinco = "fase_5";
         private const float AlphaTransparente = 0f;
         private const float AlphaNegro = 1f;
         private const float AnchoPanelDebug = 200f;
@@ -54,6 +57,15 @@ namespace TDOM.Unity.Flow
         [Header("Jefe")]
         [SerializeField]
         private bool _reproducirEnCambioDeFase;
+
+        [SerializeField]
+        private Transform _encuadreFaseTres;
+
+        [SerializeField]
+        private Transform _encuadreFaseCuatro;
+
+        [SerializeField]
+        private Transform _encuadreFaseCinco;
 
         [Header("Debug")]
         [SerializeField]
@@ -102,6 +114,11 @@ namespace TDOM.Unity.Flow
         private void Update()
         {
             _flujo.Tick(Time.deltaTime);
+
+            if (_reproduciendo && EsTransicionVisual(_flujo.IdActual) && _directorActual != null)
+                _jefe?.MostrarTransicionCinematica(
+                    (float)(_directorActual.time / _directorActual.duration)
+                );
 
             if (IsServer && !string.IsNullOrEmpty(_cinematicaPendiente) && EnGameplay)
             {
@@ -154,6 +171,26 @@ namespace TDOM.Unity.Flow
             }
 
             _salidaActual?.Cancelar();
+            if (
+                EsTransicionVisual(id)
+                && BossController.TryEncontrarSpawneado(NetworkManager, out var jefe)
+            )
+            {
+                _jefe = jefe;
+                var encuadre = id switch
+                {
+                    IdFaseCinco => _encuadreFaseCinco,
+                    IdFaseCuatro => _encuadreFaseCuatro,
+                    _ => _encuadreFaseTres,
+                };
+                if (encuadre != null)
+                {
+                    encuadre.position = jefe.transform.position;
+                    if (id == IdFaseCuatro || id == IdFaseCinco)
+                        encuadre.rotation = jefe.transform.rotation;
+                }
+                jefe.MostrarTransicionCinematica(0f);
+            }
             _directorActual = entrada.Director;
             _directorActual.Stop();
             _directorActual.time = 0d;
@@ -167,6 +204,8 @@ namespace TDOM.Unity.Flow
         [Rpc(SendTo.ClientsAndHost)]
         private void TerminarRpc()
         {
+            if (EsTransicionVisual(_flujo.IdActual))
+                _jefe?.TerminarTransicionCinematica();
             _reproduciendo = false;
             _flujo.TerminarCinematica();
         }
@@ -216,7 +255,10 @@ namespace TDOM.Unity.Flow
             _flujo.RetenerTransicion();
             try
             {
-                if (_flujo.IdActual == "fase_2" && JugadorLocal()?.CamaraCinematica != null)
+                if (
+                    (_flujo.IdActual == "fase_2" || EsTransicionVisual(_flujo.IdActual))
+                    && JugadorLocal()?.CamaraCinematica != null
+                )
                     yield return RutinaSalidaACamaraJugador();
                 else if (_salidaActual != null)
                     yield return _salidaActual.Salir();
@@ -331,11 +373,22 @@ namespace TDOM.Unity.Flow
             }
         }
 
+        private static bool EsTransicionVisual(string id) =>
+            id == IdFaseTres || id == IdFaseCuatro || id == IdFaseCinco;
+
         private static string NombreCamaraTimeline(string id, int indice) =>
             id switch
             {
                 "prueba" => indice == 0 ? "CamCinematicaPrueba" : "CamCinematicaJugadores",
                 "fase_2" => indice == 0 ? "CamFaseCerca" : "CamFaseLejos",
+                IdFaseTres => indice == 0 ? "CamFase3Runa" : "CamFase3Imponente",
+                IdFaseCinco => indice == 0 ? "CamFase5Ascenso" : "CamFase5Corona",
+                IdFaseCuatro => indice switch
+                {
+                    0 => "CamFase4Ruptura",
+                    1 => "CamFase4Orbita",
+                    _ => "CamFase4Absorcion",
+                },
                 _ => string.Empty,
             };
 

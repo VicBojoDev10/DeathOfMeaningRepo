@@ -13,14 +13,17 @@ MonoBehaviour:
   m_Name: Sfx_AylaCombo3
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.SfxBanco
   clips:
-  - {fileID: 8300000, guid: f4b421bdddf175a46adba3a40cab2ffe, type: 3}
-  - {fileID: 8300000, guid: e9676a0e0d7f0a3408f36da219544cb5, type: 3}
+  - {fileID: 8300000, guid: fe10e47878cd7ce4db1dc45114f41167, type: 3}
+  - {fileID: 8300000, guid: 82beae117883004469e9bb6ce7f17a4e, type: 3}
   volumen: 1
   variacionVolumen: 0.1
   pitch: 1
   variacionPitch: 0.05
   retraso: 0
   loop: 0
+  duracionSubida: 0
+  volumenInicialSubida: 0.3
+  pitchInicialSubida: 0.8
   mezcla3D: 1
   distanciaMinima: 2
   distanciaMaxima: 40
