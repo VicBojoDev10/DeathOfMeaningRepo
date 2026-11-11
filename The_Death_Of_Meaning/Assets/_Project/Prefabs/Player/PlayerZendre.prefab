@@ -666,7 +666,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Audio.SfxCombate
   _red: {fileID: 7114874718699065429}
   _ataqueNormal: {fileID: 11400000, guid: 205825b219c1157479bcc2bb37d41fab, type: 2}
-  _golpesCombo: []
+  _golpesCombo:
+  - {fileID: 11400000, guid: 33519a355a5ede0429500afecb748bdd, type: 2}
+  - {fileID: 11400000, guid: b5067a59cbb92d74eaa955191d87e283, type: 2}
   _cargaLoop: {fileID: 0}
   _liberacionCargado: {fileID: 0}
 --- !u!1 &5152080394067024196
