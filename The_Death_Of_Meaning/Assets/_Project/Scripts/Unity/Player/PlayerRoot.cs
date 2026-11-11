@@ -1167,6 +1167,10 @@ namespace TDOM.Unity.Player
                         _combat != null && _combat.GravedadReducidaPorAtaque
                     );
             bool ganchoActivoActual = _locomocion.GanchoActivo;
+            if (_characterId == CharacterIds.Zendre)
+                _zendreLocomotionAnimator?.ActualizarGancho(
+                    _anchorLauncher != null && _anchorLauncher.AnclaActiva
+                );
             if (_ganchoActivoPrevio && !ganchoActivoActual)
             {
                 _mantenerOrientacionGanchoHasta = Time.time + 0.55f;
