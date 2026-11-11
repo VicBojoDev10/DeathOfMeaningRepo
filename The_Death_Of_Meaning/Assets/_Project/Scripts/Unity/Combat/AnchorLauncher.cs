@@ -10,6 +10,8 @@ namespace TDOM.Unity.Combat
 {
     public sealed class AnchorLauncher : NetworkBehaviour
     {
+        private const float RetrasoLanzamiento = .7f;
+
         public bool AnclaActiva { get; internal set; }
 
         [SerializeField]
@@ -35,6 +37,8 @@ namespace TDOM.Unity.Combat
 
         private bool _esperandoSoltar;
         private bool _incapacitado;
+        private bool _lanzamientoPendiente;
+        private float _tiempoParaLanzar;
         private VfxDisparoSostenido _vfxAnclaSostenido;
 
         public void EstablecerIncapacitado(bool incapacitado)
@@ -45,6 +49,7 @@ namespace TDOM.Unity.Combat
 
             AnclaActiva = false;
             _esperandoSoltar = true;
+            _lanzamientoPendiente = false;
             if (IsOwner)
                 DetenerVfxAncla();
             if (IsServer)
@@ -70,6 +75,7 @@ namespace TDOM.Unity.Combat
         {
             AnclaActiva = false;
             _esperandoSoltar = true;
+            _lanzamientoPendiente = false;
             if (IsOwner)
                 DetenerVfxAncla();
             if (!conecto && IsOwner && _cooldown != null)
@@ -117,15 +123,27 @@ namespace TDOM.Unity.Combat
                 && !_esperandoSoltar
             )
             {
-                _cooldown.Disparar();
                 AnclaActiva = true;
-                var direccion = _root.ResolverApuntado(_origen.position).Direction;
-                LanzarAnclaRpc(_origen.position, direccion);
-                LanzarVfxAncla(direccion);
+                _lanzamientoPendiente = true;
+                _tiempoParaLanzar = RetrasoLanzamiento;
+            }
+
+            if (AnclaActiva && _lanzamientoPendiente && holdingL2R1)
+            {
+                _tiempoParaLanzar -= dt;
+                if (_tiempoParaLanzar <= 0f)
+                {
+                    _lanzamientoPendiente = false;
+                    _cooldown.Disparar();
+                    var direccion = _root.ResolverApuntado(_origen.position).Direction;
+                    LanzarAnclaRpc(_origen.position, direccion);
+                    LanzarVfxAncla(direccion);
+                }
             }
             else if (AnclaActiva && !holdingL2R1)
             {
                 AnclaActiva = false;
+                _lanzamientoPendiente = false;
                 SoltarAnclaRpc();
             }
 
@@ -211,6 +229,7 @@ namespace TDOM.Unity.Combat
             {
                 _cooldown.Resetear();
                 AnclaActiva = false;
+                _lanzamientoPendiente = false;
             }
         }
     }
