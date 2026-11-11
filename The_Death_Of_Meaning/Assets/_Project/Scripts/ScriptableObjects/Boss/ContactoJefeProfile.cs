@@ -25,6 +25,5 @@ namespace TDOM.Data
             "Segundos entre golpes al mismo jugador. Cuenta aunque salga y vuelva a tocar al jefe."
         )]
         public float intervaloEntreGolpes = 1f;
-
     }
 }

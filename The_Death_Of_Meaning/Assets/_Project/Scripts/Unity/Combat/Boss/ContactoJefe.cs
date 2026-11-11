@@ -130,6 +130,5 @@ namespace TDOM.Unity.Combat
             }
             return toca;
         }
-
     }
 }

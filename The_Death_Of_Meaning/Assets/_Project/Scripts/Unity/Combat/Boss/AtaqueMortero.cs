@@ -341,11 +341,7 @@ namespace TDOM.Unity
 
                     Debug.Log($"[AREK][Mortero] golpeó a cliente {id}");
                     if (damageable is PlayerRoot jugador)
-                        jugador.RecibirDanioDelJefe(
-                            _perfil.Dano,
-                            punto,
-                            _perfil.EsInstaKill
-                        );
+                        jugador.RecibirDanioDelJefe(_perfil.Dano, punto, _perfil.EsInstaKill);
                     else
                         damageable.RecibirDanio(_perfil.Dano, _perfil.EsInstaKill);
                     if (netObj != null)

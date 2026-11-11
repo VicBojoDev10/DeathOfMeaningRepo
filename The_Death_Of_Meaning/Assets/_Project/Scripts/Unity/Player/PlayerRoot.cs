@@ -243,11 +243,7 @@ namespace TDOM.Unity.Player
             EmpujarRpc(direccion, distancia, altura, duracion);
         }
 
-        public void RecibirDanioDelJefe(
-            float cantidad,
-            Vector3 fuente,
-            bool esInstaKill = false
-        )
+        public void RecibirDanioDelJefe(float cantidad, Vector3 fuente, bool esInstaKill = false)
         {
             if (!IsServer || _healthPool == null)
                 return;
