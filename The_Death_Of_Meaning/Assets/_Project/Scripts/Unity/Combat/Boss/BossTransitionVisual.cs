@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace TDOM.Unity.Combat
 {
-    public sealed class BossTransitionVisual : MonoBehaviour
+    public sealed class BossTransitionVisual : BossPhaseVisual
     {
         [SerializeField]
         private BossTransitionVisualProfile _perfil;
@@ -20,6 +20,9 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private Renderer _runa;
 
+        [SerializeField]
+        private Renderer _halo;
+
         private static readonly int IdRimColor = Shader.PropertyToID("_RimColor");
         private static readonly int IdAlpha = Shader.PropertyToID("_GeneralAlpha");
         private static readonly int IdShake = Shader.PropertyToID("_ShakeBlend");
@@ -30,18 +33,19 @@ namespace TDOM.Unity.Combat
         private MaterialPropertyBlock _bloque;
         private bool _visible;
 
-        public bool Corresponde(int fase) =>
+        public override bool Corresponde(int fase) =>
             isActiveAndEnabled && _perfil != null && _perfil.Fase == fase;
 
-        public float MezclaColor(float progreso) => _perfil.MezclaColor.Evaluate(progreso);
+        public override float MezclaColor(float progreso) => _perfil.MezclaColor.Evaluate(progreso);
 
-        public void Mostrar(float progreso, float duracion, Color color)
+        public override void Mostrar(float progreso, float duracion)
         {
             if (_perfil == null || _onda == null)
                 return;
 
             _bloque ??= new MaterialPropertyBlock();
             _visible = true;
+            Color color = _perfil.ColorRitual;
             float carga = Mathf.Max(0f, _perfil.Carga.Evaluate(progreso));
             _bloque.Clear();
             _bloque.SetColor(IdRimColor, color * _perfil.IntensidadContorno);
@@ -78,6 +82,26 @@ namespace TDOM.Unity.Combat
             _bloque.SetFloat(IdAlpha, opacidad);
             _onda.SetPropertyBlock(_bloque);
             MostrarRuna(progreso, color);
+            MostrarHalo(progreso, duracion, color);
+        }
+
+        private void MostrarHalo(float progreso, float duracion, Color color)
+        {
+            if (_halo == null)
+                return;
+
+            float opacidad = Mathf.Clamp01(_perfil.OpacidadHalo.Evaluate(progreso));
+            _halo.enabled = opacidad > 0f;
+            _halo.transform.localScale = new Vector3(
+                _perfil.RadioHalo,
+                _perfil.AlturaHalo,
+                _perfil.RadioHalo
+            );
+            _bloque.Clear();
+            _bloque.SetColor(IdColor, color * _perfil.IntensidadHalo);
+            _bloque.SetFloat(IdAlpha, opacidad);
+            _bloque.SetFloat(IdTime, progreso * duracion - Time.time);
+            _halo.SetPropertyBlock(_bloque);
         }
 
         private void MostrarRuna(float progreso, Color color)
@@ -98,7 +122,7 @@ namespace TDOM.Unity.Combat
         private float DesplazamientoLocal(float escala) =>
             Mathf.Abs(escala) > Mathf.Epsilon ? _perfil.Vibracion / Mathf.Abs(escala) : 0f;
 
-        public void Ocultar()
+        public override void Ocultar()
         {
             if (!_visible)
                 return;
@@ -108,6 +132,8 @@ namespace TDOM.Unity.Combat
                 _onda.enabled = false;
             if (_runa != null)
                 _runa.enabled = false;
+            if (_halo != null)
+                _halo.enabled = false;
             _visible = false;
         }
 

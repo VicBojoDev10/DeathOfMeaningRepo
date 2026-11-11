@@ -133,6 +133,27 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private BossTransitionVisual _transicionVisual;
 
+        [SerializeField]
+        private BossPhaseVisual[] _transicionesAdicionales = System.Array.Empty<BossPhaseVisual>();
+
+        private BossPhaseVisual TransicionVisualActual => VisualDeFase(Fase.Value);
+
+        private BossPhaseVisual VisualDeFase(int fase)
+        {
+            foreach (var visual in _transicionesAdicionales)
+                if (visual != null && visual.Corresponde(fase))
+                    return visual;
+            return _transicionVisual;
+        }
+
+        private void OcultarTransiciones()
+        {
+            _transicionVisual?.Ocultar();
+            foreach (var visual in _transicionesAdicionales)
+                if (visual != null)
+                    visual.Ocultar();
+        }
+
         private readonly NetworkVariable<double> _finTransicionVisual =
             new NetworkVariable<double>();
         private readonly NetworkVariable<float> _restanteVisualEnPausa = new NetworkVariable<float>(
@@ -220,7 +241,7 @@ namespace TDOM.Unity.Combat
 
         public override void OnNetworkDespawn()
         {
-            _transicionVisual?.Ocultar();
+            OcultarTransiciones();
             _mostrandoTransicionVisual = false;
             _progresoCinematica = ProgresoTransicionVisual.SinPausa;
             Despawned?.Invoke(this);
@@ -283,7 +304,7 @@ namespace TDOM.Unity.Combat
             int faseAnterior = Fase.Value;
             CambiarFase(nuevaFase);
             FaseIniciadaEnServidor?.Invoke(faseAnterior, nuevaFase);
-            if (_transicionVisual != null && _transicionVisual.Corresponde(nuevaFase))
+            if (TransicionVisualActual != null && TransicionVisualActual.Corresponde(nuevaFase))
             {
                 _finTransicionVisual.Value =
                     NetworkManager.ServerTime.Time + _maquina.TiempoTransicionRestante;
@@ -389,7 +410,8 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.ClientsAndHost)]
         private void CambioDeFaseRpc(int fase)
         {
-            if (_transicionVisual != null && _transicionVisual.Corresponde(fase))
+            var visual = VisualDeFase(fase);
+            if (visual != null && visual.Corresponde(fase))
             {
                 if (_destello != null)
                 {
@@ -441,21 +463,25 @@ namespace TDOM.Unity.Combat
 
         private void LateUpdate()
         {
-            if (!IsSpawned || _transicionVisual == null)
+            if (!IsSpawned || TransicionVisualActual == null)
                 return;
 
+            OcultarTransiciones();
+            TransicionVisualActual.TiempoSincronizado = NetworkManager.ServerTime.Time;
             var perfil = PerfilDeFase(Fase.Value);
             if (
-                !_transicionVisual.Corresponde(Fase.Value)
+                !TransicionVisualActual.Corresponde(Fase.Value)
                 || _progresoCinematica >= 1f
                 || (_finTransicionVisual.Value <= 0d && _progresoCinematica < 0f)
                 || perfil == null
             )
             {
-                _transicionVisual.Ocultar();
+                TransicionVisualActual.Ocultar();
                 if (_mostrandoTransicionVisual)
                     AplicarColorFase(Fase.Value);
                 _mostrandoTransicionVisual = false;
+                if (Vida.Value > 0f && TransicionVisualActual.Corresponde(Fase.Value))
+                    TransicionVisualActual.MostrarPersistente();
                 return;
             }
 
@@ -472,11 +498,11 @@ namespace TDOM.Unity.Combat
             Color color = Color.Lerp(
                 anterior != null ? anterior.ColorFase : perfil.ColorFase,
                 perfil.ColorFase,
-                _transicionVisual.MezclaColor(progreso)
+                TransicionVisualActual.MezclaColor(progreso)
             );
             foreach (var material in _materialesCuerpo)
                 material.SetColor(IdColorBase, color);
-            _transicionVisual.Mostrar(progreso, perfil.DuracionTransicion, perfil.ColorFase);
+            TransicionVisualActual.Mostrar(progreso, perfil.DuracionTransicion);
             _mostrandoTransicionVisual = true;
         }
 
@@ -486,7 +512,7 @@ namespace TDOM.Unity.Combat
         public void TerminarTransicionCinematica()
         {
             _progresoCinematica = 1f;
-            _transicionVisual?.Ocultar();
+            OcultarTransiciones();
             AplicarColorFase(Fase.Value);
             if (IsServer && _maquina != null)
                 _maquina.Tick(_maquina.TiempoTransicionRestante);

@@ -13,6 +13,19 @@ namespace TDOM.POCO.ScriptableObjects
         public AnimationCurve ExpansionOnda = new AnimationCurve();
         public AnimationCurve TrazoRuna = new AnimationCurve();
         public AnimationCurve OpacidadRuna = new AnimationCurve();
+        public AnimationCurve OpacidadHalo = new AnimationCurve();
+
+        [ColorUsage(false, true)]
+        public Color ColorRitual = Color.white;
+
+        [Min(0f)]
+        public float RadioHalo;
+
+        [Min(0f)]
+        public float AlturaHalo;
+
+        [Min(0f)]
+        public float IntensidadHalo;
 
         [Min(0f)]
         public float RadioRuna;
