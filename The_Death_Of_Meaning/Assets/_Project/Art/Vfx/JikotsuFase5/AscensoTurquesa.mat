@@ -26,6 +26,7 @@ Material:
   - _RECEIVE_SHADOWS_ON
   - _REFLECTIONS_NONE
   - _RIMLIGHTINGSTAGE_BEFORELIGHTING
+  - _RIM_LIGHTING_ON
   - _SCROLL_TEXTURE_ON
   - _SHADINGMODEL_BASIC
   - _SPECULARMODEL_NONE
@@ -267,7 +268,7 @@ Material:
     - _MinDistanceToFade: 0
     - _MinGradientHeight: 0
     - _MinInflate: 0
-    - _MinRim: 0
+    - _MinRim: 0.7
     - _NearFade: 0
     - _NormalInfluence: 0.5
     - _NormalMapEnabled: 0
@@ -287,7 +288,7 @@ Material:
     - _ReflectionsAtten: 0.5
     - _RenderPreset: 1
     - _RimAttenuation: 1
-    - _RimLighting: 0
+    - _RimLighting: 1
     - _RimLightingStage: 0
     - _SSSAtten: 1
     - _SSSFrontAtten: 0.3
@@ -369,7 +370,7 @@ Material:
     - _HologramColor: {r: 1.25, g: 2.8, b: 6.8, a: 1}
     - _HologramLineDirection: {r: 0, g: 1, b: 0, a: 0}
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
-    - _RimColor: {r: 1, g: 1, b: 1, a: 1}
+    - _RimColor: {r: 0.65, g: 0.65, b: 0.65, a: 0.65}
     - _RimOffset: {r: 0, g: 0, b: 0, a: 0}
     - _SSSColor: {r: 1, g: 1, b: 1, a: 1}
     - _ShakeMaxDisplacement: {r: 0.1, g: 0.1, b: 0.1, a: 0}
