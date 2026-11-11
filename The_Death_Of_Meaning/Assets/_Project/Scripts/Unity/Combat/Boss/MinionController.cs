@@ -45,6 +45,7 @@ namespace TDOM.Unity
 
         private NavMeshAgent _agente;
         private HitZone _zona;
+        private MinionAnimationController _animaciones;
         private Collider[] _colliders;
         private Material _material;
         private Color _colorBase;
@@ -64,6 +65,7 @@ namespace TDOM.Unity
         {
             _agente = GetComponent<NavMeshAgent>();
             _zona = GetComponent<HitZone>();
+            _animaciones = GetComponent<MinionAnimationController>();
             _colliders = GetComponentsInChildren<Collider>();
 
             if (_renderer == null)
@@ -144,6 +146,8 @@ namespace TDOM.Unity
                     MirarHacia(objetivo.transform.position);
             }
 
+            _animaciones?.ActualizarMovimiento(_brain.DebeMoverse && hayObjetivo);
+
             switch (evento)
             {
                 case EventoMinion.Aviso:
@@ -151,6 +155,8 @@ namespace TDOM.Unity
                     AvisoRpc();
                     break;
                 case EventoMinion.Golpe:
+                    // El evento Golpe se emite al terminar el aviso del cerebro.
+                    _animaciones?.ReproducirAtaque();
                     if (Time.time >= _siguienteGolpePermitido && Golpear())
                         _siguienteGolpePermitido = Time.time + 1f;
                     break;
@@ -253,6 +259,7 @@ namespace TDOM.Unity
         private void Morir()
         {
             _muerto = true;
+            _animaciones?.ActualizarMovimiento(false);
             _agente.isStopped = true;
             MuerteRpc();
             Murio?.Invoke(this);

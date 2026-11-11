@@ -13,17 +13,17 @@ MonoBehaviour:
   m_Name: SniperMinionProfile
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.SniperMinionProfile
   vida: 70
-  danio: 15
-  cadenciaDisparo: 0.8
+  danio: 10
+  cadenciaDisparo: 2
   velocidad: 0.2
   radioMovimiento: 0.3
   intervaloMovimiento: 2
   rangoAtaque: 5
   duracionAviso: 0.4
   duracionRecuperar: 1
-  tamanioGolpe: {x: 1.2, y: 1.2, z: 1.5}
+  tamanioGolpe: {x: 1, y: 1, z: 1.3}
   colorAviso: {r: 1, g: 0.97164285, b: 0, a: 1}
-  inclinacionAviso: 20
+  inclinacionAviso: 15
   radioSpawn: 0.8
   pasoRadioSpawn: 2
   intentosSpawn: 5

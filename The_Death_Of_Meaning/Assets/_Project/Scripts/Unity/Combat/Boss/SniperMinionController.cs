@@ -45,6 +45,7 @@ namespace TDOM.Unity
         public Transform Plataforma => _plataforma;
 
         private HitZone _zona;
+        private MinionAnimationController _animaciones;
         private Collider[] _colliders;
         private bool _muerto;
         private float _siguienteDisparo;
@@ -74,6 +75,7 @@ namespace TDOM.Unity
         private void Awake()
         {
             _zona = GetComponent<HitZone>();
+            _animaciones = GetComponent<MinionAnimationController>();
             _colliders = GetComponentsInChildren<Collider>();
 
             if (_renderer == null)
@@ -136,6 +138,9 @@ namespace TDOM.Unity
 
             ActualizarDestinoMovimiento();
             AcompanharMovimientoPlataforma();
+            _animaciones?.ActualizarMovimiento(
+                (_desplazamientoActual - _desplazamientoDestino).sqrMagnitude > 0.0001f
+            );
 
             _objetivo = BuscarObjetivoMasCercano();
             if (_objetivo == null)
@@ -320,6 +325,7 @@ namespace TDOM.Unity
                 plataformaIgnorada: _plataforma,
                 emisorIgnorado: transform
             );
+            _animaciones?.ReproducirAtaque();
             networkObject.Spawn(true);
         }
 
@@ -338,6 +344,7 @@ namespace TDOM.Unity
         private void Morir()
         {
             _muerto = true;
+            _animaciones?.ActualizarMovimiento(false);
             MuerteRpc();
             Murio?.Invoke(this);
             StartCoroutine(DespawnTrasMuerte());
