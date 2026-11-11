@@ -80,6 +80,8 @@ GameObject:
   - component: {fileID: 2886936978579731612}
   - component: {fileID: 180704491247187337}
   - component: {fileID: 2922711178879512338}
+  - component: {fileID: 7114874718699065429}
+  - component: {fileID: 8024801250871442147}
   m_Layer: 0
   m_Name: PlayerZendre
   m_TagString: Player
@@ -272,6 +274,7 @@ MonoBehaviour:
   _inputReader: {fileID: 4485191308997266209}
   _grappleVisual: {fileID: 0}
   _vfxDash: {fileID: 0}
+  _sfxLocomocion: {fileID: 0}
   _vfxEmbestida: {fileID: 0}
   _destelloGolpe: {fileID: 0}
   _vfxRed: {fileID: 0}
@@ -331,6 +334,7 @@ MonoBehaviour:
   _feedback: {fileID: 7054898957245270891}
   _debugFeedback: {fileID: 3869141073335305693}
   _vfx: {fileID: 6087383552892531074}
+  _sfx: {fileID: 8024801250871442147}
   _vfxRed: {fileID: 180704491247187337}
   _vfxGolpeLigero: {fileID: 8337503244343293207, guid: 08d72c306c3b8874eaed6937f723b172, type: 3}
   _origenVfxGolpeLigero: {fileID: 0}
@@ -346,11 +350,29 @@ MonoBehaviour:
     Giro: {x: 0, y: 0, z: 18}
     GiroEspejo: {x: 0, y: 0, z: 0}
     Retardo: 0.65
+  _vfxComboPorGolpe:
+  - Efecto: {fileID: 2214815124617221787, guid: 1fbccb667088bb44c976711656e89bf3, type: 3}
+    Giro: {x: 0, y: 0, z: 0}
+    GiroEspejo: {x: 0, y: 0, z: 0}
+    Retardo: 0.17
+  - Efecto: {fileID: 211642333777795746, guid: 8d67787eac7cd6441bd8ac7d19e63e32, type: 3}
+    Giro: {x: 0, y: 0, z: 0}
+    GiroEspejo: {x: 0, y: 0, z: 0}
+    Retardo: 0.56
+  - Efecto: {fileID: 8670656540310496766, guid: 0722c08613767db49a67a8501b570c1b, type: 3}
+    Giro: {x: 0, y: 0, z: 0}
+    GiroEspejo: {x: 0, y: 0, z: 0}
+    Retardo: 2.24
   _vfxCargado:
     Efecto: {fileID: 0}
     Giro: {x: 0, y: 0, z: 45}
     GiroEspejo: {x: 0, y: 0, z: -45}
-    Retardo: 0
+    Retardo: 1.3000001
+  _vfxArcoCargado:
+    Efecto: {fileID: 8670656540310496766, guid: f433092a41e9d8647be42e468cec6077, type: 3}
+    Giro: {x: 0, y: 0, z: 0}
+    GiroEspejo: {x: 0, y: 0, z: 0}
+    Retardo: 0.9333334
   _vfxCargadoPorEtapa: []
   _vfxCargadoGrandePorEtapa: []
   _desplazamientosCargadoLaterales:
@@ -381,6 +403,14 @@ MonoBehaviour:
   _origenDisparo: {fileID: 1217565209590083343}
   _rangoDisparo: 25
   _radioDisparo: 0.5
+  _proyectilCargadoPrefab: {fileID: 6672408528779647610, guid: a4f1c3c9b05819e4083916a7cec9748b, type: 3}
+  _vfxCargaMelee:
+  - Efecto: {fileID: 6935316186839384615, guid: 6c8fd238fe66b734a88780b0cb59f870, type: 3}
+    Punto: {fileID: 4203025943293764004}
+  - Efecto: {fileID: 2108427828047933814, guid: df2ce93e16b00b641aee5b8391513c6b, type: 3}
+    Punto: {fileID: 2277703684077328601}
+  _vfxCargaDisparo: {fileID: 2800835053225357425, guid: 3a9a84f9b9589e64db3d6f4370ab940b, type: 3}
+  _origenCargaDisparo: {fileID: 4203025943293764004}
 --- !u!114 &4753092728623070081
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -491,6 +521,8 @@ MonoBehaviour:
   _root: {fileID: 6272158663871412553}
   _origen: {fileID: 1217565209590083343}
   _anclaPrefab: {fileID: 8192847192837461520, guid: 769db5fe59a949a179b292707c6f3375, type: 3}
+  _vfxRed: {fileID: 180704491247187337}
+  _vfxAncla: {fileID: 4215844202192580458, guid: 40d62e40b57c0fb44bbe395b2bdd1f58, type: 3}
 --- !u!114 &1537443789259067397
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -606,6 +638,37 @@ MonoBehaviour:
   _vfxRed: {fileID: 180704491247187337}
   _efecto: {fileID: 475906867551664951, guid: 5f11582ba348b4f41953cbbc28869482, type: 3}
   _impacto: {fileID: 4555537441307799462, guid: 11d0a12913721fa41912de58f22f6d7f, type: 3}
+--- !u!114 &7114874718699065429
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5125041952874771469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58a3eaae9be465f45849f13202458f94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Audio.SfxRed
+  ShowTopMostFoldoutHeaderGroup: 1
+  _sfxPrueba: {fileID: 0}
+--- !u!114 &8024801250871442147
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5125041952874771469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 644f9504bdf17f542a2cf7b06a8332d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Audio.SfxCombate
+  _red: {fileID: 7114874718699065429}
+  _ataqueNormal: {fileID: 11400000, guid: 205825b219c1157479bcc2bb37d41fab, type: 2}
+  _golpesCombo: []
+  _cargaLoop: {fileID: 0}
+  _liberacionCargado: {fileID: 0}
 --- !u!1 &5152080394067024196
 GameObject:
   m_ObjectHideFlags: 0
@@ -840,7 +903,15 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6941943588414883099, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: _carga
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 6941943588414883099, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
       propertyPath: _golpe
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 6941943588414883099, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
+      propertyPath: _cargadoSale
       value: 
       objectReference: {fileID: 0}
     - target: {fileID: 7344774625564070270, guid: b83b64dd359047a49885a44f59e235c6, type: 3}
@@ -1449,6 +1520,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1751587795060100472}
   m_SourcePrefab: {fileID: 100100000, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
+--- !u!4 &2277703684077328601 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -2087953685150926696, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
+  m_PrefabInstance: {fileID: 8978522072713748545}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &2444213322411812234 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6733313896024196555, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
@@ -1462,6 +1538,11 @@ Transform:
 --- !u!95 &3310299557817736656 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
+  m_PrefabInstance: {fileID: 8978522072713748545}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &4203025943293764004 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -4121291106788982299, guid: 4f73b805bf8760546b44abbe0983d52b, type: 3}
   m_PrefabInstance: {fileID: 8978522072713748545}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &8096196218240523536 stripped

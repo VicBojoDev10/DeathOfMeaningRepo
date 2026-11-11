@@ -116,6 +116,8 @@ namespace TDOM.Unity.Audio
             _soundsContainer = new GameObject("SoundsContainer");
             _soundsContainer.transform.SetParent(transform);
             _vocesSfx = new VocesSfx3D(_soundsContainer.transform, _sfxGroup);
+            if (_sfxCatalogo == null)
+                Debug.LogWarning("[AudioManager] Sin SfxCatalogo asignado: los SFX 3D no sonarán");
             PrepareLists();
         }
 
@@ -253,6 +255,26 @@ namespace TDOM.Unity.Audio
 
         public void Play(string soundName) => PlaySound(soundName);
 
+        public void PlayMusicImmediate(string soundName)
+        {
+            if (
+                !TryGetData(soundName, out AudioData data)
+                || data.audioType != AudioType.Music
+                || data.clip == null
+            )
+                return;
+
+            if (_currentMusic != null && _currentMusic != GetOrCreateSource(data))
+                FadeTo(_currentMusic, 0f, 0f, true);
+
+            AudioSource source = GetOrCreateSource(data);
+            ApplySettings(source, data);
+            FadeTo(source, 0f, 0f, true);
+            source.volume = data.volume;
+            source.Play();
+            _currentMusic = source;
+        }
+
         public void Stop(string soundName) => StopSound(soundName);
 
         public void PlaySound(string soundName)
@@ -326,6 +348,8 @@ namespace TDOM.Unity.Audio
 
         public void DetenerSfx(SfxBanco banco, ulong emisor = 0) =>
             _vocesSfx?.Detener(banco, emisor);
+
+        public void DetenerLoopsDe(ulong emisor) => _vocesSfx?.DetenerLoopsDe(emisor);
 
         public float GetVolume(AudioChannel channel) =>
             PlayerPrefs.GetFloat(PrefsPrefix + channel, 1f);

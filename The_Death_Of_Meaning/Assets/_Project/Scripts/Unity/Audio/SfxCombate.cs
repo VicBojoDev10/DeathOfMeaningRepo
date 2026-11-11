@@ -34,8 +34,9 @@ namespace TDOM.Unity.Audio
 
         public void Golpe(int comboIndex)
         {
-            ReproducirSiExiste(_ataqueNormal);
-            ReproducirDe(_golpesCombo, comboIndex);
+            int elegido = SfxPorIndice.Elegir(comboIndex, _golpesCombo.Length);
+            bool hayCombo = elegido != SfxPorIndice.SinSfx && _golpesCombo[elegido] != null;
+            ReproducirSiExiste(hayCombo ? _golpesCombo[elegido] : _ataqueNormal);
         }
 
         public void Disparo(Vector3 origen)
@@ -66,13 +67,6 @@ namespace TDOM.Unity.Audio
         {
             if (_red != null && banco != null)
                 _red.ReproducirEnEmisor(banco);
-        }
-
-        private void ReproducirDe(SfxBanco[] bancos, int indice)
-        {
-            int elegido = SfxPorIndice.Elegir(indice, bancos.Length);
-            if (_red != null && elegido != SfxPorIndice.SinSfx)
-                _red.ReproducirEnEmisor(bancos[elegido]);
         }
     }
 }
