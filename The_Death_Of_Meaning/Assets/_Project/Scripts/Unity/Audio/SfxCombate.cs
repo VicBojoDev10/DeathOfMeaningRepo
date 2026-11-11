@@ -19,6 +19,9 @@ namespace TDOM.Unity.Audio
         private SfxBanco _disparo;
 
         [SerializeField]
+        private SfxBanco _disparoCargado;
+
+        [SerializeField]
         private SfxBanco _cargaLoop;
 
         [SerializeField]
@@ -39,10 +42,11 @@ namespace TDOM.Unity.Audio
             ReproducirSiExiste(hayCombo ? _golpesCombo[elegido] : _ataqueNormal);
         }
 
-        public void Disparo(Vector3 origen)
+        public void Disparo(Vector3 origen, bool cargado)
         {
-            if (_red != null && _disparo != null)
-                _red.Reproducir(_disparo, origen);
+            SfxBanco banco = cargado ? _disparoCargado : _disparo;
+            if (_red != null && banco != null)
+                _red.Reproducir(banco, origen);
         }
 
         public void Carga(bool activa)

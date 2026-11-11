@@ -670,10 +670,13 @@ namespace TDOM.Unity.Combat
 
         private void ReproducirSfxDisparo(bool cargado)
         {
-            if (_sfx == null || cargado)
+            if (_sfx == null)
                 return;
 
-            _sfx.Disparo(_origenDisparo != null ? _origenDisparo.position : transform.position);
+            _sfx.Disparo(
+                _origenDisparo != null ? _origenDisparo.position : transform.position,
+                cargado
+            );
         }
 
         private InputSnapshot ComoDisparo(InputSnapshot input)
