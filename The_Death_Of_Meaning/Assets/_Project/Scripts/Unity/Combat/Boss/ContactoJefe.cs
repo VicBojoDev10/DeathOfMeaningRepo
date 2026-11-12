@@ -8,8 +8,10 @@ using UnityEngine;
 namespace TDOM.Unity.Combat
 {
     /// <summary>
-    /// Cuerpo sólido del jefe (TW-242): el jugador que toca cualquiera de sus partes recibe daño y
-    /// sale despedido en sentido contrario al contacto. Los colliders del cuerpo son cápsulas
+    /// Cuerpo sólido del jefe (TW-242): el jugador que toca cualquiera de sus partes recibe daño.
+    /// El contacto no empuja ni interrumpe lo que esté haciendo el jugador (así Ayla puede
+    /// encadenar su combo completo pegada al cuerpo); el retroceso solo lo dan los ataques del jefe.
+    /// Los colliders del cuerpo son cápsulas
     /// hijas de los huesos (las crea CuerpoJefeColliderGenerator), así que siguen todas las
     /// animaciones del Animator. Solo el servidor detecta y aplica el daño (por la vida de
     /// PlayerRoot), una vez por intervalo y jugador. No daña a jugadores abatidos y se calla si el
@@ -72,7 +74,7 @@ namespace TDOM.Unity.Combat
                 if (jugador == null || jugador.EstaAbatidoOMuerto)
                     continue;
 
-                if (!TocaElCuerpo(jugador, out Vector3 puntoContacto))
+                if (!TocaElCuerpo(jugador, out _))
                     continue;
 
                 if (!_registro.TryGolpear(jugador.NetworkObjectId, Time.time))
@@ -80,7 +82,8 @@ namespace TDOM.Unity.Combat
 
                 float dano =
                     jugador.CharacterId == CharacterIds.Ayla ? _perfil.danoAyla : _perfil.dano;
-                jugador.RecibirDanioDelJefe(dano, puntoContacto);
+                // Solo daño: RecibirDanioDelJefe además empuja y corta el combo del jugador.
+                jugador.RecibirDanio(dano);
             }
         }
 

@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dfd9b369fa5448b9b90f60613229eb23, type: 3}
+  m_Name: EscudoOjosProfile
+  m_EditorClassIdentifier: TDOM.Data::TDOM.POCO.ScriptableObjects.EscudoOjosProfile
+  MaterialAzul: {fileID: 2100000, guid: a19c6f36bdb648308bc8f7cf3013fae7, type: 2}
+  MaterialRojo: {fileID: 2100000, guid: cbf89d12e00f45dbbcb8e2c6b23eb68c, type: 2}
+  LetraAzul: {fileID: 2100000, guid: 5b22b13059214b0793e33ed5b8184f7d, type: 2}
+  LetraRoja: {fileID: 2100000, guid: 2c172a3e4c5a4712bf45ceba288fa9d3, type: 2}
+  EscalaEscudo: 1.6
+  GrosorEscudo: 0.3
+  DistanciaAlOjo: 0.9
+  SeparacionCapas: 0.7
+  EscalaPorCapaInterior: 0.85
+  TamanoLetra: 1
+  DistanciaLetra: 0.7
+  DuracionRotura: 0.3
+  EscalaRotura: 1.4
