@@ -138,7 +138,11 @@ namespace TDOM.Tests.EditMode
                 int turno = 0;
                 while (danio.Estado(ojo) == EstadoOjo.Abierto)
                 {
-                    cambioDeFase |= danio.AplicarDanioOjo(ojo, golpes[turno++ % golpes.Length], out _);
+                    cambioDeFase |= danio.AplicarDanioOjo(
+                        ojo,
+                        golpes[turno++ % golpes.Length],
+                        out _
+                    );
                 }
             }
 
@@ -196,7 +200,10 @@ namespace TDOM.Tests.EditMode
             for (int fase = 1; fase < Umbrales.Length; fase++)
             {
                 Assert.AreEqual(fase, fases.FaseActual);
-                Assert.IsTrue(CerrarTodos(danio), $"La fase {fase} debía terminar al cerrar todos los ojos.");
+                Assert.IsTrue(
+                    CerrarTodos(danio),
+                    $"La fase {fase} debía terminar al cerrar todos los ojos."
+                );
                 Assert.AreEqual(Umbrales[fase - 1], fases.VidaActual, Tolerancia);
                 TerminarTransicion(fases);
                 danio.ReabrirOjos();
@@ -227,11 +234,11 @@ namespace TDOM.Tests.EditMode
         [Test]
         public void SinPerfilesDeFase_Lanza()
         {
-            Assert.Throws<ArgumentNullException>(
-                () => new BossWeakPointDamage(CrearOjos(), CrearFases(), null)
+            Assert.Throws<ArgumentNullException>(() =>
+                new BossWeakPointDamage(CrearOjos(), CrearFases(), null)
             );
-            Assert.Throws<ArgumentException>(
-                () => new BossWeakPointDamage(CrearOjos(), CrearFases(), new float[0])
+            Assert.Throws<ArgumentException>(() =>
+                new BossWeakPointDamage(CrearOjos(), CrearFases(), new float[0])
             );
         }
 
@@ -454,7 +461,11 @@ namespace TDOM.Tests.EditMode
 
             Assert.IsTrue(roto);
             Assert.AreEqual(ColorEscudo.Ninguno, danio.Escudo(0));
-            Assert.AreEqual(ColorEscudo.Azul, danio.Escudo(1), "Solo se rompe el escudo de ese ojo.");
+            Assert.AreEqual(
+                ColorEscudo.Azul,
+                danio.Escudo(1),
+                "Solo se rompe el escudo de ese ojo."
+            );
             Assert.AreEqual(vida, fases.VidaActual);
             Assert.AreEqual(VidaOjo, danio.VidaOjo(0));
         }
@@ -464,7 +475,9 @@ namespace TDOM.Tests.EditMode
         {
             var danio = CrearEnFase2ConEscudo(CrearFases(), ColorEscudo.Azul);
 
-            Assert.IsFalse(danio.IntentarRomperEscudo(0, TipoImpactoOjo.Melee, atacanteEsAyla: true));
+            Assert.IsFalse(
+                danio.IntentarRomperEscudo(0, TipoImpactoOjo.Melee, atacanteEsAyla: true)
+            );
             Assert.AreEqual(ColorEscudo.Azul, danio.Escudo(0));
         }
 
@@ -473,8 +486,12 @@ namespace TDOM.Tests.EditMode
         {
             var danio = CrearEnFase2ConEscudo(CrearFases(), ColorEscudo.Rojo);
 
-            Assert.IsFalse(danio.IntentarRomperEscudo(0, TipoImpactoOjo.Disparo, atacanteEsAyla: true));
-            Assert.IsTrue(danio.IntentarRomperEscudo(0, TipoImpactoOjo.Melee, atacanteEsAyla: true));
+            Assert.IsFalse(
+                danio.IntentarRomperEscudo(0, TipoImpactoOjo.Disparo, atacanteEsAyla: true)
+            );
+            Assert.IsTrue(
+                danio.IntentarRomperEscudo(0, TipoImpactoOjo.Melee, atacanteEsAyla: true)
+            );
         }
 
         [Test]
@@ -541,20 +558,30 @@ namespace TDOM.Tests.EditMode
             Assert.GreaterOrEqual(ojoRojo, 0);
 
             // Capa 1 (roja): solo Ayla; mientras tanto el ojo no recibe daño.
-            Assert.IsFalse(danio.IntentarRomperEscudo(ojoRojo, TipoImpactoOjo.Melee, atacanteEsAyla: false));
-            Assert.IsTrue(danio.IntentarRomperEscudo(ojoRojo, TipoImpactoOjo.Melee, atacanteEsAyla: true));
+            Assert.IsFalse(
+                danio.IntentarRomperEscudo(ojoRojo, TipoImpactoOjo.Melee, atacanteEsAyla: false)
+            );
+            Assert.IsTrue(
+                danio.IntentarRomperEscudo(ojoRojo, TipoImpactoOjo.Melee, atacanteEsAyla: true)
+            );
             Assert.AreEqual(2, danio.CapasEscudo(ojoRojo));
             Assert.IsFalse(danio.AdmiteImpacto(ojoRojo, TipoImpactoOjo.Melee, true));
 
             // Capa 2 (azul): ahora Ayla ya no la rompe, Zendre sí.
             Assert.AreEqual(ColorEscudo.Azul, danio.Escudo(ojoRojo));
-            Assert.IsFalse(danio.IntentarRomperEscudo(ojoRojo, TipoImpactoOjo.Melee, atacanteEsAyla: true));
-            Assert.IsTrue(danio.IntentarRomperEscudo(ojoRojo, TipoImpactoOjo.Melee, atacanteEsAyla: false));
+            Assert.IsFalse(
+                danio.IntentarRomperEscudo(ojoRojo, TipoImpactoOjo.Melee, atacanteEsAyla: true)
+            );
+            Assert.IsTrue(
+                danio.IntentarRomperEscudo(ojoRojo, TipoImpactoOjo.Melee, atacanteEsAyla: false)
+            );
             Assert.IsFalse(danio.AdmiteImpacto(ojoRojo, TipoImpactoOjo.Melee, true));
 
             // Capa 3 (roja): Ayla, y con eso el ojo queda normal.
             Assert.AreEqual(ColorEscudo.Rojo, danio.Escudo(ojoRojo));
-            Assert.IsTrue(danio.IntentarRomperEscudo(ojoRojo, TipoImpactoOjo.Melee, atacanteEsAyla: true));
+            Assert.IsTrue(
+                danio.IntentarRomperEscudo(ojoRojo, TipoImpactoOjo.Melee, atacanteEsAyla: true)
+            );
             Assert.AreEqual(0, danio.CapasEscudo(ojoRojo));
             Assert.IsTrue(danio.AdmiteImpacto(ojoRojo, TipoImpactoOjo.Melee, true));
         }
@@ -618,7 +645,8 @@ namespace TDOM.Tests.EditMode
             return danio;
         }
 
-        private static WeakPointStateMachine CrearOjos() => new WeakPointStateMachine(TotalOjos, VidaOjo);
+        private static WeakPointStateMachine CrearOjos() =>
+            new WeakPointStateMachine(TotalOjos, VidaOjo);
 
         private static BossPhaseStateMachine CrearFases()
         {

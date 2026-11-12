@@ -97,7 +97,11 @@ namespace TDOM.Unity.Combat
             }
         }
 
-        public bool Preparar(HitZone[] zonas, IBossPhaseState fases, BossPhaseProfile[] perfilesFase)
+        public bool Preparar(
+            HitZone[] zonas,
+            IBossPhaseState fases,
+            BossPhaseProfile[] perfilesFase
+        )
         {
             if (_perfil == null || zonas == null || zonas.Length == 0)
             {
@@ -107,7 +111,9 @@ namespace TDOM.Unity.Combat
 
             if (perfilesFase == null || perfilesFase.Length == 0)
             {
-                Debug.LogError("[OjosArek] No hay perfiles de fase para repartir la vida entre los ojos.");
+                Debug.LogError(
+                    "[OjosArek] No hay perfiles de fase para repartir la vida entre los ojos."
+                );
                 return false;
             }
 

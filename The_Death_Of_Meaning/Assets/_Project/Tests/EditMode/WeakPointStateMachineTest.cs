@@ -32,7 +32,9 @@ namespace TDOM.Tests.EditMode
         [Test]
         public void ConVidaDeOjoNoPositiva_Lanza()
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => new WeakPointStateMachine(TotalOjos, 0f));
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                new WeakPointStateMachine(TotalOjos, 0f)
+            );
         }
 
         [Test]
@@ -196,10 +198,7 @@ namespace TDOM.Tests.EditMode
         public void UnOjoConVariasCapas_SeRompenDeAfueraHaciaAdentro_YSoloEntoncesRecibeDanio()
         {
             var maquina = new WeakPointStateMachine(TotalOjos, VidaOjo);
-            maquina.PonerEscudos(
-                0,
-                new[] { ColorEscudo.Rojo, ColorEscudo.Azul, ColorEscudo.Rojo }
-            );
+            maquina.PonerEscudos(0, new[] { ColorEscudo.Rojo, ColorEscudo.Azul, ColorEscudo.Rojo });
 
             Assert.AreEqual(3, maquina.CapasEscudo(0));
             Assert.AreEqual(ColorEscudo.Rojo, maquina.Escudo(0));

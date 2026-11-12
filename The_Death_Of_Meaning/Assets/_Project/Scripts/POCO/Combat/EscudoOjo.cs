@@ -110,7 +110,10 @@ namespace TDOM.Gameplay.Combat
         public PlanEscudos(ColorEscudo primero, int semilla = 0)
         {
             if (primero == ColorEscudo.Ninguno)
-                throw new ArgumentException("El primer escudo debe ser azul o rojo.", nameof(primero));
+                throw new ArgumentException(
+                    "El primer escudo debe ser azul o rojo.",
+                    nameof(primero)
+                );
 
             _primero = primero;
             _semilla = semilla;

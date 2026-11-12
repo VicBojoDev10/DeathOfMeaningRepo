@@ -35,7 +35,9 @@ namespace TDOM.POCO.ScriptableObjects
         [Min(0f)]
         public float SeparacionCapas = 0.7f;
 
-        [Tooltip("Cada capa más cerca del ojo mide esta fracción de la que tiene delante (1 = igual).")]
+        [Tooltip(
+            "Cada capa más cerca del ojo mide esta fracción de la que tiene delante (1 = igual)."
+        )]
         [Range(0.3f, 1f)]
         public float EscalaPorCapaInterior = 0.85f;
 

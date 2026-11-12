@@ -114,7 +114,8 @@ namespace TDOM.Gameplay.Combat
         public void PonerEscudos(int ojo, ColorEscudo[] capas)
         {
             ValidarOjo(ojo);
-            _escudos[ojo] = _estados[ojo] == EstadoOjo.Abierto ? EscudoOjo.Empaquetar(capas) : (byte)0;
+            _escudos[ojo] =
+                _estados[ojo] == EstadoOjo.Abierto ? EscudoOjo.Empaquetar(capas) : (byte)0;
         }
 
         /// <summary>
@@ -156,11 +157,7 @@ namespace TDOM.Gameplay.Combat
         {
             ValidarOjo(ojo);
 
-            if (
-                _estados[ojo] != EstadoOjo.Abierto
-                || _escudos[ojo] != 0
-                || cantidad <= 0f
-            )
+            if (_estados[ojo] != EstadoOjo.Abierto || _escudos[ojo] != 0 || cantidad <= 0f)
                 return 0f;
 
             float aplicado = Math.Min(cantidad, _vida[ojo]);

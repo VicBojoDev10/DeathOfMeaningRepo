@@ -328,7 +328,11 @@ namespace TDOM.Unity.Combat
         }
 
         // Placeholder (el renderer del propio HitZone): del color de cerrado al de abierto.
-        private static Color ColorPlaceholder(WeakPointProfile perfil, EstadoOjo estado, float danio)
+        private static Color ColorPlaceholder(
+            WeakPointProfile perfil,
+            EstadoOjo estado,
+            float danio
+        )
         {
             if (estado != EstadoOjo.Abierto)
                 return perfil.ColorCerrado;

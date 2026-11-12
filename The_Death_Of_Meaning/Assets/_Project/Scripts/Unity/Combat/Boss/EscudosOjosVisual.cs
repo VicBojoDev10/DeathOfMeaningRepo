@@ -172,7 +172,9 @@ namespace TDOM.Unity.Combat
                 }
 
                 bool azul = EscudoOjo.Capa(empaquetado, lugar) == ColorEscudo.Azul;
-                capa.RenderDisco.sharedMaterial = azul ? _perfil.MaterialAzul : _perfil.MaterialRojo;
+                capa.RenderDisco.sharedMaterial = azul
+                    ? _perfil.MaterialAzul
+                    : _perfil.MaterialRojo;
                 capa.RenderLetra.sharedMaterial = azul ? _perfil.LetraAzul : _perfil.LetraRoja;
                 capa.Disco.SetActive(true);
                 capa.Letra.SetActive(true);
@@ -190,7 +192,13 @@ namespace TDOM.Unity.Combat
         // lugar 0 es el de más al frente. La capa de más atrás queda a DistanciaAlOjo del ojo y
         // cada lugar hacia el frente se separa SeparacionCapas más; las de atrás son más chicas.
         // escalaDisco y escalaLetra multiplican el tamaño base (la rotura las anima).
-        private void Colocar(EscudoDeOjo escudo, Capa capa, int lugar, float escalaDisco, float escalaLetra)
+        private void Colocar(
+            EscudoDeOjo escudo,
+            Capa capa,
+            int lugar,
+            float escalaDisco,
+            float escalaLetra
+        )
         {
             if (escudo.Ojo == null)
                 return;

@@ -7,7 +7,9 @@ namespace TDOM.POCO.ScriptableObjects
     public class WeakPointProfile : ScriptableObject
     {
         [Header("Vida de cada ojo")]
-        [Tooltip("De aquí sale la vida base: cada ojo vale MultiplicadorVidaOjo veces la de un minion.")]
+        [Tooltip(
+            "De aquí sale la vida base: cada ojo vale MultiplicadorVidaOjo veces la de un minion."
+        )]
         public MinionProfile PerfilMinion;
 
         [Tooltip("Vida del ojo en veces la vida de un minion (2 = el doble).")]
@@ -27,6 +29,7 @@ namespace TDOM.POCO.ScriptableObjects
 
         /// <summary>Vida de cada ojo: la del minion por el multiplicador.</summary>
         public float VidaOjo =>
-            (PerfilMinion != null ? PerfilMinion.vida : VidaMinionPorDefecto) * MultiplicadorVidaOjo;
+            (PerfilMinion != null ? PerfilMinion.vida : VidaMinionPorDefecto)
+            * MultiplicadorVidaOjo;
     }
 }
