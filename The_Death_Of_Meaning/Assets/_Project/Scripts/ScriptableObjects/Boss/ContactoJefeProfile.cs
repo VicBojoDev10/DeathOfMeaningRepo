@@ -25,19 +25,5 @@ namespace TDOM.Data
             "Segundos entre golpes al mismo jugador. Cuenta aunque salga y vuelva a tocar al jefe."
         )]
         public float intervaloEntreGolpes = 1f;
-
-        [Header("Empuje")]
-        [Min(0f)]
-        [Tooltip(
-            "Metros que sale despedido el jugador, en sentido contrario al contacto. 0 = sin empuje."
-        )]
-        public float empujeDistancia = 4f;
-
-        [Min(0f)]
-        [Tooltip("Metros que sube durante el empuje (vuelve al punto de partida).")]
-        public float empujeAltura = 0.6f;
-
-        [Min(0.01f)]
-        public float empujeDuracion = 0.3f;
     }
 }

@@ -6,11 +6,20 @@ namespace TDOM.Unity
 {
     public class GlobalGameManager : Singleton<GlobalGameManager>
     {
+        private const int LimiteFotogramasPorSegundo = 60;
+
         [Header("Música")]
         private string menuMusicName = "mainmenu";
         private string tutorialMusicName = "tutorial";
         private string combatMusicName = "battle";
         private ArenaEncounterNetwork _encuentroSuscrito;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void ConfigurarLimiteFotogramas()
+        {
+            QualitySettings.vSyncCount = 0;
+            Application.targetFrameRate = LimiteFotogramasPorSegundo;
+        }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void AutoCrearInstancia()
