@@ -129,6 +129,20 @@ namespace TDOM.Unity.Player
 
         private BossController _jefe;
 
+        [Header("Retroceso al recibir daño del jefe")]
+        [SerializeField, Min(0f)]
+        private float _distanciaRetrocesoJefe = 4f;
+
+        [SerializeField, Min(0f)]
+        private float _alturaRetrocesoJefe = 0.6f;
+
+        [SerializeField, Min(0.01f)]
+        private float _duracionRetrocesoJefe = 0.3f;
+
+        [SerializeField, Min(0f)]
+        private float _inmunidadRetrocesoJefe = 0.35f;
+        private float _siguienteRetrocesoJefe;
+
         [SerializeField]
         private float _alturaMaxima = 80f;
         private bool _respawnPorAlturaSolicitado;
@@ -1212,7 +1226,7 @@ namespace TDOM.Unity.Player
             if (bloquearTodoMovimiento)
             {
                 _locomocion.CancelarDashEnCurso();
-                _motor.CancelarEmpuje();
+                _motor.AplicarEmpuje(dt);
             }
             else
             {
@@ -1333,6 +1347,53 @@ namespace TDOM.Unity.Player
 
             SincronizarVidaEnRed();
             VerificarGameOverEnServidor();
+        }
+
+        public void RecibirDanioDelJefe(float cantidad, Vector3 fuente, bool esInstaKill = false)
+        {
+            if (!IsServer || _healthPool == null)
+                return;
+
+            RecibirDanio(cantidad, esInstaKill);
+            if (EstaAbatidoOMuerto)
+                return;
+
+            // El servidor conserva la referencia autoritativa al NetworkObject del ancla.
+            // La RPC siguiente limpia también el estado y los VFX del cliente dueño.
+            _anchorLauncher?.CancelarPorGolpe();
+            InterrumpirAccionesPorGolpeRpc();
+            if (Time.time < _siguienteRetrocesoJefe)
+                return;
+
+            _siguienteRetrocesoJefe = Time.time + _inmunidadRetrocesoJefe;
+            Vector3 direccion = transform.position - fuente;
+            direccion.y = 0f;
+            if (direccion.sqrMagnitude < 1e-4f)
+            {
+                direccion =
+                    transform.position - (_jefe != null ? _jefe.transform.position : fuente);
+                direccion.y = 0f;
+            }
+            EmpujarDesdeServidor(
+                direccion,
+                _distanciaRetrocesoJefe,
+                _alturaRetrocesoJefe,
+                _duracionRetrocesoJefe
+            );
+        }
+
+        [Rpc(SendTo.Owner)]
+        private void InterrumpirAccionesPorGolpeRpc()
+        {
+            _combat?.InterrumpirPorGolpe();
+            _locomocion?.CancelarDashEnCurso();
+            _locomocion?.CancelarGanchoEnCurso();
+            _anchorLauncher?.CancelarPorGolpe();
+            _motor?.CancelarEmpuje();
+            _grappleVisual?.Ocultar();
+            _ganchoActivoPrevio = false;
+            _mantenerOrientacionGanchoHasta = 0f;
+            _hayYawObjetivoGancho = false;
         }
 
         public void AplicarDanioEnServidor(float cantidad, bool esInstaKill = false) =>
