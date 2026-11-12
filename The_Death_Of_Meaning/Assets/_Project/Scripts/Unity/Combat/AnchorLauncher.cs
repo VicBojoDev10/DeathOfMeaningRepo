@@ -56,6 +56,17 @@ namespace TDOM.Unity.Combat
                 DespawnearAncla();
         }
 
+        public void CancelarPorGolpe()
+        {
+            AnclaActiva = false;
+            _esperandoSoltar = true;
+            _lanzamientoPendiente = false;
+            if (IsOwner)
+                DetenerVfxAncla();
+            if (IsServer)
+                DespawnearAncla();
+        }
+
         private CooldownTimer _cooldown;
         private NetworkObject _anclaSpawnada;
 
