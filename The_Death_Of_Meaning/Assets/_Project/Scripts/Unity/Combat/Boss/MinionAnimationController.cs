@@ -12,6 +12,8 @@ namespace TDOM.Unity
 
         private Animator _animator;
         private Coroutine _solicitudAtaque;
+        private float _velocidadAnimatorOriginal = 1f;
+        private bool _pausadoGlobal;
 
         private void Awake()
         {
@@ -25,6 +27,8 @@ namespace TDOM.Unity
                 enabled = false;
                 return;
             }
+
+            _velocidadAnimatorOriginal = _animator.speed;
 
             bool tieneMove = false;
             bool tieneAttack = false;
@@ -52,6 +56,23 @@ namespace TDOM.Unity
                 _animator.SetBool(IdMove, moviendose);
         }
 
+        public void EstablecerPausa(bool pausado)
+        {
+            _pausadoGlobal = pausado;
+            if (_animator == null)
+                return;
+
+            if (pausado)
+            {
+                _animator.SetBool(IdMove, false);
+                _animator.speed = 0f;
+            }
+            else
+            {
+                _animator.speed = _velocidadAnimatorOriginal;
+            }
+        }
+
         /// <summary>
         /// Activa Attack hasta que el Animator haya empezado la transición al estado homónimo.
         /// Así el Bool no se pierde antes de que el Animator evalúe la transición.
@@ -72,6 +93,9 @@ namespace TDOM.Unity
             {
                 // Deja que el Animator procese el parámetro al menos una vez.
                 yield return null;
+                if (_pausadoGlobal)
+                    continue;
+
                 tiempo += Time.deltaTime;
 
                 AnimatorStateInfo actual = _animator.GetCurrentAnimatorStateInfo(0);

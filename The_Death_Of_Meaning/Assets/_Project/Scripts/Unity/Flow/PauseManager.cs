@@ -91,6 +91,7 @@ namespace TDOM.Unity
 
         public override void OnNetworkDespawn()
         {
+            PausaMinionsActivos.EstablecerPausaMenu(NetworkManager, false);
             Pausado.OnValueChanged -= AlCambiarPausa;
             Resultado.OnValueChanged -= AlCambiarResultado;
             if (IsServer && NetworkManager != null)
@@ -126,6 +127,7 @@ namespace TDOM.Unity
         private void AlCambiarPausa(bool anterior, bool actual)
         {
             PausadoGlobal = actual;
+            PausaMinionsActivos.EstablecerPausaMenu(NetworkManager, actual);
             var ui = UiManager.Instance;
             if (ui == null)
                 return;
