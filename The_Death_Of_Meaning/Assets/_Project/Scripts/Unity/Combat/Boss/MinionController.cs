@@ -139,10 +139,7 @@ namespace TDOM.Unity
 
             if (_pausaTrasGolpeRestante > 0f)
             {
-                _pausaTrasGolpeRestante = Mathf.Max(
-                    0f,
-                    _pausaTrasGolpeRestante - Time.deltaTime
-                );
+                _pausaTrasGolpeRestante = Mathf.Max(0f, _pausaTrasGolpeRestante - Time.deltaTime);
                 _agente.isStopped = true;
                 _animaciones?.ActualizarMovimiento(false);
                 if (_pausaTrasGolpeRestante > 0f)
