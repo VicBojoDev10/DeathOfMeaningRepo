@@ -45,13 +45,17 @@ namespace TDOM.Unity
         public Transform Plataforma => _plataforma;
 
         private HitZone _zona;
+        private MinionAnimationController _animaciones;
         private Collider[] _colliders;
         private bool _muerto;
+        private bool _pausadoGlobal;
         private float _siguienteDisparo;
+        private float _tiempoDisparoRestanteAlPausar;
         private PlayerRoot _objetivo;
         private Transform _plataforma;
         private Collider[] _collidersPlataforma;
         private float _siguienteMovimiento;
+        private float _tiempoMovimientoRestanteAlPausar;
         private Vector3 _anclaLocalPlataforma;
         private float _alturaSobreSuperficie;
         private Vector2 _desplazamientoActual;
@@ -74,6 +78,7 @@ namespace TDOM.Unity
         private void Awake()
         {
             _zona = GetComponent<HitZone>();
+            _animaciones = GetComponent<MinionAnimationController>();
             _colliders = GetComponentsInChildren<Collider>();
 
             if (_renderer == null)
@@ -131,11 +136,14 @@ namespace TDOM.Unity
 
         private void Update()
         {
-            if (!IsServer || !IsSpawned || _muerto || _perfil == null)
+            if (!IsServer || !IsSpawned || _muerto || _perfil == null || _pausadoGlobal)
                 return;
 
             ActualizarDestinoMovimiento();
             AcompanharMovimientoPlataforma();
+            _animaciones?.ActualizarMovimiento(
+                (_desplazamientoActual - _desplazamientoDestino).sqrMagnitude > 0.0001f
+            );
 
             _objetivo = BuscarObjetivoMasCercano();
             if (_objetivo == null)
@@ -156,6 +164,32 @@ namespace TDOM.Unity
                 Disparar(origen, direccion.normalized);
                 _siguienteDisparo = Time.time + 1f / Mathf.Max(1, _perfil.cadenciaDisparo);
             }
+        }
+
+        public void EstablecerPausa(bool pausado)
+        {
+            if (_pausadoGlobal == pausado)
+                return;
+
+            _pausadoGlobal = pausado;
+            if (IsServer)
+            {
+                if (pausado)
+                {
+                    _tiempoDisparoRestanteAlPausar = Mathf.Max(0f, _siguienteDisparo - Time.time);
+                    _tiempoMovimientoRestanteAlPausar = Mathf.Max(
+                        0f,
+                        _siguienteMovimiento - Time.time
+                    );
+                }
+                else if (!_muerto)
+                {
+                    _siguienteDisparo = Time.time + _tiempoDisparoRestanteAlPausar;
+                    _siguienteMovimiento = Time.time + _tiempoMovimientoRestanteAlPausar;
+                }
+            }
+
+            _animaciones?.EstablecerPausa(pausado);
         }
 
         private void AcompanharMovimientoPlataforma()
@@ -318,8 +352,10 @@ namespace TDOM.Unity
                 atacanteEsAyla: false,
                 dañaJugador: true,
                 plataformaIgnorada: _plataforma,
-                emisorIgnorado: transform
+                emisorIgnorado: transform,
+                detenerDurantePausaGlobal: true
             );
+            _animaciones?.ReproducirAtaque();
             networkObject.Spawn(true);
         }
 
@@ -338,6 +374,7 @@ namespace TDOM.Unity
         private void Morir()
         {
             _muerto = true;
+            _animaciones?.ActualizarMovimiento(false);
             MuerteRpc();
             Murio?.Invoke(this);
             StartCoroutine(DespawnTrasMuerte());

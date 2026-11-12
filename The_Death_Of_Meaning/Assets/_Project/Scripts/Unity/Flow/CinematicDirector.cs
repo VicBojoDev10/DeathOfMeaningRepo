@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TDOM.Gameplay.Core;
+using TDOM.Unity;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
 using Unity.Cinemachine;
@@ -107,6 +108,7 @@ namespace TDOM.Unity.Flow
 
         public override void OnNetworkDespawn()
         {
+            PausaMinionsActivos.EstablecerPausaCinematica(NetworkManager, false);
             BossController.DejarDeObservarJefe(AlSpawnearJefe);
             DesuscribirJefe();
         }
@@ -212,6 +214,11 @@ namespace TDOM.Unity.Flow
 
         private void AlCambiarEstado(EstadoFlujo estado)
         {
+            PausaMinionsActivos.EstablecerPausaCinematica(
+                NetworkManager,
+                estado != EstadoFlujo.Gameplay
+            );
+
             if (IsServer && _jefe != null)
                 _jefe.Pausar(estado != EstadoFlujo.Gameplay);
 

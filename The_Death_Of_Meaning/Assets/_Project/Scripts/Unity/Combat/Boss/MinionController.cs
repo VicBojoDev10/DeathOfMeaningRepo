@@ -20,6 +20,9 @@ namespace TDOM.Unity
     public class MinionController : NetworkBehaviour
     {
         private const float DuracionFlashGolpe = 0.25f;
+        private const float DuracionPausaTrasGolpe = 1f;
+        private const float DistanciaEmpujeJugador = 0.45f;
+        private const float DuracionEmpujeJugador = 0.18f;
         private static readonly int IdColorBase = Shader.PropertyToID("_BaseColor");
 
         [SerializeField]
@@ -45,12 +48,16 @@ namespace TDOM.Unity
 
         private NavMeshAgent _agente;
         private HitZone _zona;
+        private MinionAnimationController _animaciones;
         private Collider[] _colliders;
         private Material _material;
         private Color _colorBase;
         private Quaternion _rotacionVisual;
         private Coroutine _aviso;
         private bool _muerto;
+        private bool _pausadoGlobal;
+        private bool _agenteEstabaDetenidoAntesDePausa;
+        private float _pausaTrasGolpeRestante;
 
         // Solo servidor.
         private MinionBrain _brain;
@@ -65,6 +72,7 @@ namespace TDOM.Unity
         {
             _agente = GetComponent<NavMeshAgent>();
             _zona = GetComponent<HitZone>();
+            _animaciones = GetComponent<MinionAnimationController>();
             _colliders = GetComponentsInChildren<Collider>();
             _empuje = new EmpujeMinion(_agente, GetComponent<Collider>());
 
@@ -128,8 +136,17 @@ namespace TDOM.Unity
 
         private void Update()
         {
-            if (!IsServer || !IsSpawned || _muerto || _brain == null)
+            if (!IsServer || !IsSpawned || _muerto || _brain == null || _pausadoGlobal)
                 return;
+
+            if (_pausaTrasGolpeRestante > 0f)
+            {
+                _pausaTrasGolpeRestante = Mathf.Max(0f, _pausaTrasGolpeRestante - Time.deltaTime);
+                _agente.isStopped = true;
+                _animaciones?.ActualizarMovimiento(false);
+                if (_pausaTrasGolpeRestante > 0f)
+                    return;
+            }
 
             if (_empuje.Tick(Time.deltaTime))
                 return;
@@ -149,6 +166,8 @@ namespace TDOM.Unity
                     MirarHacia(objetivo.transform.position);
             }
 
+            _animaciones?.ActualizarMovimiento(_brain.DebeMoverse && hayObjetivo);
+
             switch (evento)
             {
                 case EventoMinion.Aviso:
@@ -156,10 +175,37 @@ namespace TDOM.Unity
                     AvisoRpc();
                     break;
                 case EventoMinion.Golpe:
+                    // El evento Golpe se emite al terminar el aviso del cerebro.
+                    _animaciones?.ReproducirAtaque();
                     if (Time.time >= _siguienteGolpePermitido && Golpear())
+                    {
                         _siguienteGolpePermitido = Time.time + 1f;
+                        DetenerTrasGolpe();
+                    }
                     break;
             }
+        }
+
+        public void EstablecerPausa(bool pausado)
+        {
+            if (_pausadoGlobal == pausado)
+                return;
+
+            _pausadoGlobal = pausado;
+            if (IsServer && _agente != null && _agente.enabled)
+            {
+                if (pausado)
+                {
+                    _agenteEstabaDetenidoAntesDePausa = _agente.isStopped;
+                    _agente.isStopped = true;
+                }
+                else if (!_muerto)
+                {
+                    _agente.isStopped = _agenteEstabaDetenidoAntesDePausa;
+                }
+            }
+
+            _animaciones?.EstablecerPausa(pausado);
         }
 
         public bool EmpujarEnServidor(Vector3 direccion, DashProfile perfil)
@@ -262,11 +308,35 @@ namespace TDOM.Unity
                     $"[Minion {NetworkObjectId}] golpe {_golpeDelCombo} a cliente {jugador.OwnerClientId} ({_perfil.danio:F0} de daño)"
                 );
                 jugador.AplicarDanioEnServidor(_perfil.danio);
+                EmpujarJugador(jugador);
                 JugadorGolpeadoRpc(RpcTarget.Single(jugador.OwnerClientId, RpcTargetUse.Temp));
                 conecto = true;
             }
 
             return conecto;
+        }
+
+        private void EmpujarJugador(PlayerRoot jugador)
+        {
+            Vector3 direccion = jugador.transform.position - transform.position;
+            direccion.y = 0f;
+            if (direccion.sqrMagnitude < 0.0001f)
+                direccion = transform.forward;
+
+            jugador.EmpujarDesdeServidor(
+                direccion,
+                DistanciaEmpujeJugador,
+                altura: 0f,
+                duracion: DuracionEmpujeJugador
+            );
+        }
+
+        private void DetenerTrasGolpe()
+        {
+            _pausaTrasGolpeRestante = DuracionPausaTrasGolpe;
+            if (_agente != null && _agente.enabled)
+                _agente.isStopped = true;
+            _animaciones?.ActualizarMovimiento(false);
         }
 
         private void AlRecibirDanio(float cantidad)
@@ -284,6 +354,7 @@ namespace TDOM.Unity
         private void Morir()
         {
             _muerto = true;
+            _animaciones?.ActualizarMovimiento(false);
             _agente.isStopped = true;
             MuerteRpc();
             Murio?.Invoke(this);
@@ -313,7 +384,13 @@ namespace TDOM.Unity
             _visual.localRotation =
                 _rotacionVisual * Quaternion.Euler(_perfil.inclinacionAviso, 0f, 0f);
 
-            yield return new WaitForSeconds(_perfil.duracionAviso);
+            float restante = _perfil.duracionAviso;
+            while (restante > 0f)
+            {
+                if (!_pausadoGlobal)
+                    restante -= Time.deltaTime;
+                yield return null;
+            }
 
             PintarCuerpo(_colorBase);
             _visual.localRotation = _rotacionVisual;
@@ -376,6 +453,47 @@ namespace TDOM.Unity
                 Vector3.one
             );
             Gizmos.DrawWireCube(Vector3.zero, _perfil.tamanioGolpe);
+        }
+    }
+
+    /// <summary>Combina las pausas de cinemática y menú para minions y sus proyectiles.</summary>
+    public static class PausaMinionsActivos
+    {
+        private static bool _pausaCinematica;
+        private static bool _pausaMenu;
+        private static NetworkManager _networkManager;
+
+        public static void EstablecerPausaCinematica(NetworkManager networkManager, bool pausado)
+        {
+            if (networkManager != null)
+                _networkManager = networkManager;
+            _pausaCinematica = pausado;
+            AplicarPausaCombinada();
+        }
+
+        public static void EstablecerPausaMenu(NetworkManager networkManager, bool pausado)
+        {
+            if (networkManager != null)
+                _networkManager = networkManager;
+            _pausaMenu = pausado;
+            AplicarPausaCombinada();
+        }
+
+        private static void AplicarPausaCombinada()
+        {
+            if (_networkManager?.SpawnManager == null)
+                return;
+
+            bool pausado = _pausaCinematica || _pausaMenu;
+            foreach (NetworkObject objeto in _networkManager.SpawnManager.SpawnedObjectsList)
+            {
+                if (objeto == null)
+                    continue;
+
+                objeto.GetComponent<MinionController>()?.EstablecerPausa(pausado);
+                objeto.GetComponent<SniperMinionController>()?.EstablecerPausa(pausado);
+                objeto.GetComponent<Proyectil>()?.EstablecerPausa(pausado);
+            }
         }
     }
 }
