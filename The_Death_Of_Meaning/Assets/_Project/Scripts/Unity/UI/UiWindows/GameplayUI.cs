@@ -1,10 +1,12 @@
 using TDOM.Contracts;
 using TDOM.Gameplay.Camera;
+using TDOM.Gameplay.Core;
 using TDOM.Unity.Player;
 using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace TDOM.Unity
 {
@@ -75,6 +77,11 @@ namespace TDOM.Unity
         private bool _hudVisible = true;
         private PlayerEnergyHud _barraEnergiaJugador;
         private PlayerRoot _jugadorConEnergiaInicializado;
+        private RectTransform _marcadorAbatido;
+        private TMP_Text _textoMarcadorAbatido;
+        private TMP_Text _flechaMarcadorAbatido;
+        private Color _colorBarraCompanero = Color.white;
+        private DownedPlayerOutline _outlineCompanero;
 
         private void Update()
         {
@@ -189,15 +196,24 @@ namespace TDOM.Unity
             if (_otherPlayer != null)
             {
                 _otherPlayer.Vida.OnValueChanged -= OnVidaSecundarioChanged;
+                _otherPlayer.EstadoVida.OnValueChanged -= OnEstadoSecundarioChanged;
+                _otherPlayer.TiempoAbatidoRestante.OnValueChanged -= OnEstadoAbatidoSecundarioChanged;
+                _otherPlayer.ProgresoRevivir.OnValueChanged -= OnEstadoAbatidoSecundarioChanged;
             }
 
             _localPlayer = null;
+            if (_outlineCompanero != null)
+                _outlineCompanero.SetVisible(false);
+            _outlineCompanero = null;
             _otherPlayer = null;
             _jugadorConEnergiaInicializado = null;
+            if (_marcadorAbatido != null)
+                _marcadorAbatido.gameObject.SetActive(false);
         }
 
         private void LateUpdate()
         {
+            ActualizarMarcadorAbatido();
             if (!_hudVisible)
                 return;
 
@@ -220,15 +236,12 @@ namespace TDOM.Unity
             bool soloAlApuntar = esZendre;
             float alcance = esZendre ? _localPlayer.AnchorRange : _localPlayer.GrappleRange;
 
-            // Control de mira por defecto (ej. el punto de cadera de Zendre cuando no está apuntando)
             if (crosshairDefaultImage != null)
             {
                 bool mostrarMiraDefault = soloAlApuntar && !input.AimHeld;
                 if (crosshairDefaultImage.gameObject.activeSelf != mostrarMiraDefault)
                     crosshairDefaultImage.gameObject.SetActive(mostrarMiraDefault);
             }
-
-            // Control de la mira de habilidad / apuntado
             bool mostrarMiraApuntado = !soloAlApuntar || input.AimHeld;
 
             if (crosshairImage == null)
@@ -251,7 +264,6 @@ namespace TDOM.Unity
                 && impactado.GetComponentInParent<PlayerRoot>() == null
                 && AimResolver.IsWithinRange(origen, apuntado.TargetPoint, alcance);
 
-            // Aplicar colores y escala
             crosshairImage.color = valido ? colorEnRango : colorFueraDeRango;
 
             if (_crosshairRect != null)
@@ -331,9 +343,16 @@ namespace TDOM.Unity
         {
             _otherPlayer = player;
             _otherPlayer.Vida.OnValueChanged += OnVidaSecundarioChanged;
+            _otherPlayer.EstadoVida.OnValueChanged += OnEstadoSecundarioChanged;
+            _otherPlayer.TiempoAbatidoRestante.OnValueChanged += OnEstadoAbatidoSecundarioChanged;
+            _otherPlayer.ProgresoRevivir.OnValueChanged += OnEstadoAbatidoSecundarioChanged;
 
             if (secondaryPlayerHealthSlider != null)
             {
+                var fill = secondaryPlayerHealthSlider.fillRect != null
+                    ? secondaryPlayerHealthSlider.fillRect.GetComponent<Image>() : null;
+                if (fill != null)
+                    _colorBarraCompanero = fill.color;
                 secondaryPlayerHealthSlider.minValue = 0f;
                 secondaryPlayerHealthSlider.maxValue = _otherPlayer.VidaMaxima;
                 secondaryPlayerHealthSlider.value = Mathf.Clamp(
@@ -344,6 +363,7 @@ namespace TDOM.Unity
             }
 
             ActualizarIconosPersonajes();
+            ActualizarEstadoCompanero();
         }
 
         private void OnVidaLocalChanged(float anterior, float actual)
@@ -356,7 +376,8 @@ namespace TDOM.Unity
 
         private void OnVidaSecundarioChanged(float anterior, float actual)
         {
-            if (secondaryPlayerHealthSlider != null && _otherPlayer != null)
+            if (secondaryPlayerHealthSlider != null && _otherPlayer != null
+                && _otherPlayer.EstadoVida.Value == PlayerLifeState.Vivo)
             {
                 secondaryPlayerHealthSlider.value = Mathf.Clamp(
                     actual,
@@ -364,6 +385,110 @@ namespace TDOM.Unity
                     _otherPlayer.VidaMaxima
                 );
             }
+        }
+
+        private void OnEstadoSecundarioChanged(PlayerLifeState anterior, PlayerLifeState actual) =>
+            ActualizarEstadoCompanero();
+
+        private void OnEstadoAbatidoSecundarioChanged(float anterior, float actual) =>
+            ActualizarEstadoCompanero();
+
+        private void ActualizarEstadoCompanero()
+        {
+            if (_otherPlayer == null)
+                return;
+            bool abatido = _otherPlayer.EstadoVida.Value == PlayerLifeState.Abatido;
+            if (_outlineCompanero == null)
+                _outlineCompanero = _otherPlayer.GetComponent<DownedPlayerOutline>()
+                    ?? _otherPlayer.gameObject.AddComponent<DownedPlayerOutline>();
+            _outlineCompanero.SetVisible(abatido);
+            if (secondaryPlayerHealthSlider == null)
+                return;
+            var fill = secondaryPlayerHealthSlider.fillRect != null
+                ? secondaryPlayerHealthSlider.fillRect.GetComponent<Image>() : null;
+            secondaryPlayerHealthSlider.maxValue = abatido ? 1f : _otherPlayer.VidaMaxima;
+            secondaryPlayerHealthSlider.value = abatido
+                ? (_otherPlayer.ProgresoRevivir.Value > 0f
+                    ? Mathf.Clamp01(_otherPlayer.ProgresoRevivir.Value)
+                    : _otherPlayer.TiempoAbatidoNormalizado)
+                : Mathf.Clamp(_otherPlayer.Vida.Value, 0f, _otherPlayer.VidaMaxima);
+            if (fill != null)
+                fill.color = abatido ? new Color(1f, 0.48f, 0.12f, 1f) : _colorBarraCompanero;
+            if (abatido)
+                CrearMarcadorAbatido();
+            else if (_marcadorAbatido != null)
+                _marcadorAbatido.gameObject.SetActive(false);
+        }
+
+        private void CrearMarcadorAbatido()
+        {
+            if (_marcadorAbatido != null)
+                return;
+            var canvas = GetComponentInParent<Canvas>();
+            if (canvas == null)
+                canvas = GetComponentInChildren<Canvas>(true);
+            if (canvas == null)
+                return;
+            var root = new GameObject("DownedAllyMarker", typeof(RectTransform));
+            _marcadorAbatido = root.GetComponent<RectTransform>();
+            _marcadorAbatido.SetParent(canvas.transform, false);
+            _marcadorAbatido.anchorMin = _marcadorAbatido.anchorMax = new Vector2(0.5f, 0.5f);
+            _marcadorAbatido.sizeDelta = new Vector2(180f, 54f);
+            var arrow = new GameObject("Arrow", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+            var arrowRect = arrow.GetComponent<RectTransform>();
+            arrowRect.SetParent(_marcadorAbatido, false);
+            arrowRect.sizeDelta = new Vector2(36f, 36f);
+            _flechaMarcadorAbatido = arrow.GetComponent<TMP_Text>();
+            _flechaMarcadorAbatido.text = "▲";
+            _flechaMarcadorAbatido.alignment = TextAlignmentOptions.Center;
+            _flechaMarcadorAbatido.fontSize = 34f;
+            _flechaMarcadorAbatido.color = new Color(1f, 0.48f, 0.12f, 1f);
+            _flechaMarcadorAbatido.raycastTarget = false;
+            _textoMarcadorAbatido = new GameObject("Status", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI)).GetComponent<TMP_Text>();
+            _textoMarcadorAbatido.transform.SetParent(_marcadorAbatido, false);
+            _textoMarcadorAbatido.rectTransform.anchoredPosition = new Vector2(0f, -29f);
+            _textoMarcadorAbatido.rectTransform.sizeDelta = new Vector2(180f, 28f);
+            _textoMarcadorAbatido.alignment = TextAlignmentOptions.Center;
+            _textoMarcadorAbatido.fontSize = 20f;
+            _textoMarcadorAbatido.color = Color.white;
+            _textoMarcadorAbatido.raycastTarget = false;
+            _textoMarcadorAbatido.text = "▼";
+        }
+
+        private void ActualizarMarcadorAbatido()
+        {
+            if (_localPlayer == null || _otherPlayer == null || _otherPlayer.EstadoVida.Value != PlayerLifeState.Abatido)
+            {
+                if (_marcadorAbatido != null) _marcadorAbatido.gameObject.SetActive(false);
+                return;
+            }
+            CrearMarcadorAbatido();
+            var cam = UnityEngine.Camera.main;
+            if (_marcadorAbatido == null || cam == null)
+                return;
+            _marcadorAbatido.gameObject.SetActive(true);
+            Vector3 world = _otherPlayer.transform.position + Vector3.up * 1.8f;
+            Vector3 screen = cam.WorldToScreenPoint(world);
+            Vector2 direction = new Vector2(screen.x - Screen.width * .5f, screen.y - Screen.height * .5f);
+            bool visible = screen.z > 0f && screen.x >= 12f && screen.x <= Screen.width - 12f
+                && screen.y >= 12f && screen.y <= Screen.height - 12f;
+            if (!visible)
+            {
+                if (screen.z < 0f) direction = -direction;
+                direction = direction.sqrMagnitude > .001f ? direction.normalized : Vector2.up;
+                float edgeX = Screen.width * .5f - 48f;
+                float edgeY = Screen.height * .5f - 48f;
+                float scale = Mathf.Min(edgeX / Mathf.Max(Mathf.Abs(direction.x), .001f), edgeY / Mathf.Max(Mathf.Abs(direction.y), .001f));
+                screen = new Vector3(Screen.width * .5f + direction.x * scale, Screen.height * .5f + direction.y * scale, 0f);
+            }
+            else
+                direction = Vector2.up;
+            _marcadorAbatido.position = screen;
+            _flechaMarcadorAbatido.rectTransform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f);
+            float remaining = _otherPlayer.TiempoAbatidoRestante.Value;
+            _textoMarcadorAbatido.text = visible
+                ? $"{remaining:0}s  •  {Vector3.Distance(_localPlayer.transform.position, _otherPlayer.transform.position):0}m"
+                : $"ALIADO ABATIDO  •  {remaining:0}s  •  {Vector3.Distance(_localPlayer.transform.position, _otherPlayer.transform.position):0}m";
         }
 
         private void ActualizarIconosPersonajes()
@@ -388,7 +513,6 @@ namespace TDOM.Unity
             if (imagen == null)
                 return;
 
-            // Una Image sin sprite ignora el relleno radial y se dibuja entera.
             if (imagen.sprite == null)
                 imagen.sprite = SpriteBlancoCooldown();
 
@@ -414,9 +538,6 @@ namespace TDOM.Unity
             }
             return _spriteBlancoCooldown;
         }
-
-        // El icono se llena de a poco (sentido de las manecillas, desde arriba): detras va un
-        // fondo oscuro para ver la zona que falta por llenar.
         private void CrearFondoCooldown(Image frente)
         {
             if (frente == null || frente.transform.parent == null)
@@ -465,8 +586,6 @@ namespace TDOM.Unity
         {
             if (imagen == null)
                 return;
-
-            // normalizado = lo que falta (1 recien usado, 0 listo): el icono se llena al reves.
             normalizado = Mathf.Clamp01(normalizado);
             imagen.fillAmount = 1f - normalizado;
             imagen.color = normalizado <= 0.001f ? cooldownDisponible : cooldownEnUso;
