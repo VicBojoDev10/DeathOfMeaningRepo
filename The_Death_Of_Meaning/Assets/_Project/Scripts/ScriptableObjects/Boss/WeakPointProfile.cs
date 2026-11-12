@@ -1,3 +1,4 @@
+using TDOM.Data;
 using UnityEngine;
 
 namespace TDOM.POCO.ScriptableObjects
@@ -5,38 +6,27 @@ namespace TDOM.POCO.ScriptableObjects
     [CreateAssetMenu(fileName = "WeakPointProfile", menuName = "TDOM/Boss/WeakPointProfile")]
     public class WeakPointProfile : ScriptableObject
     {
-        [Header("Ciclo de cada ojo")]
-        [Min(0.01f)]
-        public float DuracionAbierto = 10f;
+        [Header("Vida de cada ojo")]
+        [Tooltip("De aquí sale la vida base: cada ojo vale MultiplicadorVidaOjo veces la de un minion.")]
+        public MinionProfile PerfilMinion;
 
-        [Min(0f)]
-        public float Cooldown = 1f;
-
-        [Tooltip(
-            "Segundos que un ojo brilla sin que Ayla lo golpee antes de cerrarse y encenderse otro. 0 = no caduca."
-        )]
-        [Min(0f)]
-        public float DuracionBrillando = 12f;
-
-        [Tooltip(
-            "0 = aleatoria en cada partida. Distinto de 0 = semilla fija (para reproducir un bug o depurar)."
-        )]
-        public int Semilla;
-
-        [Header("Ojos activos por fase (uno por BossPhaseProfile)")]
-        public int[] OjosActivosPorFase = { 2, 2, 2, 3, 3 };
+        [Tooltip("Vida del ojo en veces la vida de un minion (2 = el doble).")]
+        [Min(0.1f)]
+        public float MultiplicadorVidaOjo = 2f;
 
         [Header("Visual placeholder por estado")]
         public Color ColorCerrado = Color.gray;
 
-        public Color ColorBrillando = Color.yellow;
-
         public Color ColorAbierto = Color.red;
-
-        public Color ColorEnfriando = Color.blue;
 
         [Header("Glow de los ojos del modelo (OjoLow)")]
         [Min(0f)]
         public float IntensidadGlow = 2f;
+
+        private const float VidaMinionPorDefecto = 100f;
+
+        /// <summary>Vida de cada ojo: la del minion por el multiplicador.</summary>
+        public float VidaOjo =>
+            (PerfilMinion != null ? PerfilMinion.vida : VidaMinionPorDefecto) * MultiplicadorVidaOjo;
     }
 }

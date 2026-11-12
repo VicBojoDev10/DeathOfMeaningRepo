@@ -218,6 +218,13 @@ namespace TDOM.Unity.Combat
         )]
         private float _factorEmpujeSinImpacto = 0.5f;
 
+        [SerializeField, Min(0f)]
+        [Tooltip(
+            "Solo Ayla: metros que sube (mini salto, vuelve a donde estaba) cuando un golpe de "
+                + "combo conecta con el jefe, incluso si esta en el suelo. 0 = no sube."
+        )]
+        private float _saltoAlGolpearJefe = 0.5f;
+
         [Header("Carga del cargado")]
         [SerializeField, Min(0f)]
         [Tooltip(
@@ -981,6 +988,7 @@ namespace TDOM.Unity.Combat
         private void ImpactarMelee(AttackEvent evento, int ligeros)
         {
             bool huboImpacto = false;
+            bool golpeoAlJefe = false;
             if (_hitbox != null)
             {
                 var impactos = _hitbox.DetectarImpactos(_radioHitbox, _alcanceHitbox);
@@ -992,6 +1000,8 @@ namespace TDOM.Unity.Combat
                             continue;
 
                         huboImpacto = true;
+                        if (imp.Objeto.GetComponentInParent<BossController>() != null)
+                            golpeoAlJefe = true;
                         ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, ReferenciaZona(imp));
                     }
                 }
@@ -1014,10 +1024,19 @@ namespace TDOM.Unity.Combat
                             + (huboImpacto ? "(conecto)" : "(sin impacto)")
                             + $" al {factor * 100f:F0}%"
                     );
+                // Ayla sube un poco al conectar con el jefe (los ojos quedan altos).
+                bool saltaPorJefe =
+                    golpeoAlJefe
+                    && _saltoAlGolpearJefe > 0f
+                    && _definition != null
+                    && _definition.DisplayName == "Ayla";
                 _root.EmpujarPorCombo(
                     _empujeAdelante * factor,
-                    _empujeArriba * factor,
-                    _empujeDuracion
+                    saltaPorJefe
+                        ? Mathf.Max(_empujeArriba * factor, _saltoAlGolpearJefe)
+                        : _empujeArriba * factor,
+                    _empujeDuracion,
+                    saltaPorJefe
                 );
             }
 

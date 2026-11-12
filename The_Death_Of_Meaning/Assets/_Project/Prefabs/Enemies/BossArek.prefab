@@ -396,15 +396,10 @@ MonoBehaviour:
   - {fileID: 1825852679339613900}
   - {fileID: 1138482237115442590}
   _indiceMaterialGlow: 1
-  _parpados:
-  - {fileID: 272282099583939932}
-  - {fileID: 6327742008302409904}
-  - {fileID: 5049270151339109703}
-  - {fileID: 4524931569891199428}
-  - {fileID: 2283387445874444831}
-  - {fileID: 1112236118051734573}
-  - {fileID: 7692306337869466739}
-  - {fileID: 849069167224452715}
+  _materialBorde: {fileID: 2100000, guid: 26881f2dc2d8494a8aadc2ef57b5afc9, type: 2}
+  _materialAura: {fileID: 2100000, guid: dd012e3906f9478898936870660fd9d7, type: 2}
+  _materialDestruido: {fileID: 2100000, guid: e594139a23c24a43bd30b45632d75e74, type: 2}
+  _perfilEscudo: {fileID: 11400000, guid: 1d37c417ca3e442cb32e4856b64c77ab, type: 2}
 --- !u!114 &3743253964765751442
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -75754,6 +75749,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 2000000000000051}
     m_Modifications:
     - target: {fileID: 1762268168438926733, guid: d977b9cbd5417ec49bd537603388b466, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1762268168438926733, guid: d977b9cbd5417ec49bd537603388b466, type: 3}
       propertyPath: m_Name
       value: ParpadoOjo
       objectReference: {fileID: 0}
@@ -75924,6 +75923,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2000000000000061}
     m_Modifications:
+    - target: {fileID: 1762268168438926733, guid: d977b9cbd5417ec49bd537603388b466, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1762268168438926733, guid: d977b9cbd5417ec49bd537603388b466, type: 3}
       propertyPath: m_Name
       value: ParpadoOjo
@@ -76096,6 +76099,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 2000000000000101}
     m_Modifications:
     - target: {fileID: 1762268168438926733, guid: d977b9cbd5417ec49bd537603388b466, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1762268168438926733, guid: d977b9cbd5417ec49bd537603388b466, type: 3}
       propertyPath: m_Name
       value: ParpadoOjo
       objectReference: {fileID: 0}
@@ -76266,6 +76273,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2000000000000081}
     m_Modifications:
+    - target: {fileID: 1762268168438926733, guid: d977b9cbd5417ec49bd537603388b466, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1762268168438926733, guid: d977b9cbd5417ec49bd537603388b466, type: 3}
       propertyPath: m_Name
       value: ParpadoOjo
@@ -76438,6 +76449,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 2000000000000041}
     m_Modifications:
     - target: {fileID: 1762268168438926733, guid: d977b9cbd5417ec49bd537603388b466, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1762268168438926733, guid: d977b9cbd5417ec49bd537603388b466, type: 3}
       propertyPath: m_Name
       value: ParpadoOjo
       objectReference: {fileID: 0}
@@ -76608,6 +76623,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2000000000000111}
     m_Modifications:
+    - target: {fileID: 1762268168438926733, guid: d977b9cbd5417ec49bd537603388b466, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1762268168438926733, guid: d977b9cbd5417ec49bd537603388b466, type: 3}
       propertyPath: m_Name
       value: ParpadoOjo
@@ -76780,6 +76799,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 2000000000000091}
     m_Modifications:
     - target: {fileID: 1762268168438926733, guid: d977b9cbd5417ec49bd537603388b466, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1762268168438926733, guid: d977b9cbd5417ec49bd537603388b466, type: 3}
       propertyPath: m_Name
       value: ParpadoOjo
       objectReference: {fileID: 0}
@@ -76950,6 +76973,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2000000000000071}
     m_Modifications:
+    - target: {fileID: 1762268168438926733, guid: d977b9cbd5417ec49bd537603388b466, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1762268168438926733, guid: d977b9cbd5417ec49bd537603388b466, type: 3}
       propertyPath: m_Name
       value: ParpadoOjo

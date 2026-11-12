@@ -220,13 +220,23 @@ namespace TDOM.Unity.Player
         public CharacterIds CharacterId => _characterId;
         public float CostoEnergiaPendiente => _combat != null ? _combat.CostoCargaPendiente : 0f;
 
-        public void EmpujarPorCombo(float adelante, float arriba, float duracion)
+        public void EmpujarPorCombo(
+            float adelante,
+            float arriba,
+            float duracion,
+            bool saltarAunqueEsteEnSuelo = false
+        )
         {
             if (_motor == null)
                 return;
 
             bool enElAire = _locomocion != null && !_locomocion.State.IsGrounded;
-            _motor.Empujar(transform.forward, adelante, enElAire ? arriba : 0f, duracion);
+            _motor.Empujar(
+                transform.forward,
+                adelante,
+                enElAire || saltarAunqueEsteEnSuelo ? arriba : 0f,
+                duracion
+            );
         }
 
         public void EmpujarDesdeServidor(
