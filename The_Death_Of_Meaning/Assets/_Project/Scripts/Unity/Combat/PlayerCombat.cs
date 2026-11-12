@@ -315,6 +315,31 @@ namespace TDOM.Unity.Combat
             _combatAnimator?.CancelarAtaque(false);
         }
 
+        public void InterrumpirPorGolpe()
+        {
+            if (!IsOwner)
+                return;
+
+            _melee?.Cancelar();
+            _disparo?.Cancelar();
+            CancelarGolpeDiferido();
+            _girosEnCurso = false;
+            _poseGirosActiva = false;
+            _cargaVisibleMelee = false;
+            _cargaVisibleDisparo = false;
+            MostrarCarga(false);
+            if (_sfx != null)
+                _sfx.Carga(false);
+            ActivarVfxCargaMelee(false);
+            ActivarVfxCarga(_vfxCargaDisparo, false);
+            if (_combatAnimator != null)
+            {
+                _combatAnimator.CargaEnCurso = false;
+                _combatAnimator.CancelarAtaque(false);
+            }
+            CancelarAtaqueRpc(false);
+        }
+
         public float RadioHitbox => _radioHitbox;
         public float AlcanceHitbox => _alcanceHitbox;
         public float RangoDisparo => _rangoDisparo;

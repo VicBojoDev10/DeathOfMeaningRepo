@@ -121,6 +121,12 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private AtaquesArek _ataques;
         private BossAttackScheduler _scheduler;
+
+        [SerializeField]
+        private ReaccionRushProfile _perfilReaccionRush;
+        private RegistroDanioVentana _registroRush;
+        private float _cooldownRush;
+        private float _tiempoReaccionRush;
         private int _indiceEnFase;
 
         [Header("Visual por fase")]
@@ -222,6 +228,7 @@ namespace TDOM.Unity.Combat
                 _duracionTelegraph
             );
             _indiceEnFase = 0;
+            _registroRush = new RegistroDanioVentana();
 
             // TW-96
             if (_ataques == null)
@@ -291,6 +298,22 @@ namespace TDOM.Unity.Combat
             float porcentajeDanio = cantidad / _vidaMaxima;
 
             Debug.Log($"[BossController] Daño recibido: {cantidad:F1} ({porcentajeDanio:P2})");
+
+            if (
+                _perfilReaccionRush != null
+                && _registroRush != null
+                && _cooldownRush <= 0f
+                && _registroRush.Registrar(
+                    cantidad,
+                    Time.time,
+                    _perfilReaccionRush.ventanaSegundos,
+                    _vidaMaxima,
+                    _perfilReaccionRush.porcentajeVida
+                )
+            )
+            {
+                IniciarReaccionRush();
+            }
 
             if (!_ojos.AplicarDanio(porcentajeDanio))
                 return;
@@ -364,6 +387,20 @@ namespace TDOM.Unity.Combat
             if (!IsServer || _scheduler == null || Pausado)
                 return;
 
+            if (_cooldownRush > 0f)
+                _cooldownRush = Mathf.Max(0f, _cooldownRush - Time.deltaTime);
+            if (_tiempoReaccionRush > 0f)
+            {
+                _tiempoReaccionRush = Mathf.Max(0f, _tiempoReaccionRush - Time.deltaTime);
+                ServerMovementTick?.Invoke(
+                    Time.deltaTime,
+                    Fase.Value,
+                    false,
+                    _scheduler.AtaqueActual
+                );
+                return;
+            }
+
             _maquina.Tick(Time.deltaTime);
             if (_maquina.EstaMuerto)
                 return;
@@ -393,6 +430,67 @@ namespace TDOM.Unity.Combat
                     _indiceEnFase++;
                     break;
             }
+        }
+
+        private void IniciarReaccionRush()
+        {
+            _tiempoReaccionRush = Mathf.Max(0.1f, _perfilReaccionRush.duracionReaccion);
+            _cooldownRush = Mathf.Max(0f, _perfilReaccionRush.cooldown);
+            _scheduler.Interrumpir(0f);
+            ReaccionRushRpc();
+
+            if (_ataques == null)
+                return;
+            _ataques.ListarJugadores(_jugadores);
+            float radio = Mathf.Max(0f, _perfilReaccionRush.radio);
+            foreach (var jugador in _jugadores)
+            {
+                Vector3 diferencia = jugador.transform.position - transform.position;
+                diferencia.y = 0f;
+                if (diferencia.magnitude > radio)
+                    continue;
+
+                if (_perfilReaccionRush.danio > 0f)
+                    jugador.AplicarDanioEnServidor(_perfilReaccionRush.danio);
+                if (diferencia.sqrMagnitude < 0.0001f)
+                    diferencia = transform.forward;
+                jugador.EmpujarDesdeServidor(
+                    diferencia,
+                    _perfilReaccionRush.distanciaEmpuje,
+                    _perfilReaccionRush.alturaEmpuje,
+                    _perfilReaccionRush.duracionEmpuje
+                );
+            }
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void ReaccionRushRpc()
+        {
+            var animator = GetComponentInChildren<Animator>();
+            if (animator == null)
+                return;
+            string trigger =
+                _perfilReaccionRush != null ? _perfilReaccionRush.triggerAnimator : "Mano";
+            if (string.IsNullOrWhiteSpace(trigger))
+                trigger = "Mano";
+
+            int triggerHash = Animator.StringToHash(trigger);
+            foreach (var parametro in animator.parameters)
+            {
+                if (
+                    parametro.nameHash != triggerHash
+                    || parametro.type != AnimatorControllerParameterType.Trigger
+                )
+                    continue;
+
+                animator.SetTrigger(triggerHash);
+                return;
+            }
+
+            Debug.LogWarning(
+                $"[BossController] El Animator del jefe no tiene el trigger '{trigger}'.",
+                animator
+            );
         }
 
         [Rpc(SendTo.ClientsAndHost)]
