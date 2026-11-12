@@ -602,7 +602,7 @@ MonoBehaviour:
     m_Value: -100
   OutputChannel: 1
   StandbyUpdate: 2
-  m_StreamingVersion: 0
+  m_StreamingVersion: 20241001
   m_LegacyPriority: 0
   Target:
     TrackingTarget: {fileID: 0}
@@ -886,6 +886,67 @@ MonoBehaviour:
   _tablaDrop: {fileID: 11400000, guid: f95d0a8d51284481952843b3d003df4a, type: 2}
   _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
   _prefabPickup: {fileID: 5000000000000001, guid: 7ae2df0a15144145bd7e6931db29bcce, type: 3}
+--- !u!1001 &102319982
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 932cc8e137e24c947adb3bbb8f06e1af, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -162.3
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 932cc8e137e24c947adb3bbb8f06e1af, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 932cc8e137e24c947adb3bbb8f06e1af, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 175.65356
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 932cc8e137e24c947adb3bbb8f06e1af, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 932cc8e137e24c947adb3bbb8f06e1af, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 932cc8e137e24c947adb3bbb8f06e1af, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 932cc8e137e24c947adb3bbb8f06e1af, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 932cc8e137e24c947adb3bbb8f06e1af, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 932cc8e137e24c947adb3bbb8f06e1af, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 932cc8e137e24c947adb3bbb8f06e1af, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 932cc8e137e24c947adb3bbb8f06e1af, type: 3}
+      propertyPath: m_Name
+      value: ColiseoBlockout_V003
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 932cc8e137e24c947adb3bbb8f06e1af, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 932cc8e137e24c947adb3bbb8f06e1af, type: 3}
 --- !u!1 &110558757
 GameObject:
   m_ObjectHideFlags: 0
@@ -1374,7 +1435,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 385698635}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.0166475, y: 0.8905151, z: -0.032691866, w: 0.45347214}
+  m_LocalRotation: {x: -0.000000001642629, y: 0.9993267, z: -0.036690425, w: -0.000000008716577}
   m_LocalPosition: {x: 0, y: 26, z: 68}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1484,6 +1545,57 @@ Transform:
   m_Children: []
   m_Father: {fileID: 225381495}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &390053847
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 390053848}
+  - component: {fileID: 390053849}
+  m_Layer: 0
+  m_Name: SniperMiniomsSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &390053848
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 390053847}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.00421, y: 0.00538, z: 0.0051}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1618003804}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &390053849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 390053847}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 208b1c40a445a3945889ff487793ebbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.SniperMinionSpawner
+  _prefabMinion: {fileID: 8802607873738733211, guid: ad30c28dc7628d849910010102a0f8ce, type: 3}
+  _intervaloSpawn: 60
+  _maxVivos: 1
+  _distanciaMinimaEntreSnipers: 0.65
+  _tablaDrop: {fileID: 11400000, guid: f95d0a8d51284481952843b3d003df4a, type: 2}
+  _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
+  _prefabPickup: {fileID: 5000000000000001, guid: 7ae2df0a15144145bd7e6931db29bcce, type: 3}
 --- !u!1 &412540135
 GameObject:
   m_ObjectHideFlags: 0
@@ -1519,7 +1631,7 @@ MonoBehaviour:
     m_Value: -100
   OutputChannel: 1
   StandbyUpdate: 2
-  m_StreamingVersion: 0
+  m_StreamingVersion: 20241001
   m_LegacyPriority: 0
   Target:
     TrackingTarget: {fileID: 0}
@@ -1620,57 +1732,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 565670563}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &390053847
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 390053848}
-  - component: {fileID: 390053849}
-  m_Layer: 0
-  m_Name: SniperMiniomsSpawner
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &390053848
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 390053847}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.00421, y: 0.00538, z: 0.0051}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1618003804}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &390053849
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 390053847}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 208b1c40a445a3945889ff487793ebbf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.SniperMinionSpawner
-  _prefabMinion: {fileID: 8802607873738733211, guid: ad30c28dc7628d849910010102a0f8ce, type: 3}
-  _intervaloSpawn: 60
-  _maxVivos: 1
-  _distanciaMinimaEntreSnipers: 0.65
-  _tablaDrop: {fileID: 11400000, guid: f95d0a8d51284481952843b3d003df4a, type: 2}
-  _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
-  _prefabPickup: {fileID: 5000000000000001, guid: 7ae2df0a15144145bd7e6931db29bcce, type: 3}
 --- !u!1 &453334999
 GameObject:
   m_ObjectHideFlags: 0
@@ -1771,7 +1832,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 458159545}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.059064917, y: 0.8962267, z: 0.12564504, w: 0.42131034}
+  m_LocalRotation: {x: -3.0359765e-10, y: 0.99953264, z: 0.0305693, w: -0.000000054700283}
   m_LocalPosition: {x: 0, y: 20, z: 49}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2032,6 +2093,11 @@ PrefabInstance:
       addedObject: {fileID: 1459004243}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+--- !u!4 &472926402 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6723181135681617, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+  m_PrefabInstance: {fileID: 472926401}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &520893647
 GameObject:
   m_ObjectHideFlags: 0
@@ -2120,11 +2186,6 @@ Transform:
   - {fileID: 60360623}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &472926402 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6723181135681617, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
-  m_PrefabInstance: {fileID: 472926401}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &571431184
 GameObject:
   m_ObjectHideFlags: 0
@@ -2603,6 +2664,10 @@ PrefabInstance:
       value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 6716582422675167489, guid: a444d9beeee86a94cb3ad76616354d1e, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6898228568846018191, guid: a444d9beeee86a94cb3ad76616354d1e, type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
@@ -3216,6 +3281,11 @@ PrefabInstance:
       addedObject: {fileID: 94214087}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+--- !u!4 &933984027 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6723181135681617, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
+  m_PrefabInstance: {fileID: 933984026}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &998428932
 GameObject:
   m_ObjectHideFlags: 0
@@ -3247,11 +3317,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1197044269}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &933984027 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6723181135681617, guid: d4792e3eccbab514aaa11547636bfd35, type: 3}
-  m_PrefabInstance: {fileID: 933984026}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1040823277
 GameObject:
   m_ObjectHideFlags: 0
@@ -10129,7 +10194,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2029808707}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.11616676, y: 0.87521946, z: -0.26002905, w: 0.39100018}
+  m_LocalRotation: {x: 1.3481109e-10, y: 0.95914465, z: -0.28291634, w: 0.000000020932314}
   m_LocalPosition: {x: 0, y: 52, z: 65}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -10573,3 +10638,5 @@ SceneRoots:
   - {fileID: 471079959}
   - {fileID: 2114434905}
   - {fileID: 565670563}
+  - {fileID: 26893733}
+  - {fileID: 102319982}
