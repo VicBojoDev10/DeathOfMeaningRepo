@@ -486,17 +486,29 @@ namespace TDOM.Unity.Combat
             base.OnNetworkDespawn();
         }
 
-        private bool PuedeConsumirEnergia(AttackEvent evento)
+        // Cargado: ChargedCost. Disparo normal: ShotCost (mana de Zendre). El golpe cuerpo a
+        // cuerpo normal no cuesta.
+        private float CostoDeAtaque(AttackEvent evento, bool esDisparo)
         {
-            if (evento.Kind != AttackKind.Charged || _definition?.Energy == null)
+            if (_definition?.Energy == null)
+                return 0f;
+            if (evento.Kind == AttackKind.Charged)
+                return _definition.Energy.ChargedCost;
+            return esDisparo ? _definition.Energy.ShotCost : 0f;
+        }
+
+        private bool PuedeConsumirEnergia(AttackEvent evento, bool esDisparo = false)
+        {
+            float costo = CostoDeAtaque(evento, esDisparo);
+            if (costo <= 0f)
                 return true;
 
-            if (_root == null || _root.Energia.Value < _definition.Energy.ChargedCost)
+            if (_root == null || _root.Energia.Value < costo)
             {
-                Debug.Log("[Energia] sin energía para el cargado");
+                Debug.Log("[Energia] sin energía para el ataque");
                 return false;
             }
-            ConsumirEnergiaRpc(_definition.Energy.ChargedCost);
+            ConsumirEnergiaRpc(costo);
             return true;
         }
 
@@ -665,7 +677,7 @@ namespace TDOM.Unity.Combat
         private void EjecutarDisparo(AttackEvent evento)
         {
             bool cargado = evento.Kind == AttackKind.Charged;
-            if (!PuedeConsumirEnergia(evento))
+            if (!PuedeConsumirEnergia(evento, esDisparo: true))
                 return;
 
             if (_logCombo)

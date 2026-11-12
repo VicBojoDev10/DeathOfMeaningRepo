@@ -13,6 +13,9 @@ MonoBehaviour:
   m_Name: EnergyAyla
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.EnergyProfile
   Max: 100
-  RegenPerSecond: 10
+  RegenPerSecond: 5
   ChargedCost: 25
   DrainPerSecondDowned: 5
+  ShotCost: 0
+  DashCost: 20
+  AirJumpCost: 15
