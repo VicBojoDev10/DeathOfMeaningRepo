@@ -88,7 +88,7 @@ namespace TDOM.Unity
         {
             _ultimaPos = transform.position;
             _playerRoot = GetComponentInParent<PlayerRoot>();
-            LiberarBloqueoDanio();
+            RestablecerBloqueoDanio();
             if (_playerRoot != null)
             {
                 _playerRoot.Vida.OnValueChanged += AlCambiarVida;
@@ -111,7 +111,7 @@ namespace TDOM.Unity
 
         public override void OnNetworkDespawn()
         {
-            LiberarBloqueoDanio();
+            RestablecerBloqueoDanio();
             if (_playerRoot != null)
             {
                 _playerRoot.Vida.OnValueChanged -= AlCambiarVida;
@@ -124,13 +124,19 @@ namespace TDOM.Unity
 
         private void AlCambiarVida(float vidaAnterior, float vidaActual)
         {
-            if (_animator == null)
+            if (
+                _animator == null
+                || vidaActual <= 0f
+                || (_playerRoot != null && _playerRoot.EstaAbatidoOMuerto)
+            )
                 return;
 
             float danioRecibido = vidaAnterior - vidaActual;
             if (danioRecibido <= 0f)
                 return;
 
+            RestablecerBloqueoDanio();
+            _animator.SetBool(ReviveHash, false);
             _damageMovementLocked = true;
             _damageStateObserved = false;
             _animator.SetFloat(DamageHash, Mathf.Clamp(danioRecibido, 0f, DamageBlendMaximum));
@@ -149,6 +155,7 @@ namespace TDOM.Unity
 
         private void AplicarEstadoVida(PlayerLifeState estado, bool iniciarRevive)
         {
+            RestablecerBloqueoDanio();
             if (_animator == null)
                 return;
 

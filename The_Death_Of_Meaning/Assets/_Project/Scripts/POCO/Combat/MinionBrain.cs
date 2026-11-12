@@ -100,6 +100,14 @@ namespace TDOM.Gameplay.Combat
         /// <summary>True solo en Perseguir: el controlador mueve al minion hacia el objetivo.</summary>
         public bool DebeMoverse => Estado == EstadoMinion.Perseguir;
 
+        public void InterrumpirAtaque()
+        {
+            Estado = EstadoMinion.Perseguir;
+            GolpesDados = 0;
+            _tiempo = 0f;
+            _enAviso = false;
+        }
+
         /// <summary>
         /// Avanza la IA y devuelve a lo mucho un evento por llamada. distanciaAlObjetivo solo
         /// se usa si hayObjetivo es true.

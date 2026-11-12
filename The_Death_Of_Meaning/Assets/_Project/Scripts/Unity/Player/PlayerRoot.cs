@@ -23,7 +23,7 @@ using UnityEngine.UI;
 
 namespace TDOM.Unity.Player
 {
-    public class PlayerRoot : NetworkBehaviour, IDamageable
+    public partial class PlayerRoot : NetworkBehaviour, IDamageable
     {
         public readonly struct CooldownValues
         {
@@ -266,6 +266,7 @@ namespace TDOM.Unity.Player
 
         public override void OnNetworkSpawn()
         {
+            _registroEmbestida = new TDOM.Gameplay.Combat.RegistroEmbestida();
             _arenaEncounter = BuscarEncuentroArena();
             _zendreLocomotionAnimator = GetComponent<ZendrePlayerLocomotionAnimator>();
             _anchorLauncher = GetComponentInChildren<AnchorLauncher>();
@@ -1153,6 +1154,7 @@ namespace TDOM.Unity.Player
                     IntentarGanchoApuntado();
             }
 
+            bool estabaEnDash = _locomocion.DashActivo;
             var intent =
                 EstaAbatidoOMuerto || BloqueoAnimacionMovimiento
                     ? _locomocion.TickIncapacitado(dt)
@@ -1216,7 +1218,9 @@ namespace TDOM.Unity.Player
             }
             else
             {
+                Vector3 posicionAntesDeMover = transform.position;
                 _motor.Apply(intent, dt, plataformaAnclada);
+                ReportarEmbestida(posicionAntesDeMover, dt, estabaEnDash);
             }
             bool alineandoConGancho =
                 ganchoActivoActual || Time.time < _mantenerOrientacionGanchoHasta;
