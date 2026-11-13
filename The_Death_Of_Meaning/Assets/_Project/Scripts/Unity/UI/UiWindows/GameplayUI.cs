@@ -43,7 +43,7 @@ namespace TDOM.Unity
         private Color cooldownDisponible = Color.white;
 
         [SerializeField]
-        private Color cooldownEnUso = new Color(0.35f, 0.35f, 0.35f, 1f);
+        private Color cooldownEnUso = new Color(0.8f, 0.8f, 0.8f, 1f);
 
         [SerializeField]
         private Sprite zendreIcon;
@@ -53,7 +53,7 @@ namespace TDOM.Unity
 
         [SerializeField]
         [Tooltip("Color del fondo detras del icono mientras se llena el cooldown.")]
-        private Color cooldownFondo = new Color(0f, 0f, 0f, 0.45f);
+        private Color cooldownFondo = new Color(0f, 0f, 0f, 0.3f);
 
         [SerializeField]
         private Image buttonPlayerIcon;

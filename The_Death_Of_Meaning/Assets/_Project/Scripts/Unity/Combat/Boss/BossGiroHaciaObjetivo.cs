@@ -30,12 +30,6 @@ namespace TDOM.Unity.Combat
             if (PauseManager.PausadoGlobal || (_jefe != null && _jefe.Pausado))
                 return;
 
-            if (_jefe != null && _jefe.HayOjoAbierto)
-            {
-                CambiarObjetivoMirado(null);
-                return;
-            }
-
             var perfil = _ataques.PerfilObjetivo;
             if (perfil == null)
                 return;

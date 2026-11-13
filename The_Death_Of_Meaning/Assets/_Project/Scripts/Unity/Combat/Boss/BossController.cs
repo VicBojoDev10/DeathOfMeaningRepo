@@ -98,8 +98,6 @@ namespace TDOM.Unity.Combat
         /// <summary>Perfil de la fase actual (null si no está configurado). Lo usa MinionSpawner.</summary>
         public BossPhaseProfile PerfilFaseActual => PerfilDeFase(Fase.Value);
 
-        public bool HayOjoAbierto => _ojos != null && _ojos.HayOjoAbierto;
-
         /// <summary>
         /// Solo servidor: false mientras hay un ataque en curso (aviso incluido) y durante la
         /// espera posterior. El jefe no rota (fase 1) ni se traslada (fase 2 en adelante).
@@ -218,7 +216,7 @@ namespace TDOM.Unity.Combat
             if (_ojos == null)
                 _ojos = GetComponent<OjosArek>();
 
-            _ojosListos = _ojos != null && _ojos.Preparar(_hitZones, _maquina, _fases.Length);
+            _ojosListos = _ojos != null && _ojos.Preparar(_hitZones, _maquina, _fases);
             if (!_ojosListos)
                 return;
 
@@ -242,7 +240,7 @@ namespace TDOM.Unity.Combat
                 if (hz == null)
                     continue;
 
-                hz.DanioRegistrado += OnDanioZona;
+                hz.ZonaDanada += OnDanioZona;
             }
         }
 
@@ -269,7 +267,7 @@ namespace TDOM.Unity.Combat
                 if (hz == null)
                     continue;
 
-                hz.DanioRegistrado -= OnDanioZona;
+                hz.ZonaDanada -= OnDanioZona;
             }
         }
 
@@ -281,7 +279,7 @@ namespace TDOM.Unity.Combat
             OnFaseChanged?.Invoke(anterior, actual);
         }
 
-        private void OnDanioZona(float cantidad)
+        private void OnDanioZona(HitZone zona, float cantidad)
         {
             if (!IsServer)
                 return;
@@ -295,16 +293,23 @@ namespace TDOM.Unity.Combat
             if (Pausado)
                 return;
 
-            float porcentajeDanio = cantidad / _vidaMaxima;
+            // El ojo se queda con su parte del golpe: lo que baja la vida del jefe es lo que el ojo
+            // realmente absorbió (un ojo cerrado o con escudo no absorbe nada), no el daño bruto.
+            bool cambioDeFase = _ojos.AplicarDanio(zona, cantidad, out float fraccionVida);
+            if (fraccionVida <= 0f)
+                return;
 
-            Debug.Log($"[BossController] Daño recibido: {cantidad:F1} ({porcentajeDanio:P2})");
+            float danioAlJefe = fraccionVida * _vidaMaxima;
+            Debug.Log(
+                $"[BossController] Daño en el ojo {zona.ZoneIndex:D2}: {cantidad:F1} -> {danioAlJefe:F1} a la vida del jefe ({fraccionVida:P2})"
+            );
 
             if (
                 _perfilReaccionRush != null
                 && _registroRush != null
                 && _cooldownRush <= 0f
                 && _registroRush.Registrar(
-                    cantidad,
+                    danioAlJefe,
                     Time.time,
                     _perfilReaccionRush.ventanaSegundos,
                     _vidaMaxima,
@@ -315,7 +320,7 @@ namespace TDOM.Unity.Combat
                 IniciarReaccionRush();
             }
 
-            if (!_ojos.AplicarDanio(porcentajeDanio))
+            if (!cambioDeFase)
                 return;
 
             Debug.Log($"[BossController] Cambio de fase detectado: {_maquina.FaseActual}");
@@ -364,6 +369,10 @@ namespace TDOM.Unity.Combat
             _finTransicionVisual.Value = 0d;
             _scheduler?.ReiniciarPorCambioDeFase();
             _indiceEnFase = 0;
+
+            // Fase nueva: los ojos vuelven a abrirse todos con la vida llena.
+            if (_ojosListos && _maquina != null && !_maquina.EstaMuerto)
+                _ojos.ReabrirOjos();
         }
 
         private void RestaurarEnergiaJugadores()
@@ -404,8 +413,6 @@ namespace TDOM.Unity.Combat
             _maquina.Tick(Time.deltaTime);
             if (_maquina.EstaMuerto)
                 return;
-
-            _ojos.Tick(Time.deltaTime);
 
             if (Pausado)
                 return;
@@ -813,15 +820,17 @@ namespace TDOM.Unity.Combat
 
                     if (IsServer)
                     {
-                        if (GUILayout.Button("Brillar", GUILayout.Width(55)))
-                            _ojos?.BrillarOjoParaDebug(i);
-
                         if (GUILayout.Button("Abrir", GUILayout.Width(55)))
                             _ojos?.AbrirOjoParaDebug(i);
 
                         if (GUILayout.Button("+10", GUILayout.Width(50)))
                         {
                             hz.RegistrarDanio(10f);
+                        }
+
+                        if (GUILayout.Button("Matar", GUILayout.Width(55)))
+                        {
+                            OnDanioZona(hz, float.MaxValue);
                         }
 
                         if (GUILayout.Button("Golpe", GUILayout.Width(60)))

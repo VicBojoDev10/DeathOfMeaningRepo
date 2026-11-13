@@ -13,6 +13,9 @@ MonoBehaviour:
   m_Name: EnergyZendre
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.EnergyProfile
   Max: 150
-  RegenPerSecond: 20
+  RegenPerSecond: 10
   ChargedCost: 35
   DrainPerSecondDowned: 10
+  ShotCost: 5
+  DashCost: 25
+  AirJumpCost: 0

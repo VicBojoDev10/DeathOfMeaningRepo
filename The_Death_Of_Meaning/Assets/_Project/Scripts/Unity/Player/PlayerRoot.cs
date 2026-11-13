@@ -220,13 +220,23 @@ namespace TDOM.Unity.Player
         public CharacterIds CharacterId => _characterId;
         public float CostoEnergiaPendiente => _combat != null ? _combat.CostoCargaPendiente : 0f;
 
-        public void EmpujarPorCombo(float adelante, float arriba, float duracion)
+        public void EmpujarPorCombo(
+            float adelante,
+            float arriba,
+            float duracion,
+            bool saltarAunqueEsteEnSuelo = false
+        )
         {
             if (_motor == null)
                 return;
 
             bool enElAire = _locomocion != null && !_locomocion.State.IsGrounded;
-            _motor.Empujar(transform.forward, adelante, enElAire ? arriba : 0f, duracion);
+            _motor.Empujar(
+                transform.forward,
+                adelante,
+                enElAire || saltarAunqueEsteEnSuelo ? arriba : 0f,
+                duracion
+            );
         }
 
         public void EmpujarDesdeServidor(
@@ -716,6 +726,31 @@ namespace TDOM.Unity.Player
                 _feedback.OnCambioDeFase();
         }
 
+        // Costos de la energia (estamina de Ayla, mana de Zendre) de cada accion de movimiento.
+        private float CostoDash => _definition?.Energy != null ? _definition.Energy.DashCost : 0f;
+
+        private float CostoSaltoAereo =>
+            _characterId == CharacterIds.Ayla && _definition?.Energy != null
+                ? _definition.Energy.AirJumpCost
+                : 0f;
+
+        private bool EnergiaAlcanza(float costo) => costo <= 0f || Energia.Value >= costo;
+
+        // El dueno gasta la energia en el servidor, que es quien la lleva.
+        private void PedirConsumoDeEnergia(float costo)
+        {
+            if (costo <= 0f)
+                return;
+
+            if (IsServer)
+                ConsumirEnergiaEnServidor(costo);
+            else
+                ConsumirEnergiaRpc(costo);
+        }
+
+        [Rpc(SendTo.Server)]
+        private void ConsumirEnergiaRpc(float cantidad) => ConsumirEnergiaEnServidor(cantidad);
+
         public void ConsumirEnergiaEnServidor(float cantidad)
         {
             if (!IsServer || _energyPool == null)
@@ -1121,6 +1156,10 @@ namespace TDOM.Unity.Player
             _motor.ProbeGround(_locomocion.State);
             CapturarContextoVfxDash(dt);
 
+            // Sin energia suficiente no arranca el dash ni el doble salto.
+            _locomocion.PermitirDash = EnergiaAlcanza(CostoDash);
+            _locomocion.PermitirSaltoAereo = EnergiaAlcanza(CostoSaltoAereo);
+
             if (!EstaAbatidoOMuerto)
             {
                 if (!_locomocion.ClimbActivo && !BloqueoAnimacionMovimiento)
@@ -1251,6 +1290,10 @@ namespace TDOM.Unity.Player
             AplicarMiradaACamara();
 
             DispararFeedbackDeLocomocion();
+            if (_locomocion.DashIniciado)
+                PedirConsumoDeEnergia(CostoDash);
+            if (_locomocion.SaltoAereo)
+                PedirConsumoDeEnergia(CostoSaltoAereo);
             ActualizarVfxSaltoAterrizaje();
             if (
                 _locomocion.SaltoAereo

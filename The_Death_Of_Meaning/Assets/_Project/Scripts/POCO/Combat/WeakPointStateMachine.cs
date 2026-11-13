@@ -1,21 +1,11 @@
 using System;
-using System.Collections.Generic;
 
 namespace TDOM.Gameplay.Combat
 {
     public enum EstadoOjo
     {
         Cerrado,
-        Brillando,
         Abierto,
-        Enfriando,
-    }
-
-    public enum ResultadoGolpe
-    {
-        Ignorado,
-        Abrio,
-        Rebote,
     }
 
     public enum TipoImpactoOjo
@@ -24,63 +14,58 @@ namespace TDOM.Gameplay.Combat
         Disparo,
     }
 
+    /// <summary>
+    /// Ojos del jefe. Todos los ojos arrancan abiertos y se pueden golpear; cada uno tiene su
+    /// propia vida y, al llegar a 0, se cierra y ya no recibe daño. Los vuelve a abrir (con la
+    /// vida llena) AbrirTodos, que se llama al empezar una fase nueva. Un ojo con escudo no recibe
+    /// daño hasta que lo rompe el atacante del color que toca (ver EscudoOjo.Rompe).
+    /// </summary>
     public sealed class WeakPointStateMachine
     {
-        private const float Tolerancia = 1e-4f;
-
-        private static readonly int[] OjosPorFasePorDefecto = { 2, 2, 2, 3, 3 };
-
-        private readonly int[] _ojosPorFase;
-
         private readonly EstadoOjo[] _estados;
-        private readonly float[] _timers;
-        private readonly float _duracionAbierto;
-        private readonly float _cooldown;
-        private readonly float _duracionBrillando;
-        private readonly Random _random;
-        private readonly List<int> _candidatos = new List<int>();
-        private readonly List<int> _caducadosEnTick = new List<int>();
+        private readonly float[] _vida;
+        private readonly byte[] _escudos; // capas empaquetadas (ver EscudoOjo.Empaquetar)
+        private readonly float _vidaMaximaOjo;
 
-        private int _ojosActivosObjetivo;
-
-        public WeakPointStateMachine(
-            int totalOjos = 12,
-            float duracionAbierto = 10f,
-            float cooldown = 1f,
-            int semilla = 0,
-            IReadOnlyList<int> ojosPorFase = null,
-            float duracionBrillando = 0f
-        )
+        public WeakPointStateMachine(int totalOjos = 8, float vidaOjo = 200f)
         {
             if (totalOjos <= 0)
                 throw new ArgumentOutOfRangeException(
                     nameof(totalOjos),
                     "Debe haber al menos 1 ojo."
                 );
-            if (duracionAbierto <= 0f)
+            if (vidaOjo <= 0f)
                 throw new ArgumentOutOfRangeException(
-                    nameof(duracionAbierto),
-                    "Debe ser mayor que 0."
+                    nameof(vidaOjo),
+                    "La vida de cada ojo debe ser mayor que 0."
                 );
-            if (cooldown < 0f)
-                throw new ArgumentOutOfRangeException(nameof(cooldown), "No puede ser negativo.");
-            if (duracionBrillando < 0f)
-                throw new ArgumentOutOfRangeException(
-                    nameof(duracionBrillando),
-                    "No puede ser negativo."
-                );
-
-            _ojosPorFase = CopiarOjosPorFase(ojosPorFase ?? OjosPorFasePorDefecto);
 
             _estados = new EstadoOjo[totalOjos];
-            _timers = new float[totalOjos];
-            _duracionAbierto = duracionAbierto;
-            _cooldown = cooldown;
-            _duracionBrillando = duracionBrillando;
-            _random = new Random(semilla);
+            _vida = new float[totalOjos];
+            _escudos = new byte[totalOjos];
+            _vidaMaximaOjo = vidaOjo;
+            AbrirTodos();
         }
 
         public int TotalOjos => _estados.Length;
+
+        public float VidaMaximaOjo => _vidaMaximaOjo;
+
+        public int OjosAbiertos
+        {
+            get
+            {
+                int abiertos = 0;
+                foreach (var estado in _estados)
+                {
+                    if (estado == EstadoOjo.Abierto)
+                        abiertos++;
+                }
+                return abiertos;
+            }
+        }
+
+        public bool TodosCerrados => OjosAbiertos == 0;
 
         public EstadoOjo Estado(int ojo)
         {
@@ -88,235 +73,126 @@ namespace TDOM.Gameplay.Combat
             return _estados[ojo];
         }
 
-        public void ActivarFase(int fase)
+        public float Vida(int ojo)
         {
-            if (fase < 1 || fase > _ojosPorFase.Length)
-                throw new ArgumentOutOfRangeException(
-                    nameof(fase),
-                    $"La fase debe estar entre 1 y {_ojosPorFase.Length}."
-                );
-
-            _ojosActivosObjetivo = Math.Min(_ojosPorFase[fase - 1], TotalOjos);
-
-            ApagarBrillantesSobrantes();
-            Rellenar();
+            ValidarOjo(ojo);
+            return _vida[ojo];
         }
 
-        public ResultadoGolpe GolpeMelee(int ojo)
+        /// <summary>La capa de afuera del ojo, la que toca romper ahora (Ninguno si no tiene).</summary>
+        public ColorEscudo Escudo(int ojo)
+        {
+            ValidarOjo(ojo);
+            return EscudoOjo.Exterior(_escudos[ojo]);
+        }
+
+        /// <summary>Capas que le quedan al ojo.</summary>
+        public int CapasEscudo(int ojo)
+        {
+            ValidarOjo(ojo);
+            return EscudoOjo.NumCapas(_escudos[ojo]);
+        }
+
+        /// <summary>Todas las capas del ojo empaquetadas (para sincronizarlas por red).</summary>
+        public byte EscudosEmpaquetados(int ojo)
+        {
+            ValidarOjo(ojo);
+            return _escudos[ojo];
+        }
+
+        /// <summary>Pone el mismo escudo de una capa en todos los ojos abiertos (Ninguno los quita).</summary>
+        public void PonerEscudos(ColorEscudo escudo)
+        {
+            var capas = escudo == ColorEscudo.Ninguno ? new ColorEscudo[0] : new[] { escudo };
+            for (int ojo = 0; ojo < _escudos.Length; ojo++)
+                PonerEscudos(ojo, capas);
+        }
+
+        /// <summary>
+        /// Pone las capas de un ojo abierto, de afuera hacia adentro (vacío lo deja sin escudo).
+        /// </summary>
+        public void PonerEscudos(int ojo, ColorEscudo[] capas)
+        {
+            ValidarOjo(ojo);
+            _escudos[ojo] =
+                _estados[ojo] == EstadoOjo.Abierto ? EscudoOjo.Empaquetar(capas) : (byte)0;
+        }
+
+        /// <summary>
+        /// Rompe la capa de afuera del ojo si el atacante es del color que toca. Devuelve true si
+        /// la rompió; si había más capas, queda la siguiente.
+        /// </summary>
+        public bool RomperEscudo(int ojo, bool atacanteEsAyla)
         {
             ValidarOjo(ojo);
 
-            switch (_estados[ojo])
-            {
-                case EstadoOjo.Brillando:
-                    _estados[ojo] = EstadoOjo.Abierto;
-                    _timers[ojo] = 0f;
-                    return ResultadoGolpe.Abrio;
-                case EstadoOjo.Abierto:
-                    return ResultadoGolpe.Rebote;
-                default:
-                    return ResultadoGolpe.Ignorado;
-            }
+            if (
+                _estados[ojo] != EstadoOjo.Abierto
+                || !EscudoOjo.Rompe(EscudoOjo.Exterior(_escudos[ojo]), atacanteEsAyla)
+            )
+                return false;
+
+            _escudos[ojo] = EscudoOjo.SinExterior(_escudos[ojo]);
+            return true;
+        }
+
+        /// <summary>Abre todos los ojos con la vida llena (inicio de cada fase).</summary>
+        public void AbrirTodos()
+        {
+            for (int ojo = 0; ojo < _estados.Length; ojo++)
+                Abrir(ojo);
         }
 
         public void AbrirOjoParaDebug(int ojo)
         {
             ValidarOjo(ojo);
-            _estados[ojo] = EstadoOjo.Abierto;
-            _timers[ojo] = 0f;
+            Abrir(ojo);
         }
 
-        public static bool AdmiteAncla(EstadoOjo estado) =>
-            estado == EstadoOjo.Brillando || estado == EstadoOjo.Abierto;
-
-        public void BrillarOjoParaDebug(int ojo)
-        {
-            ValidarOjo(ojo);
-            _estados[ojo] = EstadoOjo.Brillando;
-            _timers[ojo] = 0f;
-        }
-
-        public bool GolpeDisparo(int ojo)
+        /// <summary>
+        /// Resta vida al ojo, sin pasarse de la que le queda, y lo cierra si llega a 0.
+        /// Devuelve el daño que realmente absorbió (0 si el ojo ya estaba cerrado).
+        /// </summary>
+        public float AplicarDanio(int ojo, float cantidad)
         {
             ValidarOjo(ojo);
 
-            if (_estados[ojo] == EstadoOjo.Brillando)
+            if (_estados[ojo] != EstadoOjo.Abierto || _escudos[ojo] != 0 || cantidad <= 0f)
+                return 0f;
+
+            float aplicado = Math.Min(cantidad, _vida[ojo]);
+            _vida[ojo] -= aplicado;
+
+            if (_vida[ojo] <= 0f)
             {
-                _estados[ojo] = EstadoOjo.Abierto;
-                _timers[ojo] = 0f;
+                _vida[ojo] = 0f;
+                _estados[ojo] = EstadoOjo.Cerrado;
+            }
+
+            return aplicado;
+        }
+
+        public static bool AdmiteAncla(EstadoOjo estado) => estado == EstadoOjo.Abierto;
+
+        public bool AdmiteImpacto(int ojo, TipoImpactoOjo tipo, bool atacanteEsAyla)
+        {
+            if (tipo == TipoImpactoOjo.Disparo && atacanteEsAyla)
                 return false;
-            }
 
-            return _estados[ojo] == EstadoOjo.Abierto;
+            return AdmiteImpacto(ojo, tipo);
         }
 
-        public bool ResolverImpacto(int ojo, TipoImpactoOjo tipo, bool atacanteEsAyla)
+        public bool AdmiteImpacto(int ojo, TipoImpactoOjo tipo)
         {
-            if (tipo == TipoImpactoOjo.Melee)
-                return GolpeMelee(ojo) == ResultadoGolpe.Rebote;
-
-            return !atacanteEsAyla && GolpeDisparo(ojo);
+            ValidarOjo(ojo);
+            return _estados[ojo] == EstadoOjo.Abierto && _escudos[ojo] == 0;
         }
 
-        public bool ResolverImpacto(int ojo, TipoImpactoOjo tipo)
+        private void Abrir(int ojo)
         {
-            if (tipo == TipoImpactoOjo.Melee)
-                return GolpeMelee(ojo) == ResultadoGolpe.Rebote;
-
-            return GolpeDisparo(ojo);
-        }
-
-        public void Tick(float dt)
-        {
-            if (dt <= 0f)
-                return;
-
-            for (int ojo = 0; ojo < _estados.Length; ojo++)
-                AvanzarOjo(ojo, dt);
-
-            Rellenar();
-        }
-
-        private void AvanzarOjo(int ojo, float dt)
-        {
-            if (_estados[ojo] == EstadoOjo.Brillando)
-            {
-                if (_duracionBrillando <= 0f)
-                    return;
-
-                _timers[ojo] += dt;
-                if (_timers[ojo] < _duracionBrillando - Tolerancia)
-                    return;
-
-                _estados[ojo] = EstadoOjo.Cerrado;
-                _timers[ojo] = 0f;
-                _caducadosEnTick.Add(ojo);
-                return;
-            }
-
-            if (_estados[ojo] == EstadoOjo.Abierto)
-            {
-                _timers[ojo] += dt;
-                if (_timers[ojo] < _duracionAbierto - Tolerancia)
-                    return;
-
-                dt = Math.Max(0f, _timers[ojo] - _duracionAbierto);
-                _estados[ojo] = EstadoOjo.Enfriando;
-                _timers[ojo] = 0f;
-            }
-
-            if (_estados[ojo] == EstadoOjo.Enfriando)
-            {
-                _timers[ojo] += dt;
-                if (_timers[ojo] < _cooldown - Tolerancia)
-                    return;
-
-                _estados[ojo] = EstadoOjo.Cerrado;
-                _timers[ojo] = 0f;
-            }
-        }
-
-        private void Rellenar()
-        {
-            int activos = ContarActivos();
-
-            while (activos < _ojosActivosObjetivo)
-            {
-                ReunirCandidatos(EstadoOjo.Cerrado);
-                ExcluirCaducadosDeCandidatos();
-                if (_candidatos.Count == 0)
-                    break;
-
-                int elegido = _candidatos[_random.Next(_candidatos.Count)];
-                _estados[elegido] = EstadoOjo.Brillando;
-                _timers[elegido] = 0f;
-                activos++;
-            }
-
-            _caducadosEnTick.Clear();
-        }
-
-        // Los ojos que acaban de caducar no se vuelven a encender en este mismo Tick,
-        // salvo que no quede ningún otro candidato.
-        private void ExcluirCaducadosDeCandidatos()
-        {
-            if (_caducadosEnTick.Count == 0)
-                return;
-
-            bool hayOtroCandidato = false;
-            foreach (int candidato in _candidatos)
-            {
-                if (!_caducadosEnTick.Contains(candidato))
-                {
-                    hayOtroCandidato = true;
-                    break;
-                }
-            }
-
-            if (!hayOtroCandidato)
-                return;
-
-            for (int i = _candidatos.Count - 1; i >= 0; i--)
-            {
-                if (_caducadosEnTick.Contains(_candidatos[i]))
-                    _candidatos.RemoveAt(i);
-            }
-        }
-
-        private void ApagarBrillantesSobrantes()
-        {
-            int activos = ContarActivos();
-
-            while (activos > _ojosActivosObjetivo)
-            {
-                ReunirCandidatos(EstadoOjo.Brillando);
-                if (_candidatos.Count == 0)
-                    return;
-
-                int elegido = _candidatos[_random.Next(_candidatos.Count)];
-                _estados[elegido] = EstadoOjo.Cerrado;
-                _timers[elegido] = 0f;
-                activos--;
-            }
-        }
-
-        private int ContarActivos()
-        {
-            int activos = 0;
-            foreach (var estado in _estados)
-            {
-                if (estado == EstadoOjo.Brillando || estado == EstadoOjo.Abierto)
-                    activos++;
-            }
-            return activos;
-        }
-
-        private void ReunirCandidatos(EstadoOjo estado)
-        {
-            _candidatos.Clear();
-            for (int ojo = 0; ojo < _estados.Length; ojo++)
-            {
-                if (_estados[ojo] == estado)
-                    _candidatos.Add(ojo);
-            }
-        }
-
-        private static int[] CopiarOjosPorFase(IReadOnlyList<int> ojosPorFase)
-        {
-            if (ojosPorFase.Count == 0)
-                throw new ArgumentException("Debe haber al menos una fase.", nameof(ojosPorFase));
-
-            var copia = new int[ojosPorFase.Count];
-            for (int i = 0; i < copia.Length; i++)
-            {
-                if (ojosPorFase[i] < 0)
-                    throw new ArgumentOutOfRangeException(
-                        nameof(ojosPorFase),
-                        "No puede haber ojos negativos en una fase."
-                    );
-                copia[i] = ojosPorFase[i];
-            }
-            return copia;
+            _escudos[ojo] = 0;
+            _estados[ojo] = EstadoOjo.Abierto;
+            _vida[ojo] = _vidaMaximaOjo;
         }
 
         private void ValidarOjo(int ojo)

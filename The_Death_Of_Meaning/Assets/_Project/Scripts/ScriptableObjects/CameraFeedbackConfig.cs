@@ -19,6 +19,26 @@ namespace TDOM.Data
         public float dobleSaltoRumbleAlto = 0.15f;
         public float dobleSaltoRumbleDuracion = 0.05f;
 
+        [Header("Doble salto: alejamiento de la camara")]
+        [Tooltip("Metros que se aleja la camara al dar el doble salto. 0 = sin alejamiento.")]
+        [Min(0f)]
+        public float dobleSaltoAlejamiento = 1f;
+
+        [Tooltip("Segundos que tarda en llegar a la distancia maxima.")]
+        [Min(0.01f)]
+        public float dobleSaltoAlejamientoSubida = 0.2f;
+
+        [Tooltip("Segundos que se queda alejada antes de regresar.")]
+        [Min(0f)]
+        public float dobleSaltoAlejamientoSostener = 0.15f;
+
+        [Tooltip("Segundos que tarda en regresar a la distancia normal.")]
+        [Min(0.01f)]
+        public float dobleSaltoAlejamientoBajada = 0.55f;
+
+        [Tooltip("Suavizado de la subida y de la bajada (por defecto, ease in / ease out).")]
+        public AnimationCurve dobleSaltoAlejamientoCurva = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
         [Header("Golpe conectado y disparo")]
         public int golpeHitstopFrames = 3;
 

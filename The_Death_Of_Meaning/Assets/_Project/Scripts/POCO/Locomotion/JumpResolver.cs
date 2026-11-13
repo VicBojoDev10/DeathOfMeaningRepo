@@ -17,16 +17,33 @@ namespace TDOM.Gameplay
             _bufferTime = bufferTime;
         }
 
-        public bool PuedeSaltar(LocomotionState estado)
+        public bool PuedeSaltar(LocomotionState estado, bool permitirSaltoAereo = true)
         {
             if (estado.IsGrounded)
                 return true;
+            if (!permitirSaltoAereo && EsSaltoAereo(estado))
+                return false;
             bool tieneSaltos = estado.JumpsUsed < _maxSaltos;
             bool enCoyote = estado.CoyoteTimer > 0f && estado.JumpsUsed == 0;
             return tieneSaltos || enCoyote;
         }
 
-        public void Tick(LocomotionState estado, InputSnapshot input, float dt)
+        // Un salto que se hace sin tocar el suelo y ya habiendo gastado el primero (doble salto).
+        private static bool EsSaltoAereo(LocomotionState estado)
+        {
+            return !estado.IsGrounded && estado.JumpsUsed >= 1;
+        }
+
+        /// <param name="permitirSaltoAereo">
+        /// Falso = el doble salto no se ejecuta (por ejemplo, sin energia); el salto normal
+        /// desde el suelo o durante el coyote time sigue funcionando.
+        /// </param>
+        public void Tick(
+            LocomotionState estado,
+            InputSnapshot input,
+            float dt,
+            bool permitirSaltoAereo = true
+        )
         {
             if (estado.IsGrounded)
             {
@@ -48,7 +65,11 @@ namespace TDOM.Gameplay
             bool tieneSaltos = estado.JumpsUsed < _maxSaltos;
             bool enCoyote = estado.CoyoteTimer > 0f && estado.JumpsUsed == 0;
 
-            if (estado.BufferTimer > 0f && (tieneSaltos || enCoyote))
+            if (
+                estado.BufferTimer > 0f
+                && (tieneSaltos || enCoyote)
+                && (permitirSaltoAereo || !EsSaltoAereo(estado))
+            )
             {
                 estado.Velocity.y = _velocidadSalto;
                 estado.JumpsUsed++;
