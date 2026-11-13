@@ -73,6 +73,9 @@ namespace TDOM.Unity
         [SerializeField]
         private UiTheme temaUI;
 
+        [SerializeField]
+        private DownedAllyMarkerProfile perfilMarcadorAbatido;
+
         [Header("Vida del Jefe")]
         [SerializeField]
         private BossHealthBar _barraVidaJefe;
@@ -441,7 +444,7 @@ namespace TDOM.Unity
                 canvas = GetComponentInChildren<Canvas>(true);
             if (canvas == null)
                 return;
-            if (marcadorAbatidoPrefab == null || temaUI == null)
+            if (marcadorAbatidoPrefab == null || temaUI == null || perfilMarcadorAbatido == null)
             {
                 if (!_avisoMarcadorIncompleto)
                 {
@@ -462,7 +465,7 @@ namespace TDOM.Unity
                 return;
             }
             _marcadorAbatido.anchorMin = _marcadorAbatido.anchorMax = new Vector2(0.5f, 0.5f);
-            _marcadorAbatido.sizeDelta = new Vector2(280f, 72f);
+            _marcadorAbatido.sizeDelta = perfilMarcadorAbatido.HolderSize;
             _fondoMarcadorAbatido = root.GetComponent<Image>();
             if (_fondoMarcadorAbatido != null)
                 _fondoMarcadorAbatido.color = temaUI.Tinta900;
@@ -524,10 +527,10 @@ namespace TDOM.Unity
             );
             bool visible =
                 screen.z > 0f
-                && screen.x >= 12f
-                && screen.x <= Screen.width - 12f
-                && screen.y >= 12f
-                && screen.y <= Screen.height - 12f;
+                && screen.x >= perfilMarcadorAbatido.VisibleScreenMargin
+                && screen.x <= Screen.width - perfilMarcadorAbatido.VisibleScreenMargin
+                && screen.y >= perfilMarcadorAbatido.VisibleScreenMargin
+                && screen.y <= Screen.height - perfilMarcadorAbatido.VisibleScreenMargin;
             if (_fondoMarcadorAbatido != null)
             {
                 Color fondo = temaUI.Tinta900;
@@ -539,8 +542,8 @@ namespace TDOM.Unity
                 if (screen.z < 0f)
                     direction = -direction;
                 direction = direction.sqrMagnitude > .001f ? direction.normalized : Vector2.up;
-                float edgeX = Screen.width * .5f - 48f;
-                float edgeY = Screen.height * .5f - 48f;
+                float edgeX = Screen.width * .5f - perfilMarcadorAbatido.OffscreenEdgeInset;
+                float edgeY = Screen.height * .5f - perfilMarcadorAbatido.OffscreenEdgeInset;
                 float scale = Mathf.Min(
                     edgeX / Mathf.Max(Mathf.Abs(direction.x), .001f),
                     edgeY / Mathf.Max(Mathf.Abs(direction.y), .001f)
