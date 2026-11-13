@@ -693,6 +693,7 @@ namespace TDOM.Unity.Combat
                 _combatAnimator.PlayShot(evento.ComboIndex, cargado);
             if (_vfx != null)
                 _vfx.Disparo(cargado);
+            ReproducirSfxDisparo(cargado);
             _debugFeedback?.FlashActive(0.1f);
             if (_feedback != null)
                 _feedback.OnAtaquePropio();
@@ -709,6 +710,17 @@ namespace TDOM.Unity.Combat
             }
 
             ReproducirDisparoRpc(evento.ComboIndex, cargado);
+        }
+
+        private void ReproducirSfxDisparo(bool cargado)
+        {
+            if (_sfx == null)
+                return;
+
+            _sfx.Disparo(
+                _origenDisparo != null ? _origenDisparo.position : transform.position,
+                cargado
+            );
         }
 
         private InputSnapshot ComoDisparo(InputSnapshot input)
