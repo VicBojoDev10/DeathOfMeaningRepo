@@ -46,14 +46,12 @@ namespace TDOM.Gameplay.Core
             }
         }
 
-        // TW-116: al cambiar de fase la barra vuelve llena, no solo el máximo.
         public void RestoreMaxOnPhaseChange()
         {
             Max = BaseMax;
             Current = Max;
         }
 
-        /// <summary>Restaura el límite normal sin rellenar la energía actual.</summary>
         public void RestoreMaxPreservingCurrent()
         {
             Max = BaseMax;

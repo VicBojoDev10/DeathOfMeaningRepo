@@ -5262,6 +5262,7 @@ MonoBehaviour:
   _empujeArriba: 0.18
   _empujeDuracion: 0.16
   _factorEmpujeSinImpacto: 0.5
+  _saltoAlGolpearJefe: 0.5
   _retardoPoseCarga: 0.06
   _proyectilPrefab: {fileID: 0}
   _origenDisparo: {fileID: 0}
@@ -6124,6 +6125,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 645039043936963957, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
+    - {fileID: 5291450110036531140, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 310e372c9e4667948bb8bdf493c5a338, type: 3}
