@@ -45,11 +45,13 @@ namespace TDOM.Gameplay.Core
                 Current = Math.Min(Current + _regenPerSecond * dt, Max);
             }
         }
+
         public void RestoreMaxOnPhaseChange()
         {
             Max = BaseMax;
             Current = Max;
         }
+
         public void RestoreMaxPreservingCurrent()
         {
             Max = BaseMax;
