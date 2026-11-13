@@ -145,6 +145,11 @@ namespace TDOM.Unity.Player
 
         [SerializeField]
         private float _alturaMaxima = 80f;
+
+        [Header("Energía al revivir")]
+        [SerializeField, Min(0f)]
+        private float _esperaRecargaEnergiaAlRevivir = 10f;
+
         private bool _respawnPorAlturaSolicitado;
         private bool _respawnEnCurso;
         private GameObject _respawnFadeCanvas;
@@ -156,6 +161,25 @@ namespace TDOM.Unity.Player
             NetworkVariableWritePermission.Server
         );
         private EnergyPool _energyPool;
+
+        public NetworkVariable<double> FinEsperaEnergiaAlRevivir = new NetworkVariable<double>(
+            0d,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
+        public float EsperaEnergiaRestante
+        {
+            get
+            {
+                if (NetworkManager == null || !NetworkManager.IsListening)
+                    return 0f;
+                return Mathf.Max(
+                    0f,
+                    (float)(FinEsperaEnergiaAlRevivir.Value - NetworkManager.ServerTime.Time)
+                );
+            }
+        }
 
         public NetworkVariable<float> Vida = new NetworkVariable<float>(
             100f,
@@ -419,6 +443,19 @@ namespace TDOM.Unity.Player
 
         private void OnEstadoVidaChanged(PlayerLifeState anterior, PlayerLifeState actual)
         {
+            if (
+                IsServer
+                && anterior != PlayerLifeState.Vivo
+                && actual == PlayerLifeState.Vivo
+                && _energyPool != null
+            )
+            {
+                _energyPool.RestoreMaxPreservingCurrent();
+                Energia.Value = _energyPool.Current;
+                FinEsperaEnergiaAlRevivir.Value =
+                    NetworkManager.ServerTime.Time + Mathf.Max(0f, _esperaRecargaEnergiaAlRevivir);
+            }
+
             AplicarEstadoVida();
             BuscarEncuentroArena()?.NotificarEstadoVida(this, actual);
         }
@@ -1121,7 +1158,12 @@ namespace TDOM.Unity.Player
 
             if (IsServer && _energyPool != null)
             {
-                _energyPool.Tick(dt, isDowned: EstadoVida.Value == PlayerLifeState.Abatido);
+                _energyPool.Tick(
+                    dt,
+                    isDowned: EstadoVida.Value == PlayerLifeState.Abatido,
+                    allowRegeneration: NetworkManager.ServerTime.Time
+                        >= FinEsperaEnergiaAlRevivir.Value
+                );
                 Energia.Value = _energyPool.Current;
             }
 

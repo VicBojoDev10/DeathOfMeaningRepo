@@ -31,7 +31,7 @@ namespace TDOM.Gameplay.Core
             return true;
         }
 
-        public void Tick(float dt, bool isDowned)
+        public void Tick(float dt, bool isDowned, bool allowRegeneration = true)
         {
             if (dt <= 0f)
                 return;
@@ -40,7 +40,7 @@ namespace TDOM.Gameplay.Core
                 Current = Math.Max(Current - _downedDrainPerSecond * dt, 0f);
                 Max = Math.Min(Max, Current);
             }
-            else
+            else if (allowRegeneration)
             {
                 Current = Math.Min(Current + _regenPerSecond * dt, Max);
             }
@@ -51,6 +51,13 @@ namespace TDOM.Gameplay.Core
         {
             Max = BaseMax;
             Current = Max;
+        }
+
+        /// <summary>Restaura el límite normal sin rellenar la energía actual.</summary>
+        public void RestoreMaxPreservingCurrent()
+        {
+            Max = BaseMax;
+            Current = Math.Min(Current, Max);
         }
     }
 }
