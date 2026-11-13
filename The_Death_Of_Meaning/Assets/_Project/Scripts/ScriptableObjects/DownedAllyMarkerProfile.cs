@@ -2,7 +2,10 @@ using UnityEngine;
 
 namespace TDOM.Data
 {
-    [CreateAssetMenu(fileName = "DownedAllyMarkerProfile", menuName = "TDOM/UI/Downed Ally Marker Profile")]
+    [CreateAssetMenu(
+        fileName = "DownedAllyMarkerProfile",
+        menuName = "TDOM/UI/Downed Ally Marker Profile"
+    )]
     public sealed class DownedAllyMarkerProfile : ScriptableObject
     {
         [Header("Holder")]
