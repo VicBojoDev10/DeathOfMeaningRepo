@@ -31,7 +31,7 @@ namespace TDOM.Gameplay.Core
             return true;
         }
 
-        public void Tick(float dt, bool isDowned)
+        public void Tick(float dt, bool isDowned, bool allowRegeneration = true)
         {
             if (dt <= 0f)
                 return;
@@ -40,23 +40,20 @@ namespace TDOM.Gameplay.Core
                 Current = Math.Max(Current - _downedDrainPerSecond * dt, 0f);
                 Max = Math.Min(Max, Current);
             }
-            else
+            else if (allowRegeneration)
             {
                 Current = Math.Min(Current + _regenPerSecond * dt, Max);
             }
         }
-
-        // TW-116: al cambiar de fase la barra vuelve llena, no solo el máximo.
         public void RestoreMaxOnPhaseChange()
         {
             Max = BaseMax;
             Current = Max;
         }
-
-        public void RestoreAfterRevive()
+        public void RestoreMaxPreservingCurrent()
         {
             Max = BaseMax;
-            Current = Max;
+            Current = Math.Min(Current, Max);
         }
     }
 }
