@@ -52,5 +52,11 @@ namespace TDOM.Gameplay.Core
             Max = BaseMax;
             Current = Max;
         }
+
+        public void RestoreAfterRevive()
+        {
+            Max = BaseMax;
+            Current = Max;
+        }
     }
 }

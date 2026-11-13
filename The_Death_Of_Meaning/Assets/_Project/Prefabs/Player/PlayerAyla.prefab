@@ -4994,7 +4994,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 4274321711
+  GlobalObjectIdHash: 3112223628
   InScenePlacedSourceGlobalObjectIdHash: 3093320301
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -5262,6 +5262,7 @@ MonoBehaviour:
   _empujeArriba: 0.18
   _empujeDuracion: 0.16
   _factorEmpujeSinImpacto: 0.5
+  _saltoAlGolpearJefe: 0.5
   _retardoPoseCarga: 0.06
   _proyectilPrefab: {fileID: 0}
   _origenDisparo: {fileID: 0}
@@ -22181,12 +22182,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2294028743705186128, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1316703279992756297}
-    - targetCorrespondingSourceObject: {fileID: 2294028743705186128, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7247345326290291379}
-    - targetCorrespondingSourceObject: {fileID: 2294028743705186128, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 6537443127165207015}
   m_SourcePrefab: {fileID: 100100000, guid: 8842ad843a5812248b6748713ee844bb, type: 3}
 --- !u!95 &1136055855002311730 stripped
 Animator:
@@ -22310,68 +22305,6 @@ MonoBehaviour:
     RotacionExtra: {x: 0, y: 0, z: 0}
     PosicionExtra: {x: 0, y: 0, z: 0}
   _tiempoCambioAjuste: 0.06
---- !u!23 &7247345326290291379
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7072362300874402698}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 0}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_MaskInteraction: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &6537443127165207015
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7072362300874402698}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 09fb2c5f145047846ac8e94ce0994dbb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AllIn13DShaderAssemebly::AllIn13DShader.AllIn13DShaderComponent
-  currRenderer: {fileID: 7247345326290291379}
 --- !u!1001 &9094838142294137057
 PrefabInstance:
   m_ObjectHideFlags: 0

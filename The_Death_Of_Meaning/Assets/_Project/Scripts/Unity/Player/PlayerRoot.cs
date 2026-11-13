@@ -419,6 +419,17 @@ namespace TDOM.Unity.Player
 
         private void OnEstadoVidaChanged(PlayerLifeState anterior, PlayerLifeState actual)
         {
+            if (
+                IsServer
+                && anterior == PlayerLifeState.Abatido
+                && actual == PlayerLifeState.Vivo
+                && _energyPool != null
+            )
+            {
+                _energyPool.RestoreAfterRevive();
+                Energia.Value = _energyPool.Current;
+            }
+
             AplicarEstadoVida();
             BuscarEncuentroArena()?.NotificarEstadoVida(this, actual);
         }

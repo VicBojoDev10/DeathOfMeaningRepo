@@ -1,4 +1,5 @@
 using TDOM.Contracts;
+using TDOM.Data;
 using TDOM.Gameplay.Camera;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Player;
@@ -65,6 +66,13 @@ namespace TDOM.Unity
         [SerializeField]
         private Slider secondaryPlayerHealthSlider;
 
+        [Header("Marcador de aliado abatido")]
+        [SerializeField]
+        private GameObject marcadorAbatidoPrefab;
+
+        [SerializeField]
+        private UiTheme temaUI;
+
         [Header("Vida del Jefe")]
         [SerializeField]
         private BossHealthBar _barraVidaJefe;
@@ -78,6 +86,8 @@ namespace TDOM.Unity
         private PlayerEnergyHud _barraEnergiaJugador;
         private PlayerRoot _jugadorConEnergiaInicializado;
         private RectTransform _marcadorAbatido;
+        private Image _fondoMarcadorAbatido;
+        private bool _avisoMarcadorIncompleto;
         private TMP_Text _textoMarcadorAbatido;
         private TMP_Text _flechaMarcadorAbatido;
         private Color _colorBarraCompanero = Color.white;
@@ -415,7 +425,7 @@ namespace TDOM.Unity
                 )
                 : Mathf.Clamp(_otherPlayer.Vida.Value, 0f, _otherPlayer.VidaMaxima);
             if (fill != null)
-                fill.color = abatido ? new Color(1f, 0.48f, 0.12f, 1f) : _colorBarraCompanero;
+                fill.color = abatido && temaUI != null ? temaUI.Carmesi500 : _colorBarraCompanero;
             if (abatido)
                 CrearMarcadorAbatido();
             else if (_marcadorAbatido != null)
@@ -431,11 +441,31 @@ namespace TDOM.Unity
                 canvas = GetComponentInChildren<Canvas>(true);
             if (canvas == null)
                 return;
-            var root = new GameObject("DownedAllyMarker", typeof(RectTransform));
+            if (marcadorAbatidoPrefab == null || temaUI == null)
+            {
+                if (!_avisoMarcadorIncompleto)
+                {
+                    Debug.LogWarning(
+                        "[GameplayUI] Falta asignar el prefab o el tema del marcador abatido.",
+                        this
+                    );
+                    _avisoMarcadorIncompleto = true;
+                }
+                return;
+            }
+            var root = Instantiate(marcadorAbatidoPrefab, canvas.transform, false);
+            root.name = "DownedAllyMarker";
             _marcadorAbatido = root.GetComponent<RectTransform>();
-            _marcadorAbatido.SetParent(canvas.transform, false);
+            if (_marcadorAbatido == null)
+            {
+                Destroy(root);
+                return;
+            }
             _marcadorAbatido.anchorMin = _marcadorAbatido.anchorMax = new Vector2(0.5f, 0.5f);
-            _marcadorAbatido.sizeDelta = new Vector2(180f, 54f);
+            _marcadorAbatido.sizeDelta = new Vector2(280f, 72f);
+            _fondoMarcadorAbatido = root.GetComponent<Image>();
+            if (_fondoMarcadorAbatido != null)
+                _fondoMarcadorAbatido.color = temaUI.Tinta900;
             var arrow = new GameObject(
                 "Arrow",
                 typeof(RectTransform),
@@ -449,7 +479,7 @@ namespace TDOM.Unity
             _flechaMarcadorAbatido.text = "▲";
             _flechaMarcadorAbatido.alignment = TextAlignmentOptions.Center;
             _flechaMarcadorAbatido.fontSize = 34f;
-            _flechaMarcadorAbatido.color = new Color(1f, 0.48f, 0.12f, 1f);
+            _flechaMarcadorAbatido.color = temaUI.Oro300;
             _flechaMarcadorAbatido.raycastTarget = false;
             _textoMarcadorAbatido = new GameObject(
                 "Status",
@@ -458,11 +488,11 @@ namespace TDOM.Unity
                 typeof(TextMeshProUGUI)
             ).GetComponent<TMP_Text>();
             _textoMarcadorAbatido.transform.SetParent(_marcadorAbatido, false);
-            _textoMarcadorAbatido.rectTransform.anchoredPosition = new Vector2(0f, -29f);
-            _textoMarcadorAbatido.rectTransform.sizeDelta = new Vector2(180f, 28f);
-            _textoMarcadorAbatido.alignment = TextAlignmentOptions.Center;
-            _textoMarcadorAbatido.fontSize = 20f;
-            _textoMarcadorAbatido.color = Color.white;
+            _textoMarcadorAbatido.rectTransform.anchoredPosition = new Vector2(14f, -29f);
+            _textoMarcadorAbatido.rectTransform.sizeDelta = new Vector2(230f, 28f);
+            _textoMarcadorAbatido.alignment = TextAlignmentOptions.MidlineLeft;
+            _textoMarcadorAbatido.fontSize = 15f;
+            _textoMarcadorAbatido.color = temaUI.Hueso100;
             _textoMarcadorAbatido.raycastTarget = false;
             _textoMarcadorAbatido.text = "▼";
         }
@@ -484,6 +514,8 @@ namespace TDOM.Unity
             if (_marcadorAbatido == null || cam == null)
                 return;
             _marcadorAbatido.gameObject.SetActive(true);
+            bool esAyla = _otherPlayer.CharacterId == CharacterIds.Ayla;
+            string personaje = esAyla ? "AYLA" : "ZENDRE";
             Vector3 world = _otherPlayer.transform.position + Vector3.up * 1.8f;
             Vector3 screen = cam.WorldToScreenPoint(world);
             Vector2 direction = new Vector2(
@@ -496,6 +528,12 @@ namespace TDOM.Unity
                 && screen.x <= Screen.width - 12f
                 && screen.y >= 12f
                 && screen.y <= Screen.height - 12f;
+            if (_fondoMarcadorAbatido != null)
+            {
+                Color fondo = temaUI.Tinta900;
+                fondo.a = visible ? 0f : temaUI.Tinta900.a;
+                _fondoMarcadorAbatido.color = fondo;
+            }
             if (!visible)
             {
                 if (screen.z < 0f)
@@ -523,8 +561,8 @@ namespace TDOM.Unity
             );
             float remaining = _otherPlayer.TiempoAbatidoRestante.Value;
             _textoMarcadorAbatido.text = visible
-                ? $"{remaining:0}s  •  {Vector3.Distance(_localPlayer.transform.position, _otherPlayer.transform.position):0}m"
-                : $"ALIADO ABATIDO  •  {remaining:0}s  •  {Vector3.Distance(_localPlayer.transform.position, _otherPlayer.transform.position):0}m";
+                ? $"{personaje}  •  {remaining:0}s  •  {Vector3.Distance(_localPlayer.transform.position, _otherPlayer.transform.position):0}m"
+                : $"{personaje} ABATIDO  •  {remaining:0}s  •  {Vector3.Distance(_localPlayer.transform.position, _otherPlayer.transform.position):0}m";
         }
 
         private void ActualizarIconosPersonajes()
