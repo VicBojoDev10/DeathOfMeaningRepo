@@ -3957,6 +3957,118 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1076452916
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1076452917}
+  - component: {fileID: 1076452920}
+  - component: {fileID: 1076452919}
+  - component: {fileID: 1076452918}
+  m_Layer: 0
+  m_Name: Cube.010 (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1076452917
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1076452916}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.000000030908623, y: 0.7071068, z: 0.7071067, w: 0.000000030908616}
+  m_LocalPosition: {x: -14, y: 31.210073, z: 18.54}
+  m_LocalScale: {x: -563.2, y: -63.9, z: -66.98556}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1468599594}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1076452918
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1076452916}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.019999998, y: 0.019999996, z: 0.020000005}
+  m_Center: {x: 0, y: 0, z: 0.000000029802322}
+--- !u!23 &1076452919
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1076452916}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1076452920
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1076452916}
+  m_Mesh: {fileID: 8385836491182413749, guid: 1c3a6165ef92a24429f6d37e1658da73, type: 3}
 --- !u!1 &1103862590
 GameObject:
   m_ObjectHideFlags: 0
@@ -3996,6 +4108,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -8773941047009866904, guid: 1c3a6165ef92a24429f6d37e1658da73, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -19.23
+      objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1c3a6165ef92a24429f6d37e1658da73, type: 3}
       propertyPath: m_LocalPosition.x
       value: -145
@@ -4036,6 +4152,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -775069670341356040, guid: 1c3a6165ef92a24429f6d37e1658da73, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -18.46705
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 1c3a6165ef92a24429f6d37e1658da73, type: 3}
       propertyPath: m_Name
       value: ColiseoBlockout_V003
@@ -4044,9 +4164,24 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6137466813051897022, guid: 1c3a6165ef92a24429f6d37e1658da73, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 104.33
+      objectReference: {fileID: 0}
+    - target: {fileID: 6137466813051897022, guid: 1c3a6165ef92a24429f6d37e1658da73, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -51.4041
+      objectReference: {fileID: 0}
+    - target: {fileID: 8009987137999418058, guid: 1c3a6165ef92a24429f6d37e1658da73, type: 3}
+      propertyPath: m_Name
+      value: ParedMeleeAyla
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 1c3a6165ef92a24429f6d37e1658da73, type: 3}
+      insertIndex: 92
+      addedObject: {fileID: 1076452917}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: -5538985522780130180, guid: 1c3a6165ef92a24429f6d37e1658da73, type: 3}
       insertIndex: -1
@@ -4063,6 +4198,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8009987137999418058, guid: 1c3a6165ef92a24429f6d37e1658da73, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2089502753}
+    - targetCorrespondingSourceObject: {fileID: 8009987137999418058, guid: 1c3a6165ef92a24429f6d37e1658da73, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3300000100}
+    - targetCorrespondingSourceObject: {fileID: 8009987137999418058, guid: 1c3a6165ef92a24429f6d37e1658da73, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3300000101}
     - targetCorrespondingSourceObject: {fileID: 8485173162082002552, guid: 1c3a6165ef92a24429f6d37e1658da73, type: 3}
       insertIndex: -1
       addedObject: {fileID: 339482874}
@@ -4939,6 +5080,11 @@ MonoBehaviour:
   _tablaDrop: {fileID: 11400000, guid: f95d0a8d51284481952843b3d003df4a, type: 2}
   _catalogo: {fileID: 11400000, guid: 953a7e73c4ba4eaea067da707f39a25c, type: 2}
   _prefabPickup: {fileID: 5000000000000001, guid: 7ae2df0a15144145bd7e6931db29bcce, type: 3}
+--- !u!4 &1468599594 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 1c3a6165ef92a24429f6d37e1658da73, type: 3}
+  m_PrefabInstance: {fileID: 1111755793}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1474567682
 GameObject:
   m_ObjectHideFlags: 0
@@ -11225,6 +11371,45 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.003369252, y: 0.019999996, z: 0.019999996}
   m_Center: {x: -0.0016847452, y: 0, z: 0.000000018626448}
+--- !u!114 &3300000100
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2089502750}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 3491770142
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  m_InScenePlacedDisabledByDefault: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  m_InScenePlaced: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &3300000101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2089502750}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98a56219a2ef4f49af1332f352486a78, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.ParedMeleeAyla
 --- !u!1 &2114434903
 GameObject:
   m_ObjectHideFlags: 0

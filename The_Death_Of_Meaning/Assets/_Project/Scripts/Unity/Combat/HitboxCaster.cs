@@ -114,11 +114,19 @@ namespace TDOM.Unity.Combat
         {
             foreach (var collider in colliders)
             {
-                if (soloOjos && collider.GetComponentInParent<OjosArek>() == null)
+                if (
+                    soloOjos
+                    && collider.GetComponentInParent<OjosArek>() == null
+                    && collider.GetComponentInParent<ParedMeleeAyla>() == null
+                )
                     continue;
                 if (!TryImpacto(collider, out Impacto impacto))
                     continue;
-                if (soloOjos && impacto.Zona == null)
+                if (
+                    soloOjos
+                    && impacto.Zona == null
+                    && impacto.Objeto.GetComponent<ParedMeleeAyla>() == null
+                )
                     continue;
                 if (_zonasDetectadas.Add((impacto.Objeto, impacto.Zona)))
                     _impactos.Add(impacto);
