@@ -58,6 +58,8 @@ namespace TDOM.Unity.Player
         [SerializeField]
         private PlayerInputReader _inputReader;
 
+        private BarreraVisual _barreraVisual;
+
         private AnchorLauncher _anchorLauncher;
 
         private PlayerCombat _combat;
@@ -246,6 +248,7 @@ namespace TDOM.Unity.Player
 
         public CharacterIds CharacterId => _characterId;
         public float CostoEnergiaPendiente => _combat != null ? _combat.CostoCargaPendiente : 0f;
+        private BarrierProfile BarreraPerfil => _definition != null ? _definition.Barrier : null;
 
         public void EmpujarPorCombo(
             float adelante,
@@ -376,6 +379,15 @@ namespace TDOM.Unity.Player
                 BuscarEncuentroArena()?.NotificarEstadoVida(this, EstadoVida.Value);
 
             _characterId = GetCharacterId();
+            if (_characterId == CharacterIds.Zendre)
+            {
+                _barreraVisual = GetComponent<BarreraVisual>();
+                if (_barreraVisual == null)
+                    _barreraVisual = gameObject.AddComponent<BarreraVisual>();
+                _barreraVisual.Configurar(BarreraPerfil);
+                BarreraActiva.OnValueChanged += AlCambiarBarrera;
+                _barreraVisual.Mostrar(BarreraActiva.Value);
+            }
 
             if (IsOwner)
             {
@@ -506,6 +518,7 @@ namespace TDOM.Unity.Player
             DestruirOverlayRespawn();
             EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
             Vida.OnValueChanged -= OnVidaChanged;
+            BarreraActiva.OnValueChanged -= AlCambiarBarrera;
             _arenaEncounter = null;
             _healthPool = null;
             _vidasJugadores.Clear();
@@ -522,6 +535,7 @@ namespace TDOM.Unity.Player
             DestruirOverlayRespawn();
             EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
             Vida.OnValueChanged -= OnVidaChanged;
+            BarreraActiva.OnValueChanged -= AlCambiarBarrera;
             if (IsServer)
             {
                 BossController.DejarDeObservarJefe(OnBossSpawned);
@@ -1203,6 +1217,7 @@ namespace TDOM.Unity.Player
 
             var input = _inputReader.Read();
             bool barreraPermitida = _characterId == CharacterIds.Zendre
+                && BarreraPerfil != null
                 && input.BarrierHeld && !AtaqueActivo && !_locomocion.ClimbActivo
                 && !_locomocion.DashActivo && !_locomocion.GanchoActivo
                 && !(_anchorLauncher != null && _anchorLauncher.AnclaActiva)
@@ -1236,12 +1251,18 @@ namespace TDOM.Unity.Player
                 _aylaAnimator.SetAimState(_fijacion != null && _fijacion.Activo);
 
             if (_camera != null)
+            {
+                _camera.SetBarreraActiva(
+                    _barreraSolicitada || BarreraActiva.Value,
+                    BarreraPerfil != null ? BarreraPerfil.CameraDistanceOffset : 0f
+                );
                 _camera.ActualizarEncuadre(
                     apuntando,
                     (AtaqueActivo || _fijacion.Activo) && !EstaAbatidoOMuerto,
                     _locomocion.Corriendo && !EstaAbatidoOMuerto,
                     dt
                 );
+            }
 
             _motor.ProbeGround(_locomocion.State);
             CapturarContextoVfxDash(dt);
@@ -1306,7 +1327,9 @@ namespace TDOM.Unity.Player
                         MovimientoBloqueado || BloqueoPorAtaqueAereo,
                         transform.position,
                         ModoPistola,
-                        _barreraSolicitada ? Mathf.Clamp01(_definition.BarrierMoveSpeedMultiplier) : (_combat != null ? _combat.MultiplicadorVelocidadAtaque : 1f),
+                        _barreraSolicitada && BarreraPerfil != null
+                            ? Mathf.Clamp01(BarreraPerfil.MoveSpeedMultiplier)
+                            : (_combat != null ? _combat.MultiplicadorVelocidadAtaque : 1f),
                         _combat != null && _combat.GravedadReducidaPorAtaque
                     );
             bool ganchoActivoActual = _locomocion.GanchoActivo;
@@ -1485,9 +1508,11 @@ namespace TDOM.Unity.Player
         [Rpc(SendTo.Server)] private void SolicitarBarreraRpc(bool activa) => EstablecerBarreraEnServidor(activa);
         private void EstablecerBarreraEnServidor(bool activa)
         {
-            if (!IsServer || _characterId != CharacterIds.Zendre) return;
+            if (!IsServer || _characterId != CharacterIds.Zendre || BarreraPerfil == null) return;
             BarreraActiva.Value = activa && !BarreraBloqueada.Value && Energia.Value > 0f && EstadoVida.Value == PlayerLifeState.Vivo;
         }
+
+        private void AlCambiarBarrera(bool anterior, bool actual) => _barreraVisual?.Mostrar(actual);
 
         private PlayerRoot BuscarBarreraProtectora(Vector3 origen)
         {
@@ -1496,17 +1521,18 @@ namespace TDOM.Unity.Player
             {
                 if (obj == null || !obj.TryGetComponent(out PlayerRoot protector)
                     || protector.CharacterId != CharacterIds.Zendre || !protector.BarreraActiva.Value
-                    || protector._definition == null) continue;
+                    || protector.BarreraPerfil == null) continue;
                 Vector3 haciaAtaque = origen - protector.transform.position; haciaAtaque.y = 0f;
                 Vector3 frente = protector.transform.forward; frente.y = 0f;
                 if (haciaAtaque.sqrMagnitude < 0.0001f || frente.sqrMagnitude < 0.0001f
-                    || Vector3.Angle(frente, haciaAtaque) > protector._definition.BarrierFrontArc * 0.5f) continue;
+                    || Vector3.Angle(frente, haciaAtaque) > protector.BarreraPerfil.FrontArcDegrees * 0.5f) continue;
                 if (protector == this) return protector;
                 Vector3 haciaAliado = transform.position - protector.transform.position; haciaAliado.y = 0f;
                 float profundidad = Vector3.Dot(haciaAliado, frente.normalized);
                 float lateral = (haciaAliado - frente.normalized * profundidad).magnitude;
-                if (protector.CharacterId == CharacterIds.Zendre && haciaAliado.magnitude <= 3.5f
-                    && profundidad <= 0.75f && lateral <= 1.5f) return protector;
+                if (haciaAliado.magnitude <= protector.BarreraPerfil.AllyProtectionDepth
+                    && profundidad <= 0.75f && lateral <= protector.BarreraPerfil.AllyProtectionHalfWidth)
+                    return protector;
             }
             return null;
         }
@@ -1515,9 +1541,11 @@ namespace TDOM.Unity.Player
         {
             PlayerRoot protector = BuscarBarreraProtectora(origen);
             if (protector == null) return false;
-            float reduccion = Mathf.Clamp01(protector._definition.BarrierBossDamageReduction);
+            float reduccion = Mathf.Clamp01(protector.BarreraPerfil.BossDamageReduction);
             float interceptado = Mathf.Max(0f, cantidad) * reduccion;
-            protector.ConsumirCostoBarreraEnServidor(interceptado * Mathf.Max(0f, protector._definition.BarrierBossEnergyPerDamage));
+            protector.ConsumirCostoBarreraEnServidor(
+                interceptado * Mathf.Max(0f, protector.BarreraPerfil.BossEnergyPerDamageIntercepted)
+            );
             RecibirDanio(Mathf.Max(0f, cantidad - interceptado));
             return true;
         }
@@ -1526,7 +1554,9 @@ namespace TDOM.Unity.Player
         {
             PlayerRoot protector = BuscarBarreraProtectora(origen);
             if (protector == null) return false;
-            protector.ConsumirCostoBarreraEnServidor(Mathf.Max(0f, protector._definition.BarrierMinionHitEnergyCost));
+            protector.ConsumirCostoBarreraEnServidor(
+                Mathf.Max(0f, protector.BarreraPerfil.MinionHitEnergyCost)
+            );
             return true;
         }
 

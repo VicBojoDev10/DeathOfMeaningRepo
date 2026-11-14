@@ -34,6 +34,8 @@ namespace TDOM.Unity.Camera
         private float _pulsoNivel;
         private float _dashNivel;
         private float _alejamiento;
+        private float _alejamientoBarrera;
+        private float _objetivoAlejamientoBarrera;
         private Coroutine _rutinaAlejamiento;
         private float _dashZoomObjetivo;
         private float _dashZoomInicio;
@@ -121,9 +123,17 @@ namespace TDOM.Unity.Camera
         public void ActualizarEncuadre(bool apuntando, bool atacando, bool corriendo, float dt)
         {
             ActualizarDashCerca(dt);
+            _alejamientoBarrera = Mathf.MoveTowards(
+                _alejamientoBarrera,
+                _objetivoAlejamientoBarrera,
+                dt * 2.8f
+            );
             _stances.Tick(apuntando, atacando, corriendo, dt);
             AplicarEncuadre();
         }
+
+        public void SetBarreraActiva(bool activa, float distanciaExtra) =>
+            _objetivoAlejamientoBarrera = activa ? Mathf.Max(0f, distanciaExtra) : 0f;
 
         public void RegistrarDesplazamientoLateral(Vector2 movimientoRelativoACamara)
         {
@@ -144,6 +154,7 @@ namespace TDOM.Unity.Camera
                 encuadre.Distance
                 + (_pulsoNivel * DistanciaPulso())
                 + _alejamiento
+                + _alejamientoBarrera
                 - acercamientoDash;
             _seguimiento.CameraSide = _stances.CameraSide;
             Vector3 hombro = _seguimiento.ShoulderOffset;

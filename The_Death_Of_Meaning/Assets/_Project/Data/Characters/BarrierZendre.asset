@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a36d071dd474e8d9299bccfa941e807, type: 3}
+  m_Name: BarrierZendre
+  m_EditorClassIdentifier: TDOM.Data::TDOM.Data.BarrierProfile
+  BossDamageReduction: 0.65
+  BossEnergyPerDamageIntercepted: 0.2
+  MinionHitEnergyCost: 8
+  FrontArcDegrees: 140
+  MoveSpeedMultiplier: 0.5
+  AllyProtectionDepth: 3.5
+  AllyProtectionHalfWidth: 1.5
+  CameraDistanceOffset: 0.85
+  VisualMaterial: {fileID: 2100000, guid: b33a5334d9927c44fbf48824208893c2, type: 2}
+  VisualColor: {r: 0.32, g: 0.82, b: 1, a: 0.48}
+  VisualIntensity: 1.2
+  VisualPulseAmplitude: 0.18
+  VisualPulseSpeed: 2.2
+  VisualRadius: 2.03
+  VisualHeight: 2
+  VisualBaseHeight: 0.2
+  VisualForwardOffset: 1.15
+  VisualCurveDepth: 0.84
