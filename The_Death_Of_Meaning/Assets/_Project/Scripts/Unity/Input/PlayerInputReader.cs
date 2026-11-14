@@ -1,5 +1,6 @@
 using TDOM.Contracts;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace TDOM.Unity.Input
 {
@@ -7,22 +8,32 @@ namespace TDOM.Unity.Input
     {
         private PlayerInputActions _actions;
         private CharacterIds _personajeActivo;
+        private InputAction _barrier;
 
-        private void Awake() => _actions = new PlayerInputActions();
+        private void Awake()
+        {
+            _actions = new PlayerInputActions();
+            _barrier = new InputAction("Barrier", InputActionType.Button);
+            _barrier.AddBinding("<Gamepad>/leftShoulder");
+        }
 
         public bool PausaPresionada => _actions.UI.Pause.WasPressedThisFrame();
 
-        private void OnDestroy() => _actions.Dispose();
+        private void OnDestroy() { _actions.Dispose(); _barrier?.Dispose(); }
 
         public void ActivarPersonaje(CharacterIds id)
         {
             _personajeActivo = id;
             _actions.Zendre.Disable();
             _actions.Ayla.Disable();
+            _barrier.Disable();
             _actions.UI.Pause.Enable();
 
             if (id == CharacterIds.Zendre)
+            {
                 _actions.Zendre.Enable();
+                _barrier.Enable();
+            }
             else
                 _actions.Ayla.Enable();
         }
@@ -33,6 +44,7 @@ namespace TDOM.Unity.Input
             {
                 _actions.Zendre.Disable();
                 _actions.Ayla.Disable();
+                _barrier.Disable();
                 // Pause queda activa para permitir reanudar desde el menú.
                 return;
             }
@@ -66,6 +78,7 @@ namespace TDOM.Unity.Input
                 )
                 {
                     LockOnPressed = m.LockOn.WasPressedThisFrame(),
+                    BarrierHeld = _barrier.IsPressed(),
                 };
             }
             else if (_personajeActivo == CharacterIds.Ayla)

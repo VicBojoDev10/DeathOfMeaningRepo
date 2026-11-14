@@ -102,17 +102,18 @@ namespace TDOM.Unity.Combat
                     {
                         if (!jugador.EstaAbatidoOMuerto)
                         {
-                            jugador.AplicarDanioEnServidor(_daño);
-                            if (_detenerDurantePausaGlobal)
+                            bool bloqueadoPorBarrera = _detenerDurantePausaGlobal
+                                && jugador.MitigarGolpeMinion(_daño, _emisorIgnorado != null ? _emisorIgnorado.position : pos - _direccion);
+                            if (!bloqueadoPorBarrera) jugador.AplicarDanioEnServidor(_daño);
+                            if (_detenerDurantePausaGlobal && !bloqueadoPorBarrera)
                                 jugador.EmpujarDesdeServidor(
                                     _direccion,
                                     DistanciaEmpujeMinion,
                                     altura: 0f,
                                     duracion: DuracionEmpujeMinion
                                 );
-                            Debug.Log(
-                                $"[Proyectil] Daño de {_daño:F1} aplicado al jugador {jugador.OwnerClientId}."
-                            );
+                            if (!bloqueadoPorBarrera)
+                                Debug.Log($"[Proyectil] Daño de {_daño:F1} aplicado al jugador {jugador.OwnerClientId}.");
                         }
                         DespawnProyectil();
                         return;

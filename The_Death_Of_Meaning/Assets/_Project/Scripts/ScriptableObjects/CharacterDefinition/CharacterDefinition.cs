@@ -13,6 +13,12 @@ namespace TDOM.Data
         public ComboProfile Ranged;
         public GrappleProfile Grapple;
         public EnergyProfile Energy;
+        [Header("Barrera Zendre")]
+        [Range(0f, 1f)] public float BarrierBossDamageReduction = 0.65f;
+        [Min(0f)] public float BarrierBossEnergyPerDamage = 0.2f;
+        [Min(0f)] public float BarrierMinionHitEnergyCost = 8f;
+        [Range(0f, 180f)] public float BarrierFrontArc = 110f;
+        [Range(0f, 1f)] public float BarrierMoveSpeedMultiplier = 0.5f;
         public float MaxHealth = 100f;
         public float DownedDuration = 15f;
         public float ReviveHealth = 50f;

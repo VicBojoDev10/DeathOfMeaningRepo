@@ -276,6 +276,12 @@ namespace TDOM.Unity
                 Debug.Log(
                     $"[Minion {NetworkObjectId}] golpe {_golpeDelCombo} a cliente {jugador.OwnerClientId} ({_perfil.danio:F0} de daño)"
                 );
+                if (jugador.MitigarGolpeMinion(_perfil.danio, transform.position))
+                {
+                    JugadorGolpeadoRpc(RpcTarget.Single(jugador.OwnerClientId, RpcTargetUse.Temp));
+                    conecto = true;
+                    continue;
+                }
                 jugador.AplicarDanioEnServidor(_perfil.danio);
                 EmpujarJugador(jugador);
                 JugadorGolpeadoRpc(RpcTarget.Single(jugador.OwnerClientId, RpcTargetUse.Temp));
