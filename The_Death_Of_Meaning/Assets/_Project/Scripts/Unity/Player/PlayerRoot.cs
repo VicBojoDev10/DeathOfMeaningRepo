@@ -145,6 +145,11 @@ namespace TDOM.Unity.Player
 
         [SerializeField]
         private float _alturaMaxima = 80f;
+
+        [Header("Energía al revivir")]
+        [SerializeField, Min(0f)]
+        private float _esperaRecargaEnergiaAlRevivir = 10f;
+
         private bool _respawnPorAlturaSolicitado;
         private bool _respawnEnCurso;
         private GameObject _respawnFadeCanvas;
@@ -156,6 +161,25 @@ namespace TDOM.Unity.Player
             NetworkVariableWritePermission.Server
         );
         private EnergyPool _energyPool;
+
+        public NetworkVariable<double> FinEsperaEnergiaAlRevivir = new NetworkVariable<double>(
+            0d,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
+        public float EsperaEnergiaRestante
+        {
+            get
+            {
+                if (NetworkManager == null || !NetworkManager.IsListening)
+                    return 0f;
+                return Mathf.Max(
+                    0f,
+                    (float)(FinEsperaEnergiaAlRevivir.Value - NetworkManager.ServerTime.Time)
+                );
+            }
+        }
 
         public NetworkVariable<float> Vida = new NetworkVariable<float>(
             100f,
@@ -220,13 +244,23 @@ namespace TDOM.Unity.Player
         public CharacterIds CharacterId => _characterId;
         public float CostoEnergiaPendiente => _combat != null ? _combat.CostoCargaPendiente : 0f;
 
-        public void EmpujarPorCombo(float adelante, float arriba, float duracion)
+        public void EmpujarPorCombo(
+            float adelante,
+            float arriba,
+            float duracion,
+            bool saltarAunqueEsteEnSuelo = false
+        )
         {
             if (_motor == null)
                 return;
 
             bool enElAire = _locomocion != null && !_locomocion.State.IsGrounded;
-            _motor.Empujar(transform.forward, adelante, enElAire ? arriba : 0f, duracion);
+            _motor.Empujar(
+                transform.forward,
+                adelante,
+                enElAire || saltarAunqueEsteEnSuelo ? arriba : 0f,
+                duracion
+            );
         }
 
         public void EmpujarDesdeServidor(
@@ -410,6 +444,19 @@ namespace TDOM.Unity.Player
 
         private void OnEstadoVidaChanged(PlayerLifeState anterior, PlayerLifeState actual)
         {
+            if (
+                IsServer
+                && anterior != PlayerLifeState.Vivo
+                && actual == PlayerLifeState.Vivo
+                && _energyPool != null
+            )
+            {
+                _energyPool.RestoreMaxPreservingCurrent();
+                Energia.Value = _energyPool.Current;
+                FinEsperaEnergiaAlRevivir.Value =
+                    NetworkManager.ServerTime.Time + Mathf.Max(0f, _esperaRecargaEnergiaAlRevivir);
+            }
+
             AplicarEstadoVida();
             BuscarEncuentroArena()?.NotificarEstadoVida(this, actual);
         }
@@ -716,6 +763,31 @@ namespace TDOM.Unity.Player
             if (IsOwner && _feedback != null)
                 _feedback.OnCambioDeFase();
         }
+
+        // Costos de la energia (estamina de Ayla, mana de Zendre) de cada accion de movimiento.
+        private float CostoDash => _definition?.Energy != null ? _definition.Energy.DashCost : 0f;
+
+        private float CostoSaltoAereo =>
+            _characterId == CharacterIds.Ayla && _definition?.Energy != null
+                ? _definition.Energy.AirJumpCost
+                : 0f;
+
+        private bool EnergiaAlcanza(float costo) => costo <= 0f || Energia.Value >= costo;
+
+        // El dueno gasta la energia en el servidor, que es quien la lleva.
+        private void PedirConsumoDeEnergia(float costo)
+        {
+            if (costo <= 0f)
+                return;
+
+            if (IsServer)
+                ConsumirEnergiaEnServidor(costo);
+            else
+                ConsumirEnergiaRpc(costo);
+        }
+
+        [Rpc(SendTo.Server)]
+        private void ConsumirEnergiaRpc(float cantidad) => ConsumirEnergiaEnServidor(cantidad);
 
         public void ConsumirEnergiaEnServidor(float cantidad)
         {
@@ -1087,7 +1159,12 @@ namespace TDOM.Unity.Player
 
             if (IsServer && _energyPool != null)
             {
-                _energyPool.Tick(dt, isDowned: EstadoVida.Value == PlayerLifeState.Abatido);
+                _energyPool.Tick(
+                    dt,
+                    isDowned: EstadoVida.Value == PlayerLifeState.Abatido,
+                    allowRegeneration: NetworkManager.ServerTime.Time
+                        >= FinEsperaEnergiaAlRevivir.Value
+                );
                 Energia.Value = _energyPool.Current;
             }
 
@@ -1121,6 +1198,10 @@ namespace TDOM.Unity.Player
 
             _motor.ProbeGround(_locomocion.State);
             CapturarContextoVfxDash(dt);
+
+            // Sin energia suficiente no arranca el dash ni el doble salto.
+            _locomocion.PermitirDash = EnergiaAlcanza(CostoDash);
+            _locomocion.PermitirSaltoAereo = EnergiaAlcanza(CostoSaltoAereo);
 
             if (!EstaAbatidoOMuerto)
             {
@@ -1255,6 +1336,10 @@ namespace TDOM.Unity.Player
             AplicarMiradaACamara();
 
             DispararFeedbackDeLocomocion();
+            if (_locomocion.DashIniciado)
+                PedirConsumoDeEnergia(CostoDash);
+            if (_locomocion.SaltoAereo)
+                PedirConsumoDeEnergia(CostoSaltoAereo);
             ActualizarVfxSaltoAterrizaje();
             if (
                 _locomocion.SaltoAereo

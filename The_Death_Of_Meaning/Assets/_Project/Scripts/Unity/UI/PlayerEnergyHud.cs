@@ -25,6 +25,9 @@ namespace TDOM.Unity.UI
 
         private PlayerRoot _targetRoot;
         private float _maxEnergy;
+        private Image _rellenoImagen;
+        private Color _colorRellenoOriginal;
+        private bool _alphaRellenoCapturado;
 
         public void Reinitialize(PlayerRoot root, string labelName, float maxEnergy)
         {
@@ -37,6 +40,7 @@ namespace TDOM.Unity.UI
 
         public void Initialize(PlayerRoot root, string labelName, float maxEnergy)
         {
+            RestaurarColorRelleno();
             _targetRoot = root;
             _maxEnergy = maxEnergy;
 
@@ -47,6 +51,15 @@ namespace TDOM.Unity.UI
             {
                 _energiaJugador.minValue = 0f;
                 _energiaJugador.maxValue = Mathf.Max(0f, _maxEnergy);
+                _rellenoImagen =
+                    _energiaJugador.fillRect != null
+                        ? _energiaJugador.fillRect.GetComponent<Image>()
+                        : null;
+                if (_rellenoImagen != null)
+                {
+                    _colorRellenoOriginal = _rellenoImagen.color;
+                    _alphaRellenoCapturado = true;
+                }
             }
 
             if (_targetRoot != null)
@@ -140,6 +153,26 @@ namespace TDOM.Unity.UI
             {
                 _energiaJugador.SetValueWithoutNotify(Mathf.Clamp(currentEnergy, 0f, _maxEnergy));
             }
+        }
+
+        private void Update()
+        {
+            if (!_alphaRellenoCapturado || _rellenoImagen == null)
+                return;
+
+            bool esperando = _targetRoot != null && _targetRoot.EsperaEnergiaRestante > 0f;
+            Color color = _colorRellenoOriginal;
+            if (esperando)
+                color.a *= Mathf.FloorToInt(Time.unscaledTime * 4f) % 2 == 0 ? 0.2f : 1f;
+            _rellenoImagen.color = color;
+        }
+
+        private void RestaurarColorRelleno()
+        {
+            if (_alphaRellenoCapturado && _rellenoImagen != null)
+                _rellenoImagen.color = _colorRellenoOriginal;
+            _alphaRellenoCapturado = false;
+            _rellenoImagen = null;
         }
     }
 }

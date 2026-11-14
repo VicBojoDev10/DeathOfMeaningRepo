@@ -38,6 +38,7 @@ namespace TDOM.Unity
         private Image _zendreImg;
         private Image _aylaImg;
         private GameSessionManager _manager;
+        private GameFlowNetwork _gameFlow;
         private bool _confirmandoListo;
 
         private void Awake()
@@ -72,6 +73,8 @@ namespace TDOM.Unity
             GameSessionManager.Spawned += EnlazarManager;
             GameSessionManager.Despawned += DesenlazarManager;
             EnlazarManager();
+            GameFlowNetwork.Spawned += EnlazarGameFlow;
+            EnlazarGameFlow();
         }
 
         public override void Show()
@@ -116,6 +119,8 @@ namespace TDOM.Unity
             GameSessionManager.Spawned -= EnlazarManager;
             GameSessionManager.Despawned -= DesenlazarManager;
             DesenlazarManager();
+            GameFlowNetwork.Spawned -= EnlazarGameFlow;
+            DesenlazarGameFlow();
         }
 
         private void EnlazarManager()
@@ -142,6 +147,26 @@ namespace TDOM.Unity
             _manager = null;
             if (ready != null)
                 ready.interactable = false;
+        }
+
+        private void EnlazarGameFlow()
+        {
+            var gameFlow = GameFlowNetwork.Instance;
+            if (gameFlow == null || !gameFlow.IsSpawned || _gameFlow == gameFlow)
+                return;
+
+            DesenlazarGameFlow();
+            _gameFlow = gameFlow;
+            _gameFlow.OnReturnToConnectionRequested += RegresarAConexionLocal;
+        }
+
+        private void DesenlazarGameFlow()
+        {
+            if (_gameFlow == null)
+                return;
+
+            _gameFlow.OnReturnToConnectionRequested -= RegresarAConexionLocal;
+            _gameFlow = null;
         }
 
         private void PrevisualizarPersonaje(CharacterCardUI card)
@@ -194,6 +219,18 @@ namespace TDOM.Unity
             if (PartidaListaParaIniciar())
                 return;
 
+            if (_gameFlow != null && _gameFlow.IsSpawned)
+            {
+                _gameFlow.SolicitarRegresoAConexion();
+                return;
+            }
+
+            RegresarAConexionLocal();
+        }
+
+        private void RegresarAConexionLocal()
+        {
+            _confirmandoListo = false;
             ConnectionManager.Instance?.CancelarConexion();
             UiManager.Instance?.SwitchWindow(WindowId, WindowsIds.ConnectionMenuUI);
         }

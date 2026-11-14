@@ -12,13 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 010c30473383fd94a8ad01fe7212deea, type: 3}
   m_Name: WeakPointProfile
   m_EditorClassIdentifier: TDOM.Data::TDOM.POCO.ScriptableObjects.WeakPointProfile
-  DuracionAbierto: 10
-  Cooldown: 1
-  DuracionBrillando: 12
-  Semilla: 0
-  OjosActivosPorFase: 0200000002000000020000000300000003000000
+  PerfilMinion: {fileID: 11400000, guid: 24c037420e325f44991ec67351899b58, type: 2}
+  MultiplicadorVidaOjo: 2
   ColorCerrado: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  ColorBrillando: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   ColorAbierto: {r: 1, g: 0, b: 0, a: 1}
-  ColorEnfriando: {r: 0, g: 0, b: 1, a: 1}
   IntensidadGlow: 2
