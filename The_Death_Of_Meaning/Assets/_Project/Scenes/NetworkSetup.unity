@@ -891,6 +891,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 75283917}
+  - component: {fileID: 2300000000}
+  - component: {fileID: 2300000001}
   m_Layer: 0
   m_Name: PanelMeleeAyla
   m_TagString: Untagged
@@ -4611,6 +4613,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 984817950}
+  - component: {fileID: 2300000002}
+  - component: {fileID: 2300000003}
   m_Layer: 0
   m_Name: PanelMeleeZendre
   m_TagString: Untagged
@@ -5060,6 +5064,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1090111022}
+  - component: {fileID: 2300000004}
+  - component: {fileID: 2300000005}
   m_Layer: 0
   m_Name: PanelGancho
   m_TagString: Untagged
@@ -7072,6 +7078,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1561435540}
+  - component: {fileID: 2300000006}
+  - component: {fileID: 2300000007}
   m_Layer: 0
   m_Name: PanelGancho
   m_TagString: Untagged
@@ -7197,6 +7205,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1593970649}
+  - component: {fileID: 2300000008}
+  - component: {fileID: 2300000009}
   m_Layer: 0
   m_Name: PanelDisparo
   m_TagString: Untagged
@@ -7569,6 +7579,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1708258147}
+  - component: {fileID: 2300000010}
+  - component: {fileID: 2300000011}
   m_Layer: 0
   m_Name: PanelMovSalDash
   m_TagString: Untagged
@@ -13718,6 +13730,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2112533631}
+  - component: {fileID: 2300000012}
+  - component: {fileID: 2300000013}
   m_Layer: 0
   m_Name: PanelMovSalDash
   m_TagString: Untagged
@@ -14366,3 +14380,255 @@ SceneRoots:
   - {fileID: 26893733}
   - {fileID: 1111755793}
   - {fileID: 1313309914}
+--- !u!65 &2300000000
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 75283916}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 4, y: 3, z: 4}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2300000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 75283916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c870423087544daeb952e24909fa2a11, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.PanelTutorialProximidad
+  _personaje: 2
+  _visual: {fileID: 1138998060}
+  _duracionAnimacion: 0.25
+--- !u!65 &2300000002
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 984817949}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 4, y: 3, z: 4}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2300000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 984817949}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c870423087544daeb952e24909fa2a11, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.PanelTutorialProximidad
+  _personaje: 1
+  _visual: {fileID: 380480114}
+  _duracionAnimacion: 0.25
+--- !u!65 &2300000004
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1090111021}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 4, y: 3, z: 4}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2300000005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1090111021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c870423087544daeb952e24909fa2a11, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.PanelTutorialProximidad
+  _personaje: 2
+  _visual: {fileID: 554339614}
+  _duracionAnimacion: 0.25
+--- !u!65 &2300000006
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1561435539}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 4, y: 3, z: 4}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2300000007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1561435539}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c870423087544daeb952e24909fa2a11, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.PanelTutorialProximidad
+  _personaje: 1
+  _visual: {fileID: 2114580615}
+  _duracionAnimacion: 0.25
+--- !u!65 &2300000008
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1593970648}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 4, y: 3, z: 4}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2300000009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1593970648}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c870423087544daeb952e24909fa2a11, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.PanelTutorialProximidad
+  _personaje: 1
+  _visual: {fileID: 2048947660}
+  _duracionAnimacion: 0.25
+--- !u!65 &2300000010
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1708258146}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 4, y: 3, z: 4}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2300000011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1708258146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c870423087544daeb952e24909fa2a11, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.PanelTutorialProximidad
+  _personaje: 2
+  _visual: {fileID: 1088331419}
+  _duracionAnimacion: 0.25
+--- !u!65 &2300000012
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2112533630}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 4, y: 3, z: 4}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2300000013
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2112533630}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c870423087544daeb952e24909fa2a11, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.PanelTutorialProximidad
+  _personaje: 1
+  _visual: {fileID: 751192433}
+  _duracionAnimacion: 0.25
