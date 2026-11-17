@@ -62,6 +62,8 @@ namespace TDOM.Data
 
         public override float Dano => dano;
 
+        public override float Aviso => aviso;
+
         public override bool EsInstaKill => esInstaKill;
     }
 }
