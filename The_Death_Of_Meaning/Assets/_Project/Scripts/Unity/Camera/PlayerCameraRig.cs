@@ -33,6 +33,8 @@ namespace TDOM.Unity.Camera
         private float _fovExtra;
         private float _pulsoNivel;
         private float _dashNivel;
+        private float _alejamiento;
+        private Coroutine _rutinaAlejamiento;
         private float _dashZoomObjetivo;
         private float _dashZoomInicio;
         private float _dashZoomTiempo;
@@ -139,7 +141,10 @@ namespace TDOM.Unity.Camera
 
             float acercamientoDash = _dashNivel * _dashZoomAmount;
             _seguimiento.CameraDistance =
-                encuadre.Distance + (_pulsoNivel * DistanciaPulso()) - acercamientoDash;
+                encuadre.Distance
+                + (_pulsoNivel * DistanciaPulso())
+                + _alejamiento
+                - acercamientoDash;
             _seguimiento.CameraSide = _stances.CameraSide;
             Vector3 hombro = _seguimiento.ShoulderOffset;
             hombro.x = encuadre.ShoulderOffset;
@@ -235,6 +240,69 @@ namespace TDOM.Unity.Camera
                 StopCoroutine(_rutinaTiltActual);
 
             _rutinaTiltActual = StartCoroutine(RutinaTilt(grados, duracion));
+        }
+
+        /// <summary>
+        /// Aleja la camara (metros extra de distancia) con la curva dada al subir y al bajar,
+        /// espera y regresa a la distancia normal. Una llamada nueva reemplaza a la anterior
+        /// partiendo de la distancia que lleva.
+        /// </summary>
+        public void AlejarCamara(
+            float metros,
+            float subida,
+            float sostener,
+            float bajada,
+            AnimationCurve curva
+        )
+        {
+            if (_rutinaAlejamiento != null)
+                StopCoroutine(_rutinaAlejamiento);
+
+            _rutinaAlejamiento = StartCoroutine(
+                RutinaAlejamiento(metros, subida, sostener, bajada, curva)
+            );
+        }
+
+        private IEnumerator RutinaAlejamiento(
+            float metros,
+            float subida,
+            float sostener,
+            float bajada,
+            AnimationCurve curva
+        )
+        {
+            subida = Mathf.Max(0.01f, subida);
+            bajada = Mathf.Max(0.01f, bajada);
+
+            float inicio = _alejamiento;
+            float t = 0f;
+            while (t < subida)
+            {
+                t += Time.deltaTime;
+                _alejamiento = Mathf.Lerp(inicio, metros, Suavizar(curva, t / subida));
+                yield return null;
+            }
+            _alejamiento = metros;
+
+            if (sostener > 0f)
+                yield return new WaitForSeconds(sostener);
+
+            t = 0f;
+            while (t < bajada)
+            {
+                t += Time.deltaTime;
+                _alejamiento = Mathf.Lerp(metros, 0f, Suavizar(curva, t / bajada));
+                yield return null;
+            }
+
+            _alejamiento = 0f;
+            _rutinaAlejamiento = null;
+        }
+
+        private static float Suavizar(AnimationCurve curva, float t)
+        {
+            t = Mathf.Clamp01(t);
+            return curva != null ? Mathf.Clamp01(curva.Evaluate(t)) : Mathf.SmoothStep(0f, 1f, t);
         }
 
         public void Impacto(float fuerza) => _impulso.GenerateImpulse(fuerza);

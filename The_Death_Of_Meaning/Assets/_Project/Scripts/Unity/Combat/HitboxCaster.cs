@@ -50,6 +50,9 @@ namespace TDOM.Unity.Combat
         ]
         private float _extraValidacionServidor = 3.5f;
 
+        private readonly List<Impacto> _impactos = new();
+        private readonly HashSet<(NetworkObject, HitZone)> _zonasDetectadas = new();
+        private readonly HashSet<NetworkObject> _objetosDetectados = new();
         private AylaEspada _espada;
 
         private Transform Origen => _origen != null ? _origen : transform;
@@ -73,52 +76,67 @@ namespace TDOM.Unity.Combat
 
             Debug.DrawRay(orig.position, orig.forward * alcance, Color.red, 0.25f);
 
-            // El mask del prefab de Ayla apunta a la capa HurtBox (6), mientras que
-            // las HitZone de los ojos de AREK estan en Default (0). Busca los ojos
-            // explicitamente por sus componentes para que el ataque melee tambien
-            // los encuentre sin depender de tags o de que compartan capa.
-            IEnumerable<Collider> hits = Physics.OverlapSphere(centro, radio, _objetivos);
-            IEnumerable<Collider> todos = Physics.OverlapSphere(
+            _impactos.Clear();
+            _zonasDetectadas.Clear();
+            var hits = Physics.OverlapSphere(centro, radio, _objetivos);
+            var todos = Physics.OverlapSphere(
                 centro,
                 radio,
                 Physics.AllLayers,
                 QueryTriggerInteraction.Collide
             );
+            AgregarImpactos(hits, false);
 
+            Collider[] ojosPrisma = null;
             if (TryPrisma(out Vector3 centroPrisma, out Quaternion giro, out Vector3 mitad))
             {
-                hits = hits.Concat(Physics.OverlapBox(centroPrisma, mitad, giro, _objetivos));
-                todos = todos.Concat(
-                    Physics.OverlapBox(
-                        centroPrisma,
-                        mitad,
-                        giro,
-                        Physics.AllLayers,
-                        QueryTriggerInteraction.Collide
-                    )
+                AgregarImpactos(Physics.OverlapBox(centroPrisma, mitad, giro, _objetivos), false);
+                ojosPrisma = Physics.OverlapBox(
+                    centroPrisma,
+                    mitad,
+                    giro,
+                    Physics.AllLayers,
+                    QueryTriggerInteraction.Collide
                 );
             }
 
-            var ojos = todos.Where(c =>
-                c.GetComponentInParent<OjosArek>() != null
-                && c.GetComponentInParent<HitZone>() != null
-            );
+            AgregarImpactos(todos, true);
+            if (ojosPrisma != null)
+                AgregarImpactos(ojosPrisma, true);
 
-            return ImpactosValidos(hits.Concat(ojos))
-                .GroupBy(i => new { i.Objeto, i.Zona })
-                .Select(g => g.First())
-                .ToArray();
+            var resultado = _impactos.ToArray();
+            _impactos.Clear();
+            _zonasDetectadas.Clear();
+            return resultado;
         }
 
-        private IEnumerable<Impacto> ImpactosValidos(IEnumerable<Collider> colliders) =>
-            colliders
-                .Select(c => new Impacto(
-                    c.GetComponentInParent<NetworkObject>(),
-                    c.GetComponentInParent<HitZone>()
-                ))
-                .Where(i => i.Objeto != null)
-                .Where(i => i.Objeto.GetComponentInParent<PlayerRoot>() == null)
-                .Where(i => _owner == null || i.Objeto != _owner);
+        private void AgregarImpactos(Collider[] colliders, bool soloOjos)
+        {
+            foreach (var collider in colliders)
+            {
+                if (soloOjos && collider.GetComponentInParent<OjosArek>() == null)
+                    continue;
+                if (!TryImpacto(collider, out Impacto impacto))
+                    continue;
+                if (soloOjos && impacto.Zona == null)
+                    continue;
+                if (_zonasDetectadas.Add((impacto.Objeto, impacto.Zona)))
+                    _impactos.Add(impacto);
+            }
+        }
+
+        private bool TryImpacto(Collider collider, out Impacto impacto)
+        {
+            impacto = default;
+            var objeto = collider.GetComponentInParent<NetworkObject>();
+            if (objeto == null || (_owner != null && objeto == _owner))
+                return false;
+            if (objeto.GetComponentInParent<PlayerRoot>() != null)
+                return false;
+
+            impacto = new Impacto(objeto, collider.GetComponentInParent<HitZone>());
+            return true;
+        }
 
         public Vector3 Centro(float alcance) => Origen.position + Origen.forward * alcance;
 
@@ -183,11 +201,21 @@ namespace TDOM.Unity.Combat
                 _objetivos
             );
 
-            var masCercanos = hits.OrderBy(h => h.distance).Select(h => h.collider);
-            return ImpactosValidos(masCercanos)
-                .GroupBy(i => i.Objeto)
-                .Select(g => g.First())
-                .ToArray();
+            _impactos.Clear();
+            _objetosDetectados.Clear();
+            foreach (var hit in hits.OrderBy(h => h.distance))
+            {
+                if (
+                    TryImpacto(hit.collider, out Impacto impacto)
+                    && _objetosDetectados.Add(impacto.Objeto)
+                )
+                    _impactos.Add(impacto);
+            }
+
+            var resultado = _impactos.ToArray();
+            _impactos.Clear();
+            _objetosDetectados.Clear();
+            return resultado;
         }
 
         private void OnDrawGizmosSelected()
