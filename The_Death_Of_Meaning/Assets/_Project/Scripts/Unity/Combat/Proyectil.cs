@@ -11,6 +11,9 @@ namespace TDOM.Unity.Combat
 {
     public class Proyectil : NetworkBehaviour
     {
+        private const float DistanciaEmpujeMinion = 0.45f;
+        private const float DuracionEmpujeMinion = 0.18f;
+
         [SerializeField]
         private float _velocidad = 40f;
 
@@ -36,6 +39,8 @@ namespace TDOM.Unity.Combat
         private bool _dañaJugador;
         private Transform _plataformaIgnorada;
         private Transform _emisorIgnorado;
+        private bool _detenerDurantePausaGlobal;
+        private bool _pausadoGlobal;
         private float _tiempoVida;
 
         public float Velocidad => _velocidad;
@@ -52,7 +57,8 @@ namespace TDOM.Unity.Combat
             bool atacanteEsAyla = false,
             bool dañaJugador = false,
             Transform plataformaIgnorada = null,
-            Transform emisorIgnorado = null
+            Transform emisorIgnorado = null,
+            bool detenerDurantePausaGlobal = false
         )
         {
             _direccion = dir.sqrMagnitude > 0.0001f ? dir.normalized : transform.forward;
@@ -62,12 +68,19 @@ namespace TDOM.Unity.Combat
             _dañaJugador = dañaJugador;
             _plataformaIgnorada = plataformaIgnorada;
             _emisorIgnorado = emisorIgnorado;
+            _detenerDurantePausaGlobal = detenerDurantePausaGlobal;
             _tiempoVida = 0f;
+        }
+
+        public void EstablecerPausa(bool pausado)
+        {
+            if (_detenerDurantePausaGlobal)
+                _pausadoGlobal = pausado;
         }
 
         private void Update()
         {
-            if (!IsServer)
+            if (!IsServer || (_detenerDurantePausaGlobal && _pausadoGlobal))
                 return;
 
             float dt = Time.deltaTime;
@@ -95,6 +108,13 @@ namespace TDOM.Unity.Combat
                         if (!jugador.EstaAbatidoOMuerto)
                         {
                             jugador.AplicarDanioEnServidor(_daño);
+                            if (_detenerDurantePausaGlobal)
+                                jugador.EmpujarDesdeServidor(
+                                    _direccion,
+                                    DistanciaEmpujeMinion,
+                                    altura: 0f,
+                                    duracion: DuracionEmpujeMinion
+                                );
                             Debug.Log(
                                 $"[Proyectil] Daño de {_daño:F1} aplicado al jugador {jugador.OwnerClientId}."
                             );
