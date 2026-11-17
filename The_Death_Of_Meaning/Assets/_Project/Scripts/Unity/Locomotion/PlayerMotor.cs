@@ -49,6 +49,14 @@ namespace TDOM.Unity.Locomotion
             _empujeTiempo = 0f;
         }
 
+        public void AplicarEmpuje(float dt)
+        {
+            if (_cc == null)
+                return;
+
+            _cc.Move(DesplazamientoDeEmpuje(dt));
+        }
+
         private PlataformaCircular _plataformaActual;
 
         public PlataformaCircular PlataformaActual => _plataformaActual;

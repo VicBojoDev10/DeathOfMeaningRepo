@@ -14,6 +14,7 @@ namespace TDOM.Unity
         private static readonly int MoveYHash = Animator.StringToHash("MoveY");
         private static readonly int JumpHash = Animator.StringToHash("Jump");
         private static readonly int FallingHash = Animator.StringToHash("Falling");
+        private static readonly int GrapleHash = Animator.StringToHash("Graple");
         private static readonly int ShootHash = Animator.StringToHash("Shoot");
         private static readonly int AssaultHash = Animator.StringToHash("assault");
         private static readonly int AssaultStandStateHash = Animator.StringToHash("AssaultStand");
@@ -52,6 +53,11 @@ namespace TDOM.Unity
             NetworkVariableWritePermission.Owner
         );
         private readonly NetworkVariable<bool> _falling = new(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Owner
+        );
+        private readonly NetworkVariable<bool> _grappling = new(
             false,
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Owner
@@ -98,6 +104,7 @@ namespace TDOM.Unity
                 AplicarModos(false, false, Vector2.zero);
                 _animator.SetBool(JumpHash, _jumping.Value);
                 _animator.SetBool(FallingHash, _falling.Value);
+                _animator.SetBool(GrapleHash, _grappling.Value);
                 _animator.SetBool(AssaultHash, _assault.Value);
             }
         }
@@ -184,6 +191,17 @@ namespace TDOM.Unity
             AplicarSalto(saltando, cayendo);
         }
 
+        public void ActualizarGancho(bool activo)
+        {
+            if (!IsOwner)
+                return;
+
+            if (_grappling.Value != activo)
+                _grappling.Value = activo;
+            if (_animator != null)
+                _animator.SetBool(GrapleHash, activo);
+        }
+
         public void IniciarAssault()
         {
             if (!IsOwner)
@@ -211,6 +229,7 @@ namespace TDOM.Unity
             {
                 AplicarModos(_aiming.Value, _guarding.Value, _aimMove.Value);
                 AplicarSalto(_jumping.Value, _falling.Value);
+                _animator.SetBool(GrapleHash, _grappling.Value);
                 _animator.SetBool(AssaultHash, _assault.Value);
             }
             else if (_assaultAutoReleasePending && LlegoAAssaultStand())

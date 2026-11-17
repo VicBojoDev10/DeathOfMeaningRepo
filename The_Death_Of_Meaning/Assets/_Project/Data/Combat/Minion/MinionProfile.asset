@@ -13,16 +13,16 @@ MonoBehaviour:
   m_Name: MinionProfile
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.MinionProfile
   vida: 80
-  danio: 15
+  danio: 8
   golpesPorCombo: 2
   velocidad: 3.5
   rangoAtaque: 1.6
   duracionAviso: 0.4
-  pausaEntreGolpes: 0.45
-  duracionRecuperar: 1.3
-  tamanioGolpe: {x: 1.2, y: 1.2, z: 1.5}
+  pausaEntreGolpes: 1.3
+  duracionRecuperar: 3
+  tamanioGolpe: {x: 1, y: 1, z: 1.3}
   colorAviso: {r: 1, g: 0.52179044, b: 0, a: 1}
-  inclinacionAviso: 20
+  inclinacionAviso: 15
   radioSpawn: 8
   distanciaBusquedaNavMesh: 4
   alturaBusquedaPiso: 60
