@@ -72,8 +72,12 @@ namespace TDOM.Unity.Level
             if (player == null || !player.IsOwner)
                 return false;
 
-            Transform respawn = ObtenerRespawn(player);
-            if (respawn == null)
+            bool tieneCheckpoint = player.TryObtenerCheckpointTutorial(
+                out Vector3 posicionCheckpoint,
+                out Quaternion rotacionCheckpoint
+            );
+            Transform respawn = tieneCheckpoint ? null : ObtenerRespawn(player);
+            if (!tieneCheckpoint && respawn == null)
             {
                 Debug.LogError(
                     $"[KillPlane] Falta asignar el punto de respawn para {player.CharacterId}.",
@@ -82,12 +86,15 @@ namespace TDOM.Unity.Level
                 return false;
             }
 
+            Vector3 posicionRespawn = tieneCheckpoint ? posicionCheckpoint : respawn.position;
+            Quaternion rotacionRespawn = tieneCheckpoint ? rotacionCheckpoint : respawn.rotation;
             Debug.LogWarning(
                 $"[SPAWN][KILL-PLANE] owner={player.OwnerClientId} personaje={player.CharacterId} "
-                    + $"from={player.transform.position} respawn={respawn.position}"
+                    + $"from={player.transform.position} respawn={posicionRespawn} "
+                    + $"checkpoint={tieneCheckpoint}"
             );
 
-            player.RespawnConFundido(respawn.position, respawn.rotation);
+            player.RespawnConFundido(posicionRespawn, rotacionRespawn);
             return true;
         }
     }

@@ -214,6 +214,9 @@ namespace TDOM.Unity.Player
         private bool _initialSpawnApplied;
         private bool _originResetLogged;
         private Vector3 _initialSpawnPosition;
+        private bool _tieneCheckpointTutorial;
+        private Vector3 _posicionCheckpointTutorial;
+        private Quaternion _rotacionCheckpointTutorial;
         private Vector3 _lastObservedPosition;
         public bool AtaqueActivo =>
             MovimientoBloqueado || ModoPistola || (_combat != null && _combat.AtaqueActivo);
@@ -592,6 +595,23 @@ namespace TDOM.Unity.Player
         {
             if (IsOwner && _feedback != null)
                 _feedback.OnGolpeRecibido();
+        }
+
+        public void RegistrarCheckpointTutorial()
+        {
+            if (!IsOwner)
+                return;
+
+            _posicionCheckpointTutorial = transform.position;
+            _rotacionCheckpointTutorial = transform.rotation;
+            _tieneCheckpointTutorial = true;
+        }
+
+        public bool TryObtenerCheckpointTutorial(out Vector3 position, out Quaternion rotation)
+        {
+            position = _posicionCheckpointTutorial;
+            rotation = _rotacionCheckpointTutorial;
+            return _tieneCheckpointTutorial;
         }
 
         public void RespawnConFundido(Vector3 position, Quaternion rotation)

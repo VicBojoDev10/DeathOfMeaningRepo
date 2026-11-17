@@ -145,8 +145,7 @@ namespace TDOM.Unity.Combat
                     siguienteParpadeo += IntervaloParpadeo;
                 }
 
-                transform.position =
-                    _posicionInicial + Random.insideUnitSphere * AmplitudSacudida;
+                transform.position = _posicionInicial + Random.insideUnitSphere * AmplitudSacudida;
                 transcurrido += Time.deltaTime;
                 yield return null;
             }
@@ -190,8 +189,7 @@ namespace TDOM.Unity.Combat
 
                 float progreso = Mathf.Clamp01(transcurrido / DuracionDesaparicion);
                 transform.localScale = Vector3.Lerp(_escalaInicial, Vector3.zero, progreso);
-                transform.position =
-                    _posicionInicial + Random.insideUnitSphere * AmplitudSacudida;
+                transform.position = _posicionInicial + Random.insideUnitSphere * AmplitudSacudida;
                 transcurrido += Time.deltaTime;
                 yield return null;
             }
@@ -255,8 +253,8 @@ namespace TDOM.Unity.Combat
                 return;
 
             for (int i = 0; i < _materiales.Length; i++)
-                for (int j = 0; _materiales[i] != null && j < _materiales[i].Length; j++)
-                    PintarMaterial(_materiales[i][j], _coloresBase[i][j]);
+            for (int j = 0; _materiales[i] != null && j < _materiales[i].Length; j++)
+                PintarMaterial(_materiales[i][j], _coloresBase[i][j]);
         }
 
         private void Pintar(Color color)

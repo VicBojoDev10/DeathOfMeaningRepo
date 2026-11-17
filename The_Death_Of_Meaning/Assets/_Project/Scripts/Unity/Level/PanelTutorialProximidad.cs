@@ -9,9 +9,14 @@ namespace TDOM.Unity.Level
     [RequireComponent(typeof(BoxCollider))]
     public sealed class PanelTutorialProximidad : MonoBehaviour
     {
-        [SerializeField] private CharacterIds _personaje;
-        [SerializeField] private Transform _visual;
-        [SerializeField, Min(0.01f)] private float _duracionAnimacion = 0.25f;
+        [SerializeField]
+        private CharacterIds _personaje;
+
+        [SerializeField]
+        private Transform _visual;
+
+        [SerializeField, Min(0.01f)]
+        private float _duracionAnimacion = 0.25f;
 
         private readonly HashSet<Collider> _jugadorDentro = new HashSet<Collider>();
         private Vector3 _escalaVisible;
@@ -33,9 +38,11 @@ namespace TDOM.Unity.Level
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!EsJugadorLocalCorrecto(other))
+            PlayerRoot jugador = other.GetComponentInParent<PlayerRoot>();
+            if (jugador == null || !jugador.IsOwner || jugador.CharacterId != _personaje)
                 return;
 
+            jugador.RegistrarCheckpointTutorial();
             _jugadorDentro.Add(other);
             ActualizarVisibilidad(_jugadorDentro.Count > 0);
         }
@@ -50,14 +57,10 @@ namespace TDOM.Unity.Level
 
         private void Update()
         {
-            _jugadorDentro.RemoveWhere(col => col == null || !col.enabled || !col.gameObject.activeInHierarchy);
+            _jugadorDentro.RemoveWhere(col =>
+                col == null || !col.enabled || !col.gameObject.activeInHierarchy
+            );
             ActualizarVisibilidad(_jugadorDentro.Count > 0);
-        }
-
-        private bool EsJugadorLocalCorrecto(Collider other)
-        {
-            PlayerRoot jugador = other.GetComponentInParent<PlayerRoot>();
-            return jugador != null && jugador.IsOwner && jugador.CharacterId == _personaje;
         }
 
         private void ActualizarVisibilidad(bool visible)
@@ -86,7 +89,3 @@ namespace TDOM.Unity.Level
         }
     }
 }
-
-
-
-
