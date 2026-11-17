@@ -19,7 +19,11 @@ namespace TDOM.Unity.Input
 
         public bool PausaPresionada => _actions.UI.Pause.WasPressedThisFrame();
 
-        private void OnDestroy() { _actions.Dispose(); _barrier?.Dispose(); }
+        private void OnDestroy()
+        {
+            _actions.Dispose();
+            _barrier?.Dispose();
+        }
 
         public void ActivarPersonaje(CharacterIds id)
         {

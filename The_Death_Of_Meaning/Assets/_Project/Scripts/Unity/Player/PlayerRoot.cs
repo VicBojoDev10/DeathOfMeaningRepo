@@ -163,8 +163,16 @@ namespace TDOM.Unity.Player
             NetworkVariableWritePermission.Server
         );
         private EnergyPool _energyPool;
-        public NetworkVariable<bool> BarreraActiva = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-        public NetworkVariable<bool> BarreraBloqueada = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+        public NetworkVariable<bool> BarreraActiva = new NetworkVariable<bool>(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+        public NetworkVariable<bool> BarreraBloqueada = new NetworkVariable<bool>(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
         private bool _barreraSolicitada;
 
         public NetworkVariable<double> FinEsperaEnergiaAlRevivir = new NetworkVariable<double>(
@@ -822,9 +830,19 @@ namespace TDOM.Unity.Player
 
         private void ConsumirCostoBarreraEnServidor(float cantidad)
         {
-            if (!IsServer || _energyPool == null || cantidad <= 0f) return;
+            if (!IsServer || _energyPool == null || cantidad <= 0f)
+                return;
             float gasto = Mathf.Min(cantidad, _energyPool.Current);
-            if (_energyPool.TryConsume(gasto)) Energia.Value = _energyPool.Current;
+            if (_energyPool.TryConsume(gasto))
+                Energia.Value = _energyPool.Current;
+        }
+
+        private void ConsumirPorcentajeBarreraEnServidor(float porcentaje)
+        {
+            if (!IsServer || _energyPool == null)
+                return;
+            float gasto = _energyPool.Max * Mathf.Clamp(porcentaje, 0f, 100f) / 100f;
+            ConsumirCostoBarreraEnServidor(gasto);
         }
 
         private void DispararFeedbackDeLocomocion()
@@ -1216,17 +1234,25 @@ namespace TDOM.Unity.Player
                 _locomocion.CancelarDashEnCurso();
 
             var input = _inputReader.Read();
-            bool barreraPermitida = _characterId == CharacterIds.Zendre
+            bool barreraPermitida =
+                _characterId == CharacterIds.Zendre
                 && BarreraPerfil != null
-                && input.BarrierHeld && !AtaqueActivo && !_locomocion.ClimbActivo
-                && !_locomocion.DashActivo && !_locomocion.GanchoActivo
+                && input.BarrierHeld
+                && !AtaqueActivo
+                && !_locomocion.ClimbActivo
+                && !_locomocion.DashActivo
+                && !_locomocion.GanchoActivo
                 && !(_anchorLauncher != null && _anchorLauncher.AnclaActiva)
-                && Energia.Value > 0f && !BarreraBloqueada.Value && !EstaAbatidoOMuerto;
+                && Energia.Value > 0f
+                && !BarreraBloqueada.Value
+                && !EstaAbatidoOMuerto;
             if (barreraPermitida != _barreraSolicitada)
             {
                 _barreraSolicitada = barreraPermitida;
-                if (IsServer) EstablecerBarreraEnServidor(barreraPermitida);
-                else SolicitarBarreraRpc(barreraPermitida);
+                if (IsServer)
+                    EstablecerBarreraEnServidor(barreraPermitida);
+                else
+                    SolicitarBarreraRpc(barreraPermitida);
             }
             if (_barreraSolicitada)
             {
@@ -1505,68 +1531,162 @@ namespace TDOM.Unity.Player
             VerificarGameOverEnServidor();
         }
 
-        [Rpc(SendTo.Server)] private void SolicitarBarreraRpc(bool activa) => EstablecerBarreraEnServidor(activa);
+        [Rpc(SendTo.Server)]
+        private void SolicitarBarreraRpc(bool activa) => EstablecerBarreraEnServidor(activa);
+
         private void EstablecerBarreraEnServidor(bool activa)
         {
-            if (!IsServer || _characterId != CharacterIds.Zendre || BarreraPerfil == null) return;
-            BarreraActiva.Value = activa && !BarreraBloqueada.Value && Energia.Value > 0f && EstadoVida.Value == PlayerLifeState.Vivo;
+            if (!IsServer || _characterId != CharacterIds.Zendre || BarreraPerfil == null)
+                return;
+            BarreraActiva.Value =
+                activa
+                && !BarreraBloqueada.Value
+                && Energia.Value > 0f
+                && EstadoVida.Value == PlayerLifeState.Vivo;
         }
 
-        private void AlCambiarBarrera(bool anterior, bool actual) => _barreraVisual?.Mostrar(actual);
+        private void AlCambiarBarrera(bool anterior, bool actual) =>
+            _barreraVisual?.Mostrar(actual);
+
+        public float DistanciaParadaMinionPorBarrera(Vector3 posicionMinion)
+        {
+            if (!IsServer || !BarreraActiva.Value || BarreraPerfil == null)
+                return 0f;
+
+            Vector3 haciaMinion = posicionMinion - transform.position;
+            haciaMinion.y = 0f;
+            Vector3 frente = transform.forward;
+            frente.y = 0f;
+            if (
+                haciaMinion.sqrMagnitude < 0.0001f
+                || frente.sqrMagnitude < 0.0001f
+                || Vector3.Angle(frente, haciaMinion) > BarreraPerfil.FrontArcDegrees * 0.5f
+            )
+                return 0f;
+
+            return BarreraPerfil.VisualForwardOffset
+                + BarreraPerfil.VisualCurveDepth
+                + BarreraPerfil.MinionStandOffDistance;
+        }
 
         private PlayerRoot BuscarBarreraProtectora(Vector3 origen)
         {
-            if (!IsServer || NetworkManager == null || NetworkManager.SpawnManager == null) return null;
+            if (!IsServer || NetworkManager == null || NetworkManager.SpawnManager == null)
+                return null;
             foreach (NetworkObject obj in NetworkManager.SpawnManager.SpawnedObjectsList)
             {
-                if (obj == null || !obj.TryGetComponent(out PlayerRoot protector)
-                    || protector.CharacterId != CharacterIds.Zendre || !protector.BarreraActiva.Value
-                    || protector.BarreraPerfil == null) continue;
-                Vector3 haciaAtaque = origen - protector.transform.position; haciaAtaque.y = 0f;
-                Vector3 frente = protector.transform.forward; frente.y = 0f;
-                if (haciaAtaque.sqrMagnitude < 0.0001f || frente.sqrMagnitude < 0.0001f
-                    || Vector3.Angle(frente, haciaAtaque) > protector.BarreraPerfil.FrontArcDegrees * 0.5f) continue;
-                if (protector == this) return protector;
-                Vector3 haciaAliado = transform.position - protector.transform.position; haciaAliado.y = 0f;
+                if (
+                    obj == null
+                    || !obj.TryGetComponent(out PlayerRoot protector)
+                    || protector.CharacterId != CharacterIds.Zendre
+                    || !protector.BarreraActiva.Value
+                    || protector.BarreraPerfil == null
+                )
+                    continue;
+                Vector3 haciaAtaque = origen - protector.transform.position;
+                haciaAtaque.y = 0f;
+                Vector3 frente = protector.transform.forward;
+                frente.y = 0f;
+                if (
+                    haciaAtaque.sqrMagnitude < 0.0001f
+                    || frente.sqrMagnitude < 0.0001f
+                    || Vector3.Angle(frente, haciaAtaque)
+                        > protector.BarreraPerfil.FrontArcDegrees * 0.5f
+                )
+                    continue;
+                if (protector == this)
+                    return protector;
+                Vector3 haciaAliado = transform.position - protector.transform.position;
+                haciaAliado.y = 0f;
                 float profundidad = Vector3.Dot(haciaAliado, frente.normalized);
                 float lateral = (haciaAliado - frente.normalized * profundidad).magnitude;
-                if (haciaAliado.magnitude <= protector.BarreraPerfil.AllyProtectionDepth
-                    && profundidad <= 0.75f && lateral <= protector.BarreraPerfil.AllyProtectionHalfWidth)
+                if (
+                    haciaAliado.magnitude <= protector.BarreraPerfil.AllyProtectionDepth
+                    && profundidad <= 0.75f
+                    && lateral <= protector.BarreraPerfil.AllyProtectionHalfWidth
+                )
                     return protector;
             }
             return null;
         }
 
-        private bool MitigarDanioJefe(float cantidad, Vector3 origen)
+        private bool MitigarDanioJefe(
+            float cantidad,
+            Vector3 origen,
+            TipoImpactoBarreraJefe tipo,
+            out float danioRestante
+        )
         {
+            danioRestante = cantidad;
             PlayerRoot protector = BuscarBarreraProtectora(origen);
-            if (protector == null) return false;
-            float reduccion = Mathf.Clamp01(protector.BarreraPerfil.BossDamageReduction);
-            float interceptado = Mathf.Max(0f, cantidad) * reduccion;
-            protector.ConsumirCostoBarreraEnServidor(
-                interceptado * Mathf.Max(0f, protector.BarreraPerfil.BossEnergyPerDamageIntercepted)
-            );
-            RecibirDanio(Mathf.Max(0f, cantidad - interceptado));
+            if (protector == null)
+                return false;
+            float danioRestanteConfigurado = tipo switch
+            {
+                TipoImpactoBarreraJefe.Mano => protector.BarreraPerfil.HandDamageWhileShielding,
+                TipoImpactoBarreraJefe.Tentaculo => protector
+                    .BarreraPerfil
+                    .TentacleDamageWhileShielding,
+                TipoImpactoBarreraJefe.Rayo => protector.BarreraPerfil.BeamDamageWhileShielding,
+                TipoImpactoBarreraJefe.Mortero => protector
+                    .BarreraPerfil
+                    .MortarDamageWhileShielding,
+                _ => cantidad * (1f - Mathf.Clamp01(protector.BarreraPerfil.BossDamageReduction)),
+            };
+            danioRestante = Mathf.Clamp(danioRestanteConfigurado, 0f, Mathf.Max(0f, cantidad));
+            if (danioRestante >= cantidad)
+                return false;
+            float interceptado = Mathf.Max(0f, cantidad - danioRestante);
+            if (tipo == TipoImpactoBarreraJefe.Mano)
+                protector.ConsumirPorcentajeBarreraEnServidor(
+                    protector.BarreraPerfil.HandStaminaCostPercent
+                );
+            else if (tipo == TipoImpactoBarreraJefe.Tentaculo)
+                protector.ConsumirPorcentajeBarreraEnServidor(
+                    protector.BarreraPerfil.TentacleStaminaCostPercent
+                );
+            else
+                protector.ConsumirCostoBarreraEnServidor(
+                    interceptado
+                        * Mathf.Max(0f, protector.BarreraPerfil.BossEnergyPerDamageIntercepted)
+                );
             return true;
         }
 
         public bool MitigarGolpeMinion(float cantidad, Vector3 origen)
         {
             PlayerRoot protector = BuscarBarreraProtectora(origen);
-            if (protector == null) return false;
-            protector.ConsumirCostoBarreraEnServidor(
-                Mathf.Max(0f, protector.BarreraPerfil.MinionHitEnergyCost)
+            if (protector == null)
+                return false;
+            protector.ConsumirPorcentajeBarreraEnServidor(
+                protector.BarreraPerfil.MinionStaminaCostPercent
             );
             return true;
         }
 
-        public void RecibirDanioDelJefe(float cantidad, Vector3 fuente, bool esInstaKill = false)
+        public void RecibirDanioDelJefe(
+            float cantidad,
+            Vector3 fuente,
+            bool esInstaKill = false,
+            TipoImpactoBarreraJefe tipoBarrera = TipoImpactoBarreraJefe.Otro
+        )
         {
             if (!IsServer || _healthPool == null)
                 return;
 
-            bool barreraImpactada = MitigarDanioJefe(cantidad, fuente);
-            if (!barreraImpactada) RecibirDanio(cantidad, esInstaKill);
+            bool barreraMitigo = MitigarDanioJefe(
+                cantidad,
+                fuente,
+                tipoBarrera,
+                out float danioRestante
+            );
+            if (!barreraMitigo)
+                RecibirDanio(cantidad, esInstaKill);
+            else if (danioRestante > 0f)
+                RecibirDanio(danioRestante, esInstaKill: false);
+
+            if (barreraMitigo && danioRestante <= 0f)
+                return;
             if (EstaAbatidoOMuerto)
                 return;
 

@@ -147,7 +147,19 @@ namespace TDOM.Unity
             }
 
             bool hayObjetivo = TryObjetivoMasCercano(out PlayerRoot objetivo, out float distancia);
-            var evento = _brain.Tick(Time.deltaTime, hayObjetivo, distancia);
+            float rangoEfectivo = _perfil.rangoAtaque;
+            if (hayObjetivo)
+            {
+                rangoEfectivo = Mathf.Max(
+                    rangoEfectivo,
+                    objetivo.DistanciaParadaMinionPorBarrera(transform.position)
+                );
+                _agente.stoppingDistance = Mathf.Max(_perfil.rangoAtaque * 0.8f, rangoEfectivo);
+            }
+            float distanciaEfectiva = hayObjetivo
+                ? distancia - (rangoEfectivo - _perfil.rangoAtaque)
+                : distancia;
+            var evento = _brain.Tick(Time.deltaTime, hayObjetivo, distanciaEfectiva);
 
             if (_brain.DebeMoverse && hayObjetivo)
             {

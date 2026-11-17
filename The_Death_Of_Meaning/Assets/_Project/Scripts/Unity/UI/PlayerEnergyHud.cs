@@ -1,8 +1,8 @@
+using TDOM.Contracts;
 using TDOM.Unity.Player;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TDOM.Contracts;
 
 namespace TDOM.Unity.UI
 {
@@ -47,14 +47,27 @@ namespace TDOM.Unity.UI
             _maxEnergy = maxEnergy;
             if (_barreraEstado == null)
             {
-                var estado = new GameObject("EstadoBarrera", typeof(RectTransform), typeof(TextMeshProUGUI));
-                estado.transform.SetParent(transform, false);
+                var estado = new GameObject(
+                    "EstadoBarrera",
+                    typeof(RectTransform),
+                    typeof(TextMeshProUGUI)
+                );
+                Canvas canvas = GetComponentInParent<Canvas>();
+                Transform padre =
+                    canvas != null && canvas.rootCanvas != null
+                        ? canvas.rootCanvas.transform
+                        : transform;
+                estado.transform.SetParent(padre, false);
                 var rect = estado.GetComponent<RectTransform>();
-                rect.anchorMin = new Vector2(0f, 1f); rect.anchorMax = new Vector2(1f, 1f);
-                rect.pivot = new Vector2(0.5f, 0f); rect.anchoredPosition = new Vector2(0f, 4f); rect.sizeDelta = new Vector2(0f, 22f);
+                rect.anchorMin = new Vector2(1f, 0f);
+                rect.anchorMax = new Vector2(1f, 0f);
+                rect.pivot = new Vector2(1f, 0f);
+                rect.anchoredPosition = new Vector2(-24f, 28f);
+                rect.sizeDelta = new Vector2(350f, 32f);
                 _barreraEstado = estado.GetComponent<TextMeshProUGUI>();
-                _barreraEstado.alignment = TextAlignmentOptions.Center;
-                _barreraEstado.fontSize = 14f; _barreraEstado.raycastTarget = false;
+                _barreraEstado.alignment = TextAlignmentOptions.Right;
+                _barreraEstado.fontSize = 18f;
+                _barreraEstado.raycastTarget = false;
             }
 
             if (_energiaJugador == null)
@@ -127,6 +140,7 @@ namespace TDOM.Unity.UI
                 _costo.gameObject.SetActive(true);
             _costo.SetAsLastSibling();
         }
+
         private bool AsegurarCosto()
         {
             if (_costo != null)
@@ -163,10 +177,19 @@ namespace TDOM.Unity.UI
 
         private void Update()
         {
-            if (_barreraEstado != null && _targetRoot != null && _targetRoot.CharacterId == TDOM.Unity.CharacterIds.Zendre)
+            if (_barreraEstado != null)
             {
-                bool bloqueada = _targetRoot.BarreraBloqueada.Value;
-                _barreraEstado.text = bloqueada ? "BARRERA BLOQUEADA · RECARGA COMPLETA" : (_targetRoot.BarreraActiva.Value ? "BARRERA ACTIVA" : string.Empty);
+                bool esZendre =
+                    _targetRoot != null
+                    && _targetRoot.CharacterId == TDOM.Unity.CharacterIds.Zendre;
+                bool bloqueada = esZendre && _targetRoot.BarreraBloqueada.Value;
+                _barreraEstado.text = !esZendre
+                    ? string.Empty
+                    : (
+                        bloqueada
+                            ? "Barrera agotada · recarga completa"
+                            : (_targetRoot.BarreraActiva.Value ? "Barrera activa" : string.Empty)
+                    );
                 _barreraEstado.gameObject.SetActive(!string.IsNullOrEmpty(_barreraEstado.text));
             }
             if (!_alphaRellenoCapturado || _rellenoImagen == null)

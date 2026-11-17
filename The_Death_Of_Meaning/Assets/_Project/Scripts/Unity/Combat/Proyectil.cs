@@ -102,9 +102,14 @@ namespace TDOM.Unity.Combat
                     {
                         if (!jugador.EstaAbatidoOMuerto)
                         {
-                            bool bloqueadoPorBarrera = _detenerDurantePausaGlobal
-                                && jugador.MitigarGolpeMinion(_daño, _emisorIgnorado != null ? _emisorIgnorado.position : pos - _direccion);
-                            if (!bloqueadoPorBarrera) jugador.AplicarDanioEnServidor(_daño);
+                            // Usamos la dirección real de vuelo: los tiradores de plataformas
+                            // pueden estar elevados o desplazarse con una plataforma giratoria.
+                            bool bloqueadoPorBarrera = jugador.MitigarGolpeMinion(
+                                _daño,
+                                pos - _direccion
+                            );
+                            if (!bloqueadoPorBarrera)
+                                jugador.AplicarDanioEnServidor(_daño);
                             if (_detenerDurantePausaGlobal && !bloqueadoPorBarrera)
                                 jugador.EmpujarDesdeServidor(
                                     _direccion,
@@ -113,7 +118,9 @@ namespace TDOM.Unity.Combat
                                     duracion: DuracionEmpujeMinion
                                 );
                             if (!bloqueadoPorBarrera)
-                                Debug.Log($"[Proyectil] Daño de {_daño:F1} aplicado al jugador {jugador.OwnerClientId}.");
+                                Debug.Log(
+                                    $"[Proyectil] Daño de {_daño:F1} aplicado al jugador {jugador.OwnerClientId}."
+                                );
                         }
                         DespawnProyectil();
                         return;
