@@ -20,7 +20,7 @@ namespace TDOM.Gameplay.Combat
 
             _altura = altura;
             _duracionVuelo = (float)Math.Sqrt(8f * altura / gravedad);
-            _duracionAturdimiento = Math.Max(aturdimiento, _duracionVuelo);
+            _duracionAturdimiento = _duracionVuelo + aturdimiento;
         }
 
         public float Progreso => Math.Min(1f, _tiempo / _duracionVuelo);

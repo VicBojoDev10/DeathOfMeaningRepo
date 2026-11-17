@@ -19,6 +19,7 @@ namespace TDOM.Data
         public float AlturaEmpujeMinions;
 
         [Min(0f)]
+        [Tooltip("Segundos sin moverse ni atacar después de aterrizar.")]
         public float AturdimientoMinions;
 
         public bool EmpujeMinionsValido =>

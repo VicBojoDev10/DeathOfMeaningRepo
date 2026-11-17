@@ -19,7 +19,7 @@ namespace TDOM.Tests.EditMode
             Assert.That(impulso.Progreso, Is.EqualTo(1f));
             Assert.That(impulso.EnVuelo, Is.False);
             Assert.That(impulso.Aturdido, Is.True);
-            impulso.Tick(1f);
+            impulso.Tick(2f);
             Assert.That(impulso.Aturdido, Is.False);
         }
 
@@ -30,6 +30,9 @@ namespace TDOM.Tests.EditMode
             impulso.Tick(0.5f);
             Assert.That(impulso.Aturdido, Is.True);
             impulso.Tick(0.5f);
+            Assert.That(impulso.EnVuelo, Is.False);
+            Assert.That(impulso.Aturdido, Is.True);
+            impulso.Tick(0.1f);
             Assert.That(impulso.Aturdido, Is.False);
         }
 
@@ -38,7 +41,7 @@ namespace TDOM.Tests.EditMode
         {
             var primero = new ImpulsoMinion(3f, 9.81f, 2f);
             var segundo = new ImpulsoMinion(3f, 9.81f, 2f);
-            for (int i = 0; i < 180; i++)
+            for (int i = 0; i < 240; i++)
             {
                 primero.Tick(Dt);
                 segundo.Tick(Dt);
@@ -47,6 +50,22 @@ namespace TDOM.Tests.EditMode
                 Assert.That(primero.Altura, Is.GreaterThanOrEqualTo(0f));
             }
             Assert.That(primero.Aturdido, Is.False);
+        }
+
+        [Test]
+        public void permanece_un_segundo_aturdido_despues_de_aterrizar_con_dt_fijo()
+        {
+            var impulso = new ImpulsoMinion(2f, 16f, 1f);
+            impulso.Tick(1f);
+            Assert.That(impulso.EnVuelo, Is.False);
+            for (int i = 0; i < 59; i++)
+            {
+                impulso.Tick(Dt);
+                Assert.That(impulso.Aturdido, Is.True);
+                Assert.That(impulso.Altura, Is.Zero);
+            }
+            impulso.Tick(Dt * 2f);
+            Assert.That(impulso.Aturdido, Is.False);
         }
 
         [Test]
