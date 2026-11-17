@@ -1,5 +1,6 @@
 using TDOM.Data;
 using TDOM.Unity.Player;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace TDOM.Unity.Level
@@ -18,12 +19,22 @@ namespace TDOM.Unity.Level
         [SerializeField]
         private Transform _respawnZendreArena;
 
-        private Transform ObtenerRespawn(PlayerRoot player)
+        private ArenaEncounterNetwork _encuentroArena;
+
+        private bool ArenaSellada()
         {
-            if (
-                ArenaEncounterNetwork.Instance != null
-                && ArenaEncounterNetwork.Instance.ArenaSellada.Value
-            )
+            if (_encuentroArena == null || !_encuentroArena.IsSpawned)
+                _encuentroArena = FindAnyObjectByType<ArenaEncounterNetwork>();
+
+            return _encuentroArena != null
+                && _encuentroArena.IsSpawned
+                && _encuentroArena.ArenaSellada.Value;
+        }
+
+        private Transform ObtenerRespawn(PlayerRoot player, out bool arenaSellada)
+        {
+            arenaSellada = ArenaSellada();
+            if (arenaSellada)
             {
                 Transform respawnArena = player.CharacterId switch
                 {
@@ -72,11 +83,19 @@ namespace TDOM.Unity.Level
             if (player == null || !player.IsOwner)
                 return false;
 
-            bool tieneCheckpoint = player.TryObtenerCheckpointTutorial(
-                out Vector3 posicionCheckpoint,
-                out Quaternion rotacionCheckpoint
-            );
-            Transform respawn = tieneCheckpoint ? null : ObtenerRespawn(player);
+            Transform respawn = ObtenerRespawn(player, out bool arenaSellada);
+            Vector3 posicionCheckpoint = default;
+            Quaternion rotacionCheckpoint = Quaternion.identity;
+            bool tieneCheckpoint =
+                !arenaSellada
+                && player.TryObtenerCheckpointTutorial(
+                    out posicionCheckpoint,
+                    out rotacionCheckpoint
+                );
+
+            if (arenaSellada)
+                player.LimpiarCheckpointTutorial();
+
             if (!tieneCheckpoint && respawn == null)
             {
                 Debug.LogError(
@@ -91,7 +110,7 @@ namespace TDOM.Unity.Level
             Debug.LogWarning(
                 $"[SPAWN][KILL-PLANE] owner={player.OwnerClientId} personaje={player.CharacterId} "
                     + $"from={player.transform.position} respawn={posicionRespawn} "
-                    + $"checkpoint={tieneCheckpoint}"
+                    + $"checkpoint={tieneCheckpoint} arena={arenaSellada}"
             );
 
             player.RespawnConFundido(posicionRespawn, rotacionRespawn);

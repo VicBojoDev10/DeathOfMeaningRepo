@@ -614,6 +614,13 @@ namespace TDOM.Unity.Player
             return _tieneCheckpointTutorial;
         }
 
+        public void LimpiarCheckpointTutorial()
+        {
+            _tieneCheckpointTutorial = false;
+            _posicionCheckpointTutorial = default;
+            _rotacionCheckpointTutorial = Quaternion.identity;
+        }
+
         public void RespawnConFundido(Vector3 position, Quaternion rotation)
         {
             if (!IsOwner || _respawnEnCurso)
@@ -1195,6 +1202,11 @@ namespace TDOM.Unity.Player
 
             if (!IsOwner || !_initialSpawnApplied)
                 return;
+
+            if (_arenaEncounter == null)
+                _arenaEncounter = BuscarEncuentroArena();
+            if (_arenaEncounter != null && _arenaEncounter.ArenaSellada.Value)
+                LimpiarCheckpointTutorial();
 
             if (BloqueoAnimacionMovimiento)
                 _locomocion.CancelarDashEnCurso();
