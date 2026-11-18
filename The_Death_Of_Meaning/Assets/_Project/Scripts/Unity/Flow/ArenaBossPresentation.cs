@@ -108,7 +108,7 @@ namespace TDOM.Unity.Flow
             var jugador = JugadorLocal();
             jugador?.SetControlCinematica(true);
             jugador?.SetCamaraCedida(true);
-            GameplayLocal()?.SetHudVisible(false, true);
+            GameplayLocal()?.SetHudVisible(true, true);
             GlobalGameManager.Instance?.ReproducirMusicaCombateInmediata();
             if (_timeline != null)
             {
@@ -232,10 +232,10 @@ namespace TDOM.Unity.Flow
                 _jefe.Pausar(true);
         }
 
-        private void AlRevelarJefe() => GameplayLocal()?.SetHudVisible(false, true);
+        private void AlRevelarJefe() => GameplayLocal()?.SetHudVisible(true, true);
 
-        private GameplayUI GameplayLocal() =>
-            UiManager.Instance?.GetWindow(WindowsIds.GamePlayUI) as GameplayUI;
+        private IGameplayHud GameplayLocal() =>
+            UiManager.Instance?.GetGameplayWindow() as IGameplayHud;
 
         private PlayerRoot JugadorLocal()
         {

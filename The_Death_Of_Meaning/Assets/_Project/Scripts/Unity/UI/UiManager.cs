@@ -2,9 +2,16 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using TDOM.Unity.Player;
+using Unity.Netcode;
 
 namespace TDOM.Unity.UI
 {
+    public interface IGameplayHud
+    {
+        void SetHudVisible(bool visible, bool bossBarVisible = false);
+    }
+
     public class UiManager : Singleton<UiManager>
     {
         [SerializeField]
@@ -13,7 +20,113 @@ namespace TDOM.Unity.UI
         [SerializeField]
         private TransitionManager _transitionManager;
 
+        private bool _mostrarHudGameplay;
+        private string _ventanaGameplayAbierta;
+        private string _hudNoEncontradoAdvertido;
+
         public TransitionManager TransitionManager => _transitionManager;
+
+        public string GameplayWindowId
+        {
+            get
+            {
+                var localClient = NetworkManager.Singleton?.LocalClient;
+                if (localClient != null)
+                {
+                    foreach (var ownedObject in localClient.OwnedObjects)
+                    {
+                        if (ownedObject != null && ownedObject.TryGetComponent(out PlayerRoot player))
+                            return player.CharacterId == TDOM.Unity.CharacterIds.Zendre
+                                ? WindowsIds.ZendreGameplayUI
+                                : WindowsIds.AylaGameplayUI;
+                    }
+                }
+                return WindowsIds.AylaGameplayUI;
+            }
+        }
+
+        public UIWindow GetGameplayWindow() => GetWindow(GameplayWindowId);
+
+        public void ShowGameplayWindow()
+        {
+            _mostrarHudGameplay = true;
+            FoundUIScene();
+            ActualizarVentanaGameplay();
+        }
+
+        public void CloseGameplayWindow()
+        {
+            _mostrarHudGameplay = false;
+            _ventanaGameplayAbierta = null;
+            CloseWindow(WindowsIds.AylaGameplayUI);
+            CloseWindow(WindowsIds.ZendreGameplayUI);
+        }
+
+        private void Update()
+        {
+            if (_mostrarHudGameplay)
+                ActualizarVentanaGameplay();
+        }
+
+        private void ActualizarVentanaGameplay()
+        {
+            FoundUIScene();
+            var jugadorLocal = BuscarJugadorLocal();
+            if (jugadorLocal == null || jugadorLocal.CharacterId == TDOM.Unity.CharacterIds.None)
+                return;
+
+            string idDeseado = jugadorLocal.CharacterId == TDOM.Unity.CharacterIds.Zendre
+                ? WindowsIds.ZendreGameplayUI
+                : WindowsIds.AylaGameplayUI;
+            if (_ventanaGameplayAbierta != idDeseado)
+            {
+                string idAnterior = _ventanaGameplayAbierta;
+                _ventanaGameplayAbierta = idDeseado;
+                if (idAnterior != null && idAnterior != idDeseado)
+                    CloseWindow(idAnterior);
+
+                string idAlterno = idDeseado == WindowsIds.ZendreGameplayUI
+                    ? WindowsIds.AylaGameplayUI
+                    : WindowsIds.ZendreGameplayUI;
+                CloseWindow(idAlterno);
+            }
+
+            UIWindow ventana = BuscarVentanaRegistrada(idDeseado);
+            if (ventana == null)
+            {
+                FoundUIScene();
+                ventana = BuscarVentanaRegistrada(idDeseado);
+            }
+            if (ventana != null && !ventana.IsOpen)
+                ventana.Show();
+            else if (ventana == null && _hudNoEncontradoAdvertido != idDeseado)
+            {
+                Debug.LogError($"No se encontró la ventana de gameplay '{idDeseado}' en la escena.");
+                _hudNoEncontradoAdvertido = idDeseado;
+            }
+        }
+
+        private UIWindow BuscarVentanaRegistrada(string id)
+        {
+            foreach (UIWindow window in windows)
+                if (window != null && window.WindowId == id)
+                    return window;
+            return null;
+        }
+
+        private static PlayerRoot BuscarJugadorLocal()
+        {
+            var localClient = NetworkManager.Singleton?.LocalClient;
+            if (localClient == null)
+                return null;
+
+            foreach (var ownedObject in localClient.OwnedObjects)
+            {
+                if (ownedObject != null && ownedObject.TryGetComponent(out PlayerRoot player))
+                    return player;
+            }
+            return null;
+        }
 
         protected override void Awake()
         {
@@ -45,8 +158,7 @@ namespace TDOM.Unity.UI
 
         public void ShowWindow(string windowId)
         {
-            if (windows == null || windows.Count == 0)
-                FoundUIScene();
+            FoundUIScene();
 
             UIWindow windowToShow = null;
             foreach (UIWindow window in windows)
@@ -69,8 +181,7 @@ namespace TDOM.Unity.UI
 
         public void CloseWindow(string windowId)
         {
-            if (windows == null || windows.Count == 0)
-                FoundUIScene();
+            FoundUIScene();
 
             UIWindow windowToClose = null;
             foreach (UIWindow window in windows)
@@ -132,8 +243,7 @@ namespace TDOM.Unity.UI
 
         public UIWindow GetWindow(string windowId)
         {
-            if (windows == null || windows.Count == 0)
-                FoundUIScene();
+            FoundUIScene();
 
             foreach (UIWindow window in windows)
             {
@@ -153,7 +263,7 @@ namespace TDOM.Unity.UI
         public const string ChSelectionUI = "chselectionui";
         public const string KeyboardUI = "keyboardui";
         public const string MainMenuUI = "mainmenuui";
-        public const string GamePlayUI = "gameplayui";
+        public const string AylaGameplayUI = "aylagameplayui";
         public const string CreditsUI = "creditsui";
         public const string OptionsUI = "optionsui";
         public const string VolumeUI = "volumeui";
@@ -166,5 +276,6 @@ namespace TDOM.Unity.UI
         public const string DerrotaUI = "derrotaui";
         public const string CancelHostUI = "cancelhostui";
         public const string ControllerReconnectUI = "controllerreconnectui";
+        public const string ZendreGameplayUI = "zendregameplayui";
     }
 }

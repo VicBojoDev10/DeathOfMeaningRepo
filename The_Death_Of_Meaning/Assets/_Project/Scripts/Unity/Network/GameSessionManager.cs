@@ -77,7 +77,7 @@ namespace TDOM.Unity
 
             void MostrarVictoria()
             {
-                ui?.CloseWindow(WindowsIds.GamePlayUI);
+                ui?.CloseGameplayWindow();
                 ui?.ShowWindow("victoriaui");
                 (ui?.GetWindow("victoriaui") as VictoriaUI)?.MostrarTiempoFinal(tiempoFinal);
             }
@@ -349,7 +349,7 @@ namespace TDOM.Unity
                     (UiManager.Instance?.GetWindow(WindowsIds.PausaUI) as PausaUI)?.SetPopupActivo(
                         false
                     );
-                    UiManager.Instance?.ShowWindow(WindowsIds.GamePlayUI);
+                    UiManager.Instance?.ShowGameplayWindow();
                     GlobalGameManager.Instance?.ReproducirMusicaTutorial();
                 },
                 () =>
@@ -504,7 +504,7 @@ namespace TDOM.Unity
                 UiManager.Instance.CloseWindow(WindowsIds.ConnectionMenuUI);
                 UiManager.Instance.CloseWindow(WindowsIds.CancelHostUI);
                 UiManager.Instance.CloseWindow(WindowsIds.ChSelectionUI);
-                UiManager.Instance.ShowWindow(WindowsIds.GamePlayUI);
+                UiManager.Instance.ShowGameplayWindow();
             }
         }
 
@@ -528,7 +528,7 @@ namespace TDOM.Unity
 
             void MostrarDerrota()
             {
-                ui?.CloseWindow(WindowsIds.GamePlayUI);
+                ui?.CloseGameplayWindow();
                 ui?.ShowWindow(WindowsIds.DerrotaUI);
                 (ui?.GetWindow(WindowsIds.DerrotaUI) as DerrotaUI)?.MostrarFaseJefe(fase);
             }
@@ -582,7 +582,7 @@ namespace TDOM.Unity
 
             void MostrarVictoria()
             {
-                ui?.CloseWindow(WindowsIds.GamePlayUI);
+                ui?.CloseGameplayWindow();
                 ui?.ShowWindow("victoriaui");
             }
 
