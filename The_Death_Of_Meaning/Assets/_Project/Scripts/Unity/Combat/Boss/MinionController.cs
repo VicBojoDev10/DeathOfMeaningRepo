@@ -61,6 +61,7 @@ namespace TDOM.Unity
 
         // Solo servidor.
         private MinionBrain _brain;
+        private EmpujeMinion _empuje;
         private int _golpeDelCombo;
         private float _siguienteGolpePermitido;
         private readonly HashSet<ulong> _golpeados = new HashSet<ulong>();
@@ -73,6 +74,7 @@ namespace TDOM.Unity
             _zona = GetComponent<HitZone>();
             _animaciones = GetComponent<MinionAnimationController>();
             _colliders = GetComponentsInChildren<Collider>();
+            _empuje = new EmpujeMinion(_agente, GetComponent<Collider>());
 
             if (_renderer == null)
                 _renderer = GetComponentInChildren<Renderer>();
@@ -146,6 +148,9 @@ namespace TDOM.Unity
                     return;
             }
 
+            if (_empuje.Tick(Time.deltaTime))
+                return;
+
             bool hayObjetivo = TryObjetivoMasCercano(out PlayerRoot objetivo, out float distancia);
             float rangoEfectivo = _perfil.rangoAtaque;
             if (hayObjetivo)
@@ -213,6 +218,32 @@ namespace TDOM.Unity
             }
 
             _animaciones?.EstablecerPausa(pausado);
+        }
+
+        public bool EmpujarEnServidor(Vector3 direccion, DashProfile perfil)
+        {
+            if (
+                !IsServer
+                || !IsSpawned
+                || _muerto
+                || _brain == null
+                || !_empuje.TryIniciar(direccion, perfil)
+            )
+                return false;
+
+            _brain.InterrumpirAtaque();
+            InterrumpirAvisoRpc();
+            return true;
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void InterrumpirAvisoRpc()
+        {
+            if (_aviso != null)
+                StopCoroutine(_aviso);
+            _aviso = null;
+            PintarCuerpo(_colorBase);
+            _visual.localRotation = _rotacionVisual;
         }
 
         // Distancia en XZ al jugador vivo más cercano; los abatidos o muertos no son objetivo.
