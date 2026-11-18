@@ -18,6 +18,7 @@ namespace TDOM.Gameplay.Combat
         private readonly float _cooldownEntreAtaques;
         private readonly float _duracionTelegraph;
 
+        private RitmoAtaque _ritmo = RitmoAtaque.Normal;
         private float _tiempo;
         private bool _enTelegraph;
         private BossAttackKind _ataqueEnCurso;
@@ -53,7 +54,12 @@ namespace TDOM.Gameplay.Combat
         public float TiempoRestante => Math.Max(0f, DuracionEtapaActual - _tiempo);
 
         private float DuracionEtapaActual =>
-            _enTelegraph ? _duracionTelegraph : _cooldownEntreAtaques;
+            _enTelegraph
+                ? _ritmo.Duracion(_duracionTelegraph)
+                : _ritmo.Espera(_cooldownEntreAtaques);
+
+        public void AplicarRitmo(RitmoAtaque ritmo) =>
+            _ritmo = ritmo ?? throw new ArgumentNullException(nameof(ritmo));
 
         public EventoAtaque Tick(float dt, out BossAttackKind ataque)
         {
