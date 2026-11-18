@@ -234,8 +234,8 @@ namespace TDOM.Unity.Flow
 
         private void AlRevelarJefe() => GameplayLocal()?.SetHudVisible(false, true);
 
-        private GameplayUI GameplayLocal() =>
-            UiManager.Instance?.GetWindow(WindowsIds.GamePlayUI) as GameplayUI;
+        private IGameplayHud GameplayLocal() =>
+            UiManager.Instance?.GetGameplayWindow() as IGameplayHud;
 
         private PlayerRoot JugadorLocal()
         {
