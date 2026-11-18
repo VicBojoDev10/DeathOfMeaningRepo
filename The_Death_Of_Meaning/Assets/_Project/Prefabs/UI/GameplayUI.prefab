@@ -1632,13 +1632,16 @@ MonoBehaviour:
   dashandembestidaslider: {fileID: 7365636799887181134}
   hookandgraplerslider: {fileID: 7185198039646742247}
   cooldownDisponible: {r: 1, g: 1, b: 1, a: 1}
-  cooldownEnUso: {r: 0.35, g: 0.35, b: 0.35, a: 1}
+  cooldownEnUso: {r: 0.8, g: 0.8, b: 0.8, a: 1}
   zendreIcon: {fileID: 189951151, guid: fb8c39037650b6745bb24b790f34ed9c, type: 3}
   aylaIcon: {fileID: -1404299826, guid: fb8c39037650b6745bb24b790f34ed9c, type: 3}
-  cooldownFondo: {r: 0, g: 0, b: 0, a: 0.45}
+  cooldownFondo: {r: 0, g: 0, b: 0, a: 0.3}
   buttonPlayerIcon: {fileID: 339040346172383890}
   mainPlayerHealthSlider: {fileID: 8662293722464013367}
   secondaryPlayerHealthSlider: {fileID: 8631475081338769789}
+  marcadorAbatidoPrefab: {fileID: 7386735994413304361, guid: 3a327afd05ae31b47af264c69600a570, type: 3}
+  temaUI: {fileID: 11400000, guid: c341d16d73242714998ef9918f6b7424, type: 2}
+  perfilMarcadorAbatido: {fileID: 11400000, guid: 7f4f57e9a03e4f0f8b17cc069fecde12, type: 2}
   _barraVidaJefe: {fileID: 8180577285823233776}
 --- !u!114 &8180577285823233776
 MonoBehaviour:

@@ -14,20 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.AudioManagerData
   audioData:
   - name: mainmenu
-    clip: {fileID: 8300000, guid: a78303900de031545bfe54fdf32f9c69, type: 3}
+    clip: {fileID: 8300000, guid: 8c134764b362dcd4e90760a78967f246, type: 3}
     loop: 1
     volume: 0.635
     pitch: 1
     audioType: 0
   - name: tutorial
-    clip: {fileID: 8300000, guid: 457771d0864a67842a71c2fb0a3fdc1a, type: 3}
+    clip: {fileID: 8300000, guid: 817238d78d73b55469aa0dc5d41e16e0, type: 3}
     loop: 1
-    volume: 0.55
+    volume: 0.489
     pitch: 1
     audioType: 0
   - name: battle
-    clip: {fileID: 8300000, guid: 3743191223aa7884aa5f127d9f41d978, type: 3}
+    clip: {fileID: 8300000, guid: 54eee2151379dec448e7c9bbbc0fcb49, type: 3}
     loop: 1
-    volume: 0.55
+    volume: 0.484
     pitch: 1
     audioType: 0

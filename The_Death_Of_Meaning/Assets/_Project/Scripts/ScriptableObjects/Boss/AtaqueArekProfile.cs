@@ -13,6 +13,8 @@ namespace TDOM.Data
 
         public abstract float Dano { get; }
 
+        public abstract float Aviso { get; }
+
         public virtual bool EsInstaKill => false;
     }
 }

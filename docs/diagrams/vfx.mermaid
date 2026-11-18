@@ -103,6 +103,10 @@ classDiagram
     VfxExplosion --> VfxExplosionProfile
     VfxDisparo --> VfxDisparoProfile
     VfxCarga --> VfxCargaProfile
+    class VfxCargaSeguida {
+        +Seguir(referencia, puntos)
+    }
+    VfxCarga <|-- VfxCargaSeguida
 
     VfxPool --> VfxCatalogo : crea las copias al inicio
     VfxPool o-- VfxBase : instancias
@@ -168,6 +172,11 @@ classDiagram
         -LanzarVfxTornadoGiro()
         -LanzarArcosGiro()
         -MostrarCarga(activa)
+        -ActivarVfxCarga(efecto, activa)
+        -SeguirConVfxCarga(efecto, puntos)
+        -ActualizarVfxCargaDisparo()
+        -ActivarVfxCargaMelee(activa)
+        -LanzarVfxArcoCargado(cargadoSinLigeros, espejo)
     }
 
     EstelaEspada ..> MuestrasEstela : guarda la hoja cada frame
@@ -176,6 +185,8 @@ classDiagram
     AylaEspada ..|> ICargaVfx
     PlayerCombat --> ICargaVfx : silueta de carga (dueño + CargaRpc)
     PlayerCombat --> VfxRed : silueta del cargado por etapa
+    PlayerCombat --> VfxRed : carga melee y de disparo
+    PlayerCombat ..> VfxCargaSeguida : asigna el objetivo a seguir
     AylaEspada --> CargaEspadaProfile : colores y emisión
     AylaEspada ..> EtapasCarga : etapa por progreso
     AylaEspada --> EstelaEspada : Animation Events
@@ -280,6 +291,23 @@ classDiagram
     VfxEmbestidaLanzador --> VfxRed : efecto, detencion e impacto
     PlayerRoot --> VfxEmbestidaLanzador : inicio y estado de la embestida de Zendre
 
+    class VfxDisparoSostenido {
+        <<MonoBehaviour>>
+        +Seguir(origen)
+        +Apuntar(destino)
+        -ActualizarCadena()
+    }
+    class AnchorLauncher {
+        <<NetworkBehaviour>>
+        -PrepararVfxAncla()
+        -LanzarVfxAncla(direccion)
+        -DetenerVfxAncla()
+    }
+
+    VfxDisparo <|-- VfxDisparoSostenido
+    AnchorLauncher --> VfxRed : salida del ancla al lanzar y detencion al terminar el gancho (dueño)
+    AnchorLauncher ..> VfxDisparoSostenido : sigue el origen y apunta al ancla (cada maquina)
+
     class CurvaDestelloGolpe {
         <<POCO>>
         +Activo bool
@@ -296,3 +324,12 @@ classDiagram
     DestelloGolpe ..> CurvaDestelloGolpe : intensidad por tiempo
     PlayerRoot --> DestelloGolpe : Vida baja (cada cliente)
     PlayerRoot ..> CurvaDestelloGolpe : EsGolpe
+
+    class Proyectil {
+        <<NetworkBehaviour>>
+        -_vfxImpactoJefe : VfxBase
+        -LanzarVfxImpacto(efecto, hit)
+        -RedDelAtacante() VfxRed
+    }
+
+    Proyectil --> VfxRed : impacto en el jefe (servidor)

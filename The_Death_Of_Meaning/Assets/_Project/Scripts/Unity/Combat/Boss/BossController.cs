@@ -46,7 +46,7 @@ namespace TDOM.Unity.Combat
         public static void DejarDeObservarJefe(Action<BossController> alAparecer) =>
             Spawned -= alAparecer;
 
-        private static bool TryEncontrarSpawneado(NetworkManager red, out BossController jefe)
+        internal static bool TryEncontrarSpawneado(NetworkManager red, out BossController jefe)
         {
             jefe = null;
             if (red == null || red.SpawnManager == null)
@@ -98,7 +98,12 @@ namespace TDOM.Unity.Combat
         /// <summary>Perfil de la fase actual (null si no está configurado). Lo usa MinionSpawner.</summary>
         public BossPhaseProfile PerfilFaseActual => PerfilDeFase(Fase.Value);
 
-        public bool HayOjoAbierto => _ojos != null && _ojos.HayOjoAbierto;
+        public RitmoAtaque RitmoFaseActual => RitmoDe(PerfilFaseActual);
+
+        private static RitmoAtaque RitmoDe(BossPhaseProfile perfil) =>
+            perfil != null
+                ? new RitmoAtaque(perfil.MultiplicadorFrecuencia, perfil.MultiplicadorVelocidad)
+                : RitmoAtaque.Normal;
 
         /// <summary>
         /// Solo servidor: false mientras hay un ataque en curso (aviso incluido) y durante la
@@ -121,6 +126,12 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private AtaquesArek _ataques;
         private BossAttackScheduler _scheduler;
+
+        [SerializeField]
+        private ReaccionRushProfile _perfilReaccionRush;
+        private RegistroDanioVentana _registroRush;
+        private float _cooldownRush;
+        private float _tiempoReaccionRush;
         private int _indiceEnFase;
 
         [Header("Visual por fase")]
@@ -129,6 +140,38 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private ParticleSystem _efectoTransicion;
+
+        [SerializeField]
+        private BossTransitionVisual _transicionVisual;
+
+        [SerializeField]
+        private BossPhaseVisual[] _transicionesAdicionales = System.Array.Empty<BossPhaseVisual>();
+
+        private BossPhaseVisual TransicionVisualActual => VisualDeFase(Fase.Value);
+
+        private BossPhaseVisual VisualDeFase(int fase)
+        {
+            foreach (var visual in _transicionesAdicionales)
+                if (visual != null && visual.Corresponde(fase))
+                    return visual;
+            return _transicionVisual;
+        }
+
+        private void OcultarTransiciones()
+        {
+            _transicionVisual?.Ocultar();
+            foreach (var visual in _transicionesAdicionales)
+                if (visual != null)
+                    visual.Ocultar();
+        }
+
+        private readonly NetworkVariable<double> _finTransicionVisual =
+            new NetworkVariable<double>();
+        private readonly NetworkVariable<float> _restanteVisualEnPausa = new NetworkVariable<float>(
+            ProgresoTransicionVisual.SinPausa
+        );
+        private bool _mostrandoTransicionVisual;
+        private float _progresoCinematica = ProgresoTransicionVisual.SinPausa;
 
         private static readonly int IdColorBase = Shader.PropertyToID("_BaseColor");
         private static readonly int IdColorEmision = Shader.PropertyToID("_EmissionColor");
@@ -180,7 +223,7 @@ namespace TDOM.Unity.Combat
             if (_ojos == null)
                 _ojos = GetComponent<OjosArek>();
 
-            _ojosListos = _ojos != null && _ojos.Preparar(_hitZones, _maquina, _fases.Length);
+            _ojosListos = _ojos != null && _ojos.Preparar(_hitZones, _maquina, _fases);
             if (!_ojosListos)
                 return;
 
@@ -189,7 +232,9 @@ namespace TDOM.Unity.Combat
                 _cooldownEntreAtaques,
                 _duracionTelegraph
             );
+            _scheduler.AplicarRitmo(RitmoFaseActual);
             _indiceEnFase = 0;
+            _registroRush = new RegistroDanioVentana();
 
             // TW-96
             if (_ataques == null)
@@ -203,12 +248,15 @@ namespace TDOM.Unity.Combat
                 if (hz == null)
                     continue;
 
-                hz.DanioRegistrado += OnDanioZona;
+                hz.ZonaDanada += OnDanioZona;
             }
         }
 
         public override void OnNetworkDespawn()
         {
+            OcultarTransiciones();
+            _mostrandoTransicionVisual = false;
+            _progresoCinematica = ProgresoTransicionVisual.SinPausa;
             Despawned?.Invoke(this);
             Fase.OnValueChanged -= HandleFaseChanged;
 
@@ -227,18 +275,19 @@ namespace TDOM.Unity.Combat
                 if (hz == null)
                     continue;
 
-                hz.DanioRegistrado -= OnDanioZona;
+                hz.ZonaDanada -= OnDanioZona;
             }
         }
 
         private void HandleFaseChanged(int anterior, int actual)
         {
+            _progresoCinematica = ProgresoTransicionVisual.SinPausa;
             Debug.Log($"[BossController] Fase cambió de {anterior} a {actual}");
             AplicarColorFase(actual);
             OnFaseChanged?.Invoke(anterior, actual);
         }
 
-        private void OnDanioZona(float cantidad)
+        private void OnDanioZona(HitZone zona, float cantidad)
         {
             if (!IsServer)
                 return;
@@ -252,11 +301,34 @@ namespace TDOM.Unity.Combat
             if (Pausado)
                 return;
 
-            float porcentajeDanio = cantidad / _vidaMaxima;
+            // El ojo se queda con su parte del golpe: lo que baja la vida del jefe es lo que el ojo
+            // realmente absorbió (un ojo cerrado o con escudo no absorbe nada), no el daño bruto.
+            bool cambioDeFase = _ojos.AplicarDanio(zona, cantidad, out float fraccionVida);
+            if (fraccionVida <= 0f)
+                return;
 
-            Debug.Log($"[BossController] Daño recibido: {cantidad:F1} ({porcentajeDanio:P2})");
+            float danioAlJefe = fraccionVida * _vidaMaxima;
+            Debug.Log(
+                $"[BossController] Daño en el ojo {zona.ZoneIndex:D2}: {cantidad:F1} -> {danioAlJefe:F1} a la vida del jefe ({fraccionVida:P2})"
+            );
 
-            if (!_ojos.AplicarDanio(porcentajeDanio))
+            if (
+                _perfilReaccionRush != null
+                && _registroRush != null
+                && _cooldownRush <= 0f
+                && _registroRush.Registrar(
+                    danioAlJefe,
+                    Time.time,
+                    _perfilReaccionRush.ventanaSegundos,
+                    _vidaMaxima,
+                    _perfilReaccionRush.porcentajeVida
+                )
+            )
+            {
+                IniciarReaccionRush();
+            }
+
+            if (!cambioDeFase)
                 return;
 
             Debug.Log($"[BossController] Cambio de fase detectado: {_maquina.FaseActual}");
@@ -268,6 +340,14 @@ namespace TDOM.Unity.Combat
             int faseAnterior = Fase.Value;
             CambiarFase(nuevaFase);
             FaseIniciadaEnServidor?.Invoke(faseAnterior, nuevaFase);
+            if (TransicionVisualActual != null && TransicionVisualActual.Corresponde(nuevaFase))
+            {
+                _finTransicionVisual.Value =
+                    NetworkManager.ServerTime.Time + _maquina.TiempoTransicionRestante;
+                _restanteVisualEnPausa.Value = Pausado
+                    ? _maquina.TiempoTransicionRestante
+                    : ProgresoTransicionVisual.SinPausa;
+            }
             _indiceEnFase = 0;
             RestaurarEnergiaJugadores();
             CambioDeFaseRpc(nuevaFase);
@@ -294,8 +374,14 @@ namespace TDOM.Unity.Combat
 
         private void AlTerminarTransicion()
         {
+            _finTransicionVisual.Value = 0d;
             _scheduler?.ReiniciarPorCambioDeFase();
+            _scheduler?.AplicarRitmo(RitmoFaseActual);
             _indiceEnFase = 0;
+
+            // Fase nueva: los ojos vuelven a abrirse todos con la vida llena.
+            if (_ojosListos && _maquina != null && !_maquina.EstaMuerto)
+                _ojos.ReabrirOjos();
         }
 
         private void RestaurarEnergiaJugadores()
@@ -315,14 +401,27 @@ namespace TDOM.Unity.Combat
 
         private void Update()
         {
+            ActualizarPausaVisual();
             if (!IsServer || _scheduler == null || Pausado)
                 return;
+
+            if (_cooldownRush > 0f)
+                _cooldownRush = Mathf.Max(0f, _cooldownRush - Time.deltaTime);
+            if (_tiempoReaccionRush > 0f)
+            {
+                _tiempoReaccionRush = Mathf.Max(0f, _tiempoReaccionRush - Time.deltaTime);
+                ServerMovementTick?.Invoke(
+                    Time.deltaTime,
+                    Fase.Value,
+                    false,
+                    _scheduler.AtaqueActual
+                );
+                return;
+            }
 
             _maquina.Tick(Time.deltaTime);
             if (_maquina.EstaMuerto)
                 return;
-
-            _ojos.Tick(Time.deltaTime);
 
             if (Pausado)
                 return;
@@ -349,6 +448,67 @@ namespace TDOM.Unity.Combat
             }
         }
 
+        private void IniciarReaccionRush()
+        {
+            _tiempoReaccionRush = Mathf.Max(0.1f, _perfilReaccionRush.duracionReaccion);
+            _cooldownRush = Mathf.Max(0f, _perfilReaccionRush.cooldown);
+            _scheduler.Interrumpir(0f);
+            ReaccionRushRpc();
+
+            if (_ataques == null)
+                return;
+            _ataques.ListarJugadores(_jugadores);
+            float radio = Mathf.Max(0f, _perfilReaccionRush.radio);
+            foreach (var jugador in _jugadores)
+            {
+                Vector3 diferencia = jugador.transform.position - transform.position;
+                diferencia.y = 0f;
+                if (diferencia.magnitude > radio)
+                    continue;
+
+                if (_perfilReaccionRush.danio > 0f)
+                    jugador.AplicarDanioEnServidor(_perfilReaccionRush.danio);
+                if (diferencia.sqrMagnitude < 0.0001f)
+                    diferencia = transform.forward;
+                jugador.EmpujarDesdeServidor(
+                    diferencia,
+                    _perfilReaccionRush.distanciaEmpuje,
+                    _perfilReaccionRush.alturaEmpuje,
+                    _perfilReaccionRush.duracionEmpuje
+                );
+            }
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void ReaccionRushRpc()
+        {
+            var animator = GetComponentInChildren<Animator>();
+            if (animator == null)
+                return;
+            string trigger =
+                _perfilReaccionRush != null ? _perfilReaccionRush.triggerAnimator : "Mano";
+            if (string.IsNullOrWhiteSpace(trigger))
+                trigger = "Mano";
+
+            int triggerHash = Animator.StringToHash(trigger);
+            foreach (var parametro in animator.parameters)
+            {
+                if (
+                    parametro.nameHash != triggerHash
+                    || parametro.type != AnimatorControllerParameterType.Trigger
+                )
+                    continue;
+
+                animator.SetTrigger(triggerHash);
+                return;
+            }
+
+            Debug.LogWarning(
+                $"[BossController] El Animator del jefe no tiene el trigger '{trigger}'.",
+                animator
+            );
+        }
+
         [Rpc(SendTo.ClientsAndHost)]
         public void TelegraphAtaqueRpc(BossAttackKind ataque)
         {
@@ -364,6 +524,19 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.ClientsAndHost)]
         private void CambioDeFaseRpc(int fase)
         {
+            var visual = VisualDeFase(fase);
+            if (visual != null && visual.Corresponde(fase))
+            {
+                if (_destello != null)
+                {
+                    StopCoroutine(_destello);
+                    _destello = null;
+                    FijarEmision(Color.black);
+                }
+                JugadorLocal()?.SacudidaCambioDeFase();
+                return;
+            }
+
             if (_efectoTransicion != null)
                 _efectoTransicion.Play();
 
@@ -385,6 +558,78 @@ namespace TDOM.Unity.Combat
 
             Debug.Log($"[BossController][SERVER] Cambiando fase a: {nuevaFase}");
             Fase.Value = nuevaFase;
+        }
+
+        private void ActualizarPausaVisual()
+        {
+            if (!IsServer || _finTransicionVisual.Value <= 0d || _maquina == null)
+                return;
+
+            if (Pausado && _restanteVisualEnPausa.Value < 0f)
+                _restanteVisualEnPausa.Value = _maquina.TiempoTransicionRestante;
+            else if (!Pausado && _restanteVisualEnPausa.Value >= 0f)
+            {
+                _finTransicionVisual.Value =
+                    NetworkManager.ServerTime.Time + _restanteVisualEnPausa.Value;
+                _restanteVisualEnPausa.Value = ProgresoTransicionVisual.SinPausa;
+            }
+        }
+
+        private void LateUpdate()
+        {
+            if (!IsSpawned || TransicionVisualActual == null)
+                return;
+
+            OcultarTransiciones();
+            TransicionVisualActual.TiempoSincronizado = NetworkManager.ServerTime.Time;
+            var perfil = PerfilDeFase(Fase.Value);
+            if (
+                !TransicionVisualActual.Corresponde(Fase.Value)
+                || _progresoCinematica >= 1f
+                || (_finTransicionVisual.Value <= 0d && _progresoCinematica < 0f)
+                || perfil == null
+            )
+            {
+                TransicionVisualActual.Ocultar();
+                if (_mostrandoTransicionVisual)
+                    AplicarColorFase(Fase.Value);
+                _mostrandoTransicionVisual = false;
+                if (Vida.Value > 0f && TransicionVisualActual.Corresponde(Fase.Value))
+                    TransicionVisualActual.MostrarPersistente();
+                return;
+            }
+
+            float progreso =
+                _progresoCinematica >= 0f
+                    ? _progresoCinematica
+                    : ProgresoTransicionVisual.Calcular(
+                        _finTransicionVisual.Value,
+                        NetworkManager.ServerTime.Time,
+                        _restanteVisualEnPausa.Value,
+                        perfil.DuracionTransicion
+                    );
+            var anterior = PerfilDeFase(Fase.Value - 1);
+            Color color = Color.Lerp(
+                anterior != null ? anterior.ColorFase : perfil.ColorFase,
+                perfil.ColorFase,
+                TransicionVisualActual.MezclaColor(progreso)
+            );
+            foreach (var material in _materialesCuerpo)
+                material.SetColor(IdColorBase, color);
+            TransicionVisualActual.Mostrar(progreso, perfil.DuracionTransicion);
+            _mostrandoTransicionVisual = true;
+        }
+
+        public void MostrarTransicionCinematica(float progreso) =>
+            _progresoCinematica = Mathf.Clamp01(progreso);
+
+        public void TerminarTransicionCinematica()
+        {
+            _progresoCinematica = 1f;
+            OcultarTransiciones();
+            AplicarColorFase(Fase.Value);
+            if (IsServer && _maquina != null)
+                _maquina.Tick(_maquina.TiempoTransicionRestante);
         }
 
         public void RegistrarDanioEnZona(int index, float cantidad)
@@ -584,15 +829,17 @@ namespace TDOM.Unity.Combat
 
                     if (IsServer)
                     {
-                        if (GUILayout.Button("Brillar", GUILayout.Width(55)))
-                            _ojos?.BrillarOjoParaDebug(i);
-
                         if (GUILayout.Button("Abrir", GUILayout.Width(55)))
                             _ojos?.AbrirOjoParaDebug(i);
 
                         if (GUILayout.Button("+10", GUILayout.Width(50)))
                         {
                             hz.RegistrarDanio(10f);
+                        }
+
+                        if (GUILayout.Button("Matar", GUILayout.Width(55)))
+                        {
+                            OnDanioZona(hz, float.MaxValue);
                         }
 
                         if (GUILayout.Button("Golpe", GUILayout.Width(60)))

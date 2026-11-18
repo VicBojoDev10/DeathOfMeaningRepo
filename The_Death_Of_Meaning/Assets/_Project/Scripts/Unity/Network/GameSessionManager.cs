@@ -33,7 +33,6 @@ namespace TDOM.Unity
 
         public static event Action PartidaIniciada;
         public event Action OnJugadorDesconectado;
-        public event Action OnPartidaIniciada;
 
         public static event Action Spawned;
         public static event Action Despawned;
@@ -471,6 +470,7 @@ namespace TDOM.Unity
             }
 
             spawner?.LimpiarTodos();
+            SniperMinionSpawner.LimpiarTodos();
         }
 
         public void PrepararSalidaAlMenu() => _cerrandoSesionPorSalida = true;
@@ -498,7 +498,6 @@ namespace TDOM.Unity
         private void IniciarPartidaClientRpc()
         {
             PartidaIniciada?.Invoke();
-            OnPartidaIniciada?.Invoke();
 
             if (UiManager.Instance != null)
             {
