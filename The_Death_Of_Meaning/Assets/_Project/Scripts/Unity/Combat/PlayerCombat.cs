@@ -506,6 +506,7 @@ namespace TDOM.Unity.Combat
             if (_root == null || _root.Energia.Value < costo)
             {
                 Debug.Log("[Energia] sin energía para el ataque");
+                _root?.NotificarFaltaEnergia();
                 return false;
             }
             ConsumirEnergiaRpc(costo);

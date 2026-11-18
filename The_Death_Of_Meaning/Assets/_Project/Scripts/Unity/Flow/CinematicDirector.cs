@@ -5,6 +5,7 @@ using TDOM.Gameplay.Core;
 using TDOM.Unity;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
+using TDOM.Unity.UI;
 using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
@@ -53,7 +54,7 @@ namespace TDOM.Unity.Flow
 
         [Header("HUD")]
         [SerializeField]
-        private GameplayUI _gameplayUI;
+        private UIWindow _gameplayUI;
 
         [Header("Jefe")]
         [SerializeField]
@@ -466,8 +467,11 @@ namespace TDOM.Unity.Flow
         {
             JugadorLocal()?.SetControlCinematica(!activo);
 
-            if (_gameplayUI != null)
-                _gameplayUI.SetHudVisible(activo);
+            var hud = UiManager.Instance?.GetGameplayWindow() as IGameplayHud;
+            if (hud != null)
+                hud.SetHudVisible(activo);
+            else if (_gameplayUI is IGameplayHud fallbackHud)
+                fallbackHud.SetHudVisible(activo);
         }
 
         private PlayerRoot JugadorLocal()
