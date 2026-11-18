@@ -10,21 +10,15 @@ using UnityEngine;
 
 namespace TDOM.Unity
 {
-    /// <summary>
-    /// Ataque Rayo (Especial) de AREK en greybox. El servidor elige un patrón de líneas en
-    /// abanico frente al jefe, todos ven franjas de aviso parpadeantes en el piso y después los
-    /// rayos (LineRenderer) desde la boca. El servidor detecta a los jugadores dentro de cada rayo.
-    /// No resta vida: solo detecta y reporta (04. Daño en WIP).
-    /// </summary>
     public class AtaqueRayo : AtaqueArekBase
     {
         [Header("Origen")]
         [SerializeField]
-        private Transform _boca; // si es null: centro del jefe + alturaBocaPorDefecto del perfil
+        private Transform _boca;
 
         [Header("Visuales")]
         [SerializeField]
-        private Material _materialAviso; // AvisoAtaque.mat
+        private Material _materialAviso;
 
         [SerializeField]
         private AvisoParpadeo _avisoParpadeo;
@@ -39,23 +33,20 @@ namespace TDOM.Unity
             Retirada,
             Terminado,
         }
-
-        // Tuning: lo lee de AtaquesArek (BossArek.prefab) al spawnear.
         private AtaqueRayoProfile _perfil;
 
         private FaseRayo _fase = FaseRayo.Aviso;
         private float _tiempoEnFase;
         private readonly HashSet<ulong> _golpeados = new HashSet<ulong>();
 
-        // Solo servidor: geometría del patrón para la detección.
         private Vector3 _origenServidor;
         private Vector3[] _finalesServidor;
+        private Vector3[] _iniciosServidor;
+        private double _inicioRecorridoServidor;
+        private float _duracionRecorrido;
 
-        // Todos los clientes: visuales creados a partir de AvisoRpc.
         private readonly List<GameObject> _franjas = new List<GameObject>();
         private readonly List<LineRenderer> _rayos = new List<LineRenderer>();
-
-        /// <summary>Lo llama AtaquesArek antes de Spawn para indicar la boca del jefe.</summary>
         public void AsignarBoca(Transform boca)
         {
             _boca = boca;
@@ -84,6 +75,9 @@ namespace TDOM.Unity
                     ? _boca.position
                     : transform.position + Vector3.up * _perfil.alturaBocaPorDefecto;
             _finalesServidor = CalcularFinales(_origenServidor);
+            _iniciosServidor = new Vector3[_finalesServidor.Length];
+            for (int i = 0; i < _finalesServidor.Length; i++)
+                _iniciosServidor[i] = new Vector3(_origenServidor.x, _finalesServidor[i].y, _origenServidor.z);
             _fase = FaseRayo.Aviso;
             _tiempoEnFase = 0f;
             _golpeados.Clear();
@@ -91,8 +85,6 @@ namespace TDOM.Unity
             AvisoRpc(_origenServidor, _finalesServidor);
         }
 
-        // Reparte _lineas direcciones en el abanico, con un desfase aleatorio común para que el
-        // patrón cambie entre lanzamientos sin cerrar los huecos entre franjas.
         private Vector3[] CalcularFinales(Vector3 origen)
         {
             Vector3 adelante = transform.forward;
@@ -105,8 +97,6 @@ namespace TDOM.Unity
             float paso = _perfil.aberturaGrados / cantidad;
             float desfase = Random.Range(-paso * 0.5f, paso * 0.5f);
 
-            // El abanico se centra en el objetivo, pero ningún rayo sale más allá del límite
-            // frontal: nunca hacia atrás de la boca.
             float limite = Mathf.Abs(_perfil.limiteFrontalGrados);
             float centro = Mathf.Clamp(AnguloHaciaObjetivo(adelante), -limite, limite);
 
@@ -124,7 +114,6 @@ namespace TDOM.Unity
             return finales;
         }
 
-        // Grados (en Y) del frente del jefe hacia el objetivo elegido; 0 si no hay objetivo.
         private float AnguloHaciaObjetivo(Vector3 adelante)
         {
             if (
@@ -141,8 +130,6 @@ namespace TDOM.Unity
 
             return Vector3.SignedAngle(adelante, hacia.normalized, Vector3.up);
         }
-
-        // Altura del piso: el punto más bajo que encuentra un rayo hacia abajo (ignora jefe y jugadores).
         private static float BuscarPiso(Vector3 punto, float alturaSiNoHayPiso)
         {
             var impactos = Physics.RaycastAll(
@@ -168,10 +155,16 @@ namespace TDOM.Unity
 
         private void Update()
         {
-            if (
-                PauseManager.PausadoGlobal
-                || (PauseManager.ResultadoGlobal != ResultadoPartida.EnCurso)
-            )
+            if (PauseManager.ResultadoGlobal != ResultadoPartida.EnCurso)
+            {
+                if (IsServer && _fase == FaseRayo.Activo)
+                {
+                    ApagarRpc();
+                    CambiarFase(FaseRayo.Terminado);
+                }
+                return;
+            }
+            if (PauseManager.PausadoGlobal)
                 return;
             float dt = DeltaAtaque;
 
@@ -186,13 +179,15 @@ namespace TDOM.Unity
                     if (_tiempoEnFase >= _perfil.aviso)
                     {
                         CambiarFase(FaseRayo.Activo);
-                        RayoRpc();
+                        _inicioRecorridoServidor = NetworkManager.ServerTime.Time;
+                        _duracionRecorrido = _perfil.largo / (Mathf.Max(0.01f, _perfil.velocidadRecorrido) * MultiplicadorVelocidad);
+                        RayoRpc(_inicioRecorridoServidor, _duracionRecorrido);
                     }
                     break;
 
                 case FaseRayo.Activo:
                     DetectarImpactos();
-                    if (_tiempoEnFase >= _perfil.activo)
+                    if (NetworkManager.ServerTime.Time - _inicioRecorridoServidor >= _duracionRecorrido)
                     {
                         CambiarFase(FaseRayo.Retirada);
                         ApagarRpc();
@@ -221,11 +216,15 @@ namespace TDOM.Unity
                 return;
 
             float radio = _perfil.diametro * 0.5f;
-            foreach (var final in _finalesServidor)
+            float progresoActual = Mathf.Clamp01((float)((NetworkManager.ServerTime.Time - _inicioRecorridoServidor) / System.Math.Max(0.01, _duracionRecorrido)));
+            float progresoAnterior = Mathf.Clamp01((float)((NetworkManager.ServerTime.Time - Time.deltaTime - _inicioRecorridoServidor) / System.Math.Max(0.01, _duracionRecorrido)));
+            for (int i = 0; i < _finalesServidor.Length; i++)
             {
+                Vector3 anterior = Vector3.Lerp(_iniciosServidor[i], _finalesServidor[i], progresoAnterior);
+                Vector3 actual = Vector3.Lerp(_iniciosServidor[i], _finalesServidor[i], progresoActual);
                 Collider[] tocados = Physics.OverlapCapsule(
-                    _origenServidor,
-                    final,
+                    anterior,
+                    actual,
                     radio,
                     Physics.AllLayers,
                     QueryTriggerInteraction.Collide
@@ -263,9 +262,14 @@ namespace TDOM.Unity
         private void AvisoRpc(Vector3 origen, Vector3[] finales)
         {
             LimpiarVisuales();
+            _origenServidor = origen;
+            _finalesServidor = finales;
+            _iniciosServidor = new Vector3[finales.Length];
 
-            foreach (var final in finales)
+            for (int i = 0; i < finales.Length; i++)
             {
+                var final = finales[i];
+                _iniciosServidor[i] = new Vector3(origen.x, final.y, origen.z);
                 _franjas.Add(CrearFranja(origen, final));
                 _rayos.Add(CrearRayo(origen, final));
             }
@@ -286,23 +290,53 @@ namespace TDOM.Unity
         }
 
         [Rpc(SendTo.ClientsAndHost)]
-        private void RayoRpc()
+        private void RayoRpc(double inicioServidor, float duracion)
         {
-            foreach (var rayo in _rayos)
+            _fase = FaseRayo.Activo;
+            _inicioRecorridoServidor = inicioServidor;
+            _duracionRecorrido = duracion;
+            for (int i = 0; i < _rayos.Count; i++)
+            {
+                LineRenderer rayo = _rayos[i];
                 rayo.enabled = true;
+                Vector3 inicio = new Vector3(_origenServidor.x, _finalesServidor[i].y, _origenServidor.z);
+                rayo.SetPosition(0, inicio);
+                rayo.SetPosition(1, inicio);
+            }
         }
+
+        private void LateUpdate()
+        {
+            if (_fase != FaseRayo.Activo || _rayos.Count == 0 || _finalesServidor == null)
+                return;
+            float progreso = Mathf.Clamp01((float)((NetworkManager.ServerTime.Time - _inicioRecorridoServidor) / System.Math.Max(0.01, _duracionRecorrido)));
+            for (int i = 0; i < _rayos.Count; i++)
+            {
+                if (_rayos[i] == null) continue;
+                Vector3 inicio = new Vector3(_origenServidor.x, _finalesServidor[i].y, _origenServidor.z);
+                _rayos[i].SetPosition(0, inicio);
+                _rayos[i].SetPosition(1, Vector3.Lerp(inicio, _finalesServidor[i], progreso));
+            }
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            LimpiarVisuales();
+            base.OnNetworkDespawn();
+        }
+
+        private void OnDestroy() => LimpiarVisuales();
 
         [Rpc(SendTo.ClientsAndHost)]
         private void ApagarRpc()
         {
+            _fase = FaseRayo.Retirada;
             foreach (var rayo in _rayos)
                 rayo.enabled = false;
 
             foreach (var franja in _franjas)
                 franja.SetActive(false);
         }
-
-        // Franja de aviso en el piso, desde debajo de la boca hasta el final del rayo.
         private GameObject CrearFranja(Vector3 origen, Vector3 final)
         {
             Vector3 inicio = new Vector3(origen.x, final.y, origen.z);
@@ -326,8 +360,6 @@ namespace TDOM.Unity
 
             return franja;
         }
-
-        // Rayo con LineRenderer desde la boca hasta el piso; se enciende con RayoRpc.
         private LineRenderer CrearRayo(Vector3 origen, Vector3 final)
         {
             var objetoRayo = new GameObject("Rayo");
@@ -371,8 +403,6 @@ namespace TDOM.Unity
             _franjas.Clear();
             _rayos.Clear();
         }
-
-        // Mismo feedback que la Mano y el Tentáculo: impacto de cámara y flash de debug.
         [Rpc(SendTo.SpecifiedInParams)]
         private void JugadorGolpeadoRpc(RpcParams rpcParams = default)
         {

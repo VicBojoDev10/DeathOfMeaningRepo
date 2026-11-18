@@ -10,6 +10,10 @@ namespace TDOM.Data
         public float activo = 0.6f;
         public float retirada = 0.2f;
 
+        [Tooltip("Velocidad a la que el frente del rayo recorre la franja, en unidades por segundo.")]
+        [Min(0.01f)]
+        public float velocidadRecorrido = 83.3333f;
+
         [Header("Forma")]
         public float largo = 50f;
         public float diametro = 2f;
