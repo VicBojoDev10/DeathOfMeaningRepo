@@ -38,9 +38,6 @@ namespace TDOM.Unity
         private Image dashandembestidaslider;
 
         [SerializeField]
-        private Image hookandgraplerslider;
-
-        [SerializeField]
         private Color cooldownDisponible = Color.white;
 
         [SerializeField]
@@ -152,9 +149,7 @@ namespace TDOM.Unity
             base.Initialize();
 
             ConfigurarImagenCooldown(dashandembestidaslider);
-            ConfigurarImagenCooldown(hookandgraplerslider);
             CrearFondoCooldown(dashandembestidaslider);
-            CrearFondoCooldown(hookandgraplerslider);
 
             if (crosshairImage != null)
             {
@@ -641,7 +636,6 @@ namespace TDOM.Unity
 
             var cooldowns = _localPlayer.Cooldowns;
             ActualizarIconoCooldown(dashandembestidaslider, cooldowns.Dash);
-            ActualizarIconoCooldown(hookandgraplerslider, cooldowns.Ancla);
         }
 
         private void ActualizarIconoCooldown(Image imagen, float normalizado)

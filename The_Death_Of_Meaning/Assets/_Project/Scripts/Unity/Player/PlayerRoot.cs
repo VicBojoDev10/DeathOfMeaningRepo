@@ -29,13 +29,11 @@ namespace TDOM.Unity.Player
         {
             public float Dash { get; }
             public float Gancho { get; }
-            public float Ancla { get; }
 
-            public CooldownValues(float dash, float gancho, float ancla)
+            public CooldownValues(float dash, float gancho)
             {
                 Dash = dash;
                 Gancho = gancho;
-                Ancla = ancla;
             }
         }
 
@@ -324,8 +322,7 @@ namespace TDOM.Unity.Player
         public CooldownValues Cooldowns =>
             new CooldownValues(
                 _locomocion != null ? _locomocion.CooldownDashNormalizado : 0f,
-                _locomocion != null ? _locomocion.CooldownGanchoNormalizado : 0f,
-                _anchorLauncher != null ? _anchorLauncher.CooldownNormalizado : 0f
+                _locomocion != null ? _locomocion.CooldownGanchoNormalizado : 0f
             );
         public bool SpawnInicialAplicado => _initialSpawnApplied;
         public Transform CameraTransform => _camera != null ? _camera.CamaraTransform : null;
