@@ -299,7 +299,7 @@ namespace TDOM.Unity
         [Rpc(SendTo.ClientsAndHost)]
         private void RestablecerHudClientRpc()
         {
-            var gameplay = UiManager.Instance?.GetWindow(WindowsIds.GamePlayUI) as GameplayUI;
+            var gameplay = UiManager.Instance?.GetGameplayWindow() as IGameplayHud;
             gameplay?.SetHudVisible(true, false);
         }
 

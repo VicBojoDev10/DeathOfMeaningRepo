@@ -170,12 +170,31 @@ namespace TDOM.Unity.UI
         {
             if (_energiaJugador != null && _maxEnergy > 0f)
             {
-                _energiaJugador.SetValueWithoutNotify(Mathf.Clamp(currentEnergy, 0f, _maxEnergy));
+                float value = Mathf.Clamp(currentEnergy, 0f, _maxEnergy);
+                float normalized = value / _maxEnergy;
+                _energiaJugador.SetValueWithoutNotify(value);
+
+                RectTransform relleno = _energiaJugador.fillRect;
+                if (relleno != null)
+                {
+                    Vector2 anchorMin = relleno.anchorMin;
+                    anchorMin.x = 0f;
+                    anchorMin.y = 0f;
+                    relleno.anchorMin = anchorMin;
+
+                    Vector2 anchorMax = relleno.anchorMax;
+                    anchorMax.x = normalized;
+                    anchorMax.y = 1f;
+                    relleno.anchorMax = anchorMax;
+                }
             }
         }
 
         private void Update()
         {
+            if (_targetRoot != null)
+                UpdateFill(_targetRoot.Energia.Value);
+
             if (_barreraEstado != null)
             {
                 bool esZendre =
@@ -196,7 +215,16 @@ namespace TDOM.Unity.UI
 
             bool esperando = _targetRoot != null && _targetRoot.EsperaEnergiaRestante > 0f;
             Color color = _colorRellenoOriginal;
-            if (esperando)
+            bool sinEnergia =
+                _targetRoot != null
+                && (_targetRoot.FaltaEnergiaActiva || _targetRoot.Energia.Value <= 0.001f);
+            if (sinEnergia)
+            {
+                color = _colorSinEnergia;
+                color.a *=
+                    0.35f + 0.65f * Mathf.Abs(Mathf.Sin(Time.unscaledTime * _velocidadPulso));
+            }
+            else if (esperando)
                 color.a *= Mathf.FloorToInt(Time.unscaledTime * 4f) % 2 == 0 ? 0.2f : 1f;
             _rellenoImagen.color = color;
         }

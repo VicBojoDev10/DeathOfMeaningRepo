@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Data::TDOM.Data.EnergyProfile
   Max: 150
   RegenPerSecond: 10
+  RegenDelayAfterSpend: 0.75
   ChargedCost: 35
   DrainPerSecondDowned: 10
   ShotCost: 5

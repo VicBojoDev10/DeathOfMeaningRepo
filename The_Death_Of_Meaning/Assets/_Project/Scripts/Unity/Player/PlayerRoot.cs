@@ -29,13 +29,11 @@ namespace TDOM.Unity.Player
         {
             public float Dash { get; }
             public float Gancho { get; }
-            public float Ancla { get; }
 
-            public CooldownValues(float dash, float gancho, float ancla)
+            public CooldownValues(float dash, float gancho)
             {
                 Dash = dash;
                 Gancho = gancho;
-                Ancla = ancla;
             }
         }
 
@@ -162,6 +160,16 @@ namespace TDOM.Unity.Player
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server
         );
+        private float _sinEnergiaHasta;
+        public bool FaltaEnergiaActiva => Time.unscaledTime < _sinEnergiaHasta;
+
+        public void NotificarFaltaEnergia() => _sinEnergiaHasta = Time.unscaledTime + 0.65f;
+
+        public bool PuedePagarGancho =>
+            _anchorLauncher == null
+            || _anchorLauncher.Perfil == null
+            || _anchorLauncher.Perfil.StaminaCosto <= 0f
+            || Energia.Value > 0f;
         private EnergyPool _energyPool;
         public NetworkVariable<bool> BarreraActiva = new NetworkVariable<bool>(
             false,
@@ -317,8 +325,7 @@ namespace TDOM.Unity.Player
         public CooldownValues Cooldowns =>
             new CooldownValues(
                 _locomocion != null ? _locomocion.CooldownDashNormalizado : 0f,
-                _locomocion != null ? _locomocion.CooldownGanchoNormalizado : 0f,
-                _anchorLauncher != null ? _anchorLauncher.CooldownNormalizado : 0f
+                _locomocion != null ? _locomocion.CooldownGanchoNormalizado : 0f
             );
         public bool SpawnInicialAplicado => _initialSpawnApplied;
         public Transform CameraTransform => _camera != null ? _camera.CamaraTransform : null;
@@ -372,7 +379,8 @@ namespace TDOM.Unity.Player
                 _energyPool = new EnergyPool(
                     _definition.Energy.Max,
                     _definition.Energy.RegenPerSecond,
-                    _definition.Energy.DrainPerSecondDowned
+                    _definition.Energy.DrainPerSecondDowned,
+                    _definition.Energy.RegenDelayAfterSpend
                 );
                 Energia.Value = _energyPool.Current;
             }
@@ -841,10 +849,15 @@ namespace TDOM.Unity.Player
         [Rpc(SendTo.Server)]
         private void ConsumirEnergiaRpc(float cantidad) => ConsumirEnergiaEnServidor(cantidad);
 
-        public void ConsumirEnergiaEnServidor(float cantidad)
+        public void ConsumirEnergiaEnServidor(float cantidad) =>
+            TryConsumirEnergiaEnServidor(cantidad);
+
+        public bool TryConsumirEnergiaEnServidor(float cantidad)
         {
-            if (!IsServer || _energyPool == null)
-                return;
+            if (!IsServer || _energyPool == null || cantidad < 0f)
+                return false;
+            if (cantidad == 0f)
+                return true;
             if (_energyPool.TryConsume(cantidad))
             {
                 Energia.Value = _energyPool.Current;
@@ -853,7 +866,35 @@ namespace TDOM.Unity.Player
                     BarreraBloqueada.Value = true;
                     BarreraActiva.Value = false;
                 }
+                return true;
             }
+            return false;
+        }
+
+        public float ConsumirEnergiaParcialEnServidor(float cantidad)
+        {
+            if (!IsServer || _energyPool == null || cantidad <= 0f)
+                return 0f;
+
+            float gasto = Mathf.Min(cantidad, _energyPool.Current);
+            if (gasto <= 0f || !_energyPool.TryConsume(gasto))
+                return 0f;
+
+            Energia.Value = _energyPool.Current;
+            if (_energyPool.Current <= 0f)
+            {
+                BarreraBloqueada.Value = true;
+                BarreraActiva.Value = false;
+            }
+            return gasto;
+        }
+
+        public void ReembolsarEnergiaEnServidor(float cantidad)
+        {
+            if (!IsServer || _energyPool == null || cantidad <= 0f)
+                return;
+            _energyPool.Restore(cantidad);
+            Energia.Value = _energyPool.Current;
         }
 
         private void ConsumirCostoBarreraEnServidor(float cantidad)
@@ -1248,7 +1289,6 @@ namespace TDOM.Unity.Player
                     BarreraActiva.Value = false;
                 }
             }
-
             if (IsServer && _healthPool != null)
             {
                 if (EstadoVida.Value == PlayerLifeState.Abatido)
@@ -1267,6 +1307,12 @@ namespace TDOM.Unity.Player
                 _locomocion.CancelarDashEnCurso();
 
             var input = _inputReader.Read();
+            if (
+                input.BarrierHeld
+                && _characterId == CharacterIds.Zendre
+                && (Energia.Value <= 0f || BarreraBloqueada.Value)
+            )
+                NotificarFaltaEnergia();
             bool barreraPermitida =
                 _characterId == CharacterIds.Zendre
                 && BarreraPerfil != null
@@ -1329,6 +1375,15 @@ namespace TDOM.Unity.Player
             // Sin energia suficiente no arranca el dash ni el doble salto.
             _locomocion.PermitirDash = EnergiaAlcanza(CostoDash);
             _locomocion.PermitirSaltoAereo = EnergiaAlcanza(CostoSaltoAereo);
+            if (input.DashPressed && CostoDash > 0f && !EnergiaAlcanza(CostoDash))
+                NotificarFaltaEnergia();
+            if (
+                input.JumpPressed
+                && CostoSaltoAereo > 0f
+                && !_locomocion.State.IsGrounded
+                && !EnergiaAlcanza(CostoSaltoAereo)
+            )
+                NotificarFaltaEnergia();
 
             if (!EstaAbatidoOMuerto)
             {
@@ -1367,6 +1422,7 @@ namespace TDOM.Unity.Player
 
                 if (
                     !_locomocion.ClimbActivo
+                    && input.AimHeld
                     && input.GrapplePressed
                     && !AtaqueActivo
                     && _definition != null

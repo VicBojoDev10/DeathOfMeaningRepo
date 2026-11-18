@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace TDOM.Unity
 {
-    public class GameplayUI : UIWindow
+    public class AylaGameplayUI : UIWindow, IGameplayHud
     {
         [Header("Referencias Crosshair")]
         [Tooltip("Mira de habilidad / apuntado (con raycast de rango, escala y cambio de color)")]
@@ -122,18 +122,7 @@ namespace TDOM.Unity
             if (_jugadorConEnergiaInicializado == _localPlayer)
                 return;
 
-            string etiquetaEnergia = _localPlayer.CharacterId switch
-            {
-                CharacterIds.Ayla => "Stamina",
-                CharacterIds.Zendre => "Maná",
-                _ => "Energy",
-            };
-
-            _barraEnergiaJugador.Reinitialize(
-                _localPlayer,
-                etiquetaEnergia,
-                _localPlayer.EnergiaMaxima
-            );
+            _barraEnergiaJugador.Reinitialize(_localPlayer, "Stamina", _localPlayer.EnergiaMaxima);
             _jugadorConEnergiaInicializado = _localPlayer;
         }
 
@@ -653,11 +642,7 @@ namespace TDOM.Unity
             var cooldowns = _localPlayer.Cooldowns;
             ActualizarIconoCooldown(dashandembestidaslider, cooldowns.Dash);
 
-            float cooldownSecundario =
-                _localPlayer.CharacterId == CharacterIds.Zendre
-                    ? cooldowns.Ancla
-                    : cooldowns.Gancho;
-            ActualizarIconoCooldown(hookandgraplerslider, cooldownSecundario);
+            ActualizarIconoCooldown(hookandgraplerslider, cooldowns.Gancho);
         }
 
         private void ActualizarIconoCooldown(Image imagen, float normalizado)
