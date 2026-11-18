@@ -867,6 +867,9 @@ namespace TDOM.Unity.Input
                 @LockOn.started += instance.OnLockOn;
                 @LockOn.performed += instance.OnLockOn;
                 @LockOn.canceled += instance.OnLockOn;
+                @Barrier.started += instance.OnBarrier;
+                @Barrier.performed += instance.OnBarrier;
+                @Barrier.canceled += instance.OnBarrier;
             }
 
             /// <summary>
@@ -908,6 +911,9 @@ namespace TDOM.Unity.Input
                 @LockOn.started -= instance.OnLockOn;
                 @LockOn.performed -= instance.OnLockOn;
                 @LockOn.canceled -= instance.OnLockOn;
+                @Barrier.started -= instance.OnBarrier;
+                @Barrier.performed -= instance.OnBarrier;
+                @Barrier.canceled -= instance.OnBarrier;
             }
 
             /// <summary>
@@ -1344,6 +1350,13 @@ namespace TDOM.Unity.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnLockOn(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Barrier" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnBarrier(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Ayla" which allows adding and removing callbacks.

@@ -1438,7 +1438,18 @@ namespace TDOM.Unity.Player
             if (bloquearTodoMovimiento)
             {
                 _locomocion.CancelarDashEnCurso();
-                _motor.AplicarEmpuje(dt);
+                // El bloqueo de estas animaciones debe impedir el desplazamiento horizontal,
+                // pero la velocidad vertical sigue necesitando llegar al CharacterController
+                // para que la gravedad haga caer al personaje si está en el aire.
+                _motor.Apply(
+                    new MotionIntent(
+                        new Vector3(0f, intent.Velocity.y, 0f),
+                        intent.IgnoreGravity,
+                        intent.IgnoreCollision
+                    ),
+                    dt,
+                    plataformaAnclada
+                );
             }
             else
             {
