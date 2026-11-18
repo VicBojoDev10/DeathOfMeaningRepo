@@ -235,6 +235,9 @@ namespace TDOM.Unity.Player
         private bool _initialSpawnApplied;
         private bool _originResetLogged;
         private Vector3 _initialSpawnPosition;
+        private bool _tieneCheckpointTutorial;
+        private Vector3 _posicionCheckpointTutorial;
+        private Quaternion _rotacionCheckpointTutorial;
         private Vector3 _lastObservedPosition;
         public bool AtaqueActivo =>
             MovimientoBloqueado || ModoPistola || (_combat != null && _combat.AtaqueActivo);
@@ -626,6 +629,30 @@ namespace TDOM.Unity.Player
         {
             if (IsOwner && _feedback != null)
                 _feedback.OnGolpeRecibido();
+        }
+
+        public void RegistrarCheckpointTutorial()
+        {
+            if (!IsOwner)
+                return;
+
+            _posicionCheckpointTutorial = transform.position;
+            _rotacionCheckpointTutorial = transform.rotation;
+            _tieneCheckpointTutorial = true;
+        }
+
+        public bool TryObtenerCheckpointTutorial(out Vector3 position, out Quaternion rotation)
+        {
+            position = _posicionCheckpointTutorial;
+            rotation = _rotacionCheckpointTutorial;
+            return _tieneCheckpointTutorial;
+        }
+
+        public void LimpiarCheckpointTutorial()
+        {
+            _tieneCheckpointTutorial = false;
+            _posicionCheckpointTutorial = default;
+            _rotacionCheckpointTutorial = Quaternion.identity;
         }
 
         public void RespawnConFundido(Vector3 position, Quaternion rotation)
@@ -1271,6 +1298,11 @@ namespace TDOM.Unity.Player
             if (!IsOwner || !_initialSpawnApplied)
                 return;
 
+            if (_arenaEncounter == null)
+                _arenaEncounter = BuscarEncuentroArena();
+            if (_arenaEncounter != null && _arenaEncounter.ArenaSellada.Value)
+                LimpiarCheckpointTutorial();
+
             if (BloqueoAnimacionMovimiento)
                 _locomocion.CancelarDashEnCurso();
 
@@ -1462,7 +1494,18 @@ namespace TDOM.Unity.Player
             if (bloquearTodoMovimiento)
             {
                 _locomocion.CancelarDashEnCurso();
-                _motor.AplicarEmpuje(dt);
+                // El bloqueo de estas animaciones debe impedir el desplazamiento horizontal,
+                // pero la velocidad vertical sigue necesitando llegar al CharacterController
+                // para que la gravedad haga caer al personaje si está en el aire.
+                _motor.Apply(
+                    new MotionIntent(
+                        new Vector3(0f, intent.Velocity.y, 0f),
+                        intent.IgnoreGravity,
+                        intent.IgnoreCollision
+                    ),
+                    dt,
+                    plataformaAnclada
+                );
             }
             else
             {
