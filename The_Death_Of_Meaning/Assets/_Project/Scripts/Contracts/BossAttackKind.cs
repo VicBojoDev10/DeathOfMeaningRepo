@@ -10,6 +10,15 @@ namespace TDOM.Contracts
         InstaKill,
     }
 
+    public enum TipoImpactoBarreraJefe
+    {
+        Otro,
+        Mano,
+        Tentaculo,
+        Rayo,
+        Mortero,
+    }
+
     [Serializable]
     public struct BossAttackStep
     {

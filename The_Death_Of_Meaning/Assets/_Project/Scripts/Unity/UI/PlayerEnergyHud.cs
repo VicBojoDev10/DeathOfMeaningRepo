@@ -28,6 +28,7 @@ namespace TDOM.Unity.UI
         private Image _rellenoImagen;
         private Color _colorRellenoOriginal;
         private bool _alphaRellenoCapturado;
+        private TMP_Text _barreraEstado;
 
         public void Reinitialize(PlayerRoot root, string labelName, float maxEnergy)
         {
@@ -43,6 +44,30 @@ namespace TDOM.Unity.UI
             RestaurarColorRelleno();
             _targetRoot = root;
             _maxEnergy = maxEnergy;
+            if (_barreraEstado == null)
+            {
+                var estado = new GameObject(
+                    "EstadoBarrera",
+                    typeof(RectTransform),
+                    typeof(TextMeshProUGUI)
+                );
+                Canvas canvas = GetComponentInParent<Canvas>();
+                Transform padre =
+                    canvas != null && canvas.rootCanvas != null
+                        ? canvas.rootCanvas.transform
+                        : transform;
+                estado.transform.SetParent(padre, false);
+                var rect = estado.GetComponent<RectTransform>();
+                rect.anchorMin = new Vector2(1f, 0f);
+                rect.anchorMax = new Vector2(1f, 0f);
+                rect.pivot = new Vector2(1f, 0f);
+                rect.anchoredPosition = new Vector2(-24f, 28f);
+                rect.sizeDelta = new Vector2(350f, 32f);
+                _barreraEstado = estado.GetComponent<TextMeshProUGUI>();
+                _barreraEstado.alignment = TextAlignmentOptions.Right;
+                _barreraEstado.fontSize = 18f;
+                _barreraEstado.raycastTarget = false;
+            }
 
             if (_energiaJugador == null)
                 _energiaJugador = GetComponentInChildren<Slider>(true);
@@ -87,10 +112,6 @@ namespace TDOM.Unity.UI
             UpdateFill(currentEnergy);
         }
 
-        /// <summary>
-        /// Marca sobre la barra cuanta energia se va a gastar (franja que termina en la energia
-        /// actual). Con costo 0 se oculta. Se pone roja si no alcanza.
-        /// </summary>
         public void MostrarCostoPendiente(float costo, float energiaActual)
         {
             if (costo <= 0f || _maxEnergy <= 0f)
@@ -119,8 +140,6 @@ namespace TDOM.Unity.UI
             _costo.SetAsLastSibling();
         }
 
-        // La franja cuelga del mismo contenedor que el relleno del Slider, asi sus anclas
-        // coinciden con las del relleno.
         private bool AsegurarCosto()
         {
             if (_costo != null)
@@ -157,6 +176,21 @@ namespace TDOM.Unity.UI
 
         private void Update()
         {
+            if (_barreraEstado != null)
+            {
+                bool esZendre =
+                    _targetRoot != null
+                    && _targetRoot.CharacterId == TDOM.Unity.CharacterIds.Zendre;
+                bool bloqueada = esZendre && _targetRoot.BarreraBloqueada.Value;
+                _barreraEstado.text = !esZendre
+                    ? string.Empty
+                    : (
+                        bloqueada
+                            ? "Barrera agotada · recarga completa"
+                            : (_targetRoot.BarreraActiva.Value ? "Barrera activa" : string.Empty)
+                    );
+                _barreraEstado.gameObject.SetActive(!string.IsNullOrEmpty(_barreraEstado.text));
+            }
             if (!_alphaRellenoCapturado || _rellenoImagen == null)
                 return;
 

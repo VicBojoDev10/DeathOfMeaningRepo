@@ -74,6 +74,7 @@ namespace TDOM.Data
         public float grosorMaximo = 2f;
 
         [Header("Daño")]
+        [Min(0f)]
         public float dano = 20f;
 
         public override float Rango => radio;
