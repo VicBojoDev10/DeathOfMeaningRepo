@@ -8,9 +8,14 @@ namespace TDOM.Unity.Level
     public sealed class PlataformaZendre : PlataformaMovil
     {
         [Header("Recorrido sobre eje X")]
-        [SerializeField] private float _limiteXMinimo = -45f;
-        [SerializeField] private float _limiteXMaximo = 5f;
-        [SerializeField, Min(0.01f)] private float _velocidad = 2f;
+        [SerializeField]
+        private float _limiteXMinimo = -45f;
+
+        [SerializeField]
+        private float _limiteXMaximo = 5f;
+
+        [SerializeField, Min(0.01f)]
+        private float _velocidad = 2f;
 
         private NetworkManager _networkManager;
         private float _posicionY;

@@ -149,7 +149,9 @@ namespace TDOM.Unity.Combat
                 if (!_atacanteEsAyla && diana != null)
                 {
                     diana.RecibirDisparoZendre(_daño);
-                    Debug.Log($"[Proyectil] DianaZendre recibió {_daño:F1} de daño del disparo de Zendre.");
+                    Debug.Log(
+                        $"[Proyectil] DianaZendre recibió {_daño:F1} de daño del disparo de Zendre."
+                    );
                     DespawnProyectil();
                     return;
                 }

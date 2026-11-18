@@ -61,11 +61,7 @@ namespace TDOM.Unity.Locomotion
 
         public PlataformaMovil PlataformaActual => _plataformaActual;
 
-        public void Apply(
-            MotionIntent intent,
-            float dt,
-            PlataformaMovil plataformaForzada = null
-        )
+        public void Apply(MotionIntent intent, float dt, PlataformaMovil plataformaForzada = null)
         {
             if (_cc == null)
                 return;

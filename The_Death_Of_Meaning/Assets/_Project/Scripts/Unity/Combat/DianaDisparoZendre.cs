@@ -14,13 +14,22 @@ namespace TDOM.Unity.Combat
         private static readonly int IdColorBase = Shader.PropertyToID("_BaseColor");
         private static readonly int IdColor = Shader.PropertyToID("_Color");
 
-        [SerializeField, Min(1f)] private float _vidaMaxima = 100f;
-        [SerializeField] private GameObject _muroDisparoZendre;
+        [SerializeField, Min(1f)]
+        private float _vidaMaxima = 100f;
+
+        [SerializeField]
+        private GameObject _muroDisparoZendre;
 
         private readonly NetworkVariable<float> _danioAcumulado = new(
-            0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+            0f,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
         private readonly NetworkVariable<bool> _destruida = new(
-            false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
 
         private Renderer[] _renderers;
         private Material[][] _materiales;
@@ -101,7 +110,8 @@ namespace TDOM.Unity.Combat
                     rojo = !rojo;
                     siguienteParpadeo += IntervaloParpadeo;
                 }
-                transform.localPosition = _posicionLocalInicial + Random.insideUnitSphere * AmplitudSacudida;
+                transform.localPosition =
+                    _posicionLocalInicial + Random.insideUnitSphere * AmplitudSacudida;
                 transcurrido += Time.deltaTime;
                 yield return null;
             }
@@ -125,10 +135,13 @@ namespace TDOM.Unity.Combat
                 muroRestaurado.localPosition = _posicionMuroInicial;
                 muroRestaurado.localScale = _escalaMuroInicial;
                 foreach (Collider c in _muroDisparoZendre.GetComponentsInChildren<Collider>(true))
-                    if (c != null) c.enabled = true;
-                Renderer[] renderersRestaurados = _muroDisparoZendre.GetComponentsInChildren<Renderer>(true);
+                    if (c != null)
+                        c.enabled = true;
+                Renderer[] renderersRestaurados =
+                    _muroDisparoZendre.GetComponentsInChildren<Renderer>(true);
                 foreach (Renderer r in renderersRestaurados)
-                    if (r != null) r.enabled = true;
+                    if (r != null)
+                        r.enabled = true;
                 PintarMuro(ColorBasePromedio(), renderersRestaurados);
                 return;
             }
@@ -145,7 +158,8 @@ namespace TDOM.Unity.Combat
             Collider[] colliders = _muroDisparoZendre.GetComponentsInChildren<Collider>(true);
             Renderer[] renderers = _muroDisparoZendre.GetComponentsInChildren<Renderer>(true);
             foreach (Collider c in colliders)
-                if (c != null) c.enabled = false;
+                if (c != null)
+                    c.enabled = false;
 
             float transcurrido = 0f;
             float siguienteParpadeo = 0f;
@@ -174,7 +188,8 @@ namespace TDOM.Unity.Combat
             _coloresBase = new Color[_renderers.Length][];
             for (int i = 0; i < _renderers.Length; i++)
             {
-                if (_renderers[i] == null) continue;
+                if (_renderers[i] == null)
+                    continue;
                 _materiales[i] = _renderers[i].materials;
                 _coloresBase[i] = new Color[_materiales[i].Length];
                 for (int j = 0; j < _materiales[i].Length; j++)
@@ -184,23 +199,29 @@ namespace TDOM.Unity.Combat
 
         private static Color ObtenerColor(Material material)
         {
-            if (material == null) return Color.white;
-            if (material.HasProperty(IdColorBase)) return material.GetColor(IdColorBase);
-            if (material.HasProperty(IdColor)) return material.GetColor(IdColor);
+            if (material == null)
+                return Color.white;
+            if (material.HasProperty(IdColorBase))
+                return material.GetColor(IdColorBase);
+            if (material.HasProperty(IdColor))
+                return material.GetColor(IdColor);
             return Color.white;
         }
 
         private Color ColorBasePromedio()
         {
-            if (_coloresBase == null) return Color.white;
+            if (_coloresBase == null)
+                return Color.white;
             foreach (Color[] colores in _coloresBase)
-                if (colores != null && colores.Length > 0) return colores[0];
+                if (colores != null && colores.Length > 0)
+                    return colores[0];
             return Color.white;
         }
 
         private void PintarColorBase()
         {
-            if (_materiales == null || _coloresBase == null) return;
+            if (_materiales == null || _coloresBase == null)
+                return;
             for (int i = 0; i < _materiales.Length; i++)
                 if (_materiales[i] != null)
                     for (int j = 0; j < _materiales[i].Length; j++)
@@ -209,41 +230,51 @@ namespace TDOM.Unity.Combat
 
         private void Pintar(Color color)
         {
-            if (_materiales == null) return;
+            if (_materiales == null)
+                return;
             foreach (Material[] grupo in _materiales)
                 if (grupo != null)
-                    foreach (Material material in grupo) PintarMaterial(material, color);
+                    foreach (Material material in grupo)
+                        PintarMaterial(material, color);
         }
 
         private static void PintarMuro(Color color, Renderer[] renderers)
         {
             foreach (Renderer renderer in renderers)
                 if (renderer != null)
-                    foreach (Material material in renderer.materials) PintarMaterial(material, color);
+                    foreach (Material material in renderer.materials)
+                        PintarMaterial(material, color);
         }
 
         private static void PintarMaterial(Material material, Color color)
         {
-            if (material == null) return;
-            if (material.HasProperty(IdColorBase)) material.SetColor(IdColorBase, color);
-            if (material.HasProperty(IdColor)) material.SetColor(IdColor, color);
+            if (material == null)
+                return;
+            if (material.HasProperty(IdColorBase))
+                material.SetColor(IdColorBase, color);
+            if (material.HasProperty(IdColor))
+                material.SetColor(IdColor, color);
         }
 
         private void DetenerAnimaciones()
         {
-            if (_flash != null) StopCoroutine(_flash);
-            if (_desaparicion != null) StopCoroutine(_desaparicion);
+            if (_flash != null)
+                StopCoroutine(_flash);
+            if (_desaparicion != null)
+                StopCoroutine(_desaparicion);
             _flash = null;
             _desaparicion = null;
         }
 
         private void LiberarMateriales()
         {
-            if (_materiales == null) return;
+            if (_materiales == null)
+                return;
             foreach (Material[] grupo in _materiales)
                 if (grupo != null)
                     foreach (Material material in grupo)
-                        if (material != null) Destroy(material);
+                        if (material != null)
+                            Destroy(material);
             _materiales = null;
             _coloresBase = null;
         }
