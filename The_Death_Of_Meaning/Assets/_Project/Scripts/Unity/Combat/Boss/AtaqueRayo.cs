@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Camera;
@@ -247,7 +248,8 @@ namespace TDOM.Unity
                         jugador.RecibirDanioDelJefe(
                             _perfil.Dano,
                             _origenServidor,
-                            _perfil.EsInstaKill
+                            _perfil.EsInstaKill,
+                            TipoImpactoBarreraJefe.Rayo
                         );
                     else
                         damageable.RecibirDanio(_perfil.Dano, _perfil.EsInstaKill);

@@ -26,6 +26,7 @@ namespace TDOM.Data
         public float altoPiedra = 6f;
 
         [Header("Daño")]
+        [Min(0f)]
         public float dano = 9999f;
         public bool esInstaKill = true;
 
