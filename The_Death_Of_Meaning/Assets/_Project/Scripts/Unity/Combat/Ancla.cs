@@ -30,10 +30,10 @@ namespace TDOM.Unity.Combat
         private float _radio = 0.2f;
         private OjosArek _ojosAnclados;
         private HitZone _ojoAnclado;
-        private PlataformaCircular _plataformaAnclada;
+        private PlataformaMovil _plataformaAnclada;
         private Vector3 _puntoLocalPlataforma;
 
-        public PlataformaCircular PlataformaAnclada => _plataformaAnclada;
+        public PlataformaMovil PlataformaAnclada => _plataformaAnclada;
 
         private readonly RaycastHit[] _hitsBuffer = new RaycastHit[MaximoContactos];
         private readonly ContactoAncla[] _contactos = new ContactoAncla[MaximoContactos];
@@ -169,7 +169,7 @@ namespace TDOM.Unity.Combat
 
         private void FijarPlataforma(Collider collider)
         {
-            _plataformaAnclada = collider.GetComponentInParent<PlataformaCircular>();
+            _plataformaAnclada = collider.GetComponentInParent<PlataformaMovil>();
             _ancladaAPlataforma.Value = _plataformaAnclada != null;
             if (_plataformaAnclada != null)
                 _puntoLocalPlataforma = _plataformaAnclada.transform.InverseTransformPoint(
@@ -182,7 +182,7 @@ namespace TDOM.Unity.Combat
             var colliders = Physics.OverlapSphere(transform.position, _radio + 0.15f);
             for (int i = 0; i < colliders.Length; i++)
             {
-                var plataforma = colliders[i].GetComponentInParent<PlataformaCircular>();
+                var plataforma = colliders[i].GetComponentInParent<PlataformaMovil>();
                 if (plataforma == null)
                     continue;
 

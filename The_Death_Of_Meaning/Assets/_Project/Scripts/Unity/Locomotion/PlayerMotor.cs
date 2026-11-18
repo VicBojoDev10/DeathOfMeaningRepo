@@ -57,20 +57,20 @@ namespace TDOM.Unity.Locomotion
             _cc.Move(DesplazamientoDeEmpuje(dt));
         }
 
-        private PlataformaCircular _plataformaActual;
+        private PlataformaMovil _plataformaActual;
 
-        public PlataformaCircular PlataformaActual => _plataformaActual;
+        public PlataformaMovil PlataformaActual => _plataformaActual;
 
         public void Apply(
             MotionIntent intent,
             float dt,
-            PlataformaCircular plataformaForzada = null
+            PlataformaMovil plataformaForzada = null
         )
         {
             if (_cc == null)
                 return;
 
-            PlataformaCircular plataformaMovimiento =
+            PlataformaMovil plataformaMovimiento =
                 plataformaForzada != null ? plataformaForzada : _plataformaActual;
             Vector3 deltaPlataforma =
                 plataformaMovimiento != null ? plataformaMovimiento.FrameDelta : Vector3.zero;
@@ -134,7 +134,7 @@ namespace TDOM.Unity.Locomotion
                 )
             )
             {
-                _plataformaActual = hit.collider.GetComponentInParent<PlataformaCircular>();
+                _plataformaActual = hit.collider.GetComponentInParent<PlataformaMovil>();
             }
             else
             {
@@ -144,10 +144,10 @@ namespace TDOM.Unity.Locomotion
 
         private void OnControllerColliderHit(ControllerColliderHit hit)
         {
-            // Si el jugador aterriza sobre una plataforma circular desde arriba
+            // Si el jugador aterriza sobre una plataforma móvil desde arriba
             if (hit.normal.y > 0.5f)
             {
-                var plataforma = hit.collider.GetComponentInParent<PlataformaCircular>();
+                var plataforma = hit.collider.GetComponentInParent<PlataformaMovil>();
                 if (plataforma != null)
                 {
                     _plataformaActual = plataforma;
