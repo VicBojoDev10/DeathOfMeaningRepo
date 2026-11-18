@@ -1343,6 +1343,17 @@ namespace TDOM.Unity.Combat
                 return;
             }
 
+            if (
+                tipo == TipoImpactoOjo.Melee
+                && _definition != null
+                && _definition.DisplayName == "Ayla"
+                && obj.TryGetComponent(out ParedMeleeAyla pared)
+            )
+            {
+                pared.RecibirMeleeDeAyla(evento.Damage);
+                return;
+            }
+
             obj.GetComponent<AtaquesArek>()?.RegistrarImpacto(OwnerClientId);
 
             Debug.Log(
