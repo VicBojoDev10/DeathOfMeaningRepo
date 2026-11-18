@@ -28,5 +28,7 @@ namespace TDOM.Data
         public override float Rango => largo;
 
         public override float Dano => dano;
+
+        public override float Aviso => aviso;
     }
 }

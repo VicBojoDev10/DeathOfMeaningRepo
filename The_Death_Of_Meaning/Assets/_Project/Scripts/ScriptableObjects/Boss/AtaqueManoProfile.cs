@@ -80,5 +80,7 @@ namespace TDOM.Data
         public override float Rango => radio;
 
         public override float Dano => dano;
+
+        public override float Aviso => aviso;
     }
 }

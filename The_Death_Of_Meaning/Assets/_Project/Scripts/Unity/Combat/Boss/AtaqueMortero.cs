@@ -245,7 +245,7 @@ namespace TDOM.Unity
             if (_perfil == null)
                 return;
 
-            float dt = Time.deltaTime;
+            float dt = DeltaAtaque;
 
             AnimarCaidaLocal(dt);
 
@@ -446,7 +446,7 @@ namespace TDOM.Unity
 
                 _avisoParpadeo.Iniciar(
                     Lanzador.PerfilAviso,
-                    _perfil.aviso,
+                    AvisoEscalado(_perfil.aviso),
                     renderers,
                     AvisoParpadeo.Forma.Disco
                 );

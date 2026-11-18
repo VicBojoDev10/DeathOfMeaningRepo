@@ -202,7 +202,7 @@ namespace TDOM.Unity
                 || (PauseManager.ResultadoGlobal != ResultadoPartida.EnCurso)
             )
                 return;
-            float dt = Time.deltaTime;
+            float dt = DeltaAtaque;
 
             if (!IsServer || !IsSpawned || _perfil == null)
                 return;
@@ -302,7 +302,7 @@ namespace TDOM.Unity
             if (_avisoParpadeo != null && _perfil != null)
                 _avisoParpadeo.Iniciar(
                     Lanzador.PerfilAviso,
-                    _perfil.aviso,
+                    AvisoEscalado(_perfil.aviso),
                     new[] { _franja.GetComponent<Renderer>() },
                     AvisoParpadeo.Forma.FranjaV
                 );

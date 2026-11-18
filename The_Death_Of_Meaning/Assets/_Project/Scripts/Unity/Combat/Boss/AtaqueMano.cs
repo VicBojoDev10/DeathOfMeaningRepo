@@ -211,7 +211,7 @@ namespace TDOM.Unity
             if (!_iniciado || _perfil == null)
                 return;
 
-            _tiempo += Time.deltaTime;
+            _tiempo += DeltaAtaque;
             EstadoManotazo estado = _lineaTiempo.Evaluar(_tiempo, _sentido);
             ActualizarVisual(estado);
 
@@ -308,7 +308,7 @@ namespace TDOM.Unity
             if (_avisoParpadeo != null && _perfil != null)
                 _avisoParpadeo.Iniciar(
                     Lanzador.PerfilAviso,
-                    _perfil.aviso,
+                    AvisoEscalado(_perfil.aviso),
                     new Renderer[] { _arcLineRenderer },
                     AvisoParpadeo.Forma.FranjaV
                 );
