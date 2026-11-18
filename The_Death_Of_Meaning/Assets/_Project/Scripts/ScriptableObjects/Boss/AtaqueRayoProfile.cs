@@ -25,10 +25,13 @@ namespace TDOM.Data
         public float alturaBocaPorDefecto = 5f; // si no hay boca: centro del jefe + esta altura
 
         [Header("Daño")]
+        [Min(0f)]
         public float dano = 40f;
 
         public override float Rango => largo;
 
         public override float Dano => dano;
+
+        public override float Aviso => aviso;
     }
 }

@@ -14,7 +14,8 @@ flowchart TD
     OJA -->|"estado de cada ojo: NetworkList a clientes"| OJV["OjosArekVisual: color por estado (MaterialPropertyBlock)"]
     HZ -->|"DanioRecibido (evento, servidor)"| AGRO[BossAggroTracker]
     AGRO -->|"daño en los últimos X s"| AA
-    AA -->|"perfil del ataque: AtaqueManoProfile, AtaqueTentaculoProfile, AtaqueMorteroProfile, AtaqueRayoProfile"| BASE["AtaqueArekBase (lanzador en NetworkVariable)"]
+    AA -->|"perfil del ataque: AtaqueManoProfile, AtaqueTentaculoProfile, AtaqueMorteroProfile, AtaqueRayoProfile"| BASE["AtaqueArekBase (lanzador y velocidad en NetworkVariable)"]
+    AA -->|"velocidad de la fase limitada por AvisoAtaqueProfile.duracionMinimaAviso; AtaqueLanzadoRpc la pasa a BossAnimationDriver (parámetro VelocidadAtaque)"| BASE
     BASE -.->|hereda| MANO
     BASE -.->|hereda| RAYO
     BASE -.->|hereda| MORT
@@ -48,6 +49,7 @@ flowchart TD
     PSM -->|"cambio de fase (uno por transición)"| FASE["Fase (NetworkVariable)"]
     PSM -->|"EnTransicion (DuracionTransicion): ignora daño, el scheduler no avanza"| BC
     PSM -->|"TransicionTerminada: ReiniciarPorCambioDeFase"| SCH
+    BC -->|"AplicarRitmo: RitmoAtaque con MultiplicadorFrecuencia y MultiplicadorVelocidad del BossPhaseProfile"| SCH
     PSM -->|"VidaCambiada (evento, servidor)"| VIDA["Vida normalizada (NetworkVariable)"]
     PSM -.->|"Muerto: vida 0 en la última fase, una sola vez"| MUERTE["Victoria (pendiente, TW-153 / TW-157)"]
     BC -->|"ObservarJefe (jefe ya spawneado o evento Spawned): Nombre desde BossIdentity"| GUI["BossHealthBar (GameplayUI)"]

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.Gameplay.Core;
@@ -11,15 +12,6 @@ using UnityEngine;
 
 namespace TDOM.Unity
 {
-    /// <summary>
-    /// Ataque Mano (Básico) de AREK. Una burbuja de lava aparece en el origen y la columna sale
-    /// del jefe hasta estirarse por completo; entonces barre 180° (en un sentido que alterna en
-    /// cada ataque) y se retrae rápido. El abanico de aviso queda fijo en el piso cubriendo todo
-    /// el barrido. La estela del barrido es solo visual: el daño lo hace la columna, y solo
-    /// mientras barre.
-    /// El servidor manda la rotación (NetworkTransform) y el daño; cada máquina corre la misma
-    /// línea de tiempo (LineaTiempoManotazo) para la columna, la burbuja y la estela.
-    /// </summary>
     public class AtaqueMano : AtaqueArekBase
     {
         private const int SegmentosArco = 36;
@@ -33,7 +25,7 @@ namespace TDOM.Unity
 
         [Header("Aviso")]
         [SerializeField]
-        private Material _materialAviso; // AvisoAtaque.mat
+        private Material _materialAviso;
 
         [SerializeField]
         private AvisoParpadeo _avisoParpadeo;
@@ -50,8 +42,6 @@ namespace TDOM.Unity
 
         [SerializeField]
         private Transform _puntaEstela;
-
-        // Tuning: lo lee de AtaquesArek (BossArek.prefab) al spawnear.
         private AtaqueManoProfile _perfil;
         private LineaTiempoManotazo _lineaTiempo;
 
@@ -62,13 +52,9 @@ namespace TDOM.Unity
         private int _sentido = 1;
         private Quaternion _rotacionBase = Quaternion.identity;
         private readonly HashSet<ulong> _jugadoresGolpeados = new HashSet<ulong>();
-
-        // Todos los clientes: abanico de aviso en el piso, fuera de la jerarquía porque la
-        // columna rota y el abanico debe quedarse fijo.
         private GameObject _arco;
         private LineRenderer _arcLineRenderer;
 
-        /// <summary>Solo servidor: sentido del barrido (+1 o -1), antes del Spawn.</summary>
         public void AsignarSentido(int sentido)
         {
             _sentido = sentido < 0 ? -1 : 1;
@@ -86,9 +72,6 @@ namespace TDOM.Unity
                 _avisoParpadeo = GetComponent<AvisoParpadeo>();
         }
 
-        // La columna sale del pivote: su largo crece de 0 al radio del perfil y el brazo conserva
-        // sus proporciones (grosor según el largo, con tope). Solo es visual: el daño usa
-        // ancho, alto y radio del perfil.
         private void ActualizarColumna(float longitud)
         {
             float largo = longitud * _perfil.radio;
@@ -120,7 +103,6 @@ namespace TDOM.Unity
                 _manoVisual.localPosition = new Vector3(0f, grosorAlto * 0.5f, largo * 0.5f);
             }
 
-            // La estela va por el centro del brazo.
             if (_baseEstela != null)
                 _baseEstela.localPosition = new Vector3(0f, grosorAlto * 0.5f, 0f);
             if (_puntaEstela != null)
@@ -134,7 +116,6 @@ namespace TDOM.Unity
             if (_burbuja != null)
                 _burbuja.Establecer(estado.Burbuja);
 
-            // La estela solo deja rastro mientras barre; al salir del barrido se corta el tramo.
             bool barriendo = estado.Fase == FaseManotazo.Barrido;
             if (_estela != null)
             {
@@ -167,7 +148,6 @@ namespace TDOM.Unity
 
             if (IsServer)
             {
-                // Sale a la altura del piso (más alturaOrigen), no a la del pivote del jefe.
                 Vector3 origen = transform.position;
                 float piso = AlturaDelPiso(origen);
                 origen.y = piso + _perfil.alturaOrigen;
@@ -201,7 +181,6 @@ namespace TDOM.Unity
                 Destroy(_arco);
         }
 
-        // Busca el piso debajo del punto; si hay varios golpes (jefe, jugadores), el más bajo es el piso.
         private static float AlturaDelPiso(Vector3 punto)
         {
             var golpes = Physics.RaycastAll(
@@ -232,7 +211,7 @@ namespace TDOM.Unity
             if (!_iniciado || _perfil == null)
                 return;
 
-            _tiempo += Time.deltaTime;
+            _tiempo += DeltaAtaque;
             EstadoManotazo estado = _lineaTiempo.Evaluar(_tiempo, _sentido);
             ActualizarVisual(estado);
 
@@ -241,11 +220,9 @@ namespace TDOM.Unity
 
             transform.rotation = _rotacionBase * Quaternion.Euler(0f, estado.Angulo, 0f);
 
-            // Daño solo en el barrido, con la columna completa.
             if (estado.DanoActivo)
                 DetectarImpactos();
 
-            // Tras retraerse espera a que la estela se desvanezca antes de despawnear.
             if (!_terminado && _tiempo >= _lineaTiempo.Duracion + _perfil.retrasoDespawn)
             {
                 _terminado = true;
@@ -257,7 +234,6 @@ namespace TDOM.Unity
             }
         }
 
-        // Caja de daño (ver GeometriaManotazo.BandaDano): a ras del piso o pared, según el perfil.
         private Vector3 MitadCajaDano() =>
             new Vector3(_perfil.ancho * 0.5f, Banda().Mitad, _perfil.radio * 0.5f);
 
@@ -295,7 +271,12 @@ namespace TDOM.Unity
                         Debug.Log($"[AREK][Mano] golpeó a cliente {clientId}");
                         var jugador = hit.GetComponentInParent<PlayerRoot>();
                         if (jugador != null)
-                            jugador.RecibirDanioDelJefe(_perfil.Dano, center, _perfil.EsInstaKill);
+                            jugador.RecibirDanioDelJefe(
+                                _perfil.Dano,
+                                transform.position,
+                                _perfil.EsInstaKill,
+                                TipoImpactoBarreraJefe.Mano
+                            );
                         else
                             damageable.RecibirDanio(_perfil.Dano, _perfil.EsInstaKill);
                         if (netObj != null)
@@ -305,8 +286,6 @@ namespace TDOM.Unity
             }
         }
 
-        // Llega a todas las máquinas con lo que necesitan para dibujar el aviso y llevar la
-        // misma línea de tiempo: origen, piso (el abanico va ahí), rotación base y sentido.
         [Rpc(SendTo.ClientsAndHost)]
         private void AvisoRpc(Vector3 origen, float piso, Quaternion rotacionBase, int sentido)
         {
@@ -321,8 +300,6 @@ namespace TDOM.Unity
                 _tiempo = 0f;
                 _iniciado = true;
             }
-
-            // El brazo usa el material del jefe (Shader Graph): solo se tiñe si tiene _Color.
             if (_manoRenderer != null && _manoRenderer.sharedMaterial.HasProperty("_Color"))
                 _manoRenderer.material.color = Color.red;
 
@@ -331,7 +308,7 @@ namespace TDOM.Unity
             if (_avisoParpadeo != null && _perfil != null)
                 _avisoParpadeo.Iniciar(
                     Lanzador.PerfilAviso,
-                    _perfil.aviso,
+                    AvisoEscalado(_perfil.aviso),
                     new Renderer[] { _arcLineRenderer },
                     AvisoParpadeo.Forma.FranjaV
                 );
@@ -343,7 +320,6 @@ namespace TDOM.Unity
             NotificarGolpeAlJugadorLocal();
         }
 
-        // Abanico de -90° a +90° sobre el piso, en coordenadas del mundo: no rota con la columna.
         private void CrearArcoTelegraph(Vector3 origen, Quaternion rotacionBase)
         {
             DestruirArco();

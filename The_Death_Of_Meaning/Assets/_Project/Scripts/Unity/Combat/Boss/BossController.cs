@@ -98,6 +98,13 @@ namespace TDOM.Unity.Combat
         /// <summary>Perfil de la fase actual (null si no está configurado). Lo usa MinionSpawner.</summary>
         public BossPhaseProfile PerfilFaseActual => PerfilDeFase(Fase.Value);
 
+        public RitmoAtaque RitmoFaseActual => RitmoDe(PerfilFaseActual);
+
+        private static RitmoAtaque RitmoDe(BossPhaseProfile perfil) =>
+            perfil != null
+                ? new RitmoAtaque(perfil.MultiplicadorFrecuencia, perfil.MultiplicadorVelocidad)
+                : RitmoAtaque.Normal;
+
         /// <summary>
         /// Solo servidor: false mientras hay un ataque en curso (aviso incluido) y durante la
         /// espera posterior. El jefe no rota (fase 1) ni se traslada (fase 2 en adelante).
@@ -225,6 +232,7 @@ namespace TDOM.Unity.Combat
                 _cooldownEntreAtaques,
                 _duracionTelegraph
             );
+            _scheduler.AplicarRitmo(RitmoFaseActual);
             _indiceEnFase = 0;
             _registroRush = new RegistroDanioVentana();
 
@@ -368,6 +376,7 @@ namespace TDOM.Unity.Combat
         {
             _finTransicionVisual.Value = 0d;
             _scheduler?.ReiniciarPorCambioDeFase();
+            _scheduler?.AplicarRitmo(RitmoFaseActual);
             _indiceEnFase = 0;
 
             // Fase nueva: los ojos vuelven a abrirse todos con la vida llena.

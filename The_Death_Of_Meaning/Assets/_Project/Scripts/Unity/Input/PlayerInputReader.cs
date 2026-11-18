@@ -8,11 +8,17 @@ namespace TDOM.Unity.Input
         private PlayerInputActions _actions;
         private CharacterIds _personajeActivo;
 
-        private void Awake() => _actions = new PlayerInputActions();
+        private void Awake()
+        {
+            _actions = new PlayerInputActions();
+        }
 
         public bool PausaPresionada => _actions.UI.Pause.WasPressedThisFrame();
 
-        private void OnDestroy() => _actions.Dispose();
+        private void OnDestroy()
+        {
+            _actions.Dispose();
+        }
 
         public void ActivarPersonaje(CharacterIds id)
         {
@@ -22,7 +28,9 @@ namespace TDOM.Unity.Input
             _actions.UI.Pause.Enable();
 
             if (id == CharacterIds.Zendre)
+            {
                 _actions.Zendre.Enable();
+            }
             else
                 _actions.Ayla.Enable();
         }
@@ -66,6 +74,7 @@ namespace TDOM.Unity.Input
                 )
                 {
                     LockOnPressed = m.LockOn.WasPressedThisFrame(),
+                    BarrierHeld = m.Barrier.IsPressed(),
                 };
             }
             else if (_personajeActivo == CharacterIds.Ayla)
