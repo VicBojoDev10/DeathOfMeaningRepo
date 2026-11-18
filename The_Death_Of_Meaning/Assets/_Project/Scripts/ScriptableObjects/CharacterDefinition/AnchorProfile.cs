@@ -9,6 +9,7 @@ namespace TDOM.Data
         public float TravelSpeed;
         public float StuckDuration;
         public float StuckDurationOnEye = 10f;
+
         [Header("Costo del gancho por segundo de uso")]
         [Min(0f)]
         [Tooltip("Stamina consumida por segundo mientras el gancho está activo.")]

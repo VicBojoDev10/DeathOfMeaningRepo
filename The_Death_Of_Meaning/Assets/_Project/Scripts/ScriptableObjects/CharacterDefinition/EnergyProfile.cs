@@ -7,6 +7,7 @@ namespace TDOM.Data
     {
         public float Max;
         public float RegenPerSecond;
+
         [Tooltip("Segundos sin regeneración después de consumir energía.")]
         [Min(0f)]
         public float RegenDelayAfterSpend;

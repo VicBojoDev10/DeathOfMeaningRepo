@@ -1,7 +1,7 @@
 using TDOM.Data;
 using TDOM.Gameplay.Core;
-using TDOM.Unity.Input;
 using TDOM.Unity.Flow;
+using TDOM.Unity.Input;
 using TDOM.Unity.Player;
 using TDOM.Unity.Vfx;
 using Unity.Netcode;
@@ -147,12 +147,7 @@ namespace TDOM.Unity.Combat
             var input = _input.Read();
             bool holdingL2R1 = input.AimHeld && input.GrappleHeld;
 
-            if (
-                holdingL2R1
-                && !_root.AtaqueActivo
-                && !AnclaActiva
-                && !_esperandoSoltar
-            )
+            if (holdingL2R1 && !_root.AtaqueActivo && !AnclaActiva && !_esperandoSoltar)
             {
                 if (!_root.PuedePagarGancho)
                 {

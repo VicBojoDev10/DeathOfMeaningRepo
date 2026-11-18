@@ -221,7 +221,8 @@ namespace TDOM.Unity.UI
             if (sinEnergia)
             {
                 color = _colorSinEnergia;
-                color.a *= 0.35f + 0.65f * Mathf.Abs(Mathf.Sin(Time.unscaledTime * _velocidadPulso));
+                color.a *=
+                    0.35f + 0.65f * Mathf.Abs(Mathf.Sin(Time.unscaledTime * _velocidadPulso));
             }
             else if (esperando)
                 color.a *= Mathf.FloorToInt(Time.unscaledTime * 4f) % 2 == 0 ? 0.2f : 1f;

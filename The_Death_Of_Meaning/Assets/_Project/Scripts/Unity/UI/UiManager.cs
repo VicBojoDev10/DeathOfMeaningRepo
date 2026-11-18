@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 using TDOM.Unity.Player;
 using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace TDOM.Unity.UI
 {
@@ -35,7 +35,10 @@ namespace TDOM.Unity.UI
                 {
                     foreach (var ownedObject in localClient.OwnedObjects)
                     {
-                        if (ownedObject != null && ownedObject.TryGetComponent(out PlayerRoot player))
+                        if (
+                            ownedObject != null
+                            && ownedObject.TryGetComponent(out PlayerRoot player)
+                        )
                             return player.CharacterId == TDOM.Unity.CharacterIds.Zendre
                                 ? WindowsIds.ZendreGameplayUI
                                 : WindowsIds.AylaGameplayUI;
@@ -75,9 +78,10 @@ namespace TDOM.Unity.UI
             if (jugadorLocal == null || jugadorLocal.CharacterId == TDOM.Unity.CharacterIds.None)
                 return;
 
-            string idDeseado = jugadorLocal.CharacterId == TDOM.Unity.CharacterIds.Zendre
-                ? WindowsIds.ZendreGameplayUI
-                : WindowsIds.AylaGameplayUI;
+            string idDeseado =
+                jugadorLocal.CharacterId == TDOM.Unity.CharacterIds.Zendre
+                    ? WindowsIds.ZendreGameplayUI
+                    : WindowsIds.AylaGameplayUI;
             if (_ventanaGameplayAbierta != idDeseado)
             {
                 string idAnterior = _ventanaGameplayAbierta;
@@ -85,9 +89,10 @@ namespace TDOM.Unity.UI
                 if (idAnterior != null && idAnterior != idDeseado)
                     CloseWindow(idAnterior);
 
-                string idAlterno = idDeseado == WindowsIds.ZendreGameplayUI
-                    ? WindowsIds.AylaGameplayUI
-                    : WindowsIds.ZendreGameplayUI;
+                string idAlterno =
+                    idDeseado == WindowsIds.ZendreGameplayUI
+                        ? WindowsIds.AylaGameplayUI
+                        : WindowsIds.ZendreGameplayUI;
                 CloseWindow(idAlterno);
             }
 
@@ -101,7 +106,9 @@ namespace TDOM.Unity.UI
                 ventana.Show();
             else if (ventana == null && _hudNoEncontradoAdvertido != idDeseado)
             {
-                Debug.LogError($"No se encontró la ventana de gameplay '{idDeseado}' en la escena.");
+                Debug.LogError(
+                    $"No se encontró la ventana de gameplay '{idDeseado}' en la escena."
+                );
                 _hudNoEncontradoAdvertido = idDeseado;
             }
         }

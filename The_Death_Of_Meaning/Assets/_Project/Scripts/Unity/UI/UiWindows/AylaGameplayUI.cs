@@ -122,11 +122,7 @@ namespace TDOM.Unity
             if (_jugadorConEnergiaInicializado == _localPlayer)
                 return;
 
-            _barraEnergiaJugador.Reinitialize(
-                _localPlayer,
-                "Stamina",
-                _localPlayer.EnergiaMaxima
-            );
+            _barraEnergiaJugador.Reinitialize(_localPlayer, "Stamina", _localPlayer.EnergiaMaxima);
             _jugadorConEnergiaInicializado = _localPlayer;
         }
 

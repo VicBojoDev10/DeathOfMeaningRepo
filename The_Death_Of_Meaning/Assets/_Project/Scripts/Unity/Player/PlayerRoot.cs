@@ -164,7 +164,9 @@ namespace TDOM.Unity.Player
         );
         private float _sinEnergiaHasta;
         public bool FaltaEnergiaActiva => Time.unscaledTime < _sinEnergiaHasta;
+
         public void NotificarFaltaEnergia() => _sinEnergiaHasta = Time.unscaledTime + 0.65f;
+
         public bool PuedePagarGancho =>
             _anchorLauncher == null
             || _anchorLauncher.Perfil == null
