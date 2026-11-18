@@ -1418,7 +1418,6 @@ namespace TDOM.Unity.Player
                     dt,
                     plataformaAnclada
                 );
-                _motor.AplicarEmpuje(dt);
             }
             else
             {
