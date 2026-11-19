@@ -82,7 +82,7 @@ namespace TDOM.Unity
         /// Servidor y clientes: se lanzó un ataque de verdad (hubo objetivo en rango o fue debug).
         /// Lo usa BossAnimationDriver para animar solo cuando el ataque sale.
         /// </summary>
-        public event Action<BossAttackKind> AtaqueLanzado;
+        public event Action<BossAttackKind, float> AtaqueLanzado;
 
         /// <summary>Solo servidor: jugador elegido para el último ataque (null si nadie estaba en rango).</summary>
         public ulong? ObjetivoActual { get; private set; }
@@ -120,6 +120,7 @@ namespace TDOM.Unity
 
         private readonly List<ColumnaViva> _columnas = new List<ColumnaViva>();
         private int _ataquesLanzados;
+        private float _velocidadAtaqueEnCurso = 1f;
         private BossController _jefe;
 
         // Solo servidor: el jefe no rota ni se traslada mientras hay un ataque en curso (desde
@@ -416,9 +417,20 @@ namespace TDOM.Unity
             }
         }
 
+        private float VelocidadDe(BossAttackKind tipo)
+        {
+            AtaqueArekProfile perfil = PerfilDe(tipo);
+            if (perfil == null || _jefe == null)
+                return RitmoAtaque.Normal.Velocidad;
+
+            float avisoMinimo = _perfilAviso != null ? _perfilAviso.duracionMinimaAviso : 0f;
+            return _jefe.RitmoFaseActual.VelocidadConAvisoLegible(perfil.Aviso, avisoMinimo);
+        }
+
         private void Ejecutar(BossAttackKind tipo)
         {
             _ataquesLanzados++;
+            _velocidadAtaqueEnCurso = VelocidadDe(tipo);
             HundirColumnasVencidas();
 
             switch (tipo)
@@ -438,13 +450,13 @@ namespace TDOM.Unity
             }
 
             AtaqueEjecutado?.Invoke(tipo);
-            AtaqueLanzadoRpc(tipo);
+            AtaqueLanzadoRpc(tipo, _velocidadAtaqueEnCurso);
         }
 
         [Rpc(SendTo.ClientsAndHost)]
-        private void AtaqueLanzadoRpc(BossAttackKind tipo)
+        private void AtaqueLanzadoRpc(BossAttackKind tipo, float velocidad)
         {
-            AtaqueLanzado?.Invoke(tipo);
+            AtaqueLanzado?.Invoke(tipo, velocidad);
         }
 
         private void LanzarAtaqueMano()
@@ -556,7 +568,7 @@ namespace TDOM.Unity
             var rayo = go.GetComponent<AtaqueRayo>();
             if (rayo != null)
             {
-                rayo.AsignarLanzador(this);
+                rayo.AsignarLanzador(this, _velocidadAtaqueEnCurso);
                 if (boca != null)
                     rayo.AsignarBoca(boca);
             }
@@ -587,7 +599,7 @@ namespace TDOM.Unity
 
             var ataque = go.GetComponent<AtaqueArekBase>();
             if (ataque != null)
-                ataque.AsignarLanzador(this);
+                ataque.AsignarLanzador(this, _velocidadAtaqueEnCurso);
 
             antesDeSpawn?.Invoke(go);
 

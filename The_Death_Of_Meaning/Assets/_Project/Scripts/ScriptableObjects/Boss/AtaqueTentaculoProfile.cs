@@ -22,10 +22,13 @@ namespace TDOM.Data
         public float desvioMaximo = 15f;
 
         [Header("Daño")]
+        [Min(0f)]
         public float dano = 35f;
 
         public override float Rango => largo;
 
         public override float Dano => dano;
+
+        public override float Aviso => aviso;
     }
 }
