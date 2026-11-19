@@ -985,6 +985,17 @@ namespace TDOM.Unity.Player
             );
         }
 
+        private void ActualizarSfxEmbestida()
+        {
+            if (_sfxLocomocion == null || _characterId != CharacterIds.Zendre)
+                return;
+
+            if (_locomocion.DashIniciado)
+                _sfxLocomocion.EmbestidaInicio();
+
+            _sfxLocomocion.ActualizarEmbestida(_locomocion.DashActivo);
+        }
+
         private void ActualizarVfxSaltoAterrizaje()
         {
             if (_detectorVfxSalto == null)
@@ -1595,6 +1606,7 @@ namespace TDOM.Unity.Player
                     _sfxLocomocion.Dash(_enSueloAntesDelDash);
             }
             ActualizarVfxEmbestida();
+            ActualizarSfxEmbestida();
             RegistrarDesplazamientoLateralEnCamara(input.Move);
 
             if (ganchoActivoActual != _ganchoActivoPrevio)

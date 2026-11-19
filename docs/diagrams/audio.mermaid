@@ -40,9 +40,27 @@ classDiagram
         -SfxBanco _dashAire
         -SfxBanco _gancho
         -SfxBanco _dobleSalto
+        -SfxBanco _embestidaArranque
+        -SfxBanco _embestidaAvance
+        -SfxBanco _embestidaFinal
         +Dash(enSuelo)
         +Gancho()
         +DobleSalto()
+        +EmbestidaInicio()
+        +ActualizarEmbestida(activa)
+    }
+
+    class Proyectil {
+        <<NetworkBehaviour>>
+        -SfxBanco _sfxImpactoAmbiente
+        -SfxBanco _sfxImpactoJefe
+        -ReproducirSfxImpacto(banco, punto)
+    }
+
+    class AnchorLauncher {
+        <<NetworkBehaviour>>
+        -SfxBanco _sfxLanzamiento
+        -ReproducirSfxLanzamiento(origen)
     }
 
     class SubidaIntensidadSfx {
@@ -122,3 +140,6 @@ classDiagram
     VocesSfx3D ..> SubidaIntensidadSfx
     PlayerRoot --> SfxLocomocion : eventos de locomocion, solo el owner
     SfxLocomocion --> SfxRed
+    SfxLocomocion ..> DetectorFinEmbestida
+    Proyectil ..> SfxRed : impacto en el SfxRed del atacante, lo lanza el servidor
+    AnchorLauncher --> SfxRed : lanzamiento validado en el servidor

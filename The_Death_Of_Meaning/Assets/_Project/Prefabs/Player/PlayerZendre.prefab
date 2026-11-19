@@ -82,6 +82,7 @@ GameObject:
   - component: {fileID: 2922711178879512338}
   - component: {fileID: 7114874718699065429}
   - component: {fileID: 8024801250871442147}
+  - component: {fileID: 2840316011976132930}
   m_Layer: 0
   m_Name: PlayerZendre
   m_TagString: Player
@@ -274,7 +275,7 @@ MonoBehaviour:
   _inputReader: {fileID: 4485191308997266209}
   _grappleVisual: {fileID: 0}
   _vfxDash: {fileID: 0}
-  _sfxLocomocion: {fileID: 0}
+  _sfxLocomocion: {fileID: 2840316011976132930}
   _vfxEmbestida: {fileID: 0}
   _destelloGolpe: {fileID: 0}
   _vfxRed: {fileID: 0}
@@ -544,6 +545,7 @@ MonoBehaviour:
 --- !u!114 &405411109418568762
 MonoBehaviour:
   m_ObjectHideFlags: 0
+  _sfxLanzamiento: {fileID: 11400000, guid: a3c86e690e829cc44859d089024c865f, type: 2}
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -675,8 +677,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b5067a59cbb92d74eaa955191d87e283, type: 2}
   _disparo: {fileID: 11400000, guid: 2edc701901aa92c46b6ccb01cb128466, type: 2}
   _disparoCargado: {fileID: 11400000, guid: 37014898be8576246a2adebd02616140, type: 2}
-  _cargaLoop: {fileID: 0}
-  _liberacionCargado: {fileID: 0}
+  _cargaLoop: {fileID: 11400000, guid: ae52bbd4ace3c6547ac22e2322139596, type: 2}
+  _liberacionCargado: {fileID: 11400000, guid: 44d8dda48c37b60479e85cdf124c4b71, type: 2}
 --- !u!1 &5152080394067024196
 GameObject:
   m_ObjectHideFlags: 0
@@ -694,6 +696,26 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &2840316011976132930
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5125041952874771469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 123fa668c0bce2144a1762cd2206df01, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Audio.SfxLocomocion
+  _red: {fileID: 7114874718699065429}
+  _dash: {fileID: 0}
+  _dashAire: {fileID: 0}
+  _gancho: {fileID: 0}
+  _dobleSalto: {fileID: 0}
+  _embestidaArranque: {fileID: 11400000, guid: eb7e9bf9af42bf849bae78d6c6151ed0, type: 2}
+  _embestidaAvance: {fileID: 11400000, guid: b5be3959270afc549a5cce497dda76a3, type: 2}
+  _embestidaFinal: {fileID: 11400000, guid: 41c9ddfa87e9c6f48bfce469960c1337, type: 2}
 --- !u!4 &6010933325636824929
 Transform:
   m_ObjectHideFlags: 0
