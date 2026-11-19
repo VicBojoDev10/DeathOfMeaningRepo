@@ -572,6 +572,8 @@ namespace TDOM.Unity.Combat
                     _cargaVisibleMelee = visible;
                     MostrarCarga(visible);
                     CargaRpc(visible);
+                    if (_sfx != null)
+                        _sfx.Carga(visible);
                 }
             }
         }
@@ -663,6 +665,8 @@ namespace TDOM.Unity.Combat
 
             _cargaVisibleDisparo = visible;
             ActivarVfxCarga(_vfxCargaDisparo, visible);
+            if (_sfx != null)
+                _sfx.Carga(visible);
         }
 
         private void SeguirConVfxCarga(VfxBase efecto, params Transform[] puntos)
