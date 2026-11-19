@@ -9,12 +9,20 @@ namespace TDOM.Gameplay.Core
         public float BaseMax { get; }
         private readonly float _regenPerSecond;
         private readonly float _downedDrainPerSecond;
+        private readonly float _regenDelayAfterSpend;
+        private float _regenDelayRemaining;
 
-        public EnergyPool(float baseMax, float regenPorSegundo, float drenajeabatidoPorSegundo)
+        public EnergyPool(
+            float baseMax,
+            float regenPorSegundo,
+            float drenajeabatidoPorSegundo,
+            float regenDelayAfterSpend = 0f
+        )
         {
             BaseMax = Math.Max(0f, baseMax);
             _regenPerSecond = Math.Max(0f, regenPorSegundo);
             _downedDrainPerSecond = Math.Max(0f, drenajeabatidoPorSegundo);
+            _regenDelayAfterSpend = Math.Max(0f, regenDelayAfterSpend);
 
             Max = BaseMax;
             Current = Max;
@@ -28,10 +36,18 @@ namespace TDOM.Gameplay.Core
                 return false;
 
             Current -= amount;
+            _regenDelayRemaining = _regenDelayAfterSpend;
             return true;
         }
 
-        public void Tick(float dt, bool isDowned)
+        public void Restore(float amount)
+        {
+            if (amount <= 0f)
+                return;
+            Current = Math.Min(Current + amount, Max);
+        }
+
+        public void Tick(float dt, bool isDowned, bool allowRegeneration = true)
         {
             if (dt <= 0f)
                 return;
@@ -40,17 +56,29 @@ namespace TDOM.Gameplay.Core
                 Current = Math.Max(Current - _downedDrainPerSecond * dt, 0f);
                 Max = Math.Min(Max, Current);
             }
-            else
+            else if (allowRegeneration)
             {
-                Current = Math.Min(Current + _regenPerSecond * dt, Max);
+                if (_regenDelayRemaining > 0f)
+                {
+                    float pausa = Math.Min(_regenDelayRemaining, dt);
+                    _regenDelayRemaining -= pausa;
+                    dt -= pausa;
+                }
+                if (dt > 0f)
+                    Current = Math.Min(Current + _regenPerSecond * dt, Max);
             }
         }
 
-        // TW-116: al cambiar de fase la barra vuelve llena, no solo el máximo.
         public void RestoreMaxOnPhaseChange()
         {
             Max = BaseMax;
             Current = Max;
+        }
+
+        public void RestoreMaxPreservingCurrent()
+        {
+            Max = BaseMax;
+            Current = Math.Min(Current, Max);
         }
     }
 }
