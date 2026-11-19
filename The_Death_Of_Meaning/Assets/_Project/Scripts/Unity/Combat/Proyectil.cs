@@ -1,5 +1,7 @@
+using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.Unity;
+using TDOM.Unity.Audio;
 using TDOM.Unity.Player;
 using TDOM.Unity.Vfx;
 using Unity.Netcode;
@@ -23,6 +25,9 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private VfxBase _vfxImpactoJefe;
+
+        [SerializeField]
+        private SfxBanco _sfxImpactoAmbiente;
 
         [SerializeField]
         private LayerMask _capas = (1 << 0) | (1 << 6);
@@ -169,7 +174,10 @@ namespace TDOM.Unity.Combat
                 }
                 else
                 {
-                    hit.collider.GetComponentInParent<AtaquesArek>()?.RegistrarImpacto(_atacanteId);
+                    AtaquesArek jefe = hit.collider.GetComponentInParent<AtaquesArek>();
+                    jefe?.RegistrarImpacto(_atacanteId);
+                    if (jefe == null)
+                        ReproducirSfxImpacto(_sfxImpactoAmbiente, hit.point);
                 }
 
                 Debug.Log(
@@ -238,19 +246,29 @@ namespace TDOM.Unity.Combat
             if (efecto == null)
                 return;
 
-            RedDelAtacante()?.Lanzar(efecto, hit.point, Quaternion.LookRotation(hit.normal));
+            ComponenteDelAtacante<VfxRed>()
+                ?.Lanzar(efecto, hit.point, Quaternion.LookRotation(hit.normal));
         }
 
-        private VfxRed RedDelAtacante()
+        private void ReproducirSfxImpacto(SfxBanco banco, Vector3 punto)
+        {
+            if (banco == null)
+                return;
+
+            ComponenteDelAtacante<SfxRed>()?.Reproducir(banco, punto);
+        }
+
+        private T ComponenteDelAtacante<T>()
+            where T : Component
         {
             if (!NetworkManager.ConnectedClients.TryGetValue(_atacanteId, out var cliente))
                 return null;
 
             foreach (var objeto in cliente.OwnedObjects)
             {
-                var red = objeto.GetComponentInChildren<VfxRed>();
-                if (red != null)
-                    return red;
+                var componente = objeto.GetComponentInChildren<T>();
+                if (componente != null)
+                    return componente;
             }
 
             return null;
