@@ -164,9 +164,10 @@ namespace TDOM.Unity.Combat
                     return;
                 }
 
+                AtaquesArek jefe = hit.collider.GetComponentInParent<AtaquesArek>();
+                jefe?.RegistrarImpacto(_atacanteId);
                 if (hz != null)
                 {
-                    hit.collider.GetComponentInParent<AtaquesArek>()?.RegistrarImpacto(_atacanteId);
                     hz.RegistrarImpacto(
                         _daño,
                         _atacanteId,
@@ -174,17 +175,12 @@ namespace TDOM.Unity.Combat
                         _atacanteEsAyla
                     );
                     LanzarVfxImpacto(_vfxImpactoJefe, hit);
-                    ReproducirSfxImpacto(_sfxImpactoJefe, hit.point);
                 }
-                else
-                {
-                    AtaquesArek jefe = hit.collider.GetComponentInParent<AtaquesArek>();
-                    jefe?.RegistrarImpacto(_atacanteId);
-                    ReproducirSfxImpacto(
-                        jefe != null ? _sfxImpactoJefe : _sfxImpactoAmbiente,
-                        hit.point
-                    );
-                }
+
+                ReproducirSfxImpacto(
+                    jefe != null ? _sfxImpactoJefe : _sfxImpactoAmbiente,
+                    hit.point
+                );
 
                 Debug.Log(
                     $"[Proyectil] Impacto con {hit.collider.name} en capa {LayerMask.LayerToName(hit.collider.gameObject.layer)} (HitZone: {hz != null}, Daño: {_daño})"
