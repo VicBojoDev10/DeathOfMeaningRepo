@@ -142,6 +142,7 @@ namespace TDOM.Unity.Player
         [SerializeField, Min(0f)]
         private float _inmunidadRetrocesoJefe = 0.35f;
         private float _siguienteRetrocesoJefe;
+        private float _vulnerablePorCapturaHasta;
 
         [SerializeField]
         private float _alturaMaxima = 80f;
@@ -1361,10 +1362,20 @@ namespace TDOM.Unity.Player
                     _barreraSolicitada || BarreraActiva.Value,
                     BarreraPerfil != null ? BarreraPerfil.CameraDistanceOffset : 0f
                 );
+                _camera.SetCapturaMinionActiva(
+                    _anchorLauncher != null && _anchorLauncher.MinionCapturado,
+                    _anchorLauncher != null && _anchorLauncher.Perfil != null
+                        ? _anchorLauncher.Perfil.AlejamientoCamaraCapturaMinion
+                        : 0f
+                );
                 _camera.ActualizarEncuadre(
-                    apuntando,
-                    (AtaqueActivo || _fijacion.Activo) && !EstaAbatidoOMuerto,
-                    _locomocion.Corriendo && !EstaAbatidoOMuerto,
+                    apuntando && !(_anchorLauncher != null && _anchorLauncher.MinionCapturado),
+                    !(_anchorLauncher != null && _anchorLauncher.MinionCapturado)
+                        && (AtaqueActivo || _fijacion.Activo)
+                        && !EstaAbatidoOMuerto,
+                    !(_anchorLauncher != null && _anchorLauncher.MinionCapturado)
+                        && _locomocion.Corriendo
+                        && !EstaAbatidoOMuerto,
                     dt
                 );
             }
@@ -1424,6 +1435,7 @@ namespace TDOM.Unity.Player
                     !_locomocion.ClimbActivo
                     && input.AimHeld
                     && input.GrapplePressed
+                    && !(_anchorLauncher != null && _anchorLauncher.MinionCapturado)
                     && !AtaqueActivo
                     && _definition != null
                     && _definition.Grapple != null
@@ -1490,6 +1502,22 @@ namespace TDOM.Unity.Player
             {
                 intent = new MotionIntent(Vector3.zero, ignoreGravity: true);
             }
+            if (_anchorLauncher != null && _anchorLauncher.MinionCapturado)
+            {
+                float factorMovimiento =
+                    _anchorLauncher.Perfil != null
+                        ? Mathf.Clamp01(_anchorLauncher.Perfil.MovimientoDuranteGiro)
+                        : 0f;
+                intent = new MotionIntent(
+                    new Vector3(
+                        intent.Velocity.x * factorMovimiento,
+                        intent.Velocity.y,
+                        intent.Velocity.z * factorMovimiento
+                    ),
+                    intent.IgnoreGravity,
+                    intent.IgnoreCollision
+                );
+            }
             bool bloquearTodoMovimiento = BloqueoAnimacionMovimiento;
             if (bloquearTodoMovimiento)
             {
@@ -1515,7 +1543,17 @@ namespace TDOM.Unity.Player
             }
             bool alineandoConGancho =
                 ganchoActivoActual || Time.time < _mantenerOrientacionGanchoHasta;
-            if (!bloquearTodoMovimiento)
+            if (
+                !bloquearTodoMovimiento
+                && _anchorLauncher != null
+                && _anchorLauncher.MinionCapturado
+            )
+            {
+                float giro = _anchorLauncher.AvanzarGiroMinion(dt);
+                _facing.AlinearCon(_facing.YawActual + giro);
+                transform.rotation = _facing.Rotacion;
+            }
+            else if (!bloquearTodoMovimiento)
             {
                 _facing.Tick(
                     _locomocion.State.Velocity,
@@ -1634,6 +1672,16 @@ namespace TDOM.Unity.Player
             VerificarGameOverEnServidor();
         }
 
+        public void ActivarVulnerabilidadCapturaMinion(float duracion)
+        {
+            if (!IsServer)
+                return;
+            _vulnerablePorCapturaHasta = Time.time + Mathf.Max(0f, duracion);
+        }
+
+        private bool VulnerablePorCapturaMinion =>
+            IsServer && Time.time < _vulnerablePorCapturaHasta;
+
         [Rpc(SendTo.Server)]
         private void SolicitarBarreraRpc(bool activa) => EstablecerBarreraEnServidor(activa);
 
@@ -1721,6 +1769,8 @@ namespace TDOM.Unity.Player
         )
         {
             danioRestante = cantidad;
+            if (VulnerablePorCapturaMinion)
+                return false;
             PlayerRoot protector = BuscarBarreraProtectora(origen);
             if (protector == null)
                 return false;
@@ -1758,6 +1808,8 @@ namespace TDOM.Unity.Player
 
         public bool MitigarGolpeMinion(float cantidad, Vector3 origen)
         {
+            if (VulnerablePorCapturaMinion)
+                return false;
             PlayerRoot protector = BuscarBarreraProtectora(origen);
             if (protector == null)
                 return false;

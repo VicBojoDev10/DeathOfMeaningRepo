@@ -154,6 +154,22 @@ namespace TDOM.Unity.Combat
         private void Anclar(DecisionAncla decision)
         {
             int indice = decision.Indice;
+            if (_contactos[indice].Tipo == TipoContactoAncla.Minion)
+            {
+                Collider objetivo = _hitsBuffer[indice].collider;
+                var launcher = ResolverLauncherDueno();
+                if (launcher != null && objetivo != null)
+                {
+                    var normal = objetivo.GetComponentInParent<MinionController>();
+                    var sniper = objetivo.GetComponentInParent<SniperMinionController>();
+                    if (normal != null)
+                        launcher.IntentarCapturarMinion(normal);
+                    else if (sniper != null)
+                        launcher.IntentarCapturarMinion(sniper);
+                }
+                Retraer();
+                return;
+            }
             if (decision.MoverAlPunto)
                 transform.position = _hitsBuffer[indice].point;
 
@@ -165,6 +181,19 @@ namespace TDOM.Unity.Combat
             Pegada.Value = true;
             _conecto.Value = true;
             _tiempoPegada = 0f;
+        }
+
+        private AnchorLauncher ResolverLauncherDueno()
+        {
+            if (
+                NetworkManager.Singleton?.SpawnManager == null
+                || !NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
+                    _duenoId.Value,
+                    out var dueno
+                )
+            )
+                return null;
+            return dueno.GetComponentInChildren<AnchorLauncher>();
         }
 
         private void FijarPlataforma(Collider collider)
@@ -217,6 +246,14 @@ namespace TDOM.Unity.Combat
 
             if (collider.GetComponentInParent<PlayerRoot>() != null)
                 return TipoContactoAncla.Ignorar;
+
+            // Los minions son objetivos capturables; jefes y superficies conservan
+            // la clasificación y el comportamiento que ya tenían.
+            if (
+                collider.GetComponentInParent<MinionController>() != null
+                || collider.GetComponentInParent<SniperMinionController>() != null
+            )
+                return TipoContactoAncla.Minion;
 
             if (collider.GetComponentInParent<BossController>() == null)
                 return TipoContactoAncla.Superficie;
