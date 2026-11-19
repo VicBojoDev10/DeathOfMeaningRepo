@@ -506,6 +506,7 @@ namespace TDOM.Unity.Combat
             if (_root == null || _root.Energia.Value < costo)
             {
                 Debug.Log("[Energia] sin energía para el ataque");
+                _root?.NotificarFaltaEnergia();
                 return false;
             }
             ConsumirEnergiaRpc(costo);
@@ -1340,6 +1341,17 @@ namespace TDOM.Unity.Combat
 
                 bool atacanteEsAyla = _definition != null && _definition.DisplayName == "Ayla";
                 hitZone.RegistrarImpacto(evento.Damage, OwnerClientId, tipo, atacanteEsAyla);
+                return;
+            }
+
+            if (
+                tipo == TipoImpactoOjo.Melee
+                && _definition != null
+                && (_definition.DisplayName == "Ayla" || _definition.DisplayName == "Zendre")
+                && obj.TryGetComponent(out ParedMeleeAyla pared)
+            )
+            {
+                pared.RecibirMeleeDeAyla(evento.Damage);
                 return;
             }
 

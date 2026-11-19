@@ -58,9 +58,12 @@ namespace TDOM.Unity
         private bool _pausadoGlobal;
         private bool _agenteEstabaDetenidoAntesDePausa;
         private float _pausaTrasGolpeRestante;
+        private MinionCapturaLanzamiento _capturaLanzamiento;
+        private bool _vueloAnterior;
 
         // Solo servidor.
         private MinionBrain _brain;
+        private EmpujeMinion _empuje;
         private int _golpeDelCombo;
         private float _siguienteGolpePermitido;
         private readonly HashSet<ulong> _golpeados = new HashSet<ulong>();
@@ -73,6 +76,7 @@ namespace TDOM.Unity
             _zona = GetComponent<HitZone>();
             _animaciones = GetComponent<MinionAnimationController>();
             _colliders = GetComponentsInChildren<Collider>();
+            _empuje = new EmpujeMinion(_agente, GetComponent<Collider>());
 
             if (_renderer == null)
                 _renderer = GetComponentInChildren<Renderer>();
@@ -137,6 +141,35 @@ namespace TDOM.Unity
             if (!IsServer || !IsSpawned || _muerto || _brain == null || _pausadoGlobal)
                 return;
 
+            if (
+                _capturaLanzamiento != null
+                && (_capturaLanzamiento.Capturado || _capturaLanzamiento.Volando)
+            )
+            {
+                _vueloAnterior |= _capturaLanzamiento.Volando;
+                _capturaLanzamiento.Tick(Time.deltaTime);
+                _agente.isStopped = true;
+                _animaciones?.ActualizarMovimiento(false);
+                return;
+            }
+            if (_vueloAnterior)
+            {
+                _vueloAnterior = false;
+                if (
+                    _agente.enabled
+                    && NavMesh.SamplePosition(
+                        transform.position,
+                        out NavMeshHit aterrizaje,
+                        Mathf.Max(1f, _agente.height),
+                        NavMesh.AllAreas
+                    )
+                )
+                {
+                    _agente.Warp(aterrizaje.position);
+                    _agente.isStopped = false;
+                }
+            }
+
             if (_pausaTrasGolpeRestante > 0f)
             {
                 _pausaTrasGolpeRestante = Mathf.Max(0f, _pausaTrasGolpeRestante - Time.deltaTime);
@@ -146,8 +179,23 @@ namespace TDOM.Unity
                     return;
             }
 
+            if (_empuje.Tick(Time.deltaTime))
+                return;
+
             bool hayObjetivo = TryObjetivoMasCercano(out PlayerRoot objetivo, out float distancia);
-            var evento = _brain.Tick(Time.deltaTime, hayObjetivo, distancia);
+            float rangoEfectivo = _perfil.rangoAtaque;
+            if (hayObjetivo)
+            {
+                rangoEfectivo = Mathf.Max(
+                    rangoEfectivo,
+                    objetivo.DistanciaParadaMinionPorBarrera(transform.position)
+                );
+                _agente.stoppingDistance = Mathf.Max(_perfil.rangoAtaque * 0.8f, rangoEfectivo);
+            }
+            float distanciaEfectiva = hayObjetivo
+                ? distancia - (rangoEfectivo - _perfil.rangoAtaque)
+                : distancia;
+            var evento = _brain.Tick(Time.deltaTime, hayObjetivo, distanciaEfectiva);
 
             if (_brain.DebeMoverse && hayObjetivo)
             {
@@ -181,6 +229,41 @@ namespace TDOM.Unity
             }
         }
 
+        public bool AgarrarPorZendre(Transform zendre, AnchorProfile perfil)
+        {
+            if (!IsServer || !IsSpawned || _muerto)
+                return false;
+            if (_capturaLanzamiento == null)
+                _capturaLanzamiento = gameObject.AddComponent<MinionCapturaLanzamiento>();
+            if (!_capturaLanzamiento.Agarrar(zendre, perfil))
+                return false;
+            _agente.ResetPath();
+            _agente.isStopped = true;
+            _brain?.InterrumpirAtaque();
+            InterrumpirAvisoRpc();
+            return true;
+        }
+
+        public void SoltarPorZendre(Vector3 direccion)
+        {
+            if (!IsServer || _muerto || _capturaLanzamiento == null)
+                return;
+            _capturaLanzamiento.Lanzar(direccion);
+        }
+
+        public void RecibirEmpujeLanzado(Vector3 velocidad)
+        {
+            if (!IsServer || _muerto)
+                return;
+            if (_capturaLanzamiento == null)
+                _capturaLanzamiento = gameObject.AddComponent<MinionCapturaLanzamiento>();
+            if (_capturaLanzamiento.Capturado)
+                return;
+            _capturaLanzamiento.Empujar(velocidad);
+            _agente.ResetPath();
+            _agente.isStopped = true;
+        }
+
         public void EstablecerPausa(bool pausado)
         {
             if (_pausadoGlobal == pausado)
@@ -201,6 +284,32 @@ namespace TDOM.Unity
             }
 
             _animaciones?.EstablecerPausa(pausado);
+        }
+
+        public bool EmpujarEnServidor(Vector3 direccion, DashProfile perfil)
+        {
+            if (
+                !IsServer
+                || !IsSpawned
+                || _muerto
+                || _brain == null
+                || !_empuje.TryIniciar(direccion, perfil)
+            )
+                return false;
+
+            _brain.InterrumpirAtaque();
+            InterrumpirAvisoRpc();
+            return true;
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void InterrumpirAvisoRpc()
+        {
+            if (_aviso != null)
+                StopCoroutine(_aviso);
+            _aviso = null;
+            PintarCuerpo(_colorBase);
+            _visual.localRotation = _rotacionVisual;
         }
 
         // Distancia en XZ al jugador vivo más cercano; los abatidos o muertos no son objetivo.
@@ -276,6 +385,12 @@ namespace TDOM.Unity
                 Debug.Log(
                     $"[Minion {NetworkObjectId}] golpe {_golpeDelCombo} a cliente {jugador.OwnerClientId} ({_perfil.danio:F0} de daño)"
                 );
+                if (jugador.MitigarGolpeMinion(_perfil.danio, transform.position))
+                {
+                    JugadorGolpeadoRpc(RpcTarget.Single(jugador.OwnerClientId, RpcTargetUse.Temp));
+                    conecto = true;
+                    continue;
+                }
                 jugador.AplicarDanioEnServidor(_perfil.danio);
                 EmpujarJugador(jugador);
                 JugadorGolpeadoRpc(RpcTarget.Single(jugador.OwnerClientId, RpcTargetUse.Temp));

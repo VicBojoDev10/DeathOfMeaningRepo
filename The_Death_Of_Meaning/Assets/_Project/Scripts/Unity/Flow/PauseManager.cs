@@ -70,7 +70,7 @@ namespace TDOM.Unity
 
                 bool gameplayAbierto =
                     UiManager.Instance != null
-                    && UiManager.Instance.GetWindow(WindowsIds.GamePlayUI)?.IsOpen == true;
+                    && UiManager.Instance.GetGameplayWindow()?.IsOpen == true;
                 if (PausadoGlobal || gameplayAbierto)
                     SolicitarPausa(!PausadoGlobal);
 
@@ -145,7 +145,7 @@ namespace TDOM.Unity
                 ui.CloseWindow(WindowsIds.PausaUI);
                 ui.CloseWindow(WindowsIds.RetryPopUpUI);
                 ui.CloseWindow(WindowsIds.ExitPopUpUI);
-                ui.ActivarInteraccionSolo(WindowsIds.GamePlayUI);
+                ui.ActivarInteraccionSolo(ui.GameplayWindowId);
             }
         }
 
@@ -524,7 +524,7 @@ namespace TDOM.Unity
                 ui?.CloseWindow(ventanaFinal);
             ui?.CloseWindow("victoriaui");
             ui?.CloseWindow(WindowsIds.DerrotaUI);
-            ui?.ShowWindow(WindowsIds.GamePlayUI);
+            ui?.ShowGameplayWindow();
         }
 
         private void SalirAlMenu()
@@ -540,7 +540,7 @@ namespace TDOM.Unity
             ui?.CloseWindow(WindowsIds.PausaUI);
             ui?.CloseWindow(WindowsIds.RetryPopUpUI);
             ui?.CloseWindow(WindowsIds.ExitPopUpUI);
-            ui?.CloseWindow(WindowsIds.GamePlayUI);
+            ui?.CloseGameplayWindow();
             ui?.CloseWindow("victoriaui");
             ui?.CloseWindow(WindowsIds.DerrotaUI);
 

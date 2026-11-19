@@ -23,19 +23,17 @@ using UnityEngine.UI;
 
 namespace TDOM.Unity.Player
 {
-    public class PlayerRoot : NetworkBehaviour, IDamageable
+    public partial class PlayerRoot : NetworkBehaviour, IDamageable
     {
         public readonly struct CooldownValues
         {
             public float Dash { get; }
             public float Gancho { get; }
-            public float Ancla { get; }
 
-            public CooldownValues(float dash, float gancho, float ancla)
+            public CooldownValues(float dash, float gancho)
             {
                 Dash = dash;
                 Gancho = gancho;
-                Ancla = ancla;
             }
         }
 
@@ -57,6 +55,8 @@ namespace TDOM.Unity.Player
 
         [SerializeField]
         private PlayerInputReader _inputReader;
+
+        private BarreraVisual _barreraVisual;
 
         private AnchorLauncher _anchorLauncher;
 
@@ -142,6 +142,7 @@ namespace TDOM.Unity.Player
         [SerializeField, Min(0f)]
         private float _inmunidadRetrocesoJefe = 0.35f;
         private float _siguienteRetrocesoJefe;
+        private float _vulnerablePorCapturaHasta;
 
         [SerializeField]
         private float _alturaMaxima = 80f;
@@ -160,7 +161,28 @@ namespace TDOM.Unity.Player
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server
         );
+        private float _sinEnergiaHasta;
+        public bool FaltaEnergiaActiva => Time.unscaledTime < _sinEnergiaHasta;
+
+        public void NotificarFaltaEnergia() => _sinEnergiaHasta = Time.unscaledTime + 0.65f;
+
+        public bool PuedePagarGancho =>
+            _anchorLauncher == null
+            || _anchorLauncher.Perfil == null
+            || _anchorLauncher.Perfil.StaminaCosto <= 0f
+            || Energia.Value > 0f;
         private EnergyPool _energyPool;
+        public NetworkVariable<bool> BarreraActiva = new NetworkVariable<bool>(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+        public NetworkVariable<bool> BarreraBloqueada = new NetworkVariable<bool>(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+        private bool _barreraSolicitada;
 
         public NetworkVariable<double> FinEsperaEnergiaAlRevivir = new NetworkVariable<double>(
             0d,
@@ -214,6 +236,9 @@ namespace TDOM.Unity.Player
         private bool _initialSpawnApplied;
         private bool _originResetLogged;
         private Vector3 _initialSpawnPosition;
+        private bool _tieneCheckpointTutorial;
+        private Vector3 _posicionCheckpointTutorial;
+        private Quaternion _rotacionCheckpointTutorial;
         private Vector3 _lastObservedPosition;
         public bool AtaqueActivo =>
             MovimientoBloqueado || ModoPistola || (_combat != null && _combat.AtaqueActivo);
@@ -243,6 +268,7 @@ namespace TDOM.Unity.Player
 
         public CharacterIds CharacterId => _characterId;
         public float CostoEnergiaPendiente => _combat != null ? _combat.CostoCargaPendiente : 0f;
+        private BarrierProfile BarreraPerfil => _definition != null ? _definition.Barrier : null;
 
         public void EmpujarPorCombo(
             float adelante,
@@ -300,8 +326,7 @@ namespace TDOM.Unity.Player
         public CooldownValues Cooldowns =>
             new CooldownValues(
                 _locomocion != null ? _locomocion.CooldownDashNormalizado : 0f,
-                _locomocion != null ? _locomocion.CooldownGanchoNormalizado : 0f,
-                _anchorLauncher != null ? _anchorLauncher.CooldownNormalizado : 0f
+                _locomocion != null ? _locomocion.CooldownGanchoNormalizado : 0f
             );
         public bool SpawnInicialAplicado => _initialSpawnApplied;
         public Transform CameraTransform => _camera != null ? _camera.CamaraTransform : null;
@@ -314,6 +339,7 @@ namespace TDOM.Unity.Player
 
         public override void OnNetworkSpawn()
         {
+            _registroEmbestida = new TDOM.Gameplay.Combat.RegistroEmbestida();
             _arenaEncounter = BuscarEncuentroArena();
             _zendreLocomotionAnimator = GetComponent<ZendrePlayerLocomotionAnimator>();
             _anchorLauncher = GetComponentInChildren<AnchorLauncher>();
@@ -354,7 +380,8 @@ namespace TDOM.Unity.Player
                 _energyPool = new EnergyPool(
                     _definition.Energy.Max,
                     _definition.Energy.RegenPerSecond,
-                    _definition.Energy.DrainPerSecondDowned
+                    _definition.Energy.DrainPerSecondDowned,
+                    _definition.Energy.RegenDelayAfterSpend
                 );
                 Energia.Value = _energyPool.Current;
             }
@@ -373,6 +400,15 @@ namespace TDOM.Unity.Player
                 BuscarEncuentroArena()?.NotificarEstadoVida(this, EstadoVida.Value);
 
             _characterId = GetCharacterId();
+            if (_characterId == CharacterIds.Zendre)
+            {
+                _barreraVisual = GetComponent<BarreraVisual>();
+                if (_barreraVisual == null)
+                    _barreraVisual = gameObject.AddComponent<BarreraVisual>();
+                _barreraVisual.Configurar(BarreraPerfil);
+                BarreraActiva.OnValueChanged += AlCambiarBarrera;
+                _barreraVisual.Mostrar(BarreraActiva.Value);
+            }
 
             if (IsOwner)
             {
@@ -503,6 +539,7 @@ namespace TDOM.Unity.Player
             DestruirOverlayRespawn();
             EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
             Vida.OnValueChanged -= OnVidaChanged;
+            BarreraActiva.OnValueChanged -= AlCambiarBarrera;
             _arenaEncounter = null;
             _healthPool = null;
             _vidasJugadores.Clear();
@@ -519,6 +556,7 @@ namespace TDOM.Unity.Player
             DestruirOverlayRespawn();
             EstadoVida.OnValueChanged -= OnEstadoVidaChanged;
             Vida.OnValueChanged -= OnVidaChanged;
+            BarreraActiva.OnValueChanged -= AlCambiarBarrera;
             if (IsServer)
             {
                 BossController.DejarDeObservarJefe(OnBossSpawned);
@@ -592,6 +630,30 @@ namespace TDOM.Unity.Player
         {
             if (IsOwner && _feedback != null)
                 _feedback.OnGolpeRecibido();
+        }
+
+        public void RegistrarCheckpointTutorial()
+        {
+            if (!IsOwner)
+                return;
+
+            _posicionCheckpointTutorial = transform.position;
+            _rotacionCheckpointTutorial = transform.rotation;
+            _tieneCheckpointTutorial = true;
+        }
+
+        public bool TryObtenerCheckpointTutorial(out Vector3 position, out Quaternion rotation)
+        {
+            position = _posicionCheckpointTutorial;
+            rotation = _rotacionCheckpointTutorial;
+            return _tieneCheckpointTutorial;
+        }
+
+        public void LimpiarCheckpointTutorial()
+        {
+            _tieneCheckpointTutorial = false;
+            _posicionCheckpointTutorial = default;
+            _rotacionCheckpointTutorial = Quaternion.identity;
         }
 
         public void RespawnConFundido(Vector3 position, Quaternion rotation)
@@ -788,14 +850,69 @@ namespace TDOM.Unity.Player
         [Rpc(SendTo.Server)]
         private void ConsumirEnergiaRpc(float cantidad) => ConsumirEnergiaEnServidor(cantidad);
 
-        public void ConsumirEnergiaEnServidor(float cantidad)
+        public void ConsumirEnergiaEnServidor(float cantidad) =>
+            TryConsumirEnergiaEnServidor(cantidad);
+
+        public bool TryConsumirEnergiaEnServidor(float cantidad)
         {
-            if (!IsServer || _energyPool == null)
-                return;
+            if (!IsServer || _energyPool == null || cantidad < 0f)
+                return false;
+            if (cantidad == 0f)
+                return true;
             if (_energyPool.TryConsume(cantidad))
             {
                 Energia.Value = _energyPool.Current;
+                if (_energyPool.Current <= 0f)
+                {
+                    BarreraBloqueada.Value = true;
+                    BarreraActiva.Value = false;
+                }
+                return true;
             }
+            return false;
+        }
+
+        public float ConsumirEnergiaParcialEnServidor(float cantidad)
+        {
+            if (!IsServer || _energyPool == null || cantidad <= 0f)
+                return 0f;
+
+            float gasto = Mathf.Min(cantidad, _energyPool.Current);
+            if (gasto <= 0f || !_energyPool.TryConsume(gasto))
+                return 0f;
+
+            Energia.Value = _energyPool.Current;
+            if (_energyPool.Current <= 0f)
+            {
+                BarreraBloqueada.Value = true;
+                BarreraActiva.Value = false;
+            }
+            return gasto;
+        }
+
+        public void ReembolsarEnergiaEnServidor(float cantidad)
+        {
+            if (!IsServer || _energyPool == null || cantidad <= 0f)
+                return;
+            _energyPool.Restore(cantidad);
+            Energia.Value = _energyPool.Current;
+        }
+
+        private void ConsumirCostoBarreraEnServidor(float cantidad)
+        {
+            if (!IsServer || _energyPool == null || cantidad <= 0f)
+                return;
+            float gasto = Mathf.Min(cantidad, _energyPool.Current);
+            if (_energyPool.TryConsume(gasto))
+                Energia.Value = _energyPool.Current;
+        }
+
+        private void ConsumirPorcentajeBarreraEnServidor(float porcentaje)
+        {
+            if (!IsServer || _energyPool == null)
+                return;
+            float gasto = _energyPool.Max * Mathf.Clamp(porcentaje, 0f, 100f) / 100f;
+            ConsumirCostoBarreraEnServidor(gasto);
         }
 
         private void DispararFeedbackDeLocomocion()
@@ -1165,8 +1282,14 @@ namespace TDOM.Unity.Player
                         >= FinEsperaEnergiaAlRevivir.Value
                 );
                 Energia.Value = _energyPool.Current;
+                if (BarreraBloqueada.Value && _energyPool.Current >= _energyPool.Max)
+                    BarreraBloqueada.Value = false;
+                if (_energyPool.Current <= 0f)
+                {
+                    BarreraBloqueada.Value = true;
+                    BarreraActiva.Value = false;
+                }
             }
-
             if (IsServer && _healthPool != null)
             {
                 if (EstadoVida.Value == PlayerLifeState.Abatido)
@@ -1176,10 +1299,56 @@ namespace TDOM.Unity.Player
             if (!IsOwner || !_initialSpawnApplied)
                 return;
 
+            if (_arenaEncounter == null)
+                _arenaEncounter = BuscarEncuentroArena();
+            if (_arenaEncounter != null && _arenaEncounter.ArenaSellada.Value)
+                LimpiarCheckpointTutorial();
+
             if (BloqueoAnimacionMovimiento)
                 _locomocion.CancelarDashEnCurso();
 
             var input = _inputReader.Read();
+            if (
+                input.BarrierHeld
+                && _characterId == CharacterIds.Zendre
+                && (Energia.Value <= 0f || BarreraBloqueada.Value)
+            )
+                NotificarFaltaEnergia();
+            bool barreraPermitida =
+                _characterId == CharacterIds.Zendre
+                && BarreraPerfil != null
+                && input.BarrierHeld
+                && !AtaqueActivo
+                && !_locomocion.ClimbActivo
+                && !_locomocion.DashActivo
+                && !_locomocion.GanchoActivo
+                && !(_anchorLauncher != null && _anchorLauncher.AnclaActiva)
+                && Energia.Value > 0f
+                && !BarreraBloqueada.Value
+                && !EstaAbatidoOMuerto;
+            if (barreraPermitida != _barreraSolicitada)
+            {
+                _barreraSolicitada = barreraPermitida;
+                if (IsServer)
+                    EstablecerBarreraEnServidor(barreraPermitida);
+                else
+                    SolicitarBarreraRpc(barreraPermitida);
+            }
+            if (_barreraSolicitada)
+            {
+                input.JumpPressed = false;
+                input.JumpHeld = false;
+                input.DashPressed = false;
+                input.SprintPressed = false;
+                input.AttackPressed = false;
+                input.AttackHeld = false;
+                input.AttackReleased = false;
+                input.FirePressed = false;
+                input.FireHeld = false;
+                input.FireReleased = false;
+                input.GrapplePressed = false;
+                input.GrappleHeld = false;
+            }
             bool apuntando =
                 input.AimHeld && PuedeApuntar && !EstaAbatidoOMuerto && !_locomocion.ClimbActivo;
             ActualizarMirada(input, dt);
@@ -1188,12 +1357,28 @@ namespace TDOM.Unity.Player
                 _aylaAnimator.SetAimState(_fijacion != null && _fijacion.Activo);
 
             if (_camera != null)
+            {
+                _camera.SetBarreraActiva(
+                    _barreraSolicitada || BarreraActiva.Value,
+                    BarreraPerfil != null ? BarreraPerfil.CameraDistanceOffset : 0f
+                );
+                _camera.SetCapturaMinionActiva(
+                    _anchorLauncher != null && _anchorLauncher.MinionCapturado,
+                    _anchorLauncher != null && _anchorLauncher.Perfil != null
+                        ? _anchorLauncher.Perfil.AlejamientoCamaraCapturaMinion
+                        : 0f
+                );
                 _camera.ActualizarEncuadre(
-                    apuntando,
-                    (AtaqueActivo || _fijacion.Activo) && !EstaAbatidoOMuerto,
-                    _locomocion.Corriendo && !EstaAbatidoOMuerto,
+                    apuntando && !(_anchorLauncher != null && _anchorLauncher.MinionCapturado),
+                    !(_anchorLauncher != null && _anchorLauncher.MinionCapturado)
+                        && (AtaqueActivo || _fijacion.Activo)
+                        && !EstaAbatidoOMuerto,
+                    !(_anchorLauncher != null && _anchorLauncher.MinionCapturado)
+                        && _locomocion.Corriendo
+                        && !EstaAbatidoOMuerto,
                     dt
                 );
+            }
 
             _motor.ProbeGround(_locomocion.State);
             CapturarContextoVfxDash(dt);
@@ -1201,6 +1386,15 @@ namespace TDOM.Unity.Player
             // Sin energia suficiente no arranca el dash ni el doble salto.
             _locomocion.PermitirDash = EnergiaAlcanza(CostoDash);
             _locomocion.PermitirSaltoAereo = EnergiaAlcanza(CostoSaltoAereo);
+            if (input.DashPressed && CostoDash > 0f && !EnergiaAlcanza(CostoDash))
+                NotificarFaltaEnergia();
+            if (
+                input.JumpPressed
+                && CostoSaltoAereo > 0f
+                && !_locomocion.State.IsGrounded
+                && !EnergiaAlcanza(CostoSaltoAereo)
+            )
+                NotificarFaltaEnergia();
 
             if (!EstaAbatidoOMuerto)
             {
@@ -1239,7 +1433,9 @@ namespace TDOM.Unity.Player
 
                 if (
                     !_locomocion.ClimbActivo
+                    && input.AimHeld
                     && input.GrapplePressed
+                    && !(_anchorLauncher != null && _anchorLauncher.MinionCapturado)
                     && !AtaqueActivo
                     && _definition != null
                     && _definition.Grapple != null
@@ -1248,6 +1444,7 @@ namespace TDOM.Unity.Player
                     IntentarGanchoApuntado();
             }
 
+            bool estabaEnDash = _locomocion.DashActivo;
             var intent =
                 EstaAbatidoOMuerto || BloqueoAnimacionMovimiento
                     ? _locomocion.TickIncapacitado(dt)
@@ -1258,7 +1455,9 @@ namespace TDOM.Unity.Player
                         MovimientoBloqueado || BloqueoPorAtaqueAereo,
                         transform.position,
                         ModoPistola,
-                        _combat != null ? _combat.MultiplicadorVelocidadAtaque : 1f,
+                        _barreraSolicitada && BarreraPerfil != null
+                            ? Mathf.Clamp01(BarreraPerfil.MoveSpeedMultiplier)
+                            : (_combat != null ? _combat.MultiplicadorVelocidadAtaque : 1f),
                         _combat != null && _combat.GravedadReducidaPorAtaque
                     );
             bool ganchoActivoActual = _locomocion.GanchoActivo;
@@ -1303,19 +1502,58 @@ namespace TDOM.Unity.Player
             {
                 intent = new MotionIntent(Vector3.zero, ignoreGravity: true);
             }
+            if (_anchorLauncher != null && _anchorLauncher.MinionCapturado)
+            {
+                float factorMovimiento =
+                    _anchorLauncher.Perfil != null
+                        ? Mathf.Clamp01(_anchorLauncher.Perfil.MovimientoDuranteGiro)
+                        : 0f;
+                intent = new MotionIntent(
+                    new Vector3(
+                        intent.Velocity.x * factorMovimiento,
+                        intent.Velocity.y,
+                        intent.Velocity.z * factorMovimiento
+                    ),
+                    intent.IgnoreGravity,
+                    intent.IgnoreCollision
+                );
+            }
             bool bloquearTodoMovimiento = BloqueoAnimacionMovimiento;
             if (bloquearTodoMovimiento)
             {
                 _locomocion.CancelarDashEnCurso();
-                _motor.AplicarEmpuje(dt);
+                // El bloqueo de estas animaciones debe impedir el desplazamiento horizontal,
+                // pero la velocidad vertical sigue necesitando llegar al CharacterController
+                // para que la gravedad haga caer al personaje si está en el aire.
+                _motor.Apply(
+                    new MotionIntent(
+                        new Vector3(0f, intent.Velocity.y, 0f),
+                        intent.IgnoreGravity,
+                        intent.IgnoreCollision
+                    ),
+                    dt,
+                    plataformaAnclada
+                );
             }
             else
             {
+                Vector3 posicionAntesDeMover = transform.position;
                 _motor.Apply(intent, dt, plataformaAnclada);
+                ReportarEmbestida(posicionAntesDeMover, dt, estabaEnDash);
             }
             bool alineandoConGancho =
                 ganchoActivoActual || Time.time < _mantenerOrientacionGanchoHasta;
-            if (!bloquearTodoMovimiento)
+            if (
+                !bloquearTodoMovimiento
+                && _anchorLauncher != null
+                && _anchorLauncher.MinionCapturado
+            )
+            {
+                float giro = _anchorLauncher.AvanzarGiroMinion(dt);
+                _facing.AlinearCon(_facing.YawActual + giro);
+                transform.rotation = _facing.Rotacion;
+            }
+            else if (!bloquearTodoMovimiento)
             {
                 _facing.Tick(
                     _locomocion.State.Velocity,
@@ -1434,12 +1672,176 @@ namespace TDOM.Unity.Player
             VerificarGameOverEnServidor();
         }
 
-        public void RecibirDanioDelJefe(float cantidad, Vector3 fuente, bool esInstaKill = false)
+        public void ActivarVulnerabilidadCapturaMinion(float duracion)
+        {
+            if (!IsServer)
+                return;
+            _vulnerablePorCapturaHasta = Time.time + Mathf.Max(0f, duracion);
+        }
+
+        private bool VulnerablePorCapturaMinion =>
+            IsServer && Time.time < _vulnerablePorCapturaHasta;
+
+        [Rpc(SendTo.Server)]
+        private void SolicitarBarreraRpc(bool activa) => EstablecerBarreraEnServidor(activa);
+
+        private void EstablecerBarreraEnServidor(bool activa)
+        {
+            if (!IsServer || _characterId != CharacterIds.Zendre || BarreraPerfil == null)
+                return;
+            BarreraActiva.Value =
+                activa
+                && !BarreraBloqueada.Value
+                && Energia.Value > 0f
+                && EstadoVida.Value == PlayerLifeState.Vivo;
+        }
+
+        private void AlCambiarBarrera(bool anterior, bool actual) =>
+            _barreraVisual?.Mostrar(actual);
+
+        public float DistanciaParadaMinionPorBarrera(Vector3 posicionMinion)
+        {
+            if (!IsServer || !BarreraActiva.Value || BarreraPerfil == null)
+                return 0f;
+
+            Vector3 haciaMinion = posicionMinion - transform.position;
+            haciaMinion.y = 0f;
+            Vector3 frente = transform.forward;
+            frente.y = 0f;
+            if (
+                haciaMinion.sqrMagnitude < 0.0001f
+                || frente.sqrMagnitude < 0.0001f
+                || Vector3.Angle(frente, haciaMinion) > BarreraPerfil.FrontArcDegrees * 0.5f
+            )
+                return 0f;
+
+            return BarreraPerfil.VisualForwardOffset
+                + BarreraPerfil.VisualCurveDepth
+                + BarreraPerfil.MinionStandOffDistance;
+        }
+
+        private PlayerRoot BuscarBarreraProtectora(Vector3 origen)
+        {
+            if (!IsServer || NetworkManager == null || NetworkManager.SpawnManager == null)
+                return null;
+            foreach (NetworkObject obj in NetworkManager.SpawnManager.SpawnedObjectsList)
+            {
+                if (
+                    obj == null
+                    || !obj.TryGetComponent(out PlayerRoot protector)
+                    || protector.CharacterId != CharacterIds.Zendre
+                    || !protector.BarreraActiva.Value
+                    || protector.BarreraPerfil == null
+                )
+                    continue;
+                Vector3 haciaAtaque = origen - protector.transform.position;
+                haciaAtaque.y = 0f;
+                Vector3 frente = protector.transform.forward;
+                frente.y = 0f;
+                if (
+                    haciaAtaque.sqrMagnitude < 0.0001f
+                    || frente.sqrMagnitude < 0.0001f
+                    || Vector3.Angle(frente, haciaAtaque)
+                        > protector.BarreraPerfil.FrontArcDegrees * 0.5f
+                )
+                    continue;
+                if (protector == this)
+                    return protector;
+                Vector3 haciaAliado = transform.position - protector.transform.position;
+                haciaAliado.y = 0f;
+                float profundidad = Vector3.Dot(haciaAliado, frente.normalized);
+                float lateral = (haciaAliado - frente.normalized * profundidad).magnitude;
+                if (
+                    haciaAliado.magnitude <= protector.BarreraPerfil.AllyProtectionDepth
+                    && profundidad <= 0.75f
+                    && lateral <= protector.BarreraPerfil.AllyProtectionHalfWidth
+                )
+                    return protector;
+            }
+            return null;
+        }
+
+        private bool MitigarDanioJefe(
+            float cantidad,
+            Vector3 origen,
+            TipoImpactoBarreraJefe tipo,
+            out float danioRestante
+        )
+        {
+            danioRestante = cantidad;
+            if (VulnerablePorCapturaMinion)
+                return false;
+            PlayerRoot protector = BuscarBarreraProtectora(origen);
+            if (protector == null)
+                return false;
+            float danioRestanteConfigurado = tipo switch
+            {
+                TipoImpactoBarreraJefe.Mano => protector.BarreraPerfil.HandDamageWhileShielding,
+                TipoImpactoBarreraJefe.Tentaculo => protector
+                    .BarreraPerfil
+                    .TentacleDamageWhileShielding,
+                TipoImpactoBarreraJefe.Rayo => protector.BarreraPerfil.BeamDamageWhileShielding,
+                TipoImpactoBarreraJefe.Mortero => protector
+                    .BarreraPerfil
+                    .MortarDamageWhileShielding,
+                _ => cantidad * (1f - Mathf.Clamp01(protector.BarreraPerfil.BossDamageReduction)),
+            };
+            danioRestante = Mathf.Clamp(danioRestanteConfigurado, 0f, Mathf.Max(0f, cantidad));
+            if (danioRestante >= cantidad)
+                return false;
+            float interceptado = Mathf.Max(0f, cantidad - danioRestante);
+            if (tipo == TipoImpactoBarreraJefe.Mano)
+                protector.ConsumirPorcentajeBarreraEnServidor(
+                    protector.BarreraPerfil.HandStaminaCostPercent
+                );
+            else if (tipo == TipoImpactoBarreraJefe.Tentaculo)
+                protector.ConsumirPorcentajeBarreraEnServidor(
+                    protector.BarreraPerfil.TentacleStaminaCostPercent
+                );
+            else
+                protector.ConsumirCostoBarreraEnServidor(
+                    interceptado
+                        * Mathf.Max(0f, protector.BarreraPerfil.BossEnergyPerDamageIntercepted)
+                );
+            return true;
+        }
+
+        public bool MitigarGolpeMinion(float cantidad, Vector3 origen)
+        {
+            if (VulnerablePorCapturaMinion)
+                return false;
+            PlayerRoot protector = BuscarBarreraProtectora(origen);
+            if (protector == null)
+                return false;
+            protector.ConsumirPorcentajeBarreraEnServidor(
+                protector.BarreraPerfil.MinionStaminaCostPercent
+            );
+            return true;
+        }
+
+        public void RecibirDanioDelJefe(
+            float cantidad,
+            Vector3 fuente,
+            bool esInstaKill = false,
+            TipoImpactoBarreraJefe tipoBarrera = TipoImpactoBarreraJefe.Otro
+        )
         {
             if (!IsServer || _healthPool == null)
                 return;
 
-            RecibirDanio(cantidad, esInstaKill);
+            bool barreraMitigo = MitigarDanioJefe(
+                cantidad,
+                fuente,
+                tipoBarrera,
+                out float danioRestante
+            );
+            if (!barreraMitigo)
+                RecibirDanio(cantidad, esInstaKill);
+            else if (danioRestante > 0f)
+                RecibirDanio(danioRestante, esInstaKill: false);
+
+            if (barreraMitigo && danioRestante <= 0f)
+                return;
             if (EstaAbatidoOMuerto)
                 return;
 

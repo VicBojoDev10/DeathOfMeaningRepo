@@ -34,6 +34,12 @@ namespace TDOM.Unity.Camera
         private float _pulsoNivel;
         private float _dashNivel;
         private float _alejamiento;
+        private float _alejamientoBarrera;
+        private float _objetivoAlejamientoBarrera;
+        private bool _capturaMinionActiva;
+        private bool _evitarObstaculosAntesDeCaptura;
+        private float _distanciaCamaraCapturaMinion;
+        private float _objetivoDistanciaCamaraCapturaMinion;
         private Coroutine _rutinaAlejamiento;
         private float _dashZoomObjetivo;
         private float _dashZoomInicio;
@@ -121,8 +127,48 @@ namespace TDOM.Unity.Camera
         public void ActualizarEncuadre(bool apuntando, bool atacando, bool corriendo, float dt)
         {
             ActualizarDashCerca(dt);
+            _alejamientoBarrera = Mathf.MoveTowards(
+                _alejamientoBarrera,
+                _objetivoAlejamientoBarrera,
+                dt * 2.8f
+            );
+            if (_capturaMinionActiva)
+                _distanciaCamaraCapturaMinion = Mathf.MoveTowards(
+                    _distanciaCamaraCapturaMinion,
+                    _objetivoDistanciaCamaraCapturaMinion,
+                    dt * 5f
+                );
             _stances.Tick(apuntando, atacando, corriendo, dt);
             AplicarEncuadre();
+        }
+
+        public void SetBarreraActiva(bool activa, float distanciaExtra) =>
+            _objetivoAlejamientoBarrera = activa ? Mathf.Max(0f, distanciaExtra) : 0f;
+
+        public void SetCapturaMinionActiva(bool activa, float distanciaExtra)
+        {
+            if (activa == _capturaMinionActiva)
+                return;
+
+            _capturaMinionActiva = activa;
+            if (!activa || _seguimiento == null)
+            {
+                if (!activa && _seguimiento != null)
+                {
+                    var obstacles = _seguimiento.AvoidObstacles;
+                    obstacles.Enabled = _evitarObstaculosAntesDeCaptura;
+                    _seguimiento.AvoidObstacles = obstacles;
+                }
+                return;
+            }
+
+            var ajustesObstaculos = _seguimiento.AvoidObstacles;
+            _evitarObstaculosAntesDeCaptura = ajustesObstaculos.Enabled;
+            ajustesObstaculos.Enabled = false;
+            _seguimiento.AvoidObstacles = ajustesObstaculos;
+            _distanciaCamaraCapturaMinion = _seguimiento.CameraDistance;
+            _objetivoDistanciaCamaraCapturaMinion =
+                _distanciaCamaraCapturaMinion + Mathf.Max(0f, distanciaExtra);
         }
 
         public void RegistrarDesplazamientoLateral(Vector2 movimientoRelativoACamara)
@@ -140,15 +186,22 @@ namespace TDOM.Unity.Camera
                 return;
 
             float acercamientoDash = _dashNivel * _dashZoomAmount;
-            _seguimiento.CameraDistance =
-                encuadre.Distance
-                + (_pulsoNivel * DistanciaPulso())
-                + _alejamiento
-                - acercamientoDash;
             _seguimiento.CameraSide = _stances.CameraSide;
             Vector3 hombro = _seguimiento.ShoulderOffset;
             hombro.x = encuadre.ShoulderOffset;
             _seguimiento.ShoulderOffset = hombro;
+            if (_capturaMinionActiva)
+            {
+                _seguimiento.CameraDistance = _distanciaCamaraCapturaMinion;
+                return;
+            }
+
+            _seguimiento.CameraDistance =
+                encuadre.Distance
+                + (_pulsoNivel * DistanciaPulso())
+                + _alejamiento
+                + _alejamientoBarrera
+                - acercamientoDash;
         }
 
         private static CameraStanceSettings CrearAjustes(ThirdPersonCameraConfig config)
@@ -358,7 +411,9 @@ namespace TDOM.Unity.Camera
 
             var lente = _camara.Lens;
             lente.FieldOfView =
-                _stances.Framing.FieldOfView + _fovExtra + (_pulsoNivel * FovPulso());
+                _capturaMinionActiva && _config != null
+                    ? _config.Exploration.FieldOfView
+                    : _stances.Framing.FieldOfView + _fovExtra + (_pulsoNivel * FovPulso());
             lente.Dutch = _dutchBase + _dutchExtra;
             _camara.Lens = lente;
         }

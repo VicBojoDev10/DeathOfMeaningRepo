@@ -107,17 +107,25 @@ namespace TDOM.Unity.Combat
                     {
                         if (!jugador.EstaAbatidoOMuerto)
                         {
-                            jugador.AplicarDanioEnServidor(_daño);
-                            if (_detenerDurantePausaGlobal)
+                            // Usamos la dirección real de vuelo: los tiradores de plataformas
+                            // pueden estar elevados o desplazarse con una plataforma giratoria.
+                            bool bloqueadoPorBarrera = jugador.MitigarGolpeMinion(
+                                _daño,
+                                pos - _direccion
+                            );
+                            if (!bloqueadoPorBarrera)
+                                jugador.AplicarDanioEnServidor(_daño);
+                            if (_detenerDurantePausaGlobal && !bloqueadoPorBarrera)
                                 jugador.EmpujarDesdeServidor(
                                     _direccion,
                                     DistanciaEmpujeMinion,
                                     altura: 0f,
                                     duracion: DuracionEmpujeMinion
                                 );
-                            Debug.Log(
-                                $"[Proyectil] Daño de {_daño:F1} aplicado al jugador {jugador.OwnerClientId}."
-                            );
+                            if (!bloqueadoPorBarrera)
+                                Debug.Log(
+                                    $"[Proyectil] Daño de {_daño:F1} aplicado al jugador {jugador.OwnerClientId}."
+                                );
                         }
                         DespawnProyectil();
                         return;
@@ -140,6 +148,17 @@ namespace TDOM.Unity.Combat
                 if (hz == null)
                 {
                     hz = hit.collider.GetComponentInParent<HitZone>();
+                }
+
+                DianaDisparoZendre diana = hit.collider.GetComponentInParent<DianaDisparoZendre>();
+                if (!_atacanteEsAyla && diana != null)
+                {
+                    diana.RecibirDisparoZendre(_daño);
+                    Debug.Log(
+                        $"[Proyectil] DianaZendre recibió {_daño:F1} de daño del disparo de Zendre."
+                    );
+                    DespawnProyectil();
+                    return;
                 }
 
                 if (hz != null)
