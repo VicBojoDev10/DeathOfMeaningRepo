@@ -14925,6 +14925,48 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.ParedMeleeAyla
   ShowTopMostFoldoutHeaderGroup: 1
   _vidaMaxima: 100
+--- !u!114 &3800000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 152955309251985626}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 124316269
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  m_InScenePlacedDisabledByDefault: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  m_InScenePlaced: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &3800000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 152955309251985626}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9e90265d2794a68b2e30100d8baf624, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.DianaDisparoZendre
+  ShowTopMostFoldoutHeaderGroup: 1
+  _vidaMaxima: 100
+  _muroDisparoZendre: {fileID: 366455555129174974}
 --- !u!1 &20047645419746790
 GameObject:
   m_ObjectHideFlags: 0
@@ -15038,7 +15080,7 @@ Transform:
   m_GameObject: {fileID: 7917349903575667493}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -30.5919, y: -6.8, z: 1.23}
+  m_LocalPosition: {x: -30.5919, y: 1.8, z: 1.23}
   m_LocalScale: {x: 79.83, y: 69.42, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -15844,7 +15886,7 @@ Transform:
   m_GameObject: {fileID: 1574869081490681404}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -50.25288, y: -35.32406, z: -13.331602}
+  m_LocalPosition: {x: -50.25288, y: -24.3, z: -13.331602}
   m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -17320,6 +17362,7 @@ GameObject:
   - component: {fileID: 666369312807594032}
   - component: {fileID: 3418485909749639132}
   - component: {fileID: 976723958807542903}
+  - component: {fileID: 3418485909749639133}
   m_Layer: 0
   m_Name: Cube.044
   m_TagString: Untagged
@@ -19307,7 +19350,7 @@ Transform:
   m_GameObject: {fileID: 26844663664309848}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: 33.735165, y: -23.467062, z: 33.7}
+  m_LocalPosition: {x: 33.735165, y: -12.4, z: 33.7}
   m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -19686,6 +19729,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1574869081490681404}
   m_Mesh: {fileID: 3925360246919112806, guid: 1c3a6165ef92a24429f6d37e1658da73, type: 3}
+--- !u!65 &3418485909749639133
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1574869081490681404}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.14277488, y: 0.118445314, z: 0.019999996}
+  m_Center: {x: 0.87192726, y: -0.26961103, z: -0.020119168}
 --- !u!4 &3431241830104381758
 Transform:
   m_ObjectHideFlags: 0
@@ -20978,7 +21042,7 @@ Transform:
   m_GameObject: {fileID: 7178114114409873721}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -52.352264, y: -25.052084, z: 0}
+  m_LocalPosition: {x: -52.352264, y: -12.1, z: -0}
   m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -22426,7 +22490,7 @@ Transform:
   m_GameObject: {fileID: 5340517178135283987}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 85.1, y: -157.1, z: 0}
+  m_LocalPosition: {x: 85.1, y: -100.7, z: 0}
   m_LocalScale: {x: 1400.0001, y: 20.000002, z: 1400.0001}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -27738,47 +27802,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2753750079563669386}
   m_Mesh: {fileID: -1029678923589987985, guid: 1c3a6165ef92a24429f6d37e1658da73, type: 3}
---- !u!114 &3800000001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 152955309251985626}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3800000001
-  InScenePlacedSourceGlobalObjectIdHash: 0
-  m_InScenePlacedDisabledByDefault: 0
-  DeferredDespawnTick: 0
-  Ownership: 1
-  AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
-  m_InScenePlaced: 1
-  ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 0
-  SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
-  SyncOwnerTransformWhenParented: 1
-  AllowOwnerToParent: 0
---- !u!114 &3800000002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 152955309251985626}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c9e90265d2794a68b2e30100d8baf624, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.DianaDisparoZendre
-  _vidaMaxima: 100
-  _muroDisparoZendre: {fileID: 366455555129174974}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
