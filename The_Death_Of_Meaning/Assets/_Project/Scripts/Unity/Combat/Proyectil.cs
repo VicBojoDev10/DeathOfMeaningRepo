@@ -145,6 +145,17 @@ namespace TDOM.Unity.Combat
                     hz = hit.collider.GetComponentInParent<HitZone>();
                 }
 
+                DianaDisparoZendre diana = hit.collider.GetComponentInParent<DianaDisparoZendre>();
+                if (!_atacanteEsAyla && diana != null)
+                {
+                    diana.RecibirDisparoZendre(_daño);
+                    Debug.Log(
+                        $"[Proyectil] DianaZendre recibió {_daño:F1} de daño del disparo de Zendre."
+                    );
+                    DespawnProyectil();
+                    return;
+                }
+
                 if (hz != null)
                 {
                     hit.collider.GetComponentInParent<AtaquesArek>()?.RegistrarImpacto(_atacanteId);

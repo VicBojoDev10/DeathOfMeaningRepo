@@ -387,8 +387,12 @@ namespace TDOM.Unity
             ArenaEncounterNetwork.Instance?.ReiniciarServidor();
 
             foreach (var objeto in NetworkManager.SpawnManager.SpawnedObjectsList)
+            {
                 if (objeto != null && objeto.TryGetComponent(out ParedMeleeAyla pared))
                     pared.RestaurarAlReiniciarPartida();
+                if (objeto != null && objeto.TryGetComponent(out DianaDisparoZendre diana))
+                    diana.RestaurarAlReiniciarPartida();
+            }
 
             PauseManager.Instance?.RestablecerResultadoDesdeServidor();
             LimpiarMinionsEnServidor();
