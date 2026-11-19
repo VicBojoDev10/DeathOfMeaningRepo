@@ -75,6 +75,15 @@ namespace TDOM.Unity.Camera
         public void OnDobleSalto()
         {
             _cameraRig.Tilt(_config.dobleSaltoTilt, _config.dobleSaltoTiltDuracion);
+            float efectos = Mathf.Clamp01(_config.multiplicadorEfectosCamara);
+            if (_config.dobleSaltoAlejamiento > 0f)
+                _cameraRig.AlejarCamara(
+                    _config.dobleSaltoAlejamiento * efectos,
+                    _config.dobleSaltoAlejamientoSubida,
+                    _config.dobleSaltoAlejamientoSostener,
+                    _config.dobleSaltoAlejamientoBajada,
+                    _config.dobleSaltoAlejamientoCurva
+                );
             RegistrarAccionCamara(_config.dobleSaltoTiltDuracion);
             Rumble(
                 _config.dobleSaltoRumbleBajo,

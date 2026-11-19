@@ -31,18 +31,37 @@ namespace TDOM.Unity
 
         private void Awake()
         {
+            HacerIndependienteDelHud(_slider != null ? _slider.gameObject : null);
+            HacerIndependienteDelHud(_grupoNombre != null ? _grupoNombre.gameObject : null);
+
             _revelacion.Mostrada += AlMostrarseBarra;
             _revelacion.Ocultada += AlOcultarseBarra;
             AlOcultarseBarra();
         }
 
+        private static void HacerIndependienteDelHud(GameObject elemento)
+        {
+            if (elemento == null)
+                return;
+
+            var grupo = elemento.GetComponent<CanvasGroup>();
+            if (grupo == null)
+                grupo = elemento.AddComponent<CanvasGroup>();
+
+            grupo.ignoreParentGroups = true;
+            grupo.interactable = false;
+            grupo.blocksRaycasts = false;
+        }
+
         private void OnEnable()
         {
+            BossController.Despawned += AlDespawnearJefe;
             BossController.ObservarJefe(NetworkManager.Singleton, AlSpawnearJefe);
         }
 
         private void OnDisable()
         {
+            BossController.Despawned -= AlDespawnearJefe;
             BossController.DejarDeObservarJefe(AlSpawnearJefe);
             DesuscribirJefe();
         }
@@ -68,6 +87,12 @@ namespace TDOM.Unity
             ActualizarVida(_jefe.Vida.Value);
             MostrarNombre(_jefe.Nombre);
             _revelacion.RegistrarJefe();
+        }
+
+        private void AlDespawnearJefe(BossController jefe)
+        {
+            if (_jefe == jefe)
+                DesuscribirJefe();
         }
 
         private void DesuscribirJefe()

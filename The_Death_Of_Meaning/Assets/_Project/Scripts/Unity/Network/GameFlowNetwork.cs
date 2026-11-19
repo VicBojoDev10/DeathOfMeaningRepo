@@ -10,6 +10,7 @@ namespace TDOM.Unity
         public static event Action Spawned;
         public static GameFlowNetwork Instance { get; private set; }
         public event Action OnCharacterSelectionStarted;
+        public event Action OnReturnToConnectionRequested;
 
         public override void OnNetworkSpawn()
         {
@@ -40,6 +41,21 @@ namespace TDOM.Unity
             StartMatchClientRpc();
         }
 
+        public void SolicitarRegresoAConexion()
+        {
+            if (IsSpawned)
+                SolicitarRegresoAConexionRpc();
+        }
+
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+        private void SolicitarRegresoAConexionRpc()
+        {
+            if (!IsServer || GameSessionManager.Instance?.PartidaIniciadaEnServidor == true)
+                return;
+
+            RegresarAConexionClientRpc();
+        }
+
         public void CargarEscenaEnRed(string nombreEscena)
         {
             if (!IsServer || NetworkManager.SceneManager == null)
@@ -52,6 +68,12 @@ namespace TDOM.Unity
         private void StartMatchClientRpc()
         {
             OnCharacterSelectionStarted?.Invoke();
+        }
+
+        [ClientRpc]
+        private void RegresarAConexionClientRpc()
+        {
+            OnReturnToConnectionRequested?.Invoke();
         }
 
         public void SolicitarReinicioDePartida()

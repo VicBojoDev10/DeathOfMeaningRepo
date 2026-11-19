@@ -29,6 +29,13 @@ namespace TDOM.Data
         [Tooltip("Segundos finales del aviso en los que el área queda encendida fija al máximo.")]
         public float tramoFijoFinal = 0.2f;
 
+        [Header("Legibilidad")]
+        [Tooltip(
+            "Segundos mínimos que dura un aviso cuando la fase acelera los ataques. 0 desactiva el límite."
+        )]
+        [Min(0f)]
+        public float duracionMinimaAviso = 0.8f;
+
         [Header("Borde")]
         [Tooltip("Ancho del borde brillante, como fracción del área (0 a 0.5).")]
         [Range(0.01f, 0.5f)]
