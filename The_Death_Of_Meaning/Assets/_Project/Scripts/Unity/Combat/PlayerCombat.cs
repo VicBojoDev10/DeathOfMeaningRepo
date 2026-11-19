@@ -1347,7 +1347,7 @@ namespace TDOM.Unity.Combat
             if (
                 tipo == TipoImpactoOjo.Melee
                 && _definition != null
-                && _definition.DisplayName == "Ayla"
+                && (_definition.DisplayName == "Ayla" || _definition.DisplayName == "Zendre")
                 && obj.TryGetComponent(out ParedMeleeAyla pared)
             )
             {

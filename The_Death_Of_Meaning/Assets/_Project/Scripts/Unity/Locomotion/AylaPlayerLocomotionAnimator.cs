@@ -423,7 +423,7 @@ namespace TDOM.Unity
 
             Vector3 pos = transform.position;
             Vector3 desplazamiento = pos - _ultimaPos;
-            PlataformaCircular plataforma =
+            PlataformaMovil plataforma =
                 _playerMotor != null ? _playerMotor.PlataformaActual : null;
             if (plataforma != null)
                 desplazamiento -= plataforma.FrameDelta;
