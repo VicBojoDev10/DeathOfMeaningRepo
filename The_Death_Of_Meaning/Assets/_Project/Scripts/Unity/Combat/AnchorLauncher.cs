@@ -14,6 +14,7 @@ namespace TDOM.Unity.Combat
         private const float RetrasoLanzamiento = .7f;
 
         public bool AnclaActiva { get; internal set; }
+        public bool MinionCapturado => _minionCapturadoId.Value != 0;
 
         [SerializeField]
         private AnchorProfile _perfil;
@@ -43,6 +44,13 @@ namespace TDOM.Unity.Combat
         private VfxDisparoSostenido _vfxAnclaSostenido;
         private bool _usoAnclaServidor;
         private float _energiaGastadaUsoServidor;
+        private readonly NetworkVariable<ulong> _minionCapturadoId = new(
+            0,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+        private float _tiempoCapturaServidor;
+        private float _velocidadGiroActual;
 
         public void EstablecerIncapacitado(bool incapacitado)
         {
@@ -51,7 +59,11 @@ namespace TDOM.Unity.Combat
                 return;
 
             if (IsServer)
+            {
                 _usoAnclaServidor = false;
+                if (_minionCapturadoId.Value != 0)
+                    LiberarMinionServidor(transform.forward);
+            }
 
             AnclaActiva = false;
             _esperandoSoltar = true;
@@ -65,7 +77,11 @@ namespace TDOM.Unity.Combat
         public void CancelarPorGolpe()
         {
             if (IsServer)
+            {
                 _usoAnclaServidor = false;
+                if (_minionCapturadoId.Value != 0)
+                    LiberarMinionServidor(transform.forward);
+            }
             AnclaActiva = false;
             _esperandoSoltar = true;
             _lanzamientoPendiente = false;
@@ -136,7 +152,10 @@ namespace TDOM.Unity.Combat
                 return;
 
             if (IsServer)
+            {
                 ActualizarConsumoAnclaServidor(Time.deltaTime);
+                ActualizarMinionCapturadoServidor(Time.deltaTime);
+            }
 
             if (!IsOwner || _incapacitado || _perfil == null)
                 return;
@@ -145,6 +164,16 @@ namespace TDOM.Unity.Combat
 
             var input = _input.Read();
             bool holdingL2R1 = input.AimHeld && input.GrappleHeld;
+
+            if (_minionCapturadoId.Value != 0)
+            {
+                if (!holdingL2R1)
+                {
+                    SoltarMinionRpc();
+                    return;
+                }
+                return;
+            }
 
             if (holdingL2R1 && !_root.AtaqueActivo && !AnclaActiva && !_esperandoSoltar)
             {
@@ -182,6 +211,91 @@ namespace TDOM.Unity.Combat
             {
                 _esperandoSoltar = false;
             }
+        }
+
+        public float AvanzarGiroMinion(float dt)
+        {
+            if (!IsOwner || !MinionCapturado || _perfil == null)
+                return 0f;
+            _velocidadGiroActual = Mathf.Min(
+                Mathf.Max(0f, _perfil.VelocidadGiroMaximaMinion),
+                _velocidadGiroActual + Mathf.Max(0f, _perfil.AceleracionGiroMinion) * dt
+            );
+            return _velocidadGiroActual * dt;
+        }
+
+        public void IntentarCapturarMinion(MinionController minion)
+        {
+            if (!IsServer || minion == null || _perfil == null || _minionCapturadoId.Value != 0)
+                return;
+            if (!minion.AgarrarPorZendre(transform, _perfil))
+                return;
+            _minionCapturadoId.Value = minion.NetworkObjectId;
+            _tiempoCapturaServidor = 0f;
+            _velocidadGiroActual = Mathf.Max(0f, _perfil.VelocidadGiroMinion);
+            _root?.ActivarVulnerabilidadCapturaMinion(1f);
+        }
+
+        public void IntentarCapturarMinion(SniperMinionController minion)
+        {
+            if (!IsServer || minion == null || _perfil == null || _minionCapturadoId.Value != 0)
+                return;
+            if (!minion.AgarrarPorZendre(transform, _perfil))
+                return;
+            _minionCapturadoId.Value = minion.NetworkObjectId;
+            _tiempoCapturaServidor = 0f;
+            _velocidadGiroActual = Mathf.Max(0f, _perfil.VelocidadGiroMinion);
+            _root?.ActivarVulnerabilidadCapturaMinion(1f);
+        }
+
+        private void ActualizarMinionCapturadoServidor(float dt)
+        {
+            if (_minionCapturadoId.Value == 0)
+                return;
+            if (
+                NetworkManager?.SpawnManager == null
+                || !NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(
+                    _minionCapturadoId.Value,
+                    out var capturado
+                )
+                || capturado == null
+                || capturado.GetComponent<MinionController>()?.EstaMuerto == true
+                || capturado.GetComponent<SniperMinionController>()?.EstaMuerto == true
+            )
+            {
+                _minionCapturadoId.Value = 0;
+                _tiempoCapturaServidor = 0f;
+                return;
+            }
+            _tiempoCapturaServidor += dt;
+            if (_tiempoCapturaServidor < Mathf.Max(0.1f, _perfil.TiempoMaximoGiroMinion))
+                return;
+            LiberarMinionServidor(transform.forward);
+        }
+
+        [Rpc(SendTo.Server)]
+        private void SoltarMinionRpc() => LiberarMinionServidor(transform.forward);
+
+        private void LiberarMinionServidor(Vector3 direccion)
+        {
+            if (!IsServer || _minionCapturadoId.Value == 0)
+                return;
+            ulong id = _minionCapturadoId.Value;
+            if (
+                NetworkManager?.SpawnManager != null
+                && NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(id, out var obj)
+            )
+            {
+                var normal = obj.GetComponent<MinionController>();
+                var sniper = obj.GetComponent<SniperMinionController>();
+                if (normal != null)
+                    normal.SoltarPorZendre(direccion);
+                else if (sniper != null)
+                    sniper.SoltarPorZendre(direccion);
+            }
+            _minionCapturadoId.Value = 0;
+            _tiempoCapturaServidor = 0f;
+            _velocidadGiroActual = 0f;
         }
 
         private void LanzarVfxAncla(Vector3 direccion)
