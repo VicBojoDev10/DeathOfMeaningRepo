@@ -12,6 +12,9 @@ namespace TDOM.Unity
 {
     public class AtaqueRayo : AtaqueArekBase
     {
+        private const int SegmentosVisualesRayo = 32;
+        private const float FrecuenciaCentelleo = 24f;
+
         [Header("Origen")]
         [SerializeField]
         private Transform _boca;
@@ -25,6 +28,9 @@ namespace TDOM.Unity
 
         [SerializeField]
         private Material _materialRayo;
+
+        [SerializeField]
+        private AtaqueRayoVfxProfile _perfilVfx;
 
         private enum FaseRayo
         {
@@ -47,6 +53,14 @@ namespace TDOM.Unity
 
         private readonly List<GameObject> _franjas = new List<GameObject>();
         private readonly List<LineRenderer> _rayos = new List<LineRenderer>();
+        private readonly List<LineRenderer> _halos = new List<LineRenderer>();
+        private readonly Vector3[] _posicionesNucleo = new Vector3[SegmentosVisualesRayo + 1];
+        private readonly Vector3[] _posicionesHalo = new Vector3[SegmentosVisualesRayo + 1];
+        private Material _materialNucleoRuntime;
+        private Material _materialHaloRuntime;
+        private readonly List<ParticleSystem> _particulasImpacto = new List<ParticleSystem>();
+        private readonly List<MeshFilter> _mallasRayo = new List<MeshFilter>();
+        private readonly List<MeshRenderer> _renderersMallaRayo = new List<MeshRenderer>();
         public void AsignarBoca(Transform boca)
         {
             _boca = boca;
@@ -299,9 +313,20 @@ namespace TDOM.Unity
             {
                 LineRenderer rayo = _rayos[i];
                 rayo.enabled = true;
-                Vector3 inicio = new Vector3(_origenServidor.x, _finalesServidor[i].y, _origenServidor.z);
-                rayo.SetPosition(0, inicio);
-                rayo.SetPosition(1, inicio);
+                _halos[i].enabled = true;
+                _renderersMallaRayo[i].enabled = _perfilVfx != null && _perfilVfx.materialMesh != null;
+                Vector3 inicio = ObtenerInicioVisual(i);
+                for (int punto = 0; punto <= SegmentosVisualesRayo; punto++)
+                    _posicionesNucleo[punto] = _posicionesHalo[punto] = inicio;
+                rayo.SetPositions(_posicionesNucleo);
+                _halos[i].SetPositions(_posicionesHalo);
+                if (_perfilVfx != null && _perfilVfx.particulasImpacto != null)
+                {
+                    var particulas = Instantiate(_perfilVfx.particulasImpacto, ObtenerFinalVisual(i), Quaternion.identity, transform);
+                    particulas.transform.localScale *= _perfilVfx.escalaParticulas;
+                    particulas.Play();
+                    _particulasImpacto.Add(particulas);
+                }
             }
         }
 
@@ -310,12 +335,65 @@ namespace TDOM.Unity
             if (_fase != FaseRayo.Activo || _rayos.Count == 0 || _finalesServidor == null)
                 return;
             float progreso = Mathf.Clamp01((float)((NetworkManager.ServerTime.Time - _inicioRecorridoServidor) / System.Math.Max(0.01, _duracionRecorrido)));
+            float tiempoServidor = (float)NetworkManager.ServerTime.Time;
             for (int i = 0; i < _rayos.Count; i++)
             {
                 if (_rayos[i] == null) continue;
-                Vector3 inicio = new Vector3(_origenServidor.x, _finalesServidor[i].y, _origenServidor.z);
-                _rayos[i].SetPosition(0, inicio);
-                _rayos[i].SetPosition(1, Vector3.Lerp(inicio, _finalesServidor[i], progreso));
+                Vector3 inicio = ObtenerInicioVisual(i);
+                Vector3 finalVisible = Vector3.Lerp(inicio, ObtenerFinalVisual(i), progreso);
+                Vector3 direccion = finalVisible - inicio;
+                Vector3 lateral = Vector3.Cross(Vector3.up, direccion).normalized;
+                float semilla = (NetworkObjectId % 65521UL) + i * 173.37f;
+                float tiempoMuestreo = Mathf.Floor(tiempoServidor * FrecuenciaCentelleo) * 0.173f;
+                float pulso = Mathf.Lerp(
+                    0.62f,
+                    1f,
+                    Mathf.PerlinNoise(semilla + 29.1f, tiempoServidor * FrecuenciaCentelleo)
+                );
+                float intensidadRecorrido = Mathf.Clamp01(progreso * 2f);
+
+                for (int punto = 0; punto <= SegmentosVisualesRayo; punto++)
+                {
+                    float t = (float)punto / SegmentosVisualesRayo;
+                    Vector3 posicion = Vector3.Lerp(inicio, finalVisible, t);
+                    if (punto > 0 && punto < SegmentosVisualesRayo)
+                    {
+                        float envolvente = Mathf.Sin(Mathf.PI * t);
+                        float ruidoLateral = Mathf.PerlinNoise(
+                            semilla + punto * 0.419f * (_perfilVfx != null ? _perfilVfx.frecuenciaForma : 1f),
+                            tiempoMuestreo
+                        ) * 2f - 1f;
+                        float ruidoVertical = Mathf.PerlinNoise(
+                            semilla + 61.7f + punto * 0.283f,
+                            tiempoMuestreo
+                        );
+                        posicion +=
+                            lateral
+                            * ruidoLateral
+                            * Mathf.Min(_perfil.diametro * (_perfilVfx != null ? _perfilVfx.amplitudOndulacion : 0.12f) * (_perfilVfx != null ? _perfilVfx.formaOndulada : 1f), 0.65f)
+                            * envolvente
+                            * intensidadRecorrido;
+                        posicion +=
+                            Vector3.up
+                            * (ruidoVertical - 0.5f)
+                            * (_perfilVfx != null ? _perfilVfx.ondulacionVertical : 0.7f)
+                            * envolvente
+                            * intensidadRecorrido;
+                    }
+
+                    _posicionesNucleo[punto] = posicion;
+                    _posicionesHalo[punto] = posicion;
+                }
+
+                _rayos[i].SetPositions(_posicionesNucleo);
+                _halos[i].SetPositions(_posicionesHalo);
+                ActualizarMallaRayo(i, _posicionesNucleo);
+                var colorNucleo = Color.white;
+                colorNucleo.a = pulso;
+                _rayos[i].startColor = _rayos[i].endColor = colorNucleo;
+                var colorHalo = Color.white;
+                colorHalo.a = pulso * 0.72f;
+                _halos[i].startColor = _halos[i].endColor = colorHalo;
             }
         }
 
@@ -333,14 +411,19 @@ namespace TDOM.Unity
             _fase = FaseRayo.Retirada;
             foreach (var rayo in _rayos)
                 rayo.enabled = false;
+            foreach (var halo in _halos)
+                halo.enabled = false;
+            foreach (var meshRenderer in _renderersMallaRayo)
+                meshRenderer.enabled = false;
 
             foreach (var franja in _franjas)
                 franja.SetActive(false);
         }
         private GameObject CrearFranja(Vector3 origen, Vector3 final)
         {
-            Vector3 inicio = new Vector3(origen.x, final.y, origen.z);
-            Vector3 recorrido = final - inicio;
+            Vector3 inicio = new Vector3(origen.x, final.y, origen.z) + Vector3.up * DesplazamientoVisualY;
+            Vector3 finalVisual = final + Vector3.up * DesplazamientoVisualY;
+            Vector3 recorrido = finalVisual - inicio;
 
             var franja = GameObject.CreatePrimitive(PrimitiveType.Cube);
             franja.name = "FranjaAviso";
@@ -360,33 +443,157 @@ namespace TDOM.Unity
 
             return franja;
         }
+        private float DesplazamientoVisualY => _perfilVfx != null ? _perfilVfx.desplazamientoVisualY : 0f;
+
+        private Vector3 ObtenerInicioVisual(int indice)
+        {
+            return new Vector3(_origenServidor.x, _finalesServidor[indice].y, _origenServidor.z)
+                + Vector3.up * DesplazamientoVisualY;
+        }
+
+        private Vector3 ObtenerFinalVisual(int indice)
+        {
+            return _finalesServidor[indice] + Vector3.up * DesplazamientoVisualY;
+        }
+
         private LineRenderer CrearRayo(Vector3 origen, Vector3 final)
         {
-            var objetoRayo = new GameObject("Rayo");
-            objetoRayo.transform.SetParent(transform, false);
+            if (_materialNucleoRuntime == null)
+                _materialNucleoRuntime = CrearMaterialRayo(_perfilVfx != null ? _perfilVfx.materialNucleo : _materialRayo,
+                    _perfilVfx != null ? _perfilVfx.colorNucleo : new Color(1.8f, 2.4f, 3f, 1f));
+            if (_materialHaloRuntime == null)
+                _materialHaloRuntime = CrearMaterialRayo(_perfilVfx != null ? _perfilVfx.materialHalo : _materialRayo,
+                    _perfilVfx != null ? _perfilVfx.colorHalo : new Color(2.2f, 1.05f, 0.18f, 0.85f));
 
-            var linea = objetoRayo.AddComponent<LineRenderer>();
-            linea.useWorldSpace = true;
-            linea.positionCount = 2;
-            linea.SetPosition(0, origen);
-            linea.SetPosition(1, final);
-            linea.startWidth = _perfil.diametro;
-            linea.endWidth = _perfil.diametro;
+            var objetoHalo = new GameObject("RayoHalo");
+            objetoHalo.transform.SetParent(transform, false);
+            var halo = ConfigurarLinea(
+                objetoHalo,
+                _materialHaloRuntime,
+                Mathf.Clamp(_perfil.diametro * (_perfilVfx != null ? _perfilVfx.anchoHalo : 0.13f), 0.01f, 8f),
+                origen
+            );
+            _halos.Add(halo);
 
-            if (_materialRayo != null)
-            {
-                linea.sharedMaterial = _materialRayo;
-            }
-            else
-            {
-                var shader = Shader.Find("Universal Render Pipeline/Unlit");
-                if (shader == null)
-                    shader = Shader.Find("Sprites/Default");
-                if (shader != null)
-                    linea.material = new Material(shader) { color = new Color(1f, 0.85f, 0.2f) };
-            }
+            var objetoMalla = new GameObject("RayoMallaAllIn");
+            objetoMalla.transform.SetParent(transform, false);
+            var meshFilter = objetoMalla.AddComponent<MeshFilter>();
+            var meshRenderer = objetoMalla.AddComponent<MeshRenderer>();
+            meshRenderer.sharedMaterial = _perfilVfx != null ? _perfilVfx.materialMesh : null;
+            meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            meshRenderer.receiveShadows = false;
+            meshRenderer.enabled = false;
+            meshFilter.sharedMesh = new Mesh { name = "RayoDinamico" };
+            _mallasRayo.Add(meshFilter);
+            _renderersMallaRayo.Add(meshRenderer);
 
+            var objetoNucleo = new GameObject("RayoNucleo");
+            objetoNucleo.transform.SetParent(transform, false);
+            var linea = ConfigurarLinea(
+                objetoNucleo,
+                _materialNucleoRuntime,
+                Mathf.Clamp(_perfil.diametro * (_perfilVfx != null ? _perfilVfx.anchoNucleo : 0.026f), 0.01f, 8f),
+                origen
+            );
             linea.enabled = false;
+            halo.enabled = false;
+            return linea;
+        }
+
+        private void ActualizarMallaRayo(int indice, Vector3[] centro)
+        {
+            if (_perfilVfx == null || _perfilVfx.materialMesh == null || indice >= _mallasRayo.Count)
+                return;
+
+            Mesh mesh = _mallasRayo[indice].sharedMesh;
+            var vertices = new Vector3[(SegmentosVisualesRayo + 1) * 2];
+            var normales = new Vector3[vertices.Length];
+            var uv = new Vector2[vertices.Length];
+            var triangulos = new int[SegmentosVisualesRayo * 12];
+            Vector3 camara = UnityEngine.Camera.main != null
+                ? UnityEngine.Camera.main.transform.position
+                : centro[0] + Vector3.up * 10f;
+            float ancho = Mathf.Max(0f, _perfilVfx.anchoMesh);
+
+            for (int p = 0; p <= SegmentosVisualesRayo; p++)
+            {
+                Vector3 tangente = p == SegmentosVisualesRayo ? centro[p] - centro[p - 1] : centro[p + 1] - centro[p];
+                Vector3 anchoDir = Vector3.Cross(tangente.normalized, (camara - centro[p]).normalized).normalized;
+                if (anchoDir.sqrMagnitude < 0.001f)
+                    anchoDir = Vector3.Cross(tangente.normalized, Vector3.up).normalized;
+                float t = (float)p / SegmentosVisualesRayo;
+                float taper = Mathf.Sin(t * Mathf.PI * 0.5f);
+                vertices[p * 2] = centro[p] - anchoDir * (ancho * taper);
+                vertices[p * 2 + 1] = centro[p] + anchoDir * (ancho * taper);
+                Vector3 normal = Vector3.Cross(tangente.normalized, anchoDir).normalized;
+                normales[p * 2] = normales[p * 2 + 1] = normal;
+                uv[p * 2] = new Vector2(0f, t);
+                uv[p * 2 + 1] = new Vector2(1f, t);
+                if (p < SegmentosVisualesRayo)
+                {
+                    int ti = p * 12;
+                    int vi = p * 2;
+                    triangulos[ti] = vi; triangulos[ti + 1] = vi + 2; triangulos[ti + 2] = vi + 1;
+                    triangulos[ti + 3] = vi + 1; triangulos[ti + 4] = vi + 2; triangulos[ti + 5] = vi + 3;
+                    triangulos[ti + 6] = vi + 1; triangulos[ti + 7] = vi + 2; triangulos[ti + 8] = vi;
+                    triangulos[ti + 9] = vi + 3; triangulos[ti + 10] = vi + 2; triangulos[ti + 11] = vi + 1;
+                }
+            }
+
+            mesh.Clear();
+            mesh.vertices = vertices;
+            mesh.normals = normales;
+            mesh.uv = uv;
+            mesh.triangles = triangulos;
+            mesh.RecalculateBounds();
+            _renderersMallaRayo[indice].enabled = true;
+        }
+
+        private Material CrearMaterialRayo(Material materialBase, Color color)
+        {
+            Shader shader =
+                materialBase != null
+                    ? materialBase.shader
+                    : Shader.Find("Universal Render Pipeline/Unlit");
+            if (shader == null)
+                shader = Shader.Find("Sprites/Default");
+            if (shader == null)
+                return null;
+
+            var material = materialBase != null ? new Material(materialBase) : new Material(shader);
+            if (material.HasProperty("_BaseColor"))
+                material.SetColor("_BaseColor", color);
+            if (material.HasProperty("_Color"))
+                material.SetColor("_Color", color);
+            if (material.HasProperty("_EmissionColor"))
+            {
+                material.EnableKeyword("_EMISSION");
+                material.SetColor("_EmissionColor", color * 1.5f);
+            }
+            return material;
+        }
+
+        private static LineRenderer ConfigurarLinea(
+            GameObject objeto,
+            Material material,
+            float ancho,
+            Vector3 posicionInicial
+        )
+        {
+            var linea = objeto.AddComponent<LineRenderer>();
+            linea.useWorldSpace = true;
+            linea.alignment = LineAlignment.View;
+            linea.textureMode = LineTextureMode.Stretch;
+            linea.positionCount = SegmentosVisualesRayo + 1;
+            linea.startWidth = ancho;
+            linea.endWidth = ancho;
+            linea.numCapVertices = 2;
+            linea.numCornerVertices = 2;
+            linea.sharedMaterial = material;
+            linea.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            linea.receiveShadows = false;
+            for (int punto = 0; punto <= SegmentosVisualesRayo; punto++)
+                linea.SetPosition(punto, posicionInicial);
             return linea;
         }
 
@@ -400,8 +607,35 @@ namespace TDOM.Unity
                 if (rayo != null)
                     Destroy(rayo.gameObject);
 
+            foreach (var halo in _halos)
+                if (halo != null)
+                    Destroy(halo.gameObject);
+
+            foreach (var particulas in _particulasImpacto)
+                if (particulas != null)
+                    Destroy(particulas.gameObject);
+
+            foreach (var meshFilter in _mallasRayo)
+                if (meshFilter != null)
+                {
+                    if (meshFilter.sharedMesh != null)
+                        Destroy(meshFilter.sharedMesh);
+                    Destroy(meshFilter.gameObject);
+                }
+
+            if (_materialNucleoRuntime != null)
+                Destroy(_materialNucleoRuntime);
+            if (_materialHaloRuntime != null)
+                Destroy(_materialHaloRuntime);
+
             _franjas.Clear();
             _rayos.Clear();
+            _halos.Clear();
+            _particulasImpacto.Clear();
+            _mallasRayo.Clear();
+            _renderersMallaRayo.Clear();
+            _materialNucleoRuntime = null;
+            _materialHaloRuntime = null;
         }
         [Rpc(SendTo.SpecifiedInParams)]
         private void JugadorGolpeadoRpc(RpcParams rpcParams = default)
