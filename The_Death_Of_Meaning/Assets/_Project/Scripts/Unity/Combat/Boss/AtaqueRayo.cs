@@ -39,6 +39,7 @@ namespace TDOM.Unity
             Retirada,
             Terminado,
         }
+
         private AtaqueRayoProfile _perfil;
 
         private FaseRayo _fase = FaseRayo.Aviso;
@@ -61,6 +62,7 @@ namespace TDOM.Unity
         private readonly List<ParticleSystem> _particulasImpacto = new List<ParticleSystem>();
         private readonly List<MeshFilter> _mallasRayo = new List<MeshFilter>();
         private readonly List<MeshRenderer> _renderersMallaRayo = new List<MeshRenderer>();
+
         public void AsignarBoca(Transform boca)
         {
             _boca = boca;
@@ -91,7 +93,11 @@ namespace TDOM.Unity
             _finalesServidor = CalcularFinales(_origenServidor);
             _iniciosServidor = new Vector3[_finalesServidor.Length];
             for (int i = 0; i < _finalesServidor.Length; i++)
-                _iniciosServidor[i] = new Vector3(_origenServidor.x, _finalesServidor[i].y, _origenServidor.z);
+                _iniciosServidor[i] = new Vector3(
+                    _origenServidor.x,
+                    _finalesServidor[i].y,
+                    _origenServidor.z
+                );
             _fase = FaseRayo.Aviso;
             _tiempoEnFase = 0f;
             _golpeados.Clear();
@@ -144,6 +150,7 @@ namespace TDOM.Unity
 
             return Vector3.SignedAngle(adelante, hacia.normalized, Vector3.up);
         }
+
         private static float BuscarPiso(Vector3 punto, float alturaSiNoHayPiso)
         {
             var impactos = Physics.RaycastAll(
@@ -194,14 +201,22 @@ namespace TDOM.Unity
                     {
                         CambiarFase(FaseRayo.Activo);
                         _inicioRecorridoServidor = NetworkManager.ServerTime.Time;
-                        _duracionRecorrido = _perfil.largo / (Mathf.Max(0.01f, _perfil.velocidadRecorrido) * MultiplicadorVelocidad);
+                        _duracionRecorrido =
+                            _perfil.largo
+                            / (
+                                Mathf.Max(0.01f, _perfil.velocidadRecorrido)
+                                * MultiplicadorVelocidad
+                            );
                         RayoRpc(_inicioRecorridoServidor, _duracionRecorrido);
                     }
                     break;
 
                 case FaseRayo.Activo:
                     DetectarImpactos();
-                    if (NetworkManager.ServerTime.Time - _inicioRecorridoServidor >= _duracionRecorrido)
+                    if (
+                        NetworkManager.ServerTime.Time - _inicioRecorridoServidor
+                        >= _duracionRecorrido
+                    )
                     {
                         CambiarFase(FaseRayo.Retirada);
                         ApagarRpc();
@@ -230,12 +245,30 @@ namespace TDOM.Unity
                 return;
 
             float radio = _perfil.diametro * 0.5f;
-            float progresoActual = Mathf.Clamp01((float)((NetworkManager.ServerTime.Time - _inicioRecorridoServidor) / System.Math.Max(0.01, _duracionRecorrido)));
-            float progresoAnterior = Mathf.Clamp01((float)((NetworkManager.ServerTime.Time - Time.deltaTime - _inicioRecorridoServidor) / System.Math.Max(0.01, _duracionRecorrido)));
+            float progresoActual = Mathf.Clamp01(
+                (float)(
+                    (NetworkManager.ServerTime.Time - _inicioRecorridoServidor)
+                    / System.Math.Max(0.01, _duracionRecorrido)
+                )
+            );
+            float progresoAnterior = Mathf.Clamp01(
+                (float)(
+                    (NetworkManager.ServerTime.Time - Time.deltaTime - _inicioRecorridoServidor)
+                    / System.Math.Max(0.01, _duracionRecorrido)
+                )
+            );
             for (int i = 0; i < _finalesServidor.Length; i++)
             {
-                Vector3 anterior = Vector3.Lerp(_iniciosServidor[i], _finalesServidor[i], progresoAnterior);
-                Vector3 actual = Vector3.Lerp(_iniciosServidor[i], _finalesServidor[i], progresoActual);
+                Vector3 anterior = Vector3.Lerp(
+                    _iniciosServidor[i],
+                    _finalesServidor[i],
+                    progresoAnterior
+                );
+                Vector3 actual = Vector3.Lerp(
+                    _iniciosServidor[i],
+                    _finalesServidor[i],
+                    progresoActual
+                );
                 Collider[] tocados = Physics.OverlapCapsule(
                     anterior,
                     actual,
@@ -314,7 +347,8 @@ namespace TDOM.Unity
                 LineRenderer rayo = _rayos[i];
                 rayo.enabled = true;
                 _halos[i].enabled = true;
-                _renderersMallaRayo[i].enabled = _perfilVfx != null && _perfilVfx.materialMesh != null;
+                _renderersMallaRayo[i].enabled =
+                    _perfilVfx != null && _perfilVfx.materialMesh != null;
                 Vector3 inicio = ObtenerInicioVisual(i);
                 for (int punto = 0; punto <= SegmentosVisualesRayo; punto++)
                     _posicionesNucleo[punto] = _posicionesHalo[punto] = inicio;
@@ -322,7 +356,12 @@ namespace TDOM.Unity
                 _halos[i].SetPositions(_posicionesHalo);
                 if (_perfilVfx != null && _perfilVfx.particulasImpacto != null)
                 {
-                    var particulas = Instantiate(_perfilVfx.particulasImpacto, ObtenerFinalVisual(i), Quaternion.identity, transform);
+                    var particulas = Instantiate(
+                        _perfilVfx.particulasImpacto,
+                        ObtenerFinalVisual(i),
+                        Quaternion.identity,
+                        transform
+                    );
                     particulas.transform.localScale *= _perfilVfx.escalaParticulas;
                     particulas.Play();
                     _particulasImpacto.Add(particulas);
@@ -334,11 +373,17 @@ namespace TDOM.Unity
         {
             if (_fase != FaseRayo.Activo || _rayos.Count == 0 || _finalesServidor == null)
                 return;
-            float progreso = Mathf.Clamp01((float)((NetworkManager.ServerTime.Time - _inicioRecorridoServidor) / System.Math.Max(0.01, _duracionRecorrido)));
+            float progreso = Mathf.Clamp01(
+                (float)(
+                    (NetworkManager.ServerTime.Time - _inicioRecorridoServidor)
+                    / System.Math.Max(0.01, _duracionRecorrido)
+                )
+            );
             float tiempoServidor = (float)NetworkManager.ServerTime.Time;
             for (int i = 0; i < _rayos.Count; i++)
             {
-                if (_rayos[i] == null) continue;
+                if (_rayos[i] == null)
+                    continue;
                 Vector3 inicio = ObtenerInicioVisual(i);
                 Vector3 finalVisible = Vector3.Lerp(inicio, ObtenerFinalVisual(i), progreso);
                 Vector3 direccion = finalVisible - inicio;
@@ -359,10 +404,15 @@ namespace TDOM.Unity
                     if (punto > 0 && punto < SegmentosVisualesRayo)
                     {
                         float envolvente = Mathf.Sin(Mathf.PI * t);
-                        float ruidoLateral = Mathf.PerlinNoise(
-                            semilla + punto * 0.419f * (_perfilVfx != null ? _perfilVfx.frecuenciaForma : 1f),
-                            tiempoMuestreo
-                        ) * 2f - 1f;
+                        float ruidoLateral =
+                            Mathf.PerlinNoise(
+                                semilla
+                                    + punto
+                                        * 0.419f
+                                        * (_perfilVfx != null ? _perfilVfx.frecuenciaForma : 1f),
+                                tiempoMuestreo
+                            ) * 2f
+                            - 1f;
                         float ruidoVertical = Mathf.PerlinNoise(
                             semilla + 61.7f + punto * 0.283f,
                             tiempoMuestreo
@@ -370,7 +420,12 @@ namespace TDOM.Unity
                         posicion +=
                             lateral
                             * ruidoLateral
-                            * Mathf.Min(_perfil.diametro * (_perfilVfx != null ? _perfilVfx.amplitudOndulacion : 0.12f) * (_perfilVfx != null ? _perfilVfx.formaOndulada : 1f), 0.65f)
+                            * Mathf.Min(
+                                _perfil.diametro
+                                    * (_perfilVfx != null ? _perfilVfx.amplitudOndulacion : 0.12f)
+                                    * (_perfilVfx != null ? _perfilVfx.formaOndulada : 1f),
+                                0.65f
+                            )
                             * envolvente
                             * intensidadRecorrido;
                         posicion +=
@@ -419,9 +474,11 @@ namespace TDOM.Unity
             foreach (var franja in _franjas)
                 franja.SetActive(false);
         }
+
         private GameObject CrearFranja(Vector3 origen, Vector3 final)
         {
-            Vector3 inicio = new Vector3(origen.x, final.y, origen.z) + Vector3.up * DesplazamientoVisualY;
+            Vector3 inicio =
+                new Vector3(origen.x, final.y, origen.z) + Vector3.up * DesplazamientoVisualY;
             Vector3 finalVisual = final + Vector3.up * DesplazamientoVisualY;
             Vector3 recorrido = finalVisual - inicio;
 
@@ -443,7 +500,9 @@ namespace TDOM.Unity
 
             return franja;
         }
-        private float DesplazamientoVisualY => _perfilVfx != null ? _perfilVfx.desplazamientoVisualY : 0f;
+
+        private float DesplazamientoVisualY =>
+            _perfilVfx != null ? _perfilVfx.desplazamientoVisualY : 0f;
 
         private Vector3 ObtenerInicioVisual(int indice)
         {
@@ -459,18 +518,26 @@ namespace TDOM.Unity
         private LineRenderer CrearRayo(Vector3 origen, Vector3 final)
         {
             if (_materialNucleoRuntime == null)
-                _materialNucleoRuntime = CrearMaterialRayo(_perfilVfx != null ? _perfilVfx.materialNucleo : _materialRayo,
-                    _perfilVfx != null ? _perfilVfx.colorNucleo : new Color(1.8f, 2.4f, 3f, 1f));
+                _materialNucleoRuntime = CrearMaterialRayo(
+                    _perfilVfx != null ? _perfilVfx.materialNucleo : _materialRayo,
+                    _perfilVfx != null ? _perfilVfx.colorNucleo : new Color(1.8f, 2.4f, 3f, 1f)
+                );
             if (_materialHaloRuntime == null)
-                _materialHaloRuntime = CrearMaterialRayo(_perfilVfx != null ? _perfilVfx.materialHalo : _materialRayo,
-                    _perfilVfx != null ? _perfilVfx.colorHalo : new Color(2.2f, 1.05f, 0.18f, 0.85f));
+                _materialHaloRuntime = CrearMaterialRayo(
+                    _perfilVfx != null ? _perfilVfx.materialHalo : _materialRayo,
+                    _perfilVfx != null ? _perfilVfx.colorHalo : new Color(2.2f, 1.05f, 0.18f, 0.85f)
+                );
 
             var objetoHalo = new GameObject("RayoHalo");
             objetoHalo.transform.SetParent(transform, false);
             var halo = ConfigurarLinea(
                 objetoHalo,
                 _materialHaloRuntime,
-                Mathf.Clamp(_perfil.diametro * (_perfilVfx != null ? _perfilVfx.anchoHalo : 0.13f), 0.01f, 8f),
+                Mathf.Clamp(
+                    _perfil.diametro * (_perfilVfx != null ? _perfilVfx.anchoHalo : 0.13f),
+                    0.01f,
+                    8f
+                ),
                 origen
             );
             _halos.Add(halo);
@@ -492,7 +559,11 @@ namespace TDOM.Unity
             var linea = ConfigurarLinea(
                 objetoNucleo,
                 _materialNucleoRuntime,
-                Mathf.Clamp(_perfil.diametro * (_perfilVfx != null ? _perfilVfx.anchoNucleo : 0.026f), 0.01f, 8f),
+                Mathf.Clamp(
+                    _perfil.diametro * (_perfilVfx != null ? _perfilVfx.anchoNucleo : 0.026f),
+                    0.01f,
+                    8f
+                ),
                 origen
             );
             linea.enabled = false;
@@ -502,7 +573,11 @@ namespace TDOM.Unity
 
         private void ActualizarMallaRayo(int indice, Vector3[] centro)
         {
-            if (_perfilVfx == null || _perfilVfx.materialMesh == null || indice >= _mallasRayo.Count)
+            if (
+                _perfilVfx == null
+                || _perfilVfx.materialMesh == null
+                || indice >= _mallasRayo.Count
+            )
                 return;
 
             Mesh mesh = _mallasRayo[indice].sharedMesh;
@@ -510,15 +585,21 @@ namespace TDOM.Unity
             var normales = new Vector3[vertices.Length];
             var uv = new Vector2[vertices.Length];
             var triangulos = new int[SegmentosVisualesRayo * 12];
-            Vector3 camara = UnityEngine.Camera.main != null
-                ? UnityEngine.Camera.main.transform.position
-                : centro[0] + Vector3.up * 10f;
+            Vector3 camara =
+                UnityEngine.Camera.main != null
+                    ? UnityEngine.Camera.main.transform.position
+                    : centro[0] + Vector3.up * 10f;
             float ancho = Mathf.Max(0f, _perfilVfx.anchoMesh);
 
             for (int p = 0; p <= SegmentosVisualesRayo; p++)
             {
-                Vector3 tangente = p == SegmentosVisualesRayo ? centro[p] - centro[p - 1] : centro[p + 1] - centro[p];
-                Vector3 anchoDir = Vector3.Cross(tangente.normalized, (camara - centro[p]).normalized).normalized;
+                Vector3 tangente =
+                    p == SegmentosVisualesRayo
+                        ? centro[p] - centro[p - 1]
+                        : centro[p + 1] - centro[p];
+                Vector3 anchoDir = Vector3
+                    .Cross(tangente.normalized, (camara - centro[p]).normalized)
+                    .normalized;
                 if (anchoDir.sqrMagnitude < 0.001f)
                     anchoDir = Vector3.Cross(tangente.normalized, Vector3.up).normalized;
                 float t = (float)p / SegmentosVisualesRayo;
@@ -533,10 +614,18 @@ namespace TDOM.Unity
                 {
                     int ti = p * 12;
                     int vi = p * 2;
-                    triangulos[ti] = vi; triangulos[ti + 1] = vi + 2; triangulos[ti + 2] = vi + 1;
-                    triangulos[ti + 3] = vi + 1; triangulos[ti + 4] = vi + 2; triangulos[ti + 5] = vi + 3;
-                    triangulos[ti + 6] = vi + 1; triangulos[ti + 7] = vi + 2; triangulos[ti + 8] = vi;
-                    triangulos[ti + 9] = vi + 3; triangulos[ti + 10] = vi + 2; triangulos[ti + 11] = vi + 1;
+                    triangulos[ti] = vi;
+                    triangulos[ti + 1] = vi + 2;
+                    triangulos[ti + 2] = vi + 1;
+                    triangulos[ti + 3] = vi + 1;
+                    triangulos[ti + 4] = vi + 2;
+                    triangulos[ti + 5] = vi + 3;
+                    triangulos[ti + 6] = vi + 1;
+                    triangulos[ti + 7] = vi + 2;
+                    triangulos[ti + 8] = vi;
+                    triangulos[ti + 9] = vi + 3;
+                    triangulos[ti + 10] = vi + 2;
+                    triangulos[ti + 11] = vi + 1;
                 }
             }
 
@@ -637,6 +726,7 @@ namespace TDOM.Unity
             _materialNucleoRuntime = null;
             _materialHaloRuntime = null;
         }
+
         [Rpc(SendTo.SpecifiedInParams)]
         private void JugadorGolpeadoRpc(RpcParams rpcParams = default)
         {
