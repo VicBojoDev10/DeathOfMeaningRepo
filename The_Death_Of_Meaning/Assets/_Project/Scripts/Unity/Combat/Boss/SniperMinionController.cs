@@ -60,6 +60,8 @@ namespace TDOM.Unity
         private float _alturaSobreSuperficie;
         private Vector2 _desplazamientoActual;
         private Vector2 _desplazamientoDestino;
+        private MinionCapturaLanzamiento _capturaLanzamiento;
+        private bool _vueloAnterior;
 
         /// <summary>Fija el punto de anclaje y la superficie física de la plataforma antes del spawn de red.</summary>
         public void ConfigurarPlataforma(
@@ -139,6 +141,31 @@ namespace TDOM.Unity
             if (!IsServer || !IsSpawned || _muerto || _perfil == null || _pausadoGlobal)
                 return;
 
+            if (
+                _capturaLanzamiento != null
+                && (_capturaLanzamiento.Capturado || _capturaLanzamiento.Volando)
+            )
+            {
+                _vueloAnterior |= _capturaLanzamiento.Volando;
+                _capturaLanzamiento.Tick(Time.deltaTime);
+                _animaciones?.ActualizarMovimiento(false);
+                return;
+            }
+            if (_vueloAnterior)
+            {
+                _vueloAnterior = false;
+                if (
+                    _plataforma != null
+                    && TryProyectarEnPlataforma(transform.position, out Vector3 superficie)
+                )
+                {
+                    _anclaLocalPlataforma = _plataforma.InverseTransformPoint(superficie);
+                    _desplazamientoActual = Vector2.zero;
+                    _desplazamientoDestino = Vector2.zero;
+                    transform.position = superficie + _plataforma.forward * _alturaSobreSuperficie;
+                }
+            }
+
             ActualizarDestinoMovimiento();
             AcompanharMovimientoPlataforma();
             _animaciones?.ActualizarMovimiento(
@@ -164,6 +191,27 @@ namespace TDOM.Unity
                 Disparar(origen, direccion.normalized);
                 _siguienteDisparo = Time.time + 1f / Mathf.Max(1, _perfil.cadenciaDisparo);
             }
+        }
+
+        public bool AgarrarPorZendre(Transform zendre, AnchorProfile perfil)
+        {
+            if (!IsServer || !IsSpawned || _muerto)
+                return false;
+            if (_capturaLanzamiento == null)
+                _capturaLanzamiento = gameObject.AddComponent<MinionCapturaLanzamiento>();
+            return _capturaLanzamiento.Agarrar(zendre, perfil);
+        }
+
+        public void SoltarPorZendre(Vector3 direccion)
+        {
+            if (IsServer && !_muerto && _capturaLanzamiento != null)
+                _capturaLanzamiento.Lanzar(direccion);
+        }
+
+        public void RecibirEmpujeLanzado(Vector3 velocidad)
+        {
+            if (IsServer && !_muerto && _capturaLanzamiento != null)
+                _capturaLanzamiento.Impulsar(velocidad);
         }
 
         public void EstablecerPausa(bool pausado)

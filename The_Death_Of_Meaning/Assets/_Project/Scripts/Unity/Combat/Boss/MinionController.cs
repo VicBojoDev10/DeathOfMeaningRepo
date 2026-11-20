@@ -58,6 +58,8 @@ namespace TDOM.Unity
         private bool _pausadoGlobal;
         private bool _agenteEstabaDetenidoAntesDePausa;
         private float _pausaTrasGolpeRestante;
+        private MinionCapturaLanzamiento _capturaLanzamiento;
+        private bool _vueloAnterior;
 
         // Solo servidor.
         private MinionBrain _brain;
@@ -139,6 +141,35 @@ namespace TDOM.Unity
             if (!IsServer || !IsSpawned || _muerto || _brain == null || _pausadoGlobal)
                 return;
 
+            if (
+                _capturaLanzamiento != null
+                && (_capturaLanzamiento.Capturado || _capturaLanzamiento.Volando)
+            )
+            {
+                _vueloAnterior |= _capturaLanzamiento.Volando;
+                _capturaLanzamiento.Tick(Time.deltaTime);
+                _agente.isStopped = true;
+                _animaciones?.ActualizarMovimiento(false);
+                return;
+            }
+            if (_vueloAnterior)
+            {
+                _vueloAnterior = false;
+                if (
+                    _agente.enabled
+                    && NavMesh.SamplePosition(
+                        transform.position,
+                        out NavMeshHit aterrizaje,
+                        Mathf.Max(1f, _agente.height),
+                        NavMesh.AllAreas
+                    )
+                )
+                {
+                    _agente.Warp(aterrizaje.position);
+                    _agente.isStopped = false;
+                }
+            }
+
             if (_pausaTrasGolpeRestante > 0f)
             {
                 _pausaTrasGolpeRestante = Mathf.Max(0f, _pausaTrasGolpeRestante - Time.deltaTime);
@@ -196,6 +227,41 @@ namespace TDOM.Unity
                     }
                     break;
             }
+        }
+
+        public bool AgarrarPorZendre(Transform zendre, AnchorProfile perfil)
+        {
+            if (!IsServer || !IsSpawned || _muerto)
+                return false;
+            if (_capturaLanzamiento == null)
+                _capturaLanzamiento = gameObject.AddComponent<MinionCapturaLanzamiento>();
+            if (!_capturaLanzamiento.Agarrar(zendre, perfil))
+                return false;
+            _agente.ResetPath();
+            _agente.isStopped = true;
+            _brain?.InterrumpirAtaque();
+            InterrumpirAvisoRpc();
+            return true;
+        }
+
+        public void SoltarPorZendre(Vector3 direccion)
+        {
+            if (!IsServer || _muerto || _capturaLanzamiento == null)
+                return;
+            _capturaLanzamiento.Lanzar(direccion);
+        }
+
+        public void RecibirEmpujeLanzado(Vector3 velocidad)
+        {
+            if (!IsServer || _muerto)
+                return;
+            if (_capturaLanzamiento == null)
+                _capturaLanzamiento = gameObject.AddComponent<MinionCapturaLanzamiento>();
+            if (_capturaLanzamiento.Capturado)
+                return;
+            _capturaLanzamiento.Empujar(velocidad);
+            _agente.ResetPath();
+            _agente.isStopped = true;
         }
 
         public void EstablecerPausa(bool pausado)
