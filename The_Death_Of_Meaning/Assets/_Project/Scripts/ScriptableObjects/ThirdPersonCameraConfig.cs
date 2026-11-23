@@ -93,13 +93,18 @@ namespace TDOM.Data
         [Header("Apuntado")]
         public float AimMaxRange = 200f;
 
+        private const float PasoNivelSensibilidadMinimo = 0.1f;
+
         public float SensibilidadMinima => NivelSensibilidadMinimo * GradosPorNivelSensibilidad;
 
         public float SensibilidadMaxima => NivelSensibilidadMaximo * GradosPorNivelSensibilidad;
 
         private void OnValidate()
         {
+            PasoNivelSensibilidad = Mathf.Max(PasoNivelSensibilidadMinimo, PasoNivelSensibilidad);
+            NivelSensibilidadMinimo = Mathf.Max(PasoNivelSensibilidad, NivelSensibilidadMinimo);
             NivelSensibilidadMaximo = Mathf.Max(NivelSensibilidadMinimo, NivelSensibilidadMaximo);
+            GradosPorNivelSensibilidad = Mathf.Max(0f, GradosPorNivelSensibilidad);
             SensibilidadXPorDefecto = Mathf.Clamp(
                 SensibilidadXPorDefecto,
                 SensibilidadMinima,
