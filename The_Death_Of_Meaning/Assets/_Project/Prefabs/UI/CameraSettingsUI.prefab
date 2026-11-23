@@ -30,13 +30,13 @@ RectTransform:
   m_LocalScale: {x: 1.3535, y: 1.3535, z: 1.3535}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 4986420113412675721}
+  m_Father: {fileID: 5891607893846693627}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 0.5}
-  m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 30, y: 0}
-  m_SizeDelta: {x: 120, y: 50}
-  m_Pivot: {x: 0, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 200, y: 64}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1037898165597830879
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -67,8 +67,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 4.0
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 93051dc416c4dea4eaa139d4aae4e5f1, type: 2}
+  m_sharedMaterial: {fileID: 7910945380192564648, guid: 93051dc416c4dea4eaa139d4aae4e5f1, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -92,15 +92,15 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 52
+  m_fontSizeBase: 52
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
-  m_HorizontalAlignment: 1
-  m_VerticalAlignment: 4096
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -167,13 +167,13 @@ RectTransform:
   m_LocalScale: {x: 1.3535, y: 1.3535, z: 1.3535}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 743157448901863449}
+  m_Father: {fileID: 5891607893846693627}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 0.5}
-  m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 30, y: 0}
-  m_SizeDelta: {x: 120, y: 50}
-  m_Pivot: {x: 0, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 200, y: 64}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8059792399027478177
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -204,8 +204,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 4.0
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 93051dc416c4dea4eaa139d4aae4e5f1, type: 2}
+  m_sharedMaterial: {fileID: 7910945380192564648, guid: 93051dc416c4dea4eaa139d4aae4e5f1, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -229,15 +229,15 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 52
+  m_fontSizeBase: 52
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
-  m_HorizontalAlignment: 1
-  m_VerticalAlignment: 4096
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -540,22 +540,17 @@ PrefabInstance:
     - {fileID: 8356166063960151537, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
     - {fileID: 1706914084951940867, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
     m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 1263551845735480417, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
-      insertIndex: -1
+    - targetCorrespondingSourceObject: {fileID: 394462110472991251, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
+      insertIndex: 1
       addedObject: {fileID: 8026527297162480603}
-    - targetCorrespondingSourceObject: {fileID: 6839387673253268721, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
-      insertIndex: -1
+    - targetCorrespondingSourceObject: {fileID: 394462110472991251, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
+      insertIndex: 4
       addedObject: {fileID: 9005520996428632286}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 2388071375972608761, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3836269458516842632}
   m_SourcePrefab: {fileID: 100100000, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
---- !u!224 &743157448901863449 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 6839387673253268721, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
-  m_PrefabInstance: {fileID: 6105292407795442920}
-  m_PrefabAsset: {fileID: 0}
 --- !u!225 &1654134489508578679 stripped
 CanvasGroup:
   m_CorrespondingSourceObject: {fileID: 4778021876425875871, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
@@ -588,9 +583,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Slider
---- !u!224 &4986420113412675721 stripped
+--- !u!224 &5891607893846693627 stripped
 RectTransform:
-  m_CorrespondingSourceObject: {fileID: 1263551845735480417, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
+  m_CorrespondingSourceObject: {fileID: 394462110472991251, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
   m_PrefabInstance: {fileID: 6105292407795442920}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &8159685337866106442 stripped
