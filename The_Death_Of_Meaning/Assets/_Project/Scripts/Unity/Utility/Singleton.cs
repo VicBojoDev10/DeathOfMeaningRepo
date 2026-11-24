@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace TDOM.Unity
 {
@@ -9,14 +8,8 @@ namespace TDOM.Unity
         private static T _instance;
         private static readonly object _lock = new object();
 
-        public bool IsInitialized { get; private set; }
-
-        public UnityEvent OnFinishedInitializing { get; private set; }
-
         [SerializeField]
         private bool dontDestroyOnLoad = true;
-
-        public bool DontDestroyOnLoadEnabled => dontDestroyOnLoad;
 
         public static T Instance
         {
@@ -59,9 +52,6 @@ namespace TDOM.Unity
                 Destroy(gameObject);
                 return;
             }
-
-            OnFinishedInitializing?.Invoke();
-            IsInitialized = true;
         }
     }
 }
