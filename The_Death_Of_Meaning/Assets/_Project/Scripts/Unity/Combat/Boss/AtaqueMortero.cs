@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.Gameplay.Core;
@@ -251,7 +252,7 @@ namespace TDOM.Unity
             if (_perfil == null)
                 return;
 
-            float dt = Time.deltaTime;
+            float dt = DeltaAtaque;
 
             AnimarCaidaLocal(dt);
 
@@ -349,7 +350,16 @@ namespace TDOM.Unity
                         continue;
 
                     Debug.Log($"[AREK][Mortero] golpeó a cliente {id}");
-                    damageable.RecibirDanio(_perfil.Dano, _perfil.EsInstaKill);
+                    var jugador = colisionador.GetComponentInParent<PlayerRoot>();
+                    if (jugador != null)
+                        jugador.RecibirDanioDelJefe(
+                            _perfil.Dano,
+                            punto,
+                            _perfil.EsInstaKill,
+                            TipoImpactoBarreraJefe.Mortero
+                        );
+                    else
+                        damageable.RecibirDanio(_perfil.Dano, _perfil.EsInstaKill);
                     if (netObj != null)
                         JugadorGolpeadoRpc(RpcTarget.Single(id, RpcTargetUse.Temp));
                 }
@@ -460,7 +470,7 @@ namespace TDOM.Unity
 
                 _avisoParpadeo.Iniciar(
                     Lanzador.PerfilAviso,
-                    _perfil.aviso,
+                    AvisoEscalado(_perfil.aviso),
                     renderers,
                     AvisoParpadeo.Forma.Disco
                 );

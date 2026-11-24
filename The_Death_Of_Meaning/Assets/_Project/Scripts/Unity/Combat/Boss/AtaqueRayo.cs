@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Camera;
@@ -172,7 +173,7 @@ namespace TDOM.Unity
                 || (PauseManager.ResultadoGlobal != ResultadoPartida.EnCurso)
             )
                 return;
-            float dt = Time.deltaTime;
+            float dt = DeltaAtaque;
 
             if (!IsServer || !IsSpawned || _perfil == null)
                 return;
@@ -242,7 +243,16 @@ namespace TDOM.Unity
                         continue;
 
                     Debug.Log($"[AREK][Rayo] golpeó a cliente {id}");
-                    damageable.RecibirDanio(_perfil.Dano, _perfil.EsInstaKill);
+                    var jugador = tocado.GetComponentInParent<PlayerRoot>();
+                    if (jugador != null)
+                        jugador.RecibirDanioDelJefe(
+                            _perfil.Dano,
+                            _origenServidor,
+                            _perfil.EsInstaKill,
+                            TipoImpactoBarreraJefe.Rayo
+                        );
+                    else
+                        damageable.RecibirDanio(_perfil.Dano, _perfil.EsInstaKill);
                     if (netObj != null)
                         JugadorGolpeadoRpc(RpcTarget.Single(id, RpcTargetUse.Temp));
                 }
@@ -268,7 +278,7 @@ namespace TDOM.Unity
 
                 _avisoParpadeo.Iniciar(
                     Lanzador.PerfilAviso,
-                    _perfil.aviso,
+                    AvisoEscalado(_perfil.aviso),
                     renderers,
                     AvisoParpadeo.Forma.FranjaU
                 );
