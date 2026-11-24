@@ -5,7 +5,7 @@ namespace TDOM.Unity.Level
 {
     [DisallowMultipleComponent]
     [DefaultExecutionOrder(-10)]
-    public sealed class PlataformaCircular : MonoBehaviour
+    public sealed class PlataformaCircular : PlataformaMovil
     {
         public enum ModoRotacionPlataforma
         {
@@ -55,7 +55,7 @@ namespace TDOM.Unity.Level
         private Vector3 _lastPosition;
         private Vector3 _frameDelta;
 
-        public Vector3 FrameDelta => _frameDelta;
+        public override Vector3 FrameDelta => _frameDelta;
         public float Radius => radius;
         public float AngularVelocity => angularVelocity;
         public float Sense => sense >= 0f ? 1f : -1f;

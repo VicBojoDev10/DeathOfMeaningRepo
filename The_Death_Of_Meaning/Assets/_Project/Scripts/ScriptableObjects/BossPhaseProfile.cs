@@ -29,6 +29,15 @@ namespace TDOM.POCO.ScriptableObjects
         [Min(0f)]
         public float DistanciaMinimaJugador = 5f;
 
+        [Header("Ritmo de ataque (TW-312)")]
+        [Tooltip("Multiplica la frecuencia de ataque: 1.2 reduce la espera entre ataques un 20 %.")]
+        [Min(0.1f)]
+        public float MultiplicadorFrecuencia = 1f;
+
+        [Tooltip("Multiplica la velocidad de cada ataque: animación, aviso y golpe.")]
+        [Min(0.1f)]
+        public float MultiplicadorVelocidad = 1f;
+
         [Header("Detener movimiento durante el ataque")]
         public bool DetenerseEnBasico = true;
         public bool DetenerseEnPesado = true;

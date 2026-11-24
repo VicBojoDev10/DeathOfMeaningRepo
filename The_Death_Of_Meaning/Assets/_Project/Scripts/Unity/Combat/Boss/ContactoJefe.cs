@@ -8,8 +8,10 @@ using UnityEngine;
 namespace TDOM.Unity.Combat
 {
     /// <summary>
-    /// Cuerpo sólido del jefe (TW-242): el jugador que toca cualquiera de sus partes recibe daño y
-    /// sale despedido en sentido contrario al contacto. Los colliders del cuerpo son cápsulas
+    /// Cuerpo sólido del jefe (TW-242): el jugador que toca cualquiera de sus partes recibe daño.
+    /// El contacto no empuja ni interrumpe lo que esté haciendo el jugador (así Ayla puede
+    /// encadenar su combo completo pegada al cuerpo); el retroceso solo lo dan los ataques del jefe.
+    /// Los colliders del cuerpo son cápsulas
     /// hijas de los huesos (las crea CuerpoJefeColliderGenerator), así que siguen todas las
     /// animaciones del Animator. Solo el servidor detecta y aplica el daño (por la vida de
     /// PlayerRoot), una vez por intervalo y jugador. No daña a jugadores abatidos y se calla si el
@@ -72,7 +74,7 @@ namespace TDOM.Unity.Combat
                 if (jugador == null || jugador.EstaAbatidoOMuerto)
                     continue;
 
-                if (!TocaElCuerpo(jugador, out Vector3 puntoContacto))
+                if (!TocaElCuerpo(jugador, out _))
                     continue;
 
                 if (!_registro.TryGolpear(jugador.NetworkObjectId, Time.time))
@@ -80,8 +82,8 @@ namespace TDOM.Unity.Combat
 
                 float dano =
                     jugador.CharacterId == CharacterIds.Ayla ? _perfil.danoAyla : _perfil.dano;
+                // Solo daño: RecibirDanioDelJefe además empuja y corta el combo del jugador.
                 jugador.RecibirDanio(dano);
-                Empujar(jugador, puntoContacto);
             }
         }
 
@@ -130,29 +132,6 @@ namespace TDOM.Unity.Combat
                 puntoContacto = punto;
             }
             return toca;
-        }
-
-        // 180 grados respecto al contacto: del punto tocado hacia el jugador, en horizontal.
-        private void Empujar(PlayerRoot jugador, Vector3 puntoContacto)
-        {
-            if (_perfil.empujeDistancia <= 0f && _perfil.empujeAltura <= 0f)
-                return;
-
-            Vector3 direccion = jugador.transform.position - puntoContacto;
-            direccion.y = 0f;
-            if (direccion.sqrMagnitude < 1e-4f)
-            {
-                // El punto cae justo en el eje del jugador: se aleja del centro del jefe.
-                direccion = jugador.transform.position - transform.position;
-                direccion.y = 0f;
-            }
-
-            jugador.EmpujarDesdeServidor(
-                direccion,
-                _perfil.empujeDistancia,
-                _perfil.empujeAltura,
-                _perfil.empujeDuracion
-            );
         }
     }
 }

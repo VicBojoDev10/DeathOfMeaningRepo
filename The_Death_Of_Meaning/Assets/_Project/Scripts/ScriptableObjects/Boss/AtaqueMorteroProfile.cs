@@ -26,6 +26,7 @@ namespace TDOM.Data
         public float altoPiedra = 6f;
 
         [Header("Daño")]
+        [Min(0f)]
         public float dano = 9999f;
         public bool esInstaKill = true;
 
@@ -61,6 +62,8 @@ namespace TDOM.Data
         public override float Rango => radioArena;
 
         public override float Dano => dano;
+
+        public override float Aviso => aviso;
 
         public override bool EsInstaKill => esInstaKill;
     }
