@@ -29,6 +29,9 @@ namespace TDOM.Unity
         public Button startMatchButton;
         public Button joinTest;
 
+        [SerializeField]
+        private Button backButton;
+
         [Header("Selección visual (opcional; se busca por nombre si queda vacío)")]
         public RectTransform createHolder;
         public RectTransform joinHolder;
@@ -44,6 +47,7 @@ namespace TDOM.Unity
         private bool _connectionAttemptStarted;
         private bool _inicializado;
         private bool _navegandoAPersonaje;
+        private bool _bloquearRegresoDuranteCreacion;
         private CancelHostUI _cancelHostUI;
         private InputAction _cancelAction;
         private Coroutine _enfocandoCancelar;
@@ -63,6 +67,8 @@ namespace TDOM.Unity
 
         private void Awake()
         {
+            if (backButton == null)
+                backButton = BuscarBotonRegreso();
             if (createHolder == null)
                 createHolder = BuscarRectTransform("CrearPartidaUI");
             if (joinHolder == null)
@@ -111,6 +117,27 @@ namespace TDOM.Unity
             return null;
         }
 
+        private Button BuscarBotonRegreso()
+        {
+            foreach (var boton in GetComponentsInChildren<Button>(true))
+            {
+                if (
+                    boton.name.IndexOf("Back", StringComparison.OrdinalIgnoreCase) >= 0
+                    || boton.name.IndexOf("Regresar", StringComparison.OrdinalIgnoreCase) >= 0
+                    || boton.name.IndexOf("Volver", StringComparison.OrdinalIgnoreCase) >= 0
+                    || boton.name.IndexOf("Atras", StringComparison.OrdinalIgnoreCase) >= 0
+                )
+                    return boton;
+            }
+
+            return null;
+        }
+
+        private void VolverAlMenuPrincipal()
+        {
+            UiManager.Instance?.SwitchWindow(WindowId, WindowsIds.MainMenuUI);
+        }
+
         public override void Initialize() => base.Initialize();
 
         void Start()
@@ -131,6 +158,8 @@ namespace TDOM.Unity
 
             if (joinTest != null)
                 joinTest.onClick.AddListener(JoinTestUi);
+            if (backButton != null)
+                backButton.onClick.AddListener(VolverAlMenuPrincipal);
             startHostButton.onClick.AddListener(StartHostButton_OnClick);
             startClientButton.onClick.AddListener(StartClientButton_OnClick);
             startMatchButton.onClick.AddListener(StartMatchButton_OnClick);
@@ -211,6 +240,8 @@ namespace TDOM.Unity
 
             if (joinTest != null)
                 joinTest.onClick.RemoveListener(JoinTestUi);
+            if (backButton != null)
+                backButton.onClick.RemoveListener(VolverAlMenuPrincipal);
             startHostButton.onClick.RemoveListener(StartHostButton_OnClick);
             startClientButton.onClick.RemoveListener(StartClientButton_OnClick);
             startMatchButton.onClick.RemoveListener(StartMatchButton_OnClick);
@@ -591,9 +622,16 @@ namespace TDOM.Unity
             if (ConnectionManager == null)
                 return;
 
+            _bloquearRegresoDuranteCreacion = true;
+            if (backButton != null)
+                backButton.interactable = false;
+
             SeleccionarModo(ConnectionMode.Host);
 
             ConnectionManager.OnCrearPartida();
+            if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsHost)
+                DesbloquearRegresoTrasFalloDeCreacion();
+
             if (
                 NetworkManager.Singleton != null
                 && NetworkManager.Singleton.IsHost
@@ -776,6 +814,9 @@ namespace TDOM.Unity
             ActualizarEstadoConTiempoCliente();
 
             bool activo = ConnectionManager.EstadoEsActivo(estado);
+            if (_bloquearRegresoDuranteCreacion && !activo)
+                DesbloquearRegresoTrasFalloDeCreacion();
+
             if (startHostButton != null)
                 startHostButton.interactable = !activo;
             if (startClientButton != null)
@@ -802,6 +843,13 @@ namespace TDOM.Unity
                 if (EventSystem.current != null)
                     RestaurarFocoControl();
             }
+        }
+
+        private void DesbloquearRegresoTrasFalloDeCreacion()
+        {
+            _bloquearRegresoDuranteCreacion = false;
+            if (backButton != null)
+                backButton.interactable = true;
         }
 
         private bool ConexionListaParaPartida(int jugadoresHost = -1)

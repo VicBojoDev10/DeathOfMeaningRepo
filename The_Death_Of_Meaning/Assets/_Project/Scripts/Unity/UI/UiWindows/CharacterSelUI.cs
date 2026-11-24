@@ -38,6 +38,8 @@ namespace TDOM.Unity
         private Image _zendreImg;
         private Image _aylaImg;
         private GameSessionManager _manager;
+        private GameFlowNetwork _gameFlow;
+        private bool _confirmandoListo;
 
         private void Awake()
         {
@@ -71,6 +73,8 @@ namespace TDOM.Unity
             GameSessionManager.Spawned += EnlazarManager;
             GameSessionManager.Despawned += DesenlazarManager;
             EnlazarManager();
+            GameFlowNetwork.Spawned += EnlazarGameFlow;
+            EnlazarGameFlow();
         }
 
         public override void Show()
@@ -115,6 +119,8 @@ namespace TDOM.Unity
             GameSessionManager.Spawned -= EnlazarManager;
             GameSessionManager.Despawned -= DesenlazarManager;
             DesenlazarManager();
+            GameFlowNetwork.Spawned -= EnlazarGameFlow;
+            DesenlazarGameFlow();
         }
 
         private void EnlazarManager()
@@ -124,6 +130,7 @@ namespace TDOM.Unity
                 return;
             DesenlazarManager();
             _manager = manager;
+            _confirmandoListo = false;
             _manager.Jugadores.OnListChanged += ActualizarUI;
             _manager.OnJugadorDesconectado += MostrarMensajeDesconexion;
             _manager.PersonajeRechazado += MostrarRechazo;
@@ -140,6 +147,26 @@ namespace TDOM.Unity
             _manager = null;
             if (ready != null)
                 ready.interactable = false;
+        }
+
+        private void EnlazarGameFlow()
+        {
+            var gameFlow = GameFlowNetwork.Instance;
+            if (gameFlow == null || !gameFlow.IsSpawned || _gameFlow == gameFlow)
+                return;
+
+            DesenlazarGameFlow();
+            _gameFlow = gameFlow;
+            _gameFlow.OnReturnToConnectionRequested += RegresarAConexionLocal;
+        }
+
+        private void DesenlazarGameFlow()
+        {
+            if (_gameFlow == null)
+                return;
+
+            _gameFlow.OnReturnToConnectionRequested -= RegresarAConexionLocal;
+            _gameFlow = null;
         }
 
         private void PrevisualizarPersonaje(CharacterCardUI card)
@@ -176,13 +203,48 @@ namespace TDOM.Unity
         private void MarcarListo()
         {
             if (_manager != null)
+            {
+                _confirmandoListo = true;
+                if (backButton != null)
+                    backButton.interactable = false;
                 _manager.MarcarListoRpc();
+            }
         }
 
         private void Volver()
         {
+            if (_confirmandoListo)
+                return;
+
+            if (PartidaListaParaIniciar())
+                return;
+
+            if (_gameFlow != null && _gameFlow.IsSpawned)
+            {
+                _gameFlow.SolicitarRegresoAConexion();
+                return;
+            }
+
+            RegresarAConexionLocal();
+        }
+
+        private void RegresarAConexionLocal()
+        {
+            _confirmandoListo = false;
             ConnectionManager.Instance?.CancelarConexion();
             UiManager.Instance?.SwitchWindow(WindowId, WindowsIds.ConnectionMenuUI);
+        }
+
+        private bool PartidaListaParaIniciar()
+        {
+            if (_manager == null || _manager.Jugadores == null || _manager.Jugadores.Count < 2)
+                return false;
+
+            foreach (var jugador in _manager.Jugadores)
+                if (!jugador.Ready)
+                    return false;
+
+            return true;
         }
 
         private void MostrarMensajeDesconexion()

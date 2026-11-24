@@ -39,8 +39,16 @@ namespace TDOM.Gameplay.Locomotion
         public bool DashActivo => _dash != null && _dash.Activo;
         public Vector3 PuntoGancho => _grapple != null ? _grapple.Punto : Vector3.zero;
         private float _escalaGravedadAtaqueAereo = 1f;
-        public bool SaltoDisponible => _jump != null && _jump.PuedeSaltar(State);
-        public bool DashDisponible => _dash != null && _dash.Disponible;
+
+        /// <summary>Falso = el dash no arranca aunque se pida (por ejemplo, sin energia).</summary>
+        public bool PermitirDash { get; set; } = true;
+
+        /// <summary>Falso = el doble salto no se ejecuta (por ejemplo, sin energia).</summary>
+        public bool PermitirSaltoAereo { get; set; } = true;
+
+        public bool SaltoDisponible =>
+            _jump != null && _jump.PuedeSaltar(State, PermitirSaltoAereo);
+        public bool DashDisponible => _dash != null && _dash.Disponible && PermitirDash;
         public float CooldownDashNormalizado => _dash != null ? _dash.CooldownNormalizado : 0f;
         public float CooldownGanchoNormalizado =>
             _grapple != null ? _grapple.CooldownNormalizado : 0f;
@@ -50,6 +58,15 @@ namespace TDOM.Gameplay.Locomotion
             _dash?.Cancelar();
             State.Velocity = new Vector3(0f, State.Velocity.y, 0f);
             if (State.Phase == LocomotionPhase.Dashing)
+                State.Phase = State.IsGrounded
+                    ? LocomotionPhase.Grounded
+                    : LocomotionPhase.Airborne;
+        }
+
+        public void CancelarGanchoEnCurso()
+        {
+            _grapple?.Cancelar();
+            if (State.Phase == LocomotionPhase.Grappling)
                 State.Phase = State.IsGrounded
                     ? LocomotionPhase.Grounded
                     : LocomotionPhase.Airborne;
@@ -243,7 +260,7 @@ namespace TDOM.Gameplay.Locomotion
             }
 
             bool puedeEmbestir = !blockMove && !modoPistola;
-            if (puedeEmbestir && input.DashPressed)
+            if (puedeEmbestir && PermitirDash && input.DashPressed)
             {
                 Vector3 dir = DireccionDeDash(input, yaw);
                 if (_dash.TryIniciar(dir))
@@ -275,7 +292,7 @@ namespace TDOM.Gameplay.Locomotion
                         : LocomotionPhase.Airborne;
                 }
                 int saltosAntes = State.JumpsUsed;
-                _jump.Tick(State, input, dt);
+                _jump.Tick(State, input, dt, PermitirSaltoAereo);
                 // Cola de la animacion de un ataque aereo: el movimiento ya no esta bloqueado
                 // pero la gravedad sigue reducida hasta que la animacion termine.
                 if (gravedadReducida && !State.IsGrounded)
