@@ -14,6 +14,7 @@ namespace TDOM.Unity
         private static readonly int MoveYHash = Animator.StringToHash("MoveY");
         private static readonly int JumpHash = Animator.StringToHash("Jump");
         private static readonly int FallingHash = Animator.StringToHash("Falling");
+        private static readonly int GrapleHash = Animator.StringToHash("Graple");
         private static readonly int ShootHash = Animator.StringToHash("Shoot");
         private static readonly int AssaultHash = Animator.StringToHash("assault");
         private static readonly int AssaultStandStateHash = Animator.StringToHash("AssaultStand");
@@ -56,6 +57,11 @@ namespace TDOM.Unity
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Owner
         );
+        private readonly NetworkVariable<bool> _grappling = new(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Owner
+        );
         private readonly NetworkVariable<bool> _assault = new(
             false,
             NetworkVariableReadPermission.Everyone,
@@ -82,7 +88,7 @@ namespace TDOM.Unity
         {
             _ultimaPos = transform.position;
             _playerRoot = GetComponentInParent<PlayerRoot>();
-            LiberarBloqueoDanio();
+            RestablecerBloqueoDanio();
             if (_playerRoot != null)
             {
                 _playerRoot.Vida.OnValueChanged += AlCambiarVida;
@@ -98,13 +104,14 @@ namespace TDOM.Unity
                 AplicarModos(false, false, Vector2.zero);
                 _animator.SetBool(JumpHash, _jumping.Value);
                 _animator.SetBool(FallingHash, _falling.Value);
+                _animator.SetBool(GrapleHash, _grappling.Value);
                 _animator.SetBool(AssaultHash, _assault.Value);
             }
         }
 
         public override void OnNetworkDespawn()
         {
-            LiberarBloqueoDanio();
+            RestablecerBloqueoDanio();
             if (_playerRoot != null)
             {
                 _playerRoot.Vida.OnValueChanged -= AlCambiarVida;
@@ -117,13 +124,19 @@ namespace TDOM.Unity
 
         private void AlCambiarVida(float vidaAnterior, float vidaActual)
         {
-            if (_animator == null)
+            if (
+                _animator == null
+                || vidaActual <= 0f
+                || (_playerRoot != null && _playerRoot.EstaAbatidoOMuerto)
+            )
                 return;
 
             float danioRecibido = vidaAnterior - vidaActual;
             if (danioRecibido <= 0f)
                 return;
 
+            RestablecerBloqueoDanio();
+            _animator.SetBool(ReviveHash, false);
             _damageMovementLocked = true;
             _damageStateObserved = false;
             _animator.SetFloat(DamageHash, Mathf.Clamp(danioRecibido, 0f, DamageBlendMaximum));
@@ -142,6 +155,7 @@ namespace TDOM.Unity
 
         private void AplicarEstadoVida(PlayerLifeState estado, bool iniciarRevive)
         {
+            RestablecerBloqueoDanio();
             if (_animator == null)
                 return;
 
@@ -184,6 +198,17 @@ namespace TDOM.Unity
             AplicarSalto(saltando, cayendo);
         }
 
+        public void ActualizarGancho(bool activo)
+        {
+            if (!IsOwner)
+                return;
+
+            if (_grappling.Value != activo)
+                _grappling.Value = activo;
+            if (_animator != null)
+                _animator.SetBool(GrapleHash, activo);
+        }
+
         public void IniciarAssault()
         {
             if (!IsOwner)
@@ -211,6 +236,7 @@ namespace TDOM.Unity
             {
                 AplicarModos(_aiming.Value, _guarding.Value, _aimMove.Value);
                 AplicarSalto(_jumping.Value, _falling.Value);
+                _animator.SetBool(GrapleHash, _grappling.Value);
                 _animator.SetBool(AssaultHash, _assault.Value);
             }
             else if (_assaultAutoReleasePending && LlegoAAssaultStand())

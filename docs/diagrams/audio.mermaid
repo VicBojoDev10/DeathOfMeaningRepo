@@ -25,10 +25,11 @@ classDiagram
         -SfxBanco _ataqueNormal
         -SfxBanco[] _golpesCombo
         -SfxBanco _disparo
+        -SfxBanco _disparoCargado
         -SfxBanco _cargaLoop
         -SfxBanco _liberacionCargado
         +Golpe(comboIndex)
-        +Disparo(origen)
+        +Disparo(origen, cargado)
         +Carga(activa)
         +LiberacionCargado()
     }
@@ -36,12 +37,13 @@ classDiagram
     class SfxLocomocion {
         <<MonoBehaviour>>
         -SfxBanco _dash
+        -SfxBanco _dashAire
         -SfxBanco _gancho
         -SfxBanco _dobleSalto
         -SfxBanco _embestidaArranque
         -SfxBanco _embestidaAvance
         -SfxBanco _embestidaFinal
-        +Dash()
+        +Dash(enSuelo)
         +Gancho()
         +DobleSalto()
         +EmbestidaInicio()
@@ -52,7 +54,7 @@ classDiagram
         <<NetworkBehaviour>>
         -SfxBanco _sfxImpactoAmbiente
         -SfxBanco _sfxImpactoJefe
-        -ReproducirSfxImpacto(punto, enJefe)
+        -ReproducirSfxImpacto(banco, punto)
     }
 
     class AnchorLauncher {
@@ -105,7 +107,7 @@ classDiagram
 
     class SfxCatalogo {
         <<ScriptableObject>>
-        +bancos
+        +bancos solo agregar al final, el indice viaja por red
     }
 
     class AudioManager {
@@ -117,17 +119,21 @@ classDiagram
         +SfxPorIndice(indice) SfxBanco
         +ReproducirSfx(banco, posicion, seguir, emisor)
         +DetenerSfx(banco, emisor)
+        +DetenerLoopsDe(emisor)
         +SetVolume(channel, linear)
     }
 
     class VocesSfx3D {
         +Reproducir(banco, posicion, seguir, emisor)
         +Detener(banco, emisor)
+        +DetenerLoopsDe(emisor)
         +Actualizar()
     }
 
     class SfxRed {
         <<NetworkBehaviour>>
+        -AudioManager _audio se guarda en OnNetworkSpawn
+        +OnNetworkDespawn() detiene sus loops
         +Reproducir(banco, posicion)
         +ReproducirEnEmisor(banco)
         +Detener(banco)
@@ -151,14 +157,15 @@ classDiagram
     VocesSfx3D ..> SfxBanco
     SfxRed ..> AudioManager : indice del banco en el catalogo
     SfxAnimacion --> SfxRed : evento de animacion, solo el owner
-    PlayerCombat --> SfxCombate : golpe del combo, solo el owner
+    PlayerCombat --> SfxCombate : golpe al arrancar su animacion, solo el owner
+    PlayerCombatAnimator ..> PlayerCombat : GolpeLigeroIniciado
     SfxCombate ..> SfxPorIndice
     SfxCombate --> SfxRed
     VocesSfx3D ..> SubidaIntensidadSfx
     PlayerRoot --> SfxLocomocion : eventos de locomocion, solo el owner
     SfxLocomocion --> SfxRed
-    Proyectil --> SfxRed : impacto, lo lanza el servidor
     SfxLocomocion ..> DetectorFinEmbestida
+    Proyectil ..> SfxRed : impacto en el SfxRed del atacante, lo lanza el servidor
     AnchorLauncher --> SfxRed : lanzamiento validado en el servidor
     AtaqueArekBase <|-- AtaqueMano
     AtaqueArekBase --> SfxRed : SfxRed de la raiz de AREK, solo el servidor
