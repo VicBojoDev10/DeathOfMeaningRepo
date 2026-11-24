@@ -13,6 +13,7 @@ namespace TDOM.Data
         public ComboProfile Ranged;
         public GrappleProfile Grapple;
         public EnergyProfile Energy;
+        public BarrierProfile Barrier;
         public float MaxHealth = 100f;
         public float DownedDuration = 15f;
         public float ReviveHealth = 50f;

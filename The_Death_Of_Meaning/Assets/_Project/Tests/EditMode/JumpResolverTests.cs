@@ -196,5 +196,67 @@ namespace TDOM.Tests
             Assert.AreEqual(5f, estado.Velocity.y);
             Assert.AreEqual(2, estado.JumpsUsed);
         }
+
+        [Test]
+        public void Sin_permiso_aereo_el_doble_salto_no_se_ejecuta()
+        {
+            var resolver = new JumpResolver(
+                maxSaltos: 2,
+                velocidadSalto: 15f,
+                coyoteTime: 0.12f,
+                bufferTime: 0.15f
+            );
+            var estado = new LocomotionState { IsGrounded = true, JumpsUsed = 0 };
+
+            resolver.Tick(estado, ConSalto(), Dt);
+            estado.IsGrounded = false;
+            estado.Velocity.y = 5f;
+            resolver.Tick(estado, ConSalto(), Dt, permitirSaltoAereo: false);
+
+            Assert.AreEqual(5f, estado.Velocity.y);
+            Assert.AreEqual(1, estado.JumpsUsed);
+            Assert.IsFalse(resolver.PuedeSaltar(estado, permitirSaltoAereo: false));
+            Assert.IsTrue(resolver.PuedeSaltar(estado));
+        }
+
+        [Test]
+        public void Sin_permiso_aereo_el_salto_desde_el_suelo_sigue_funcionando()
+        {
+            var resolver = new JumpResolver(
+                maxSaltos: 2,
+                velocidadSalto: 15f,
+                coyoteTime: 0.12f,
+                bufferTime: 0.15f
+            );
+            var estado = new LocomotionState { IsGrounded = true, JumpsUsed = 0 };
+
+            resolver.Tick(estado, ConSalto(), Dt, permitirSaltoAereo: false);
+
+            Assert.AreEqual(15f, estado.Velocity.y);
+            Assert.AreEqual(1, estado.JumpsUsed);
+            Assert.IsTrue(resolver.PuedeSaltar(estado, permitirSaltoAereo: false));
+        }
+
+        [Test]
+        public void Sin_permiso_aereo_el_salto_en_coyote_time_sigue_funcionando()
+        {
+            var resolver = new JumpResolver(
+                maxSaltos: 2,
+                velocidadSalto: 15f,
+                coyoteTime: 0.12f,
+                bufferTime: 0.15f
+            );
+            var estado = new LocomotionState
+            {
+                IsGrounded = false,
+                JumpsUsed = 0,
+                CoyoteTimer = 0.12f,
+            };
+
+            resolver.Tick(estado, ConSalto(), Dt, permitirSaltoAereo: false);
+
+            Assert.AreEqual(15f, estado.Velocity.y);
+            Assert.AreEqual(1, estado.JumpsUsed);
+        }
     }
 }

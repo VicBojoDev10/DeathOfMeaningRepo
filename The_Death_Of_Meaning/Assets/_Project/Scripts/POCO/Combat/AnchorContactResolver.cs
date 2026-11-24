@@ -8,6 +8,7 @@ namespace TDOM.Gameplay.Combat
         Superficie,
         OjoValido,
         OjoEquivocado,
+        Minion,
     }
 
     public enum AccionAncla
