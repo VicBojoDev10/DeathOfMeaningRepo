@@ -80,6 +80,24 @@ namespace TDOM.Unity.Audio
             }
         }
 
+        public void DetenerLoopsDe(ulong emisor)
+        {
+            foreach (KeyValuePair<SfxBanco, List<Voz>> par in _vocesPorBanco)
+            {
+                if (!par.Key.loop)
+                    continue;
+
+                foreach (Voz voz in par.Value)
+                {
+                    if (voz.Emisor != emisor)
+                        continue;
+
+                    voz.Fuente.Stop();
+                    voz.Seguir = null;
+                }
+            }
+        }
+
         public void Actualizar()
         {
             foreach (KeyValuePair<SfxBanco, List<Voz>> par in _vocesPorBanco)
@@ -87,7 +105,8 @@ namespace TDOM.Unity.Audio
                 foreach (Voz voz in par.Value)
                 {
                     Seguir(voz);
-                    Subir(par.Key, voz);
+                    if (voz.Ocupada)
+                        Subir(par.Key, voz);
                 }
             }
         }

@@ -6,6 +6,8 @@
     MENU -->|"Host con 2 jugadores: StartMatch"| GFN
     GFN -->|StartMatchClientRpc| SEL[CharacterSelUI]
     SEL -->|"ElegirPersonajeRpc, MarcarListoRpc (Server)"| GSM[GameSessionManager servidor]
+    SEL -->|"SolicitarRegresoAConexionRpc (Server)"| GFN
+    GFN -->|"RegresarAConexionClientRpc (ClientsAndHost)"| MENU
     GSM -->|"Jugadores: NetworkList de PlayerSelectionState"| SEL
     GSM -.->|"PersonajeRechazadoRpc, NotificarDesconexionClientRpc"| SEL
     GSM -->|"2 listos: SpawnWithOwnership"| P[PlayerZendre / PlayerAyla]
