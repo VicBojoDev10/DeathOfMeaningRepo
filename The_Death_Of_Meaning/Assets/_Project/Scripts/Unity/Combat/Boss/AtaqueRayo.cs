@@ -32,6 +32,10 @@ namespace TDOM.Unity
         [SerializeField]
         private AtaqueRayoVfxProfile _perfilVfx;
 
+        [Header("Sonido")]
+        [SerializeField]
+        private SfxBanco _sfxCarga;
+
         private enum FaseRayo
         {
             Aviso,
@@ -103,6 +107,7 @@ namespace TDOM.Unity
             _golpeados.Clear();
 
             AvisoRpc(_origenServidor, _finalesServidor);
+            ReproducirSfxEn(_sfxCarga, _origenServidor);
         }
 
         private Vector3[] CalcularFinales(Vector3 origen)
@@ -208,6 +213,7 @@ namespace TDOM.Unity
                                 * MultiplicadorVelocidad
                             );
                         RayoRpc(_inicioRecorridoServidor, _duracionRecorrido);
+                        DetenerSfxJefe(_sfxCarga);
                     }
                     break;
 
@@ -454,6 +460,7 @@ namespace TDOM.Unity
 
         public override void OnNetworkDespawn()
         {
+            DetenerSfxJefe(_sfxCarga);
             LimpiarVisuales();
             base.OnNetworkDespawn();
         }
