@@ -1,5 +1,6 @@
 using TDOM.Data;
 using TDOM.Gameplay.Core;
+using TDOM.Unity.Audio;
 using TDOM.Unity.Flow;
 using TDOM.Unity.Input;
 using TDOM.Unity.Player;
@@ -36,6 +37,11 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private VfxBase _vfxAncla;
+
+        [SerializeField]
+        private SfxBanco _sfxLanzamiento;
+
+        private SfxRed _sfxRed;
 
         private bool _esperandoSoltar;
         private bool _incapacitado;
@@ -127,6 +133,7 @@ namespace TDOM.Unity.Combat
         public override void OnNetworkSpawn()
         {
             PrepararVfxAncla();
+            _sfxRed = GetComponentInParent<SfxRed>();
         }
 
         private void PrepararVfxAncla()
@@ -357,6 +364,14 @@ namespace TDOM.Unity.Combat
                 _usoAnclaServidor = _perfil.StaminaCosto > 0f;
                 _energiaGastadaUsoServidor = 0f;
             }
+
+            ReproducirSfxLanzamiento(origen);
+        }
+
+        private void ReproducirSfxLanzamiento(Vector3 origen)
+        {
+            if (_sfxRed != null && _sfxLanzamiento != null)
+                _sfxRed.Reproducir(_sfxLanzamiento, origen);
         }
 
         private void RechazarLanzamientoServidor()
