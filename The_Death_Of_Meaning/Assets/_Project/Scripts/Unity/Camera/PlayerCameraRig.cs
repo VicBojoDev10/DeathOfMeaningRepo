@@ -245,14 +245,14 @@ namespace TDOM.Unity.Camera
             var rayo = new Ray(camara.position, camara.forward);
             colliderImpactado = null;
 
-            if (!TryImpactoMasCercano(rayo, out RaycastHit impacto))
+            if (!TryImpactoMasCercano(rayo, origen, out RaycastHit impacto))
                 return AimResolver.ResolveMiss(rayo, _config.AimMaxRange, origen);
 
             colliderImpactado = impacto.collider;
             return AimResolver.ResolveHit(rayo, impacto.point, origen);
         }
 
-        private bool TryImpactoMasCercano(Ray rayo, out RaycastHit masCercano)
+        private bool TryImpactoMasCercano(Ray rayo, Vector3 origen, out RaycastHit masCercano)
         {
             int cantidad = Physics.RaycastNonAlloc(
                 rayo,
@@ -268,6 +268,8 @@ namespace TDOM.Unity.Camera
             {
                 RaycastHit impacto = _impactosApuntado[i];
                 if (impacto.collider.transform.IsChildOf(_cuerpo))
+                    continue;
+                if (!AimResolver.EstaDelante(rayo, impacto.point, origen))
                     continue;
                 if (encontrado && impacto.distance >= masCercano.distance)
                     continue;
