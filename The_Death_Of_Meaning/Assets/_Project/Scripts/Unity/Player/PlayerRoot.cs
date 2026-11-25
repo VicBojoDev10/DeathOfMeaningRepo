@@ -985,6 +985,17 @@ namespace TDOM.Unity.Player
             );
         }
 
+        private void ActualizarSfxEmbestida()
+        {
+            if (_sfxLocomocion == null || _characterId != CharacterIds.Zendre)
+                return;
+
+            if (_locomocion.DashIniciado)
+                _sfxLocomocion.EmbestidaInicio();
+
+            _sfxLocomocion.ActualizarEmbestida(_locomocion.DashActivo);
+        }
+
         private void ActualizarVfxSaltoAterrizaje()
         {
             if (_detectorVfxSalto == null)
@@ -1002,6 +1013,18 @@ namespace TDOM.Unity.Player
 
             if (_detectorVfxSalto.Aterrizaje)
                 LanzarVfxAterrizaje();
+        }
+
+        private void ReproducirSfxSaltoAterrizaje()
+        {
+            if (_sfxLocomocion == null || _detectorVfxSalto == null)
+                return;
+
+            if (_detectorVfxSalto.SaltoDesdeSuelo)
+                _sfxLocomocion.Salto();
+
+            if (_detectorVfxSalto.Aterrizaje)
+                _sfxLocomocion.Aterrizaje();
         }
 
         private void LanzarVfxAterrizaje()
@@ -1575,6 +1598,7 @@ namespace TDOM.Unity.Player
             if (_locomocion.SaltoAereo)
                 PedirConsumoDeEnergia(CostoSaltoAereo);
             ActualizarVfxSaltoAterrizaje();
+            ReproducirSfxSaltoAterrizaje();
             if (
                 _locomocion.SaltoAereo
                 && _characterId == CharacterIds.Ayla
@@ -1595,6 +1619,7 @@ namespace TDOM.Unity.Player
                     _sfxLocomocion.Dash(_enSueloAntesDelDash);
             }
             ActualizarVfxEmbestida();
+            ActualizarSfxEmbestida();
             RegistrarDesplazamientoLateralEnCamara(input.Move);
 
             if (ganchoActivoActual != _ganchoActivoPrevio)

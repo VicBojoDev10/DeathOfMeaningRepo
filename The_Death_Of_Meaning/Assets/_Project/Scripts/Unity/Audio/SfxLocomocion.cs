@@ -1,4 +1,5 @@
 using TDOM.Data;
+using TDOM.Gameplay.Vfx;
 using UnityEngine;
 
 namespace TDOM.Unity.Audio
@@ -18,7 +19,24 @@ namespace TDOM.Unity.Audio
         private SfxBanco _gancho;
 
         [SerializeField]
+        private SfxBanco _salto;
+
+        [SerializeField]
+        private SfxBanco _aterrizaje;
+
+        [SerializeField]
         private SfxBanco _dobleSalto;
+
+        [SerializeField]
+        private SfxBanco _embestidaArranque;
+
+        [SerializeField]
+        private SfxBanco _embestidaAvance;
+
+        [SerializeField]
+        private SfxBanco _embestidaFinal;
+
+        private readonly DetectorFinEmbestida _finEmbestida = new DetectorFinEmbestida();
 
         private void Awake()
         {
@@ -31,7 +49,28 @@ namespace TDOM.Unity.Audio
 
         public void Gancho() => ReproducirSiExiste(_gancho);
 
+        public void Salto() => ReproducirSiExiste(_salto);
+
+        public void Aterrizaje() => ReproducirSiExiste(_aterrizaje);
+
         public void DobleSalto() => ReproducirSiExiste(_dobleSalto);
+
+        public void EmbestidaInicio()
+        {
+            ReproducirSiExiste(_embestidaArranque);
+            ReproducirSiExiste(_embestidaAvance);
+        }
+
+        public void ActualizarEmbestida(bool activa)
+        {
+            _finEmbestida.Actualizar(activa);
+            if (!_finEmbestida.Termino)
+                return;
+
+            if (_red != null && _embestidaAvance != null)
+                _red.Detener(_embestidaAvance);
+            ReproducirSiExiste(_embestidaFinal);
+        }
 
         private void ReproducirSiExiste(SfxBanco banco)
         {

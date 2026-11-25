@@ -1,3 +1,5 @@
+using TDOM.Data;
+using TDOM.Unity.Audio;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
 using TDOM.Unity.Vfx;
@@ -24,6 +26,8 @@ namespace TDOM.Unity
 
         private VfxRed _vfxJefe;
 
+        private SfxRed _sfxJefe;
+
         protected AtaquesArek Lanzador { get; private set; }
 
         /// <summary>VFX en red del jefe (VfxRed de la raíz de AREK); null si no lo tiene.</summary>
@@ -37,6 +41,34 @@ namespace TDOM.Unity
             }
         }
 
+        protected SfxRed SfxJefe
+        {
+            get
+            {
+                if (_sfxJefe == null && Lanzador != null)
+                    _sfxJefe = Lanzador.GetComponentInParent<SfxRed>();
+                return _sfxJefe;
+            }
+        }
+
+        protected void ReproducirSfxEnJefe(SfxBanco banco)
+        {
+            if (IsServer && banco != null && SfxJefe != null)
+                SfxJefe.ReproducirEnEmisor(banco);
+        }
+
+        protected void ReproducirSfxEn(SfxBanco banco, Vector3 punto)
+        {
+            if (IsServer && banco != null && SfxJefe != null)
+                SfxJefe.Reproducir(banco, punto);
+        }
+
+        protected void DetenerSfxJefe(SfxBanco banco)
+        {
+            if (IsServer && banco != null && SfxJefe != null)
+                SfxJefe.Detener(banco);
+        }
+
         // Se llama antes de Spawn(): la NetworkVariable aun no conoce su NetworkBehaviour, asi que
         // el id se guarda aparte y se escribe en OnNetworkSpawn, antes de que el spawn llegue a los
         // clientes.
@@ -47,6 +79,8 @@ namespace TDOM.Unity
         }
 
         protected float DeltaAtaque => Time.deltaTime * _velocidad.Value;
+
+        protected float MultiplicadorVelocidad => _velocidad.Value;
 
         protected float AvisoEscalado(float aviso) => aviso / _velocidad.Value;
 
