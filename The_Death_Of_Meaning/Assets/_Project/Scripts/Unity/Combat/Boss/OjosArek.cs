@@ -35,6 +35,8 @@ namespace TDOM.Unity.Combat
 
         public event Action<int, EstadoOjo> EstadoOjoCambiado;
 
+        public event Action<int> OjoDestruido;
+
         /// <summary>La vida de un ojo cambió; el valor va de 0 (sin vida) a 1 (llena).</summary>
         public event Action<int, float> VidaOjoCambiada;
 
@@ -250,8 +252,17 @@ namespace TDOM.Unity.Combat
                 cambio.Type == NetworkListEvent<byte>.EventType.Value
                 || cambio.Type == NetworkListEvent<byte>.EventType.Add;
 
-            if (cambioDeOjo)
-                EstadoOjoCambiado?.Invoke(cambio.Index, (EstadoOjo)cambio.Value);
+            if (!cambioDeOjo)
+                return;
+
+            var actual = (EstadoOjo)cambio.Value;
+            EstadoOjoCambiado?.Invoke(cambio.Index, actual);
+
+            bool destruido =
+                cambio.Type == NetworkListEvent<byte>.EventType.Value
+                && WeakPointStateMachine.EsDestruccion((EstadoOjo)cambio.PreviousValue, actual);
+            if (destruido)
+                OjoDestruido?.Invoke(cambio.Index);
         }
 
         private void AlCambiarVida(NetworkListEvent<byte> cambio)
