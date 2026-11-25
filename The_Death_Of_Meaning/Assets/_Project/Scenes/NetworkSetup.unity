@@ -6120,7 +6120,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1318527841}
   - component: {fileID: 1318527843}
-  - component: {fileID: 1318527842}
+  - component: {fileID: 1318527844}
   m_Layer: 0
   m_Name: PanelGancho
   m_TagString: Untagged
@@ -6144,21 +6144,6 @@ Transform:
   - {fileID: 1848519114}
   m_Father: {fileID: 420200212}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1318527842
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1318527840}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c870423087544daeb952e24909fa2a11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.PanelTutorialProximidad
-  _personaje: 2
-  _visual: {fileID: 1848519114}
-  _duracionAnimacion: 0.25
 --- !u!65 &1318527843
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -6180,6 +6165,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 14.980434, y: 12.781418, z: 17.479092}
   m_Center: {x: -4.315218, y: 4.890709, z: 6.0918026}
+--- !u!114 &1318527844
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1318527840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 402d7bbf113e43e9849b04839d43f86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.TutorialCheckpointTrigger
+  _personaje: 2
 --- !u!1 &1322350425
 GameObject:
   m_ObjectHideFlags: 0
@@ -6633,7 +6631,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1416535779}
   - component: {fileID: 1416535781}
-  - component: {fileID: 1416535780}
+  - component: {fileID: 1416535782}
   m_Layer: 0
   m_Name: PanelMeleeAyla
   m_TagString: Untagged
@@ -6657,21 +6655,6 @@ Transform:
   - {fileID: 773308305}
   m_Father: {fileID: 420200212}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1416535780
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1416535778}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c870423087544daeb952e24909fa2a11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.PanelTutorialProximidad
-  _personaje: 2
-  _visual: {fileID: 773308305}
-  _duracionAnimacion: 0.25
 --- !u!65 &1416535781
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -6693,6 +6676,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 18.62524, y: 16.567368, z: 14.25}
   m_Center: {x: -6.137621, y: 6.783684, z: 5.5699997}
+--- !u!114 &1416535782
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1416535778}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 402d7bbf113e43e9849b04839d43f86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.TutorialCheckpointTrigger
+  _personaje: 2
 --- !u!1 &1459004242
 GameObject:
   m_ObjectHideFlags: 0
@@ -14666,12 +14662,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 984817949}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c870423087544daeb952e24909fa2a11, type: 3}
+  m_Script: {fileID: 11500000, guid: 402d7bbf113e43e9849b04839d43f86a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.PanelTutorialProximidad
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.TutorialCheckpointTrigger
   _personaje: 1
-  _visual: {fileID: 380480114}
-  _duracionAnimacion: 0.25
 --- !u!65 &2300000006
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -14702,12 +14696,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1561435539}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c870423087544daeb952e24909fa2a11, type: 3}
+  m_Script: {fileID: 11500000, guid: 402d7bbf113e43e9849b04839d43f86a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.PanelTutorialProximidad
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.TutorialCheckpointTrigger
   _personaje: 1
-  _visual: {fileID: 2114580615}
-  _duracionAnimacion: 0.25
 --- !u!65 &2300000008
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -14738,12 +14730,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1593970648}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c870423087544daeb952e24909fa2a11, type: 3}
+  m_Script: {fileID: 11500000, guid: 402d7bbf113e43e9849b04839d43f86a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.PanelTutorialProximidad
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.TutorialCheckpointTrigger
   _personaje: 1
-  _visual: {fileID: 2048947660}
-  _duracionAnimacion: 0.25
 --- !u!65 &2300000010
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -14774,12 +14764,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1708258146}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c870423087544daeb952e24909fa2a11, type: 3}
+  m_Script: {fileID: 11500000, guid: 402d7bbf113e43e9849b04839d43f86a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.PanelTutorialProximidad
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.TutorialCheckpointTrigger
   _personaje: 2
-  _visual: {fileID: 1088331419}
-  _duracionAnimacion: 0.25
 --- !u!65 &2300000012
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -14810,12 +14798,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 2112533630}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c870423087544daeb952e24909fa2a11, type: 3}
+  m_Script: {fileID: 11500000, guid: 402d7bbf113e43e9849b04839d43f86a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.PanelTutorialProximidad
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Level.TutorialCheckpointTrigger
   _personaje: 1
-  _visual: {fileID: 751192433}
-  _duracionAnimacion: 0.25
 --- !u!65 &2300000014
 BoxCollider:
   m_ObjectHideFlags: 0
