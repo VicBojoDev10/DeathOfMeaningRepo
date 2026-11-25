@@ -30,6 +30,9 @@ namespace TDOM.Unity.Combat
         private SfxBanco _sfxImpactoAmbiente;
 
         [SerializeField]
+        private SfxBanco _sfxImpactoJefe;
+
+        [SerializeField]
         private LayerMask _capas = (1 << 0) | (1 << 6);
 
         private Vector3 _direccion;
@@ -161,9 +164,10 @@ namespace TDOM.Unity.Combat
                     return;
                 }
 
+                AtaquesArek jefe = hit.collider.GetComponentInParent<AtaquesArek>();
+                jefe?.RegistrarImpacto(_atacanteId);
                 if (hz != null)
                 {
-                    hit.collider.GetComponentInParent<AtaquesArek>()?.RegistrarImpacto(_atacanteId);
                     hz.RegistrarImpacto(
                         _daño,
                         _atacanteId,
@@ -172,13 +176,11 @@ namespace TDOM.Unity.Combat
                     );
                     LanzarVfxImpacto(_vfxImpactoJefe, hit);
                 }
-                else
-                {
-                    AtaquesArek jefe = hit.collider.GetComponentInParent<AtaquesArek>();
-                    jefe?.RegistrarImpacto(_atacanteId);
-                    if (jefe == null)
-                        ReproducirSfxImpacto(_sfxImpactoAmbiente, hit.point);
-                }
+
+                ReproducirSfxImpacto(
+                    jefe != null ? _sfxImpactoJefe : _sfxImpactoAmbiente,
+                    hit.point
+                );
 
                 Debug.Log(
                     $"[Proyectil] Impacto con {hit.collider.name} en capa {LayerMask.LayerToName(hit.collider.gameObject.layer)} (HitZone: {hz != null}, Daño: {_daño})"
