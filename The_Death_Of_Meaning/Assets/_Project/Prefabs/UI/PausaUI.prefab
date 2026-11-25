@@ -149,6 +149,7 @@ GameObject:
   - component: {fileID: 5738444257232432145}
   - component: {fileID: 5021153193641737738}
   - component: {fileID: 6902819489454685761}
+  - component: {fileID: 2381223388346271734}
   m_Layer: 5
   m_Name: BtnRetry
   m_TagString: Untagged
@@ -258,6 +259,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2381223388346271734
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1015043631196506404}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 1
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 7493944815534415332}
 --- !u!1 &1720824484521276751
 GameObject:
   m_ObjectHideFlags: 0
@@ -424,6 +440,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8258489290393807377}
   - component: {fileID: 969687726911755117}
+  - component: {fileID: 7493944815534415332}
   m_Layer: 0
   m_Name: PausaUI
   m_TagString: Untagged
@@ -470,6 +487,103 @@ MonoBehaviour:
   retryButton: {fileID: 6902819489454685761}
   exitButton: {fileID: 1006717351423682115}
   titulo: {fileID: 2683641790267286053}
+--- !u!82 &7493944815534415332
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2388071375972608761}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 7946436383709348461, guid: b728cfa597ecb1640873a5e01cb86e5b, type: 2}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &3049962146026009567
 GameObject:
   m_ObjectHideFlags: 0
@@ -694,6 +808,7 @@ GameObject:
   - component: {fileID: 1029367747190047992}
   - component: {fileID: 5129739685146871562}
   - component: {fileID: 245062682065328967}
+  - component: {fileID: 9078714045314734361}
   m_Layer: 5
   m_Name: BtnContinue
   m_TagString: Untagged
@@ -803,6 +918,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &9078714045314734361
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4338950565248373202}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 0
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 7493944815534415332}
 --- !u!1 &4730343760652560989
 GameObject:
   m_ObjectHideFlags: 0
@@ -952,6 +1082,7 @@ GameObject:
   - component: {fileID: 8403868719647361566}
   - component: {fileID: 2752259174031714726}
   - component: {fileID: 1006717351423682115}
+  - component: {fileID: 4348980809694405826}
   m_Layer: 5
   m_Name: BtnExit
   m_TagString: Untagged
@@ -1061,6 +1192,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &4348980809694405826
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6101217009483597543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 2
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 7493944815534415332}
 --- !u!1 &8751878299154703918
 GameObject:
   m_ObjectHideFlags: 0

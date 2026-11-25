@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3269627220380282089}
   - component: {fileID: 5175729593170497581}
   - component: {fileID: 2580448648224827755}
+  - component: {fileID: 4988802199190406341}
   m_Layer: 5
   m_Name: Key2
   m_TagString: Untagged
@@ -121,6 +122,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &4988802199190406341
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 112039880772758611}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 0
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 3269003105201120261}
 --- !u!1 &303166158425997366
 GameObject:
   m_ObjectHideFlags: 0
@@ -1094,6 +1110,7 @@ GameObject:
   - component: {fileID: 7488108822700903649}
   - component: {fileID: 7919210306941951738}
   - component: {fileID: 8611914008932425393}
+  - component: {fileID: 5305846527066759462}
   m_Layer: 5
   m_Name: Key1
   m_TagString: Untagged
@@ -1203,6 +1220,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &5305846527066759462
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2764716649260771796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 0
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 3269003105201120261}
 --- !u!1 &2952640128738430743
 GameObject:
   m_ObjectHideFlags: 0
@@ -1215,6 +1247,7 @@ GameObject:
   - component: {fileID: 7197487347785391047}
   - component: {fileID: 3150230540519742440}
   - component: {fileID: 2248796218802599933}
+  - component: {fileID: 4133494333141213933}
   m_Layer: 5
   m_Name: Key6
   m_TagString: Untagged
@@ -1324,6 +1357,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &4133494333141213933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2952640128738430743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 0
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 3269003105201120261}
 --- !u!1 &3179452984552464842
 GameObject:
   m_ObjectHideFlags: 0
@@ -1450,6 +1498,7 @@ GameObject:
   - component: {fileID: 1884430380054545065}
   - component: {fileID: 7824569476163220379}
   - component: {fileID: 6855437184879179979}
+  - component: {fileID: 8178941575068955868}
   m_Layer: 5
   m_Name: KeyDot
   m_TagString: Untagged
@@ -1559,6 +1608,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &8178941575068955868
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3262669394804582065}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 0
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 3269003105201120261}
 --- !u!1 &3792074753675354687
 GameObject:
   m_ObjectHideFlags: 0
@@ -1569,6 +1633,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3302684591821321247}
   - component: {fileID: 8292953999224998920}
+  - component: {fileID: 3269003105201120261}
   m_Layer: 0
   m_Name: KeyboardUI
   m_TagString: Untagged
@@ -1625,6 +1690,103 @@ MonoBehaviour:
   - {fileID: 6855437184879179979}
   - {fileID: 796065674171143298}
   - {fileID: 8963143377312886611}
+--- !u!82 &3269003105201120261
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3792074753675354687}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 7946436383709348461, guid: b728cfa597ecb1640873a5e01cb86e5b, type: 2}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &3817498309207956895
 GameObject:
   m_ObjectHideFlags: 0
@@ -1774,6 +1936,7 @@ GameObject:
   - component: {fileID: 4875889993725992711}
   - component: {fileID: 6175704072059942000}
   - component: {fileID: 796065674171143298}
+  - component: {fileID: 1585365036506451274}
   m_Layer: 5
   m_Name: KeyDel
   m_TagString: Untagged
@@ -1883,6 +2046,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1585365036506451274
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3988128652312802961}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 0
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 3269003105201120261}
 --- !u!1 &4251188968833261368
 GameObject:
   m_ObjectHideFlags: 0
@@ -1895,6 +2073,7 @@ GameObject:
   - component: {fileID: 9215456908117480864}
   - component: {fileID: 3454019266572059181}
   - component: {fileID: 7487465016026015371}
+  - component: {fileID: 3018548703105612374}
   m_Layer: 5
   m_Name: Key8
   m_TagString: Untagged
@@ -2004,6 +2183,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &3018548703105612374
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4251188968833261368}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 0
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 3269003105201120261}
 --- !u!1 &4556715390000881353
 GameObject:
   m_ObjectHideFlags: 0
@@ -2246,6 +2440,7 @@ GameObject:
   - component: {fileID: 7583100257128812881}
   - component: {fileID: 5217064344742327836}
   - component: {fileID: 6027488485215809387}
+  - component: {fileID: 3687026981910548877}
   m_Layer: 5
   m_Name: Key4
   m_TagString: Untagged
@@ -2355,6 +2550,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &3687026981910548877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5134197912250921151}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 0
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 3269003105201120261}
 --- !u!1 &5464294056179237070
 GameObject:
   m_ObjectHideFlags: 0
@@ -2367,6 +2577,7 @@ GameObject:
   - component: {fileID: 1508733582517676691}
   - component: {fileID: 2248008264961212579}
   - component: {fileID: 5839603789911439285}
+  - component: {fileID: 7008838920153576041}
   m_Layer: 5
   m_Name: Key0
   m_TagString: Untagged
@@ -2476,6 +2687,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &7008838920153576041
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5464294056179237070}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 0
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 3269003105201120261}
 --- !u!1 &5943912386495317978
 GameObject:
   m_ObjectHideFlags: 0
@@ -2762,6 +2988,7 @@ GameObject:
   - component: {fileID: 376892522228201471}
   - component: {fileID: 2149842304565098691}
   - component: {fileID: 6103363931233948174}
+  - component: {fileID: 6914982784072232610}
   m_Layer: 5
   m_Name: Key7
   m_TagString: Untagged
@@ -2871,6 +3098,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &6914982784072232610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6513766973677206925}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 0
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 3269003105201120261}
 --- !u!1 &6576203803668848397
 GameObject:
   m_ObjectHideFlags: 0
@@ -2883,6 +3125,7 @@ GameObject:
   - component: {fileID: 5355629192950760272}
   - component: {fileID: 7761937341866836807}
   - component: {fileID: 2049840392087453284}
+  - component: {fileID: 1831970043609071293}
   m_Layer: 5
   m_Name: Key9
   m_TagString: Untagged
@@ -2992,6 +3235,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1831970043609071293
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6576203803668848397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 0
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 3269003105201120261}
 --- !u!1 &6697849487498579723
 GameObject:
   m_ObjectHideFlags: 0
@@ -3141,6 +3399,7 @@ GameObject:
   - component: {fileID: 8811251094441604424}
   - component: {fileID: 878426587610587317}
   - component: {fileID: 1088619047605777695}
+  - component: {fileID: 4696771664149677347}
   m_Layer: 5
   m_Name: Key3
   m_TagString: Untagged
@@ -3250,6 +3509,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &4696771664149677347
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8082384276719701298}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 0
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 3269003105201120261}
 --- !u!1 &8177181225734622998
 GameObject:
   m_ObjectHideFlags: 0
@@ -3262,6 +3536,7 @@ GameObject:
   - component: {fileID: 3176360497527805664}
   - component: {fileID: 998891173896913445}
   - component: {fileID: 8963143377312886611}
+  - component: {fileID: 1923556062111105490}
   m_Layer: 5
   m_Name: KeyEnter
   m_TagString: Untagged
@@ -3371,6 +3646,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1923556062111105490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8177181225734622998}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 0
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 3269003105201120261}
 --- !u!1 &8337584896118065092
 GameObject:
   m_ObjectHideFlags: 0
@@ -3657,6 +3947,7 @@ GameObject:
   - component: {fileID: 623626443816467136}
   - component: {fileID: 8198357931457022991}
   - component: {fileID: 2491808071696330453}
+  - component: {fileID: 7914429271195474425}
   m_Layer: 5
   m_Name: Key5
   m_TagString: Untagged
@@ -3766,3 +4057,18 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &7914429271195474425
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8963297081567702170}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 0
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 3269003105201120261}

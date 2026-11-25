@@ -1567,6 +1567,7 @@ GameObject:
   - component: {fileID: 8808020662459321337}
   - component: {fileID: 6357827093172655888}
   - component: {fileID: 5642237021625300254}
+  - component: {fileID: 2865043208580995326}
   m_Layer: 5
   m_Name: BotonUnirse
   m_TagString: Untagged
@@ -1676,6 +1677,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2865043208580995326
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2556098105284582116}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 3
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 2719056303738933384}
 --- !u!1 &2704226459694652408
 GameObject:
   m_ObjectHideFlags: 0
@@ -1958,6 +1974,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3302684591821321247}
   - component: {fileID: 8719229877450662501}
+  - component: {fileID: 2719056303738933384}
   m_Layer: 0
   m_Name: ConnectionUI
   m_TagString: Untagged
@@ -2015,6 +2032,103 @@ MonoBehaviour:
   dimmedTint: {r: 0.42, g: 0.42, b: 0.42, a: 1}
   backgroundScale: 0.82
   focusDuration: 0.35
+--- !u!82 &2719056303738933384
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3792074753675354687}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 7946436383709348461, guid: b728cfa597ecb1640873a5e01cb86e5b, type: 2}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &4144026943314917250
 GameObject:
   m_ObjectHideFlags: 0
@@ -2027,6 +2141,7 @@ GameObject:
   - component: {fileID: 7580674884117811175}
   - component: {fileID: 812363759637418145}
   - component: {fileID: 9218455986888707725}
+  - component: {fileID: 4975229605536418044}
   m_Layer: 5
   m_Name: BotonCrearPartida
   m_TagString: Untagged
@@ -2136,6 +2251,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &4975229605536418044
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4144026943314917250}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 3
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 2719056303738933384}
 --- !u!1 &4475850511196234390
 GameObject:
   m_ObjectHideFlags: 0
@@ -2653,6 +2783,7 @@ GameObject:
   - component: {fileID: 1262146562968548158}
   - component: {fileID: 6474365347881130812}
   - component: {fileID: 8535730411208629042}
+  - component: {fileID: 1925895224305194561}
   m_Layer: 5
   m_Name: Back
   m_TagString: Untagged
@@ -2761,6 +2892,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1925895224305194561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4985274732457044805}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 2
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 2719056303738933384}
 --- !u!1 &5018926373381380033
 GameObject:
   m_ObjectHideFlags: 0
@@ -3047,6 +3193,7 @@ GameObject:
   - component: {fileID: 920959556560883197}
   - component: {fileID: 489295088346554342}
   - component: {fileID: 2066966082656067501}
+  - component: {fileID: 8870951903387387389}
   m_Layer: 5
   m_Name: UnirseButton
   m_TagString: Untagged
@@ -3156,6 +3303,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &8870951903387387389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5580738110453819592}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 3
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 2719056303738933384}
 --- !u!1 &5596171962260014951
 GameObject:
   m_ObjectHideFlags: 0
@@ -3168,6 +3330,7 @@ GameObject:
   - component: {fileID: 6965805218293893373}
   - component: {fileID: 434647584348033344}
   - component: {fileID: 8001618646151231359}
+  - component: {fileID: 8228545568025535894}
   m_Layer: 0
   m_Name: ButtonJoinTest
   m_TagString: Untagged
@@ -3277,6 +3440,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &8228545568025535894
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5596171962260014951}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 0
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 2719056303738933384}
 --- !u!1 &5702170347985099078
 GameObject:
   m_ObjectHideFlags: 0
@@ -3563,6 +3741,7 @@ GameObject:
   - component: {fileID: 7042616184557658342}
   - component: {fileID: 2937778009146352404}
   - component: {fileID: 7823818728500199257}
+  - component: {fileID: 3378847742474732652}
   m_Layer: 5
   m_Name: CrearPartidaBtn
   m_TagString: Untagged
@@ -3672,6 +3851,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &3378847742474732652
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6035498688877704652}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 3
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 2719056303738933384}
 --- !u!1 &6145542598927602238
 GameObject:
   m_ObjectHideFlags: 0
@@ -3684,6 +3878,7 @@ GameObject:
   - component: {fileID: 7437512682955179796}
   - component: {fileID: 3336650496003212518}
   - component: {fileID: 7645130658522929323}
+  - component: {fileID: 6081976765236360760}
   m_Layer: 5
   m_Name: StartPartyBtn
   m_TagString: Untagged
@@ -3793,6 +3988,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &6081976765236360760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6145542598927602238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 3
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 2719056303738933384}
 --- !u!1 &6202471382391726104
 GameObject:
   m_ObjectHideFlags: 0
@@ -4608,6 +4818,7 @@ GameObject:
   - component: {fileID: 5756139351384033436}
   - component: {fileID: 377213467154329781}
   - component: {fileID: 1894486944170789483}
+  - component: {fileID: 4613998369363644743}
   m_Layer: 5
   m_Name: BotonEmpezar
   m_TagString: Untagged
@@ -4717,6 +4928,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &4613998369363644743
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6985273567965400523}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
+  _tipo: 3
+  _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
+  _fuente: {fileID: 2719056303738933384}
 --- !u!1 &7050620969871276650
 GameObject:
   m_ObjectHideFlags: 0
