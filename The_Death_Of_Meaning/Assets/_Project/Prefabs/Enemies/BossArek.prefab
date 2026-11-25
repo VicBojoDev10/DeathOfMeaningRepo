@@ -30,6 +30,7 @@ GameObject:
   - component: {fileID: 8393869284619245695}
   - component: {fileID: 5130183109049321329}
   - component: {fileID: 8481864370728030325}
+  - component: {fileID: 3774550900378075095}
   m_Layer: 0
   m_Name: BossArek
   m_TagString: Untagged
@@ -675,6 +676,19 @@ MonoBehaviour:
   _interior: {fileID: 5465819203118519887}
   _simbolo: {fileID: 8507444543030389959}
   _aura: {fileID: 1393414865574781000}
+--- !u!114 &3774550900378075095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 480fa2d991d74017bca0c24267a20f48, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Combat.OjosArekVfx
+  _vfxOjoDestruido: {fileID: 4555537441307799462, guid: 167d0a6f96853424b92b485838db2cd2, type: 3}
 --- !u!1 &2000000000000040
 GameObject:
   m_ObjectHideFlags: 0
