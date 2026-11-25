@@ -37,6 +37,12 @@ namespace TDOM.Unity
         [SerializeField]
         private VfxBase _vfxCarga;
 
+        [SerializeField]
+        private VfxBase _vfxDisparo;
+
+        [SerializeField]
+        private VfxBase _vfxImpacto;
+
         [Header("Sonido")]
         [SerializeField]
         private SfxBanco _sfxCarga;
@@ -149,6 +155,33 @@ namespace TDOM.Unity
                 VfxJefe.Detener(_vfxCarga);
         }
 
+        private void LanzarVfxDisparo()
+        {
+            VfxRed vfx = VfxJefe;
+            if (vfx == null || _vfxDisparo == null)
+                return;
+
+            vfx.Lanzar(_vfxDisparo, _origenServidor, Quaternion.LookRotation(DireccionCarga()));
+            for (int i = 0; i < _finalesServidor.Length; i++)
+                vfx.LanzarEntre(_vfxDisparo, ObtenerInicioVisual(i), ObtenerFinalVisual(i));
+        }
+
+        private void LanzarVfxImpactos()
+        {
+            VfxRed vfx = VfxJefe;
+            if (vfx == null || _vfxImpacto == null)
+                return;
+
+            foreach (Vector3 final in _finalesServidor)
+                vfx.Lanzar(_vfxImpacto, final, Quaternion.identity);
+        }
+
+        private void DetenerVfxDisparo()
+        {
+            if (IsServer && _vfxDisparo != null && VfxJefe != null)
+                VfxJefe.Detener(_vfxDisparo);
+        }
+
         private Vector3[] CalcularFinales(Vector3 origen)
         {
             Vector3 adelante = transform.forward;
@@ -226,6 +259,7 @@ namespace TDOM.Unity
                 {
                     ApagarRpc();
                     DetenerSfxJefe(_sfxDisparoLoop);
+                    DetenerVfxDisparo();
                     CambiarFase(FaseRayo.Terminado);
                 }
                 return;
@@ -255,6 +289,7 @@ namespace TDOM.Unity
                         RayoRpc(_inicioRecorridoServidor, _duracionRecorrido);
                         DetenerSfxJefe(_sfxCarga);
                         DetenerVfxCarga();
+                        LanzarVfxDisparo();
                         ReproducirSfxEn(_sfxDisparoInicio, _origenServidor);
                         ReproducirSfxEn(_sfxDisparoLoop, _origenServidor);
                     }
@@ -271,6 +306,8 @@ namespace TDOM.Unity
                         ApagarRpc();
                         DetenerSfxJefe(_sfxDisparoLoop);
                         ReproducirSfxEn(_sfxDisparoFin, _origenServidor);
+                        DetenerVfxDisparo();
+                        LanzarVfxImpactos();
                     }
                     break;
 
@@ -508,6 +545,7 @@ namespace TDOM.Unity
             DetenerSfxJefe(_sfxCarga);
             DetenerSfxJefe(_sfxDisparoLoop);
             DetenerVfxCarga();
+            DetenerVfxDisparo();
             LimpiarVisuales();
             base.OnNetworkDespawn();
         }
