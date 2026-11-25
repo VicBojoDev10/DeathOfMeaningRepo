@@ -47,12 +47,17 @@ namespace TDOM.Unity.Combat
             }
         }
 
+        private void Awake()
+        {
+            _posicionInicial = transform.position;
+            _escalaInicial = transform.localScale;
+        }
+
         public override void OnNetworkSpawn()
         {
             PrepararComponentes();
-            _posicionInicial = transform.position;
-            _escalaInicial = transform.localScale;
             PrepararMateriales();
+            RestaurarAlReiniciarPartida();
             _destruida.OnValueChanged += AlCambiarEstado;
             AplicarEstado(_destruida.Value);
         }
