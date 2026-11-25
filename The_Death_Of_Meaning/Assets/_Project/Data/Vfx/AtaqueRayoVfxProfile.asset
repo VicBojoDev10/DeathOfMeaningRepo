@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cf2562bafc7490dbe27bbde226869ae, type: 3}
+  m_Name: AtaqueRayoVfxProfile
+  m_EditorClassIdentifier: TDOM.Data::TDOM.Data.AtaqueRayoVfxProfile
+  materialNucleo: {fileID: 0}
+  colorNucleo: {r: 0.8934739, g: 0.9245283, b: 0, a: 1}
+  materialHalo: {fileID: 0}
+  colorHalo: {r: 0.26802725, g: 0.70440245, b: 0.68520606, a: 0.85}
+  desplazamientoVisualY: 1.26
+  anchoNucleo: 1.04
+  anchoHalo: 0.39
+  amplitudOndulacion: 0.48
+  materialMesh: {fileID: 2100000, guid: d8e31a30e9b064b48bf9e51775132885, type: 2}
+  anchoMesh: 0.35
+  formaOndulada: 1
+  frecuenciaForma: 1
+  ondulacionVertical: 0.7
+  particulasImpacto: {fileID: 0}
+  escalaParticulas: 1
