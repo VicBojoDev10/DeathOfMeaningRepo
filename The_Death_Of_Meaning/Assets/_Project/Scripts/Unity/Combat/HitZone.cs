@@ -55,10 +55,14 @@ namespace TDOM.Unity.Combat
                 $"[SERVER][HitZone {_zoneIndex:D2}] Recibió {cantidad:F1} de daño. Total acumulado: {DanioAcumulado.Value:F1}"
             );
             DanioRegistrado?.Invoke(cantidad);
+            ZonaDanada?.Invoke(this, cantidad);
         }
 
         /// <summary>Solo servidor: cantidad de cada golpe. Lo usa BossController para la vida.</summary>
         public event Action<float> DanioRegistrado;
+
+        /// <summary>Solo servidor: igual que DanioRegistrado, pero dice qué zona (ojo) recibió el golpe.</summary>
+        public event Action<HitZone, float> ZonaDanada;
 
         /// <summary>Solo servidor: (id del jugador atacante, cantidad). Lo usa el agro del jefe.</summary>
         public event Action<ulong, float> DanioRecibido;

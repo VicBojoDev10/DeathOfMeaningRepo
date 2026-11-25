@@ -42,6 +42,7 @@ namespace TDOM.Unity.Combat
         private static readonly int ManoId = Animator.StringToHash("Mano");
         private static readonly int RayoId = Animator.StringToHash("Rayo");
         private static readonly int MorteroId = Animator.StringToHash("Mortero");
+        private static readonly int VelocidadAtaqueId = Animator.StringToHash("VelocidadAtaque");
 
         private Vector3 _ultimaPosicion;
         private bool _moviendose;
@@ -80,10 +81,12 @@ namespace TDOM.Unity.Combat
 
         // Se llama en todas las máquinas cuando AtaquesArek lanza el ataque. El Tentáculo no tiene
         // clip todavía: sigue con el flujo actual por tiempo.
-        private void AlLanzarAtaque(BossAttackKind ataque)
+        private void AlLanzarAtaque(BossAttackKind ataque, float velocidad)
         {
             if (_animator == null)
                 return;
+
+            _animator.SetFloat(VelocidadAtaqueId, velocidad);
 
             switch (ataque)
             {

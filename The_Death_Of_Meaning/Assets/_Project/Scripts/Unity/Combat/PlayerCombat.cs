@@ -6,6 +6,7 @@ using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.Gameplay.Vfx;
 using TDOM.Unity;
+using TDOM.Unity.Audio;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Player;
 using TDOM.Unity.Vfx;
@@ -39,6 +40,9 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private CombatVfx _vfx;
+
+        [SerializeField]
+        private SfxCombate _sfx;
 
         [Serializable]
         private struct VfxGolpeLigero
@@ -98,6 +102,14 @@ namespace TDOM.Unity.Combat
             },
         };
 
+        [Header("Vfx en red del combo")]
+        [SerializeField]
+        [Tooltip(
+            "Efecto que sale ademas del vfx del golpe ligero, uno por golpe del combo: golpe 1, "
+                + "golpe 2 y cargado tras un ligero. Vacio: sin efecto extra."
+        )]
+        private VfxGolpeLigero[] _vfxComboPorGolpe = new VfxGolpeLigero[0];
+
         [Header("Vfx en red del cargado")]
         [SerializeField]
         private VfxGolpeLigero _vfxCargado = new VfxGolpeLigero
@@ -105,6 +117,13 @@ namespace TDOM.Unity.Combat
             Giro = new Vector3(0f, 0f, 45f),
             GiroEspejo = new Vector3(0f, 0f, -45f),
         };
+
+        [SerializeField]
+        [Tooltip(
+            "Arco que sale ademas de las siluetas al soltar un cargado sin golpes ligeros "
+                + "previos. Vacio: sin efecto."
+        )]
+        private VfxGolpeLigero _vfxArcoCargado;
 
         [SerializeField]
         [Tooltip("Silueta que sale al soltar, una por etapa de color de la carga.")]
@@ -199,6 +218,13 @@ namespace TDOM.Unity.Combat
         )]
         private float _factorEmpujeSinImpacto = 0.5f;
 
+        [SerializeField, Min(0f)]
+        [Tooltip(
+            "Solo Ayla: metros que sube (mini salto, vuelve a donde estaba) cuando un golpe de "
+                + "combo conecta con el jefe, incluso si esta en el suelo. 0 = no sube."
+        )]
+        private float _saltoAlGolpearJefe = 0.5f;
+
         [Header("Carga del cargado")]
         [SerializeField, Min(0f)]
         [Tooltip(
@@ -219,6 +245,39 @@ namespace TDOM.Unity.Combat
 
         [SerializeField]
         private float _radioDisparo = 0.5f;
+
+        [SerializeField]
+        [Tooltip("Proyectil del disparo cargado. Vacio: usa el proyectil normal.")]
+        private GameObject _proyectilCargadoPrefab;
+
+        [Serializable]
+        private struct VfxCargaEnPunto
+        {
+            public VfxBase Efecto;
+            public Transform Punto;
+        }
+
+        [Header("Vfx en red de la carga")]
+        [SerializeField]
+        [Tooltip(
+            "Efectos que salen mientras se carga el ataque cuerpo a cuerpo, cada uno siguiendo "
+                + "su punto (por ejemplo, uno por mano). Cada efecto debe ser un prefab distinto."
+        )]
+        private VfxCargaEnPunto[] _vfxCargaMelee = new VfxCargaEnPunto[0];
+
+        [SerializeField]
+        [Tooltip(
+            "Energia que se concentra mientras se carga el disparo, despues del HoldThreshold, "
+                + "y sigue a Origen Carga Disparo. Vacio: sin efecto."
+        )]
+        private VfxBase _vfxCargaDisparo;
+
+        [SerializeField]
+        [Tooltip(
+            "Punto que sigue la carga del disparo, por ejemplo la mano del arma. Vacio: Origen Disparo."
+        )]
+        private Transform _origenCargaDisparo;
+        private bool _cargaVisibleDisparo;
         private bool _cargaVisibleMelee;
         private bool _incapacitado;
         private bool _girosEnCurso;
@@ -255,7 +314,37 @@ namespace TDOM.Unity.Combat
             _poseGirosActiva = false;
             _cargaVisibleMelee = false;
             MostrarCarga(false);
+            if (_sfx != null)
+                _sfx.Carga(false);
+            ActivarVfxCargaMelee(false);
+            ActivarVfxCarga(_vfxCargaDisparo, false);
+            _cargaVisibleDisparo = false;
             _combatAnimator?.CancelarAtaque(false);
+        }
+
+        public void InterrumpirPorGolpe()
+        {
+            if (!IsOwner)
+                return;
+
+            _melee?.Cancelar();
+            _disparo?.Cancelar();
+            CancelarGolpeDiferido();
+            _girosEnCurso = false;
+            _poseGirosActiva = false;
+            _cargaVisibleMelee = false;
+            _cargaVisibleDisparo = false;
+            MostrarCarga(false);
+            if (_sfx != null)
+                _sfx.Carga(false);
+            ActivarVfxCargaMelee(false);
+            ActivarVfxCarga(_vfxCargaDisparo, false);
+            if (_combatAnimator != null)
+            {
+                _combatAnimator.CargaEnCurso = false;
+                _combatAnimator.CancelarAtaque(false);
+            }
+            CancelarAtaqueRpc(false);
         }
 
         public float RadioHitbox => _radioHitbox;
@@ -333,6 +422,14 @@ namespace TDOM.Unity.Combat
             _root = GetComponentInParent<PlayerRoot>();
             _origenHoja = GetComponentInChildren<IOrigenVfxGolpe>(true);
             _cargaArma = GetComponentInChildren<ICargaVfx>(true);
+            if (_sfx == null)
+                _sfx = GetComponent<SfxCombate>();
+            foreach (VfxCargaEnPunto carga in _vfxCargaMelee)
+                SeguirConVfxCarga(carga.Efecto, carga.Punto);
+            SeguirConVfxCarga(
+                _vfxCargaDisparo,
+                _origenCargaDisparo != null ? _origenCargaDisparo : _origenDisparo
+            );
 
             if (_vfx == null)
                 Debug.LogWarning($"[PlayerCombat] _vfx no asignado en {name}");
@@ -363,6 +460,7 @@ namespace TDOM.Unity.Combat
             {
                 _combatAnimator.ImpactoGiros += AlImpactoGiro;
                 _combatAnimator.SecuenciaGirosTerminada += AlTerminarGiros;
+                _combatAnimator.GolpeLigeroIniciado += OnGolpeLigeroIniciado;
             }
 
             if (_definition != null && _definition.Ranged != null)
@@ -383,21 +481,35 @@ namespace TDOM.Unity.Combat
             {
                 _combatAnimator.ImpactoGiros -= AlImpactoGiro;
                 _combatAnimator.SecuenciaGirosTerminada -= AlTerminarGiros;
+                _combatAnimator.GolpeLigeroIniciado -= OnGolpeLigeroIniciado;
             }
             base.OnNetworkDespawn();
         }
 
-        private bool PuedeConsumirEnergia(AttackEvent evento)
+        // Cargado: ChargedCost. Disparo normal: ShotCost (mana de Zendre). El golpe cuerpo a
+        // cuerpo normal no cuesta.
+        private float CostoDeAtaque(AttackEvent evento, bool esDisparo)
         {
-            if (evento.Kind != AttackKind.Charged || _definition?.Energy == null)
+            if (_definition?.Energy == null)
+                return 0f;
+            if (evento.Kind == AttackKind.Charged)
+                return _definition.Energy.ChargedCost;
+            return esDisparo ? _definition.Energy.ShotCost : 0f;
+        }
+
+        private bool PuedeConsumirEnergia(AttackEvent evento, bool esDisparo = false)
+        {
+            float costo = CostoDeAtaque(evento, esDisparo);
+            if (costo <= 0f)
                 return true;
 
-            if (_root == null || _root.Energia.Value < _definition.Energy.ChargedCost)
+            if (_root == null || _root.Energia.Value < costo)
             {
-                Debug.Log("[Energia] sin energía para el cargado");
+                Debug.Log("[Energia] sin energía para el ataque");
+                _root?.NotificarFaltaEnergia();
                 return false;
             }
-            ConsumirEnergiaRpc(_definition.Energy.ChargedCost);
+            ConsumirEnergiaRpc(costo);
             return true;
         }
 
@@ -450,6 +562,7 @@ namespace TDOM.Unity.Combat
             }
 
             ProcesarCambiosDeFase(prevMeleePhase, prevDisparoPhase);
+            ActualizarVfxCargaDisparo();
 
             if (_melee != null)
             {
@@ -459,6 +572,8 @@ namespace TDOM.Unity.Combat
                     _cargaVisibleMelee = visible;
                     MostrarCarga(visible);
                     CargaRpc(visible);
+                    if (_sfx != null)
+                        _sfx.Carga(visible);
                 }
             }
         }
@@ -517,10 +632,57 @@ namespace TDOM.Unity.Combat
             }
         }
 
+        private void LanzarVfxArcoCargado(bool cargadoSinLigeros, bool espejo)
+        {
+            if (!cargadoSinLigeros || _vfxRed == null || _vfxArcoCargado.Efecto == null)
+                return;
+
+            StartCoroutine(LanzarVfxGolpeLigeroConRetardo(_vfxArcoCargado, espejo));
+        }
+
+        private void ActivarVfxCarga(VfxBase efecto, bool activa)
+        {
+            if (_vfxRed == null || efecto == null)
+                return;
+
+            if (activa)
+                _vfxRed.Lanzar(efecto, transform.position, transform.rotation);
+            else
+                _vfxRed.Detener(efecto);
+        }
+
+        private void ActivarVfxCargaMelee(bool activa)
+        {
+            foreach (VfxCargaEnPunto carga in _vfxCargaMelee)
+                ActivarVfxCarga(carga.Efecto, activa);
+        }
+
+        private void ActualizarVfxCargaDisparo()
+        {
+            bool visible = _disparo != null && _disparo.CargaVisible;
+            if (visible == _cargaVisibleDisparo)
+                return;
+
+            _cargaVisibleDisparo = visible;
+            ActivarVfxCarga(_vfxCargaDisparo, visible);
+            if (_sfx != null)
+                _sfx.Carga(visible);
+        }
+
+        private void SeguirConVfxCarga(VfxBase efecto, params Transform[] puntos)
+        {
+            VfxPool pool = _vfxRed != null ? _vfxRed.Pool : null;
+            if (pool == null || efecto == null)
+                return;
+
+            if (pool.Pedir(pool.Indice(efecto)) is VfxCargaSeguida instancia)
+                instancia.Seguir(transform, puntos);
+        }
+
         private void EjecutarDisparo(AttackEvent evento)
         {
             bool cargado = evento.Kind == AttackKind.Charged;
-            if (!PuedeConsumirEnergia(evento))
+            if (!PuedeConsumirEnergia(evento, esDisparo: true))
                 return;
 
             if (_logCombo)
@@ -536,6 +698,7 @@ namespace TDOM.Unity.Combat
                 _combatAnimator.PlayShot(evento.ComboIndex, cargado);
             if (_vfx != null)
                 _vfx.Disparo(cargado);
+            ReproducirSfxDisparo(cargado);
             _debugFeedback?.FlashActive(0.1f);
             if (_feedback != null)
                 _feedback.OnAtaquePropio();
@@ -552,6 +715,17 @@ namespace TDOM.Unity.Combat
             }
 
             ReproducirDisparoRpc(evento.ComboIndex, cargado);
+        }
+
+        private void ReproducirSfxDisparo(bool cargado)
+        {
+            if (_sfx == null)
+                return;
+
+            _sfx.Disparo(
+                _origenDisparo != null ? _origenDisparo.position : transform.position,
+                cargado
+            );
         }
 
         private InputSnapshot ComoDisparo(InputSnapshot input)
@@ -635,9 +809,12 @@ namespace TDOM.Unity.Combat
                     giros,
                     ligeros
                 );
+            LanzarVfxArcoCargado(cargado && !giros && ligeros == 0, espejo);
             if (_vfx != null)
                 _vfx.Golpe(evento.ComboIndex, cargado, evento.ChargeRatio);
+            ReproducirSfxGolpe(evento.ComboIndex, cargado);
             LanzarVfxGolpeLigero(evento, cargado, espejo);
+            LanzarVfxCombo(evento, cargado, espejo, ligeros);
             _debugFeedback?.FlashActive(0.1f);
 
             if (!giros)
@@ -662,6 +839,23 @@ namespace TDOM.Unity.Combat
             );
         }
 
+        private void ReproducirSfxGolpe(int comboIndex, bool cargado)
+        {
+            if (_sfx == null)
+                return;
+
+            if (cargado)
+                _sfx.LiberacionCargado();
+            else if (_combatAnimator == null)
+                _sfx.Golpe(comboIndex);
+        }
+
+        private void OnGolpeLigeroIniciado(int comboIndex)
+        {
+            if (IsOwner && _sfx != null)
+                _sfx.Golpe(comboIndex);
+        }
+
         private void LanzarVfxGolpeLigero(AttackEvent evento, bool cargado, bool espejo)
         {
             if (_vfxRed == null || _vfxGolpeLigero == null)
@@ -680,6 +874,22 @@ namespace TDOM.Unity.Combat
             StartCoroutine(
                 LanzarVfxGolpeLigeroConRetardo(_vfxPorGolpeLigero[evento.ComboIndex], espejo)
             );
+        }
+
+        private void LanzarVfxCombo(AttackEvent evento, bool cargado, bool espejo, int ligeros)
+        {
+            if (_vfxRed == null || (cargado && _girosEnCurso))
+                return;
+
+            int indice = IndiceVfxCombo.Resolver(cargado, evento.ComboIndex, ligeros);
+            if (
+                indice < 0
+                || indice >= _vfxComboPorGolpe.Length
+                || _vfxComboPorGolpe[indice].Efecto == null
+            )
+                return;
+
+            StartCoroutine(LanzarVfxGolpeLigeroConRetardo(_vfxComboPorGolpe[indice], espejo));
         }
 
         private void LanzarVfxCargado(float progreso, bool espejo)
@@ -807,6 +1017,7 @@ namespace TDOM.Unity.Combat
         private void ImpactarMelee(AttackEvent evento, int ligeros)
         {
             bool huboImpacto = false;
+            bool golpeoAlJefe = false;
             if (_hitbox != null)
             {
                 var impactos = _hitbox.DetectarImpactos(_radioHitbox, _alcanceHitbox);
@@ -818,6 +1029,8 @@ namespace TDOM.Unity.Combat
                             continue;
 
                         huboImpacto = true;
+                        if (imp.Objeto.GetComponentInParent<BossController>() != null)
+                            golpeoAlJefe = true;
                         ReportarGolpeRpc(evento, imp.Objeto.NetworkObjectId, ReferenciaZona(imp));
                     }
                 }
@@ -840,10 +1053,19 @@ namespace TDOM.Unity.Combat
                             + (huboImpacto ? "(conecto)" : "(sin impacto)")
                             + $" al {factor * 100f:F0}%"
                     );
+                // Ayla sube un poco al conectar con el jefe (los ojos quedan altos).
+                bool saltaPorJefe =
+                    golpeoAlJefe
+                    && _saltoAlGolpearJefe > 0f
+                    && _definition != null
+                    && _definition.DisplayName == "Ayla";
                 _root.EmpujarPorCombo(
                     _empujeAdelante * factor,
-                    _empujeArriba * factor,
-                    _empujeDuracion
+                    saltaPorJefe
+                        ? Mathf.Max(_empujeArriba * factor, _saltoAlGolpearJefe)
+                        : _empujeArriba * factor,
+                    _empujeDuracion,
+                    saltaPorJefe
                 );
             }
 
@@ -1126,6 +1348,17 @@ namespace TDOM.Unity.Combat
                 return;
             }
 
+            if (
+                tipo == TipoImpactoOjo.Melee
+                && _definition != null
+                && (_definition.DisplayName == "Ayla" || _definition.DisplayName == "Zendre")
+                && obj.TryGetComponent(out ParedMeleeAyla pared)
+            )
+            {
+                pared.RecibirMeleeDeAyla(evento.Damage);
+                return;
+            }
+
             obj.GetComponent<AtaquesArek>()?.RegistrarImpacto(OwnerClientId);
 
             Debug.Log(
@@ -1148,7 +1381,7 @@ namespace TDOM.Unity.Combat
                 return;
             Quaternion rotacion =
                 dir != Vector3.zero ? Quaternion.LookRotation(dir) : transform.rotation;
-            GameObject go = Instantiate(_proyectilPrefab, origen, rotacion);
+            GameObject go = Instantiate(ProyectilPara(evento), origen, rotacion);
             Proyectil proyectil = go.GetComponent<Proyectil>();
             if (proyectil != null)
             {
@@ -1161,6 +1394,11 @@ namespace TDOM.Unity.Combat
                 networkObject.Spawn();
             }
         }
+
+        private GameObject ProyectilPara(AttackEvent evento) =>
+            evento.Kind == AttackKind.Charged && _proyectilCargadoPrefab != null
+                ? _proyectilCargadoPrefab
+                : _proyectilPrefab;
 
         [Rpc(SendTo.NotOwner)]
         private void CargaRpc(bool activa)

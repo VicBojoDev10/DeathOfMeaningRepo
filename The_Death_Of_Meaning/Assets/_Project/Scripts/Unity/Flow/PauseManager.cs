@@ -70,7 +70,7 @@ namespace TDOM.Unity
 
                 bool gameplayAbierto =
                     UiManager.Instance != null
-                    && UiManager.Instance.GetWindow(WindowsIds.GamePlayUI)?.IsOpen == true;
+                    && UiManager.Instance.GetGameplayWindow()?.IsOpen == true;
                 if (PausadoGlobal || gameplayAbierto)
                     SolicitarPausa(!PausadoGlobal);
 
@@ -91,6 +91,7 @@ namespace TDOM.Unity
 
         public override void OnNetworkDespawn()
         {
+            PausaMinionsActivos.EstablecerPausaMenu(NetworkManager, false);
             Pausado.OnValueChanged -= AlCambiarPausa;
             Resultado.OnValueChanged -= AlCambiarResultado;
             if (IsServer && NetworkManager != null)
@@ -126,6 +127,7 @@ namespace TDOM.Unity
         private void AlCambiarPausa(bool anterior, bool actual)
         {
             PausadoGlobal = actual;
+            PausaMinionsActivos.EstablecerPausaMenu(NetworkManager, actual);
             var ui = UiManager.Instance;
             if (ui == null)
                 return;
@@ -143,7 +145,7 @@ namespace TDOM.Unity
                 ui.CloseWindow(WindowsIds.PausaUI);
                 ui.CloseWindow(WindowsIds.RetryPopUpUI);
                 ui.CloseWindow(WindowsIds.ExitPopUpUI);
-                ui.ActivarInteraccionSolo(WindowsIds.GamePlayUI);
+                ui.ActivarInteraccionSolo(ui.GameplayWindowId);
             }
         }
 
@@ -482,6 +484,8 @@ namespace TDOM.Unity
                 if (desdePantallaFinal)
                     MostrarGameplayDespuesDePantallaFinal(ventanaFinal);
 
+                GlobalGameManager.Instance?.ReproducirMusicaTutorial();
+
                 return;
             }
 
@@ -500,6 +504,8 @@ namespace TDOM.Unity
 
                     if (desdePantallaFinal)
                         MostrarGameplayDespuesDePantallaFinal(ventanaFinal);
+
+                    GlobalGameManager.Instance?.ReproducirMusicaTutorial();
                 },
                 () =>
                 {
@@ -518,7 +524,7 @@ namespace TDOM.Unity
                 ui?.CloseWindow(ventanaFinal);
             ui?.CloseWindow("victoriaui");
             ui?.CloseWindow(WindowsIds.DerrotaUI);
-            ui?.ShowWindow(WindowsIds.GamePlayUI);
+            ui?.ShowGameplayWindow();
         }
 
         private void SalirAlMenu()
@@ -534,7 +540,7 @@ namespace TDOM.Unity
             ui?.CloseWindow(WindowsIds.PausaUI);
             ui?.CloseWindow(WindowsIds.RetryPopUpUI);
             ui?.CloseWindow(WindowsIds.ExitPopUpUI);
-            ui?.CloseWindow(WindowsIds.GamePlayUI);
+            ui?.CloseGameplayWindow();
             ui?.CloseWindow("victoriaui");
             ui?.CloseWindow(WindowsIds.DerrotaUI);
 

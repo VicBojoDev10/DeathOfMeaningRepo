@@ -193,6 +193,16 @@ namespace TDOM.Unity.Input
                     ""interactions"": """",
                     ""initialStateCheck"": false,
                     ""priority"": 0
+                },
+                {
+                    ""name"": ""Barrier"",
+                    ""type"": ""Button"",
+                    ""id"": ""b3aa07d3-c008-49e5-9d97-48838ecf55cc"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
                 }
             ],
             ""bindings"": [
@@ -303,6 +313,17 @@ namespace TDOM.Unity.Input
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""LockOn"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a0ebf1e0-6c2e-4a78-a8da-392182a7ed41"",
+                    ""path"": ""<Gamepad>/leftShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Barrier"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -624,6 +645,7 @@ namespace TDOM.Unity.Input
             m_Zendre_Fire = m_Zendre.FindAction("Fire", throwIfNotFound: true);
             m_Zendre_Grapple = m_Zendre.FindAction("Grapple", throwIfNotFound: true);
             m_Zendre_LockOn = m_Zendre.FindAction("LockOn", throwIfNotFound: true);
+            m_Zendre_Barrier = m_Zendre.FindAction("Barrier", throwIfNotFound: true);
             // Ayla
             m_Ayla = asset.FindActionMap("Ayla", throwIfNotFound: true);
             m_Ayla_Move = m_Ayla.FindAction("Move", throwIfNotFound: true);
@@ -733,6 +755,7 @@ namespace TDOM.Unity.Input
         private readonly InputAction m_Zendre_Fire;
         private readonly InputAction m_Zendre_Grapple;
         private readonly InputAction m_Zendre_LockOn;
+        private readonly InputAction m_Zendre_Barrier;
         /// <summary>
         /// Provides access to input actions defined in input action map "Zendre".
         /// </summary>
@@ -784,6 +807,10 @@ namespace TDOM.Unity.Input
             /// Provides access to the underlying input action "Zendre/LockOn".
             /// </summary>
             public InputAction @LockOn => m_Wrapper.m_Zendre_LockOn;
+            /// <summary>
+            /// Provides access to the underlying input action "Zendre/Barrier".
+            /// </summary>
+            public InputAction @Barrier => m_Wrapper.m_Zendre_Barrier;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -840,6 +867,9 @@ namespace TDOM.Unity.Input
                 @LockOn.started += instance.OnLockOn;
                 @LockOn.performed += instance.OnLockOn;
                 @LockOn.canceled += instance.OnLockOn;
+                @Barrier.started += instance.OnBarrier;
+                @Barrier.performed += instance.OnBarrier;
+                @Barrier.canceled += instance.OnBarrier;
             }
 
             /// <summary>
@@ -881,6 +911,9 @@ namespace TDOM.Unity.Input
                 @LockOn.started -= instance.OnLockOn;
                 @LockOn.performed -= instance.OnLockOn;
                 @LockOn.canceled -= instance.OnLockOn;
+                @Barrier.started -= instance.OnBarrier;
+                @Barrier.performed -= instance.OnBarrier;
+                @Barrier.canceled -= instance.OnBarrier;
             }
 
             /// <summary>
@@ -1317,6 +1350,13 @@ namespace TDOM.Unity.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnLockOn(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Barrier" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnBarrier(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Ayla" which allows adding and removing callbacks.

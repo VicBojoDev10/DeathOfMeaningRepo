@@ -1,0 +1,76 @@
+using TDOM.Data;
+using TDOM.Gameplay.Audio;
+using UnityEngine;
+
+namespace TDOM.Unity.Audio
+{
+    public sealed class SfxCombate : MonoBehaviour
+    {
+        [SerializeField]
+        private SfxRed _red;
+
+        [SerializeField]
+        private SfxBanco _ataqueNormal;
+
+        [SerializeField]
+        private SfxBanco[] _golpesCombo = new SfxBanco[0];
+
+        [SerializeField]
+        private SfxBanco _disparo;
+
+        [SerializeField]
+        private SfxBanco _disparoCargado;
+
+        [SerializeField]
+        private SfxBanco _cargaLoop;
+
+        [SerializeField]
+        private SfxBanco _liberacionCargado;
+
+        private bool _cargando;
+
+        private void Awake()
+        {
+            if (_red == null)
+                _red = GetComponentInParent<SfxRed>();
+        }
+
+        public void Golpe(int comboIndex)
+        {
+            int elegido = SfxPorIndice.Elegir(comboIndex, _golpesCombo.Length);
+            bool hayCombo = elegido != SfxPorIndice.SinSfx && _golpesCombo[elegido] != null;
+            ReproducirSiExiste(hayCombo ? _golpesCombo[elegido] : _ataqueNormal);
+        }
+
+        public void Disparo(Vector3 origen, bool cargado)
+        {
+            SfxBanco banco = cargado ? _disparoCargado : _disparo;
+            if (_red != null && banco != null)
+                _red.Reproducir(banco, origen);
+        }
+
+        public void Carga(bool activa)
+        {
+            if (_red == null || _cargaLoop == null || activa == _cargando)
+                return;
+
+            _cargando = activa;
+            if (activa)
+                _red.ReproducirEnEmisor(_cargaLoop);
+            else
+                _red.Detener(_cargaLoop);
+        }
+
+        public void LiberacionCargado()
+        {
+            Carga(false);
+            ReproducirSiExiste(_liberacionCargado);
+        }
+
+        private void ReproducirSiExiste(SfxBanco banco)
+        {
+            if (_red != null && banco != null)
+                _red.ReproducirEnEmisor(banco);
+        }
+    }
+}

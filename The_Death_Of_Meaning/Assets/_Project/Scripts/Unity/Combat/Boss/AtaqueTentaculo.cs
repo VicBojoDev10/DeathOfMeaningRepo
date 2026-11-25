@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Camera;
@@ -36,6 +37,13 @@ namespace TDOM.Unity
 
         [SerializeField]
         private AvisoParpadeo _avisoParpadeo;
+
+        [Header("Sonido")]
+        [SerializeField]
+        private SfxBanco _sfxAviso;
+
+        [SerializeField]
+        private SfxBanco _sfxAzote;
 
         [Header("Vfx")]
         [SerializeField]
@@ -124,6 +132,7 @@ namespace TDOM.Unity
             _golpeados.Clear();
 
             AvisoRpc(origen, direccion);
+            ReproducirSfxEn(_sfxAviso, ZonaDelGolpe());
         }
 
         public override void OnNetworkDespawn()
@@ -210,7 +219,7 @@ namespace TDOM.Unity
                 || (PauseManager.ResultadoGlobal != ResultadoPartida.EnCurso)
             )
                 return;
-            float dt = Time.deltaTime;
+            float dt = DeltaAtaque;
 
             if (!IsServer || !IsSpawned || _perfil == null)
                 return;
@@ -223,6 +232,7 @@ namespace TDOM.Unity
                     if (_tiempoEnFase >= _perfil.aviso)
                     {
                         CambiarFase(FaseTentaculo.Azote);
+                        ReproducirSfxEn(_sfxAzote, ZonaDelGolpe());
                         LanzarVfxAzote();
                     }
                     break;
@@ -267,6 +277,9 @@ namespace TDOM.Unity
             vfx.LanzarEntre(_vfxTentaculo, centroLevantado, centroAcostado);
         }
 
+        private Vector3 ZonaDelGolpe() =>
+            transform.position + _rotacionBase * Vector3.forward * (_perfil.largo * 0.5f);
+
         private void CambiarFase(FaseTentaculo nueva)
         {
             _fase = nueva;
@@ -305,7 +318,16 @@ namespace TDOM.Unity
                     continue;
 
                 Debug.Log($"[AREK][Tentaculo] golpeó a cliente {id}");
-                damageable.RecibirDanio(_perfil.Dano, _perfil.EsInstaKill);
+                var jugador = colisionador.GetComponentInParent<PlayerRoot>();
+                if (jugador != null)
+                    jugador.RecibirDanioDelJefe(
+                        _perfil.Dano,
+                        transform.position,
+                        _perfil.EsInstaKill,
+                        TipoImpactoBarreraJefe.Tentaculo
+                    );
+                else
+                    damageable.RecibirDanio(_perfil.Dano, _perfil.EsInstaKill);
                 if (netObj != null)
                     JugadorGolpeadoRpc(RpcTarget.Single(id, RpcTargetUse.Temp));
             }
@@ -322,7 +344,7 @@ namespace TDOM.Unity
             if (_avisoParpadeo != null && _perfil != null)
                 _avisoParpadeo.Iniciar(
                     Lanzador.PerfilAviso,
-                    _perfil.aviso,
+                    AvisoEscalado(_perfil.aviso),
                     new[] { _franja.GetComponent<Renderer>() },
                     AvisoParpadeo.Forma.FranjaV
                 );
