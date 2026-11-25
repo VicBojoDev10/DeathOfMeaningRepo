@@ -192,3 +192,31 @@ classDiagram
     AtaqueArekBase <|-- AtaqueMortero
     AtaqueArekBase <|-- AtaqueRayo
     PlayerRoot ..> DetectorSaltoAterrizaje : salto y aterrizaje para Vfx y Sfx
+    class TipoSonidoBoton {
+        <<enum, POCO>>
+        Neutral
+        Positivo
+        Negativo
+        Especial
+    }
+    class SonidoBoton {
+        <<static, POCO>>
+        +Elegir(tipo, positivo, negativo, neutral, especial) T
+    }
+    class SonidosBotonesUI {
+        <<ScriptableObject>>
+        +positivo, negativo, neutral, especial : AudioClip
+        +volumen : float
+    }
+    class BotonSfx {
+        <<MonoBehaviour>>
+        -_tipo : TipoSonidoBoton
+        -_sonidos : SonidosBotonesUI
+        -_fuente : AudioSource
+        -Reproducir()
+    }
+
+    BotonSfx ..> SonidoBoton : clip segun el tipo
+    BotonSfx --> SonidosBotonesUI : clips y volumen
+    BotonSfx --> TipoSonidoBoton
+    BotonSfx ..> AudioSource : 2D local en la raiz de la ventana, grupo SFX, sin red
