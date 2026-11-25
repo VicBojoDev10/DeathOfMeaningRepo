@@ -92,8 +92,8 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: e5bf4d19116ad5e45b4612f9ccf8de8a, type: 3}
-        m_Scale: {x: 0.041666668, y: 0.041666668}
+        m_Texture: {fileID: 2800000, guid: 5e928e76d6358ce40821888fe7cfb31e, type: 3}
+        m_Scale: {x: 0.033333335, y: 0.033333335}
         m_Offset: {x: 0, y: 0}
     - _MatcapTex:
         m_Texture: {fileID: 2800000, guid: cf3a2315564d4de4eb8601b697dea358, type: 3}
@@ -104,7 +104,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
-        m_Texture: {fileID: 2800000, guid: 615acb2088c51e14191c845c0b9ce916, type: 3}
+        m_Texture: {fileID: 2800000, guid: 3abeb8f72934d134eb6f09a50f9995cb, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SSSMap:
@@ -128,12 +128,12 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TriplanarTopNormalMap:
-        m_Texture: {fileID: 2800000, guid: 615acb2088c51e14191c845c0b9ce916, type: 3}
+        m_Texture: {fileID: 2800000, guid: 3abeb8f72934d134eb6f09a50f9995cb, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TriplanarTopTex:
-        m_Texture: {fileID: 2800000, guid: e5bf4d19116ad5e45b4612f9ccf8de8a, type: 3}
-        m_Scale: {x: 0.041666668, y: 0.041666668}
+        m_Texture: {fileID: 2800000, guid: 5e928e76d6358ce40821888fe7cfb31e, type: 3}
+        m_Scale: {x: 0.033333335, y: 0.033333335}
         m_Offset: {x: 0, y: 0}
     - _VertexDistortionNoiseTex:
         m_Texture: {fileID: 2800000, guid: fcb69fdadf254834880fe3c443965278, type: 3}
@@ -300,7 +300,7 @@ Material:
     - _ShakeBlend: 1
     - _ShakeSpeedMult: 1
     - _Shininess: 16
-    - _Smoothness: 0.35
+    - _Smoothness: 0.3
     - _SpecularAtten: 0.5
     - _SpecularModel: 1
     - _SpecularToonCutoff: 0.35
@@ -351,7 +351,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _AOColor: {r: 0, g: 0, b: 0, a: 0}
-    - _Color: {r: 0.8, g: 0.77, b: 0.7, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _CustomAmbientColor: {r: 0.65, g: 0.65, b: 0.65, a: 1}
     - _DepthGlowColor: {r: 1, g: 0.9869999, b: 0.6, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
