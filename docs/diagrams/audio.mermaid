@@ -45,6 +45,12 @@ classDiagram
         +DobleSalto()
     }
 
+    class Proyectil {
+        <<NetworkBehaviour>>
+        -SfxBanco _sfxImpactoAmbiente
+        -ReproducirSfxImpacto(banco, punto)
+    }
+
     class SubidaIntensidadSfx {
         <<static, POCO>>
         +Factor(tiempo, duracion) float
@@ -122,3 +128,4 @@ classDiagram
     VocesSfx3D ..> SubidaIntensidadSfx
     PlayerRoot --> SfxLocomocion : eventos de locomocion, solo el owner
     SfxLocomocion --> SfxRed
+    Proyectil ..> SfxRed : impacto en el SfxRed del atacante, lo lanza el servidor
