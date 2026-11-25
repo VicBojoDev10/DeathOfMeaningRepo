@@ -39,12 +39,16 @@ classDiagram
         -SfxBanco _dash
         -SfxBanco _dashAire
         -SfxBanco _gancho
+        -SfxBanco _salto
+        -SfxBanco _aterrizaje
         -SfxBanco _dobleSalto
         -SfxBanco _embestidaArranque
         -SfxBanco _embestidaAvance
         -SfxBanco _embestidaFinal
         +Dash(enSuelo)
         +Gancho()
+        +Salto()
+        +Aterrizaje()
         +DobleSalto()
         +EmbestidaInicio()
         +ActualizarEmbestida(activa)
@@ -187,3 +191,4 @@ classDiagram
     AtaqueArekBase <|-- AtaqueTentaculo
     AtaqueArekBase <|-- AtaqueMortero
     AtaqueArekBase <|-- AtaqueRayo
+    PlayerRoot ..> DetectorSaltoAterrizaje : salto y aterrizaje para Vfx y Sfx
