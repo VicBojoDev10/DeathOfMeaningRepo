@@ -680,8 +680,22 @@ namespace TDOM.Unity.Combat
                 instancia.Seguir(transform, puntos);
         }
 
-        private void EjecutarDisparo(AttackEvent evento)
+        private AttackEvent AjustarDisparoAEnergia(AttackEvent evento)
         {
+            if (_root == null || _definition?.Energy == null)
+                return evento;
+
+            return ResolutorEnergiaDisparo.SegunEnergia(
+                evento,
+                _root.Energia.Value,
+                _definition.Energy.ChargedCost,
+                _definition.Ranged.Steps
+            );
+        }
+
+        private void EjecutarDisparo(AttackEvent eventoSolicitado)
+        {
+            AttackEvent evento = AjustarDisparoAEnergia(eventoSolicitado);
             bool cargado = evento.Kind == AttackKind.Charged;
             if (!PuedeConsumirEnergia(evento, esDisparo: true))
                 return;
