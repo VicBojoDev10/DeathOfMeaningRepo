@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TDOM.Contracts;
 using TDOM.Data;
+using TDOM.Gameplay.Audio;
 using TDOM.Gameplay.Combat;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Camera;
@@ -42,6 +43,16 @@ namespace TDOM.Unity
 
         [SerializeField]
         private Transform _puntaEstela;
+
+        [Header("Sonido")]
+        [SerializeField]
+        private SfxBanco _sfxAviso;
+
+        [SerializeField]
+        private SfxBanco _sfxGolpe;
+
+        private readonly DetectorFlancoSfx _inicioBarrido = new DetectorFlancoSfx();
+
         private AtaqueManoProfile _perfil;
         private LineaTiempoManotazo _lineaTiempo;
 
@@ -160,6 +171,7 @@ namespace TDOM.Unity
                 _jugadoresGolpeados.Clear();
 
                 AvisoRpc(origen, piso, _rotacionBase, _sentido);
+                ReproducirSfxEnJefe(_sfxAviso);
             }
         }
 
@@ -219,6 +231,9 @@ namespace TDOM.Unity
                 return;
 
             transform.rotation = _rotacionBase * Quaternion.Euler(0f, estado.Angulo, 0f);
+
+            if (_inicioBarrido.Actualizar(estado.Fase == FaseManotazo.Barrido))
+                ReproducirSfxEnJefe(_sfxGolpe);
 
             if (estado.DanoActivo)
                 DetectarImpactos();
