@@ -333,3 +333,14 @@ classDiagram
     }
 
     Proyectil --> VfxRed : impacto en el jefe (servidor)
+
+    class AtaqueRayo {
+        <<NetworkBehaviour>>
+        -_vfxCarga : VfxBase
+        -LanzarVfxCarga()
+        -DireccionCarga() Vector3
+        -DetenerVfxCarga()
+    }
+
+    AtaqueRayo --> VfxRed : carga del laser en la boca durante el aviso (servidor, VfxJefe)
+    AtaqueRayo ..> VfxCarga : energia que converge al origen del rayo
