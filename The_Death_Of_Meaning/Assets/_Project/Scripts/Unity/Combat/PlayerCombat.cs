@@ -246,6 +246,13 @@ namespace TDOM.Unity.Combat
         [SerializeField]
         private float _radioDisparo = 0.5f;
 
+        [SerializeField, Min(0f)]
+        [Tooltip(
+            "Metros que el origen enviado por el cliente puede alejarse de donde lo ve el servidor. "
+                + "Si se pasa, el disparo sale desde el origen que conoce el servidor."
+        )]
+        private float _toleranciaOrigenDisparo = 3f;
+
         [SerializeField]
         [Tooltip("Proyectil del disparo cargado. Vacio: usa el proyectil normal.")]
         private GameObject _proyectilCargadoPrefab;
@@ -1392,8 +1399,7 @@ namespace TDOM.Unity.Combat
             if (_incapacitado)
                 return;
 
-            if (Vector3.Distance(origen, transform.position) > 3f)
-                return;
+            origen = ValidarOrigenDisparo(origen);
             Quaternion rotacion =
                 dir != Vector3.zero ? Quaternion.LookRotation(dir) : transform.rotation;
             GameObject go = Instantiate(ProyectilPara(evento), origen, rotacion);
@@ -1408,6 +1414,12 @@ namespace TDOM.Unity.Combat
             {
                 networkObject.Spawn();
             }
+        }
+
+        private Vector3 ValidarOrigenDisparo(Vector3 origenDelCliente)
+        {
+            float desfase = Vector3.Distance(origenDelCliente, transform.position);
+            return desfase <= _toleranciaOrigenDisparo ? origenDelCliente : _origenDisparo.position;
         }
 
         private GameObject ProyectilPara(AttackEvent evento) =>
