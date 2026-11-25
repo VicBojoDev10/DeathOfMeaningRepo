@@ -203,7 +203,8 @@ namespace TDOM.Unity.Combat
                     _direccion,
                     out impacto,
                     distancia,
-                    _capas
+                    _capas,
+                    QueryTriggerInteraction.Ignore
                 );
             }
 
