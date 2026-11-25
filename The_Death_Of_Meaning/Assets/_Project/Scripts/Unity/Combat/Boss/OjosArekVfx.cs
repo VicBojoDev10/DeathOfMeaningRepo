@@ -33,7 +33,7 @@ namespace TDOM.Unity.Combat
             Transform zona = zonas[ojo].transform;
             VfxBase instancia = _pool.Pedir(_pool.Indice(_vfxOjoDestruido));
             if (instancia != null)
-                instancia.Reproducir(zona.position, zona.rotation);
+                instancia.Reproducir(zona.position, Quaternion.LookRotation(zona.up));
         }
     }
 }
