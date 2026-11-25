@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8414169182072560924}
   - component: {fileID: 6140021966155908431}
   - component: {fileID: 5155012290371057361}
+  - component: {fileID: 7813562201193400123}
   m_Layer: 0
   m_Name: GameFlowNetwork
   m_TagString: Untagged
@@ -74,6 +75,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.GameFlowNetwork
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &7813562201193400123
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8473628879619465374}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f81477d5c7c4e1286d177f66f25b62a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.ArenaEncounterNetwork
 --- !u!114 &5155012290371057361
 MonoBehaviour:
   m_ObjectHideFlags: 0

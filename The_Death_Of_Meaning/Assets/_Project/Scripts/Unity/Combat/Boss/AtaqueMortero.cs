@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TDOM.Contracts;
 using TDOM.Data;
 using TDOM.Gameplay.Combat;
 using TDOM.Gameplay.Core;
@@ -45,6 +46,13 @@ namespace TDOM.Unity
         [Tooltip("Una explosión por punto de impacto, del tamaño del radio del golpe.")]
         [SerializeField]
         private VfxBase _vfxCaida;
+
+        [Header("Sonido")]
+        [SerializeField]
+        private SfxBanco _sfxLanzamiento;
+
+        [SerializeField]
+        private SfxBanco _sfxCaida;
 
         private enum FaseMortero
         {
@@ -244,7 +252,7 @@ namespace TDOM.Unity
             if (_perfil == null)
                 return;
 
-            float dt = Time.deltaTime;
+            float dt = DeltaAtaque;
 
             AnimarCaidaLocal(dt);
 
@@ -259,6 +267,7 @@ namespace TDOM.Unity
                     if (_tiempoEnFase >= _perfil.aviso)
                     {
                         LanzarVfxLanzamiento();
+                        ReproducirSfxLanzamiento();
                         CambiarFase(FaseMortero.Caida);
                         CaidaRpc();
                     }
@@ -271,6 +280,7 @@ namespace TDOM.Unity
                         SpawnearColumnas();
                         ImpactoRpc();
                         LanzarVfxCaida();
+                        ReproducirSfxCaida();
                         CambiarFase(FaseMortero.Retirada);
                     }
                     break;
@@ -340,7 +350,16 @@ namespace TDOM.Unity
                         continue;
 
                     Debug.Log($"[AREK][Mortero] golpeó a cliente {id}");
-                    damageable.RecibirDanio(_perfil.Dano, _perfil.EsInstaKill);
+                    var jugador = colisionador.GetComponentInParent<PlayerRoot>();
+                    if (jugador != null)
+                        jugador.RecibirDanioDelJefe(
+                            _perfil.Dano,
+                            punto,
+                            _perfil.EsInstaKill,
+                            TipoImpactoBarreraJefe.Mortero
+                        );
+                    else
+                        damageable.RecibirDanio(_perfil.Dano, _perfil.EsInstaKill);
                     if (netObj != null)
                         JugadorGolpeadoRpc(RpcTarget.Single(id, RpcTargetUse.Temp));
                 }
@@ -371,6 +390,21 @@ namespace TDOM.Unity
                 direccion = Lanzador.PuntoBoca.forward;
 
             vfx.Lanzar(_vfxLanzamiento, origen, Quaternion.LookRotation(direccion.normalized));
+        }
+
+        private void ReproducirSfxLanzamiento()
+        {
+            if (Lanzador != null && Lanzador.PuntoBoca != null)
+                ReproducirSfxEn(_sfxLanzamiento, Lanzador.PuntoBoca.position);
+        }
+
+        private void ReproducirSfxCaida()
+        {
+            if (_puntosServidor == null)
+                return;
+
+            foreach (var punto in _puntosServidor)
+                ReproducirSfxEn(_sfxCaida, punto);
         }
 
         // TW-182: una explosión de lava por punto, al ras del piso. El tamaño lo da el radio del
@@ -436,7 +470,7 @@ namespace TDOM.Unity
 
                 _avisoParpadeo.Iniciar(
                     Lanzador.PerfilAviso,
-                    _perfil.aviso,
+                    AvisoEscalado(_perfil.aviso),
                     renderers,
                     AvisoParpadeo.Forma.Disco
                 );

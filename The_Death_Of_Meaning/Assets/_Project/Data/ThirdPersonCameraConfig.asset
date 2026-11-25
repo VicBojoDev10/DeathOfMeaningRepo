@@ -51,6 +51,8 @@ MonoBehaviour:
   PitchMax: 70
   SensibilidadXPorDefecto: 120
   SensibilidadYPorDefecto: 120
-  SensibilidadMinima: 10
-  SensibilidadMaxima: 300
+  NivelSensibilidadMinimo: 1
+  NivelSensibilidadMaximo: 10
+  PasoNivelSensibilidad: 0.5
+  GradosPorNivelSensibilidad: 30
   AimMaxRange: 200
