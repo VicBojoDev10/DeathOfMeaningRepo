@@ -36,6 +36,15 @@ namespace TDOM.Unity
         [SerializeField]
         private SfxBanco _sfxCarga;
 
+        [SerializeField]
+        private SfxBanco _sfxDisparoInicio;
+
+        [SerializeField]
+        private SfxBanco _sfxDisparoLoop;
+
+        [SerializeField]
+        private SfxBanco _sfxDisparoFin;
+
         private enum FaseRayo
         {
             Aviso,
@@ -186,6 +195,7 @@ namespace TDOM.Unity
                 if (IsServer && _fase == FaseRayo.Activo)
                 {
                     ApagarRpc();
+                    DetenerSfxJefe(_sfxDisparoLoop);
                     CambiarFase(FaseRayo.Terminado);
                 }
                 return;
@@ -214,6 +224,8 @@ namespace TDOM.Unity
                             );
                         RayoRpc(_inicioRecorridoServidor, _duracionRecorrido);
                         DetenerSfxJefe(_sfxCarga);
+                        ReproducirSfxEn(_sfxDisparoInicio, _origenServidor);
+                        ReproducirSfxEn(_sfxDisparoLoop, _origenServidor);
                     }
                     break;
 
@@ -226,6 +238,8 @@ namespace TDOM.Unity
                     {
                         CambiarFase(FaseRayo.Retirada);
                         ApagarRpc();
+                        DetenerSfxJefe(_sfxDisparoLoop);
+                        ReproducirSfxEn(_sfxDisparoFin, _origenServidor);
                     }
                     break;
 
@@ -461,6 +475,7 @@ namespace TDOM.Unity
         public override void OnNetworkDespawn()
         {
             DetenerSfxJefe(_sfxCarga);
+            DetenerSfxJefe(_sfxDisparoLoop);
             LimpiarVisuales();
             base.OnNetworkDespawn();
         }
