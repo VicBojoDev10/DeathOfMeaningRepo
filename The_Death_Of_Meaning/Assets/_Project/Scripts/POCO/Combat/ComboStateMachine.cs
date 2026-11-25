@@ -20,6 +20,7 @@ namespace TDOM.Gameplay.Combat
         private bool _cargaEnCombo;
         private bool _soltoDuranteWindup;
         private readonly float _cooldownFinCombo;
+        private readonly bool _encadenarAlTerminar;
         private float _cooldown;
         private bool _requiereSoltar;
         private bool _cargadoRetenido;
@@ -37,9 +38,11 @@ namespace TDOM.Gameplay.Combat
             float cargaMaxima,
             float bufferWindow,
             float cooldownFinCombo = 0f,
-            float umbralCargadoAlSoltar = -1f
+            float umbralCargadoAlSoltar = -1f,
+            bool encadenarAlTerminar = false
         )
         {
+            _encadenarAlTerminar = encadenarAlTerminar;
             _cooldownFinCombo = Mathf.Max(0f, cooldownFinCombo);
             _pasos = pasos;
             _cargado = cargado;
@@ -233,9 +236,9 @@ namespace TDOM.Gameplay.Combat
                     }
                     if (pressed)
                     {
-                        if (_indice + 1 < _pasos.Length)
+                        if (TrySiguientePaso(out int siguienteEnSwing))
                         {
-                            _indice++;
+                            _indice = siguienteEnSwing;
                             _timer = _pasos[_indice].ActiveTime;
                             _ultimoEvento = EventoLigero();
                         }
@@ -258,9 +261,9 @@ namespace TDOM.Gameplay.Combat
                     _timer -= dt;
                     if (pressed || (esBordeDeFrame && _buffer.TryConsume()))
                     {
-                        if (_indice + 1 < _pasos.Length)
+                        if (TrySiguientePaso(out int siguienteEnVentana))
                         {
-                            IniciarWindup(_indice + 1);
+                            IniciarWindup(siguienteEnVentana);
                             Avanzar(input, dt, esBordeDeFrame: false);
                         }
                         else
@@ -323,16 +326,23 @@ namespace TDOM.Gameplay.Combat
         {
             if (_cargaEnCombo)
             {
-                if (_indice + 1 >= _pasos.Length)
+                if (!TrySiguientePaso(out int siguiente))
                 {
                     FinalizarCombo();
                     return;
                 }
 
-                _indice++;
+                _indice = siguiente;
             }
 
             EjecutarLigeroActual();
+        }
+
+        private bool TrySiguientePaso(out int siguiente)
+        {
+            bool esUltimoPaso = _indice + 1 >= _pasos.Length;
+            siguiente = esUltimoPaso ? 0 : _indice + 1;
+            return !esUltimoPaso || _encadenarAlTerminar;
         }
 
         private void AbrirVentanaDeCombo()
