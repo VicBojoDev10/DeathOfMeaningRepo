@@ -80,6 +80,8 @@ namespace TDOM.Unity
 
         protected float DeltaAtaque => Time.deltaTime * _velocidad.Value;
 
+        protected float MultiplicadorVelocidad => _velocidad.Value;
+
         protected float AvisoEscalado(float aviso) => aviso / _velocidad.Value;
 
         public override void OnNetworkSpawn()
