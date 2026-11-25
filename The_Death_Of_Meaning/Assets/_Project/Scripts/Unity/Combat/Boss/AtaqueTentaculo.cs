@@ -33,6 +33,13 @@ namespace TDOM.Unity
         [SerializeField]
         private AvisoParpadeo _avisoParpadeo;
 
+        [Header("Sonido")]
+        [SerializeField]
+        private SfxBanco _sfxAviso;
+
+        [SerializeField]
+        private SfxBanco _sfxAzote;
+
         private enum FaseTentaculo
         {
             Aviso,
@@ -116,6 +123,7 @@ namespace TDOM.Unity
             _golpeados.Clear();
 
             AvisoRpc(origen, direccion);
+            ReproducirSfxEn(_sfxAviso, ZonaDelGolpe());
         }
 
         public override void OnNetworkDespawn()
@@ -213,7 +221,10 @@ namespace TDOM.Unity
             {
                 case FaseTentaculo.Aviso:
                     if (_tiempoEnFase >= _perfil.aviso)
+                    {
                         CambiarFase(FaseTentaculo.Azote);
+                        ReproducirSfxEn(_sfxAzote, ZonaDelGolpe());
+                    }
                     break;
 
                 case FaseTentaculo.Azote:
@@ -237,6 +248,9 @@ namespace TDOM.Unity
                     break;
             }
         }
+
+        private Vector3 ZonaDelGolpe() =>
+            transform.position + _rotacionBase * Vector3.forward * (_perfil.largo * 0.5f);
 
         private void CambiarFase(FaseTentaculo nueva)
         {

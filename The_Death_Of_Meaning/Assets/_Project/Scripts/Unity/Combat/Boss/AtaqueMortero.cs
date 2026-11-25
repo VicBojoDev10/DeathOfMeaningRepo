@@ -47,6 +47,13 @@ namespace TDOM.Unity
         [SerializeField]
         private VfxBase _vfxCaida;
 
+        [Header("Sonido")]
+        [SerializeField]
+        private SfxBanco _sfxLanzamiento;
+
+        [SerializeField]
+        private SfxBanco _sfxCaida;
+
         private enum FaseMortero
         {
             Aviso,
@@ -260,6 +267,7 @@ namespace TDOM.Unity
                     if (_tiempoEnFase >= _perfil.aviso)
                     {
                         LanzarVfxLanzamiento();
+                        ReproducirSfxLanzamiento();
                         CambiarFase(FaseMortero.Caida);
                         CaidaRpc();
                     }
@@ -272,6 +280,7 @@ namespace TDOM.Unity
                         SpawnearColumnas();
                         ImpactoRpc();
                         LanzarVfxCaida();
+                        ReproducirSfxCaida();
                         CambiarFase(FaseMortero.Retirada);
                     }
                     break;
@@ -381,6 +390,21 @@ namespace TDOM.Unity
                 direccion = Lanzador.PuntoBoca.forward;
 
             vfx.Lanzar(_vfxLanzamiento, origen, Quaternion.LookRotation(direccion.normalized));
+        }
+
+        private void ReproducirSfxLanzamiento()
+        {
+            if (Lanzador != null && Lanzador.PuntoBoca != null)
+                ReproducirSfxEn(_sfxLanzamiento, Lanzador.PuntoBoca.position);
+        }
+
+        private void ReproducirSfxCaida()
+        {
+            if (_puntosServidor == null)
+                return;
+
+            foreach (var punto in _puntosServidor)
+                ReproducirSfxEn(_sfxCaida, punto);
         }
 
         // TW-182: una explosión de lava por punto, al ras del piso. El tamaño lo da el radio del

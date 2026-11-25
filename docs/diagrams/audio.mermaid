@@ -39,10 +39,70 @@ classDiagram
         -SfxBanco _dash
         -SfxBanco _dashAire
         -SfxBanco _gancho
+        -SfxBanco _salto
+        -SfxBanco _aterrizaje
         -SfxBanco _dobleSalto
+        -SfxBanco _embestidaArranque
+        -SfxBanco _embestidaAvance
+        -SfxBanco _embestidaFinal
         +Dash(enSuelo)
         +Gancho()
+        +Salto()
+        +Aterrizaje()
         +DobleSalto()
+        +EmbestidaInicio()
+        +ActualizarEmbestida(activa)
+    }
+
+    class Proyectil {
+        <<NetworkBehaviour>>
+        -SfxBanco _sfxImpactoAmbiente
+        -SfxBanco _sfxImpactoJefe
+        -ReproducirSfxImpacto(banco, punto)
+    }
+
+    class AnchorLauncher {
+        <<NetworkBehaviour>>
+        -SfxBanco _sfxLanzamiento
+        -ReproducirSfxLanzamiento(origen)
+    }
+
+    class DetectorFlancoSfx {
+        <<POCO>>
+        +Actualizar(activo) bool
+    }
+
+    class AtaqueArekBase {
+        <<NetworkBehaviour, abstract>>
+        #SfxJefe SfxRed
+        #ReproducirSfxEnJefe(banco)
+        #ReproducirSfxEn(banco, punto)
+        #DetenerSfxJefe(banco)
+    }
+
+    class AtaqueMano {
+        -SfxBanco _sfxAviso
+        -SfxBanco _sfxGolpe
+    }
+
+    class AtaqueTentaculo {
+        -SfxBanco _sfxAviso
+        -SfxBanco _sfxAzote
+        -ZonaDelGolpe() Vector3
+    }
+
+    class AtaqueMortero {
+        -SfxBanco _sfxLanzamiento
+        -SfxBanco _sfxCaida
+        -ReproducirSfxLanzamiento()
+        -ReproducirSfxCaida()
+    }
+
+    class AtaqueRayo {
+        -SfxBanco _sfxCarga
+        -SfxBanco _sfxDisparoInicio
+        -SfxBanco _sfxDisparoLoop
+        -SfxBanco _sfxDisparoFin
     }
 
     class SubidaIntensidadSfx {
@@ -122,3 +182,13 @@ classDiagram
     VocesSfx3D ..> SubidaIntensidadSfx
     PlayerRoot --> SfxLocomocion : eventos de locomocion, solo el owner
     SfxLocomocion --> SfxRed
+    SfxLocomocion ..> DetectorFinEmbestida
+    Proyectil ..> SfxRed : impacto en el SfxRed del atacante, lo lanza el servidor
+    AnchorLauncher --> SfxRed : lanzamiento validado en el servidor
+    AtaqueArekBase <|-- AtaqueMano
+    AtaqueArekBase --> SfxRed : SfxRed de la raiz de AREK, solo el servidor
+    AtaqueMano ..> DetectorFlancoSfx
+    AtaqueArekBase <|-- AtaqueTentaculo
+    AtaqueArekBase <|-- AtaqueMortero
+    AtaqueArekBase <|-- AtaqueRayo
+    PlayerRoot ..> DetectorSaltoAterrizaje : salto y aterrizaje para Vfx y Sfx
