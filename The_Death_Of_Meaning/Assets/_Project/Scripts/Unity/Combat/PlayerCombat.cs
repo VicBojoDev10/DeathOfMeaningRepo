@@ -470,7 +470,8 @@ namespace TDOM.Unity.Combat
                     _definition.Ranged.Charged,
                     _definition.Ranged.HoldThreshold,
                     _definition.Ranged.MaxChargeTime,
-                    _definition.Ranged.BufferWindow
+                    _definition.Ranged.BufferWindow,
+                    encadenarAlTerminar: true
                 );
             }
         }
