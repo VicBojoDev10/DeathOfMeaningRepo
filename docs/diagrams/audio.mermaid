@@ -24,6 +24,7 @@ classDiagram
         <<MonoBehaviour>>
         -SfxBanco _ataqueNormal
         -SfxBanco[] _golpesCombo
+        -SfxBanco _capaGolpe
         -SfxBanco _disparo
         -SfxBanco _disparoCargado
         -SfxBanco _cargaLoop
@@ -45,10 +46,20 @@ classDiagram
         -SfxBanco _embestidaArranque
         -SfxBanco _embestidaAvance
         -SfxBanco _embestidaFinal
+        -SfxBanco _pasosCaminar
+        -SfxBanco _pasosCorrer
+        -SfxBanco _capaCaminar
+        -SfxBanco _capaCorrer
+        -SfxBanco _pararCaminar
+        -SfxBanco _pararCorrer
+        -float _rapidezMinimaPasos
+        -SfxBanco _abatido
         +Dash(enSuelo)
         +Gancho()
         +Salto()
         +Aterrizaje()
+        +ActualizarPasos(enSuelo, rapidez, corriendo)
+        +Abatido()
         +DobleSalto()
         +EmbestidaInicio()
         +ActualizarEmbestida(activa)
@@ -192,3 +203,23 @@ classDiagram
     AtaqueArekBase <|-- AtaqueMortero
     AtaqueArekBase <|-- AtaqueRayo
     PlayerRoot ..> DetectorSaltoAterrizaje : salto y aterrizaje para Vfx y Sfx
+
+    class MarchaPasos {
+        <<enum, POCO>>
+        Quieto
+        Caminando
+        Corriendo
+    }
+    class DetectorMarchaPasos {
+        <<POCO>>
+        +Actual : MarchaPasos
+        +Anterior : MarchaPasos
+        +Cambio : bool
+        +Freno : bool
+        +Actualizar(enSuelo, rapidez, corriendo, rapidezMinima)
+        +Reiniciar()
+    }
+
+    SfxLocomocion ..> DetectorMarchaPasos : loops de pasos y capa, sonido al frenar
+    DetectorMarchaPasos --> MarchaPasos
+    PlayerRoot --> SfxLocomocion : pasos cada cuadro y abatido al caer, solo el owner
