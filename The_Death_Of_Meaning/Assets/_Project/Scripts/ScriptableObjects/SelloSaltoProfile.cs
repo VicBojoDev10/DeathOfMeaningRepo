@@ -28,8 +28,7 @@ namespace TDOM.POCO.ScriptableObjects
         [Min(0f)]
         public float AlturaInicial = 3f;
 
-        [Min(0f)]
-        public float AlturaFinal = 0.05f;
+        public float AlturaFinal = -0.8f;
 
         [Min(0f)]
         public float VelocidadGiro = 90f;
