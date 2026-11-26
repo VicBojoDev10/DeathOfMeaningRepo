@@ -37,7 +37,8 @@ namespace TDOM.Unity.Player
                 _sello = new SelloSaltoAereo(
                     _perfil.DuracionSellado,
                     _perfil.DuracionRuptura,
-                    _perfil.MultiplicadorVelocidad
+                    _perfil.MultiplicadorVelocidad,
+                    _perfil.MultiplicadorVelocidadSellado
                 );
             _estadoRed.OnValueChanged += AlCambiarEstado;
             _runa.enabled = false;

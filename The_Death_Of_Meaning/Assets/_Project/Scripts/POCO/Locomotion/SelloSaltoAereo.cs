@@ -15,15 +15,18 @@ namespace TDOM.Gameplay
         private readonly float _duracionSellado;
         private readonly float _duracionRuptura;
         private readonly float _multiplicadorLentitud;
+        private readonly float _multiplicadorSellado;
         private float _tiempoEnEstado;
         private bool _yaRoto;
 
         public SelloSaltoAereo(
             float duracionSellado,
             float duracionRuptura,
-            float multiplicadorLentitud
+            float multiplicadorLentitud,
+            float multiplicadorSellado
         )
         {
+            _multiplicadorSellado = Math.Clamp(multiplicadorSellado, 0f, 1f);
             _duracionSellado = Math.Max(0f, duracionSellado);
             _duracionRuptura = Math.Max(0f, duracionRuptura);
             _multiplicadorLentitud = Math.Clamp(multiplicadorLentitud, 0f, 1f);
@@ -35,7 +38,12 @@ namespace TDOM.Gameplay
             Estado == EstadoSelloSalto.Libre || Estado == EstadoSelloSalto.Rompiendo;
 
         public float MultiplicadorVelocidad =>
-            Estado == EstadoSelloSalto.Sellando ? _multiplicadorLentitud : 1f;
+            Estado switch
+            {
+                EstadoSelloSalto.Sellando => _multiplicadorLentitud,
+                EstadoSelloSalto.Sellado => _multiplicadorSellado,
+                _ => 1f,
+            };
 
         public float Progreso =>
             Estado switch

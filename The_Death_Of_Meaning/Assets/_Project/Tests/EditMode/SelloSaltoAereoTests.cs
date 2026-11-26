@@ -9,10 +9,11 @@ namespace TDOM.Tests.EditMode
         private const float DuracionSellado = 4f;
         private const float DuracionRuptura = 1f;
         private const float Lentitud = 0.4f;
+        private const float LentitudSellado = 0.8f;
         private const float Dt60 = 1f / 60f;
 
         private static SelloSaltoAereo Crear() =>
-            new SelloSaltoAereo(DuracionSellado, DuracionRuptura, Lentitud);
+            new SelloSaltoAereo(DuracionSellado, DuracionRuptura, Lentitud, LentitudSellado);
 
         [Test]
         public void libre_permite_el_doble_salto_a_velocidad_normal()
@@ -50,14 +51,14 @@ namespace TDOM.Tests.EditMode
         }
 
         [Test]
-        public void sellado_sigue_sin_doble_salto_pero_a_velocidad_normal()
+        public void sellado_sigue_sin_doble_salto_y_con_su_propia_lentitud()
         {
             var sello = Crear();
             sello.Sellar();
             sello.Tick(DuracionSellado);
 
             Assert.IsFalse(sello.PermiteSaltoAereo);
-            Assert.AreEqual(1f, sello.MultiplicadorVelocidad);
+            Assert.AreEqual(LentitudSellado, sello.MultiplicadorVelocidad);
         }
 
         [Test]
@@ -69,6 +70,7 @@ namespace TDOM.Tests.EditMode
 
             Assert.IsTrue(sello.Romper());
             Assert.IsTrue(sello.PermiteSaltoAereo);
+            Assert.AreEqual(1f, sello.MultiplicadorVelocidad);
 
             sello.Tick(DuracionRuptura);
             Assert.AreEqual(EstadoSelloSalto.Libre, sello.Estado);

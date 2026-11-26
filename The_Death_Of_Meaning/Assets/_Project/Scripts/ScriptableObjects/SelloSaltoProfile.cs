@@ -15,6 +15,9 @@ namespace TDOM.POCO.ScriptableObjects
         [Range(0f, 1f)]
         public float MultiplicadorVelocidad = 0.4f;
 
+        [Range(0f, 1f)]
+        public float MultiplicadorVelocidadSellado = 0.8f;
+
         [Header("Runa")]
         [ColorUsage(false, true)]
         public Color ColorRitual = new Color(1f, 0.015f, 0.025f);
