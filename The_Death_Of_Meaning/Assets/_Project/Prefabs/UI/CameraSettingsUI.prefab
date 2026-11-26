@@ -282,10 +282,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 250669506762920655, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
-      propertyPath: _tipo
-      value: 2
-      objectReference: {fileID: 0}
     - target: {fileID: 617166040668590764, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
       propertyPath: m_Name
       value: VerticalSensitivitySlider
@@ -556,17 +552,17 @@ PrefabInstance:
       addedObject: {fileID: 3836269458516842632}
     - targetCorrespondingSourceObject: {fileID: 2388071375972608761, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6462852726114935380}
+      addedObject: {fileID: 5322810331882613437}
     - targetCorrespondingSourceObject: {fileID: 6281102855428416630, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 4533918926653675151}
+      addedObject: {fileID: 1893420493870901594}
   m_SourcePrefab: {fileID: 100100000, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
 --- !u!1 &256897445907775646 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6281102855428416630, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
   m_PrefabInstance: {fileID: 6105292407795442920}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &4533918926653675151
+--- !u!114 &1893420493870901594
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -578,9 +574,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ceaf5def65dda8b4b9f45855f6618a42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
-  _tipo: 0
+  _tipo: 2
   _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
-  _fuente: {fileID: 6462852726114935380}
+  _fuente: {fileID: 5322810331882613437}
 --- !u!225 &1654134489508578679 stripped
 CanvasGroup:
   m_CorrespondingSourceObject: {fileID: 4778021876425875871, guid: d9b5743cb9e66db4ca8369595d819274, type: 3}
@@ -659,7 +655,7 @@ MonoBehaviour:
   horizontalSensitivityValueText: {fileID: 130524574254822105}
   verticalSensitivityValueText: {fileID: 6338446452356866295}
   backButton: {fileID: 3515886052571754729}
---- !u!82 &6462852726114935380
+--- !u!82 &5322810331882613437
 AudioSource:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

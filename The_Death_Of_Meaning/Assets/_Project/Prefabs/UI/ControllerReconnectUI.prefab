@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5997098881112953130}
   - component: {fileID: 6992398937447598587}
   - component: {fileID: 6199853213859151436}
-  - component: {fileID: 9036799142232478052}
+  - component: {fileID: 2869261215690006878}
   m_Layer: 0
   m_Name: ContinuarButton
   m_TagString: Untagged
@@ -122,7 +122,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &9036799142232478052
+--- !u!114 &2869261215690006878
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -136,7 +136,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
   _tipo: 0
   _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
-  _fuente: {fileID: 5797385408903126180}
+  _fuente: {fileID: 1925657111378794344}
 --- !u!1 &2881021470691337188
 GameObject:
   m_ObjectHideFlags: 0
@@ -612,7 +612,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5286805526249318640}
   - component: {fileID: 2985637048004925797}
-  - component: {fileID: 5797385408903126180}
+  - component: {fileID: 1925657111378794344}
   m_Layer: 0
   m_Name: ControllerReconnectUI
   m_TagString: Untagged
@@ -658,7 +658,7 @@ MonoBehaviour:
   _botonContinuar: {fileID: 6199853213859151436}
   _mensaje: {fileID: 8195568988895702300}
   _textoContinuar: {fileID: 6853641499315226804}
---- !u!82 &5797385408903126180
+--- !u!82 &1925657111378794344
 AudioSource:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

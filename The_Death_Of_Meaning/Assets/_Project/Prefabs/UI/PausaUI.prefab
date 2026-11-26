@@ -149,7 +149,7 @@ GameObject:
   - component: {fileID: 5738444257232432145}
   - component: {fileID: 5021153193641737738}
   - component: {fileID: 6902819489454685761}
-  - component: {fileID: 2381223388346271734}
+  - component: {fileID: 2129557795109291928}
   m_Layer: 5
   m_Name: BtnRetry
   m_TagString: Untagged
@@ -205,8 +205,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: f21787f6b013dab45a0d72ef09823659, type: 3}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 7d74bbae1ec9f514d96f512fdb52bc13, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -259,7 +259,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &2381223388346271734
+--- !u!114 &2129557795109291928
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -273,7 +273,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
   _tipo: 1
   _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
-  _fuente: {fileID: 7493944815534415332}
+  _fuente: {fileID: 5921024711410797765}
 --- !u!1 &1720824484521276751
 GameObject:
   m_ObjectHideFlags: 0
@@ -394,8 +394,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: c9641f7584c2c374b8a62351a8d9ce6a, type: 3}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 4f7a15f13526f0842b3bb3e702abd26d, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -440,7 +440,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8258489290393807377}
   - component: {fileID: 969687726911755117}
-  - component: {fileID: 7493944815534415332}
+  - component: {fileID: 5921024711410797765}
   m_Layer: 0
   m_Name: PausaUI
   m_TagString: Untagged
@@ -487,7 +487,7 @@ MonoBehaviour:
   retryButton: {fileID: 6902819489454685761}
   exitButton: {fileID: 1006717351423682115}
   titulo: {fileID: 2683641790267286053}
---- !u!82 &7493944815534415332
+--- !u!82 &5921024711410797765
 AudioSource:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -808,7 +808,7 @@ GameObject:
   - component: {fileID: 1029367747190047992}
   - component: {fileID: 5129739685146871562}
   - component: {fileID: 245062682065328967}
-  - component: {fileID: 9078714045314734361}
+  - component: {fileID: 4846285333686209575}
   m_Layer: 5
   m_Name: BtnContinue
   m_TagString: Untagged
@@ -864,8 +864,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 5b0111d3d36b86a42bba76cf0a33efa0, type: 3}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 6d45e9517c6e5a74782012371c73c58c, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -918,7 +918,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &9078714045314734361
+--- !u!114 &4846285333686209575
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -932,7 +932,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
   _tipo: 0
   _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
-  _fuente: {fileID: 7493944815534415332}
+  _fuente: {fileID: 5921024711410797765}
 --- !u!1 &4730343760652560989
 GameObject:
   m_ObjectHideFlags: 0
@@ -1082,7 +1082,7 @@ GameObject:
   - component: {fileID: 8403868719647361566}
   - component: {fileID: 2752259174031714726}
   - component: {fileID: 1006717351423682115}
-  - component: {fileID: 4348980809694405826}
+  - component: {fileID: 7644977839414767559}
   m_Layer: 5
   m_Name: BtnExit
   m_TagString: Untagged
@@ -1138,8 +1138,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: f21787f6b013dab45a0d72ef09823659, type: 3}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 7d74bbae1ec9f514d96f512fdb52bc13, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -1192,7 +1192,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &4348980809694405826
+--- !u!114 &7644977839414767559
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1206,7 +1206,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
   _tipo: 2
   _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
-  _fuente: {fileID: 7493944815534415332}
+  _fuente: {fileID: 5921024711410797765}
 --- !u!1 &8751878299154703918
 GameObject:
   m_ObjectHideFlags: 0

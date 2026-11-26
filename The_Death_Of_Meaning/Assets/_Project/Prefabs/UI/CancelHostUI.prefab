@@ -197,7 +197,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8258489290393807377}
   - component: {fileID: 2136885233235094082}
-  - component: {fileID: 3888145474962046711}
+  - component: {fileID: 120452774987123409}
   m_Layer: 0
   m_Name: CancelHostUI
   m_TagString: Untagged
@@ -243,7 +243,7 @@ MonoBehaviour:
   cancelButton: {fileID: 7880990139106950534}
   timerText: {fileID: 7050369218617657213}
   hostIpText: {fileID: 4362346222349594037}
---- !u!82 &3888145474962046711
+--- !u!82 &120452774987123409
 AudioSource:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -489,7 +489,7 @@ GameObject:
   - component: {fileID: 6022200903427850682}
   - component: {fileID: 1298625363088894038}
   - component: {fileID: 7880990139106950534}
-  - component: {fileID: 9097560143467643939}
+  - component: {fileID: 973263278310262938}
   m_Layer: 0
   m_Name: Cancel Button
   m_TagString: Untagged
@@ -599,7 +599,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &9097560143467643939
+--- !u!114 &973263278310262938
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -613,7 +613,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
   _tipo: 2
   _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
-  _fuente: {fileID: 3888145474962046711}
+  _fuente: {fileID: 120452774987123409}
 --- !u!1 &7145296951614120084
 GameObject:
   m_ObjectHideFlags: 0

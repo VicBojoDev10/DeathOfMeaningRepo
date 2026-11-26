@@ -475,7 +475,7 @@ GameObject:
   - component: {fileID: 4996168124254211688}
   - component: {fileID: 939122670018537066}
   - component: {fileID: 2496399890102609508}
-  - component: {fileID: 5291312956008446537}
+  - component: {fileID: 5814035874420385265}
   m_Layer: 5
   m_Name: BackButton
   m_TagString: Untagged
@@ -584,7 +584,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &5291312956008446537
+--- !u!114 &5814035874420385265
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -598,7 +598,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
   _tipo: 2
   _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
-  _fuente: {fileID: 7570576694819919361}
+  _fuente: {fileID: 7529300822830816922}
 --- !u!1 &1588918113322131712
 GameObject:
   m_ObjectHideFlags: 0
@@ -675,7 +675,7 @@ GameObject:
   - component: {fileID: 1450987214514511358}
   - component: {fileID: 7826100983787952077}
   - component: {fileID: 6389550189987410509}
-  - component: {fileID: 7551600708178015755}
+  - component: {fileID: 352080177267637847}
   m_Layer: 0
   m_Name: Ready
   m_TagString: Untagged
@@ -785,7 +785,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &7551600708178015755
+--- !u!114 &352080177267637847
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -799,7 +799,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
   _tipo: 1
   _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
-  _fuente: {fileID: 7570576694819919361}
+  _fuente: {fileID: 7529300822830816922}
 --- !u!1 &1664300397712085804
 GameObject:
   m_ObjectHideFlags: 0
@@ -1735,7 +1735,7 @@ GameObject:
   - component: {fileID: 4854906165916636112}
   - component: {fileID: 6068734639413350388}
   - component: {fileID: 2577917402025469437}
-  - component: {fileID: 4254965223262782125}
+  - component: {fileID: 6724799828754930478}
   m_Layer: 5
   m_Name: ButtonZendre
   m_TagString: Untagged
@@ -1895,7 +1895,7 @@ MonoBehaviour:
   m_EffectColor: {r: 0.9019608, g: 0.79607844, b: 0.5411765, a: 1}
   m_EffectDistance: {x: 10, y: 10}
   m_UseGraphicAlpha: 1
---- !u!114 &4254965223262782125
+--- !u!114 &6724799828754930478
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1909,7 +1909,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
   _tipo: 0
   _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
-  _fuente: {fileID: 7570576694819919361}
+  _fuente: {fileID: 7529300822830816922}
 --- !u!1 &4270901146118583161
 GameObject:
   m_ObjectHideFlags: 0
@@ -3270,7 +3270,7 @@ GameObject:
   - component: {fileID: 8893671610542125201}
   - component: {fileID: 2949150289949989617}
   - component: {fileID: 6255799034595245350}
-  - component: {fileID: 1568128973416493181}
+  - component: {fileID: 4494305074456562544}
   m_Layer: 5
   m_Name: ButtonAyla
   m_TagString: Untagged
@@ -3430,7 +3430,7 @@ MonoBehaviour:
   m_EffectColor: {r: 0.9019608, g: 0.79607844, b: 0.5411765, a: 1}
   m_EffectDistance: {x: 10, y: 10}
   m_UseGraphicAlpha: 1
---- !u!114 &1568128973416493181
+--- !u!114 &4494305074456562544
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3444,7 +3444,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
   _tipo: 0
   _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
-  _fuente: {fileID: 7570576694819919361}
+  _fuente: {fileID: 7529300822830816922}
 --- !u!1 &8227508256565234183
 GameObject:
   m_ObjectHideFlags: 0
@@ -3729,7 +3729,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4353111586306877682}
   - component: {fileID: 580043509499462902}
-  - component: {fileID: 7570576694819919361}
+  - component: {fileID: 7529300822830816922}
   m_Layer: 0
   m_Name: ChSelectionUI
   m_TagString: Untagged
@@ -3785,7 +3785,7 @@ MonoBehaviour:
   colorEnFoco: {r: 0.15, g: 1, b: 1, a: 1}
   colorElegidoPorMi: {r: 0.3, g: 0.7, b: 1, a: 1}
   colorBloqueado: {r: 0.5, g: 0.5, b: 0.5, a: 1}
---- !u!82 &7570576694819919361
+--- !u!82 &7529300822830816922
 AudioSource:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

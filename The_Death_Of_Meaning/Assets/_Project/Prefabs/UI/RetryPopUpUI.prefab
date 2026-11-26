@@ -196,7 +196,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8258489290393807377}
   - component: {fileID: 8239551458685044987}
-  - component: {fileID: 1268157990984644539}
+  - component: {fileID: 5709711850613249571}
   m_Layer: 0
   m_Name: RetryPopUpUI
   m_TagString: Untagged
@@ -241,7 +241,7 @@ MonoBehaviour:
   firstSelectedObject: {fileID: 6315087744300144285}
   yesButton: {fileID: 8171404804530172726}
   cancelButton: {fileID: 5068044932985274492}
---- !u!82 &1268157990984644539
+--- !u!82 &5709711850613249571
 AudioSource:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -405,8 +405,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: c9641f7584c2c374b8a62351a8d9ce6a, type: 3}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 4f7a15f13526f0842b3bb3e702abd26d, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -427,7 +427,7 @@ GameObject:
   - component: {fileID: 534017678019695904}
   - component: {fileID: 1933855773734164474}
   - component: {fileID: 5068044932985274492}
-  - component: {fileID: 2427287512417096960}
+  - component: {fileID: 3552013469253325930}
   m_Layer: 0
   m_Name: CancelButton
   m_TagString: Untagged
@@ -483,8 +483,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: f21787f6b013dab45a0d72ef09823659, type: 3}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 7d74bbae1ec9f514d96f512fdb52bc13, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -537,7 +537,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &2427287512417096960
+--- !u!114 &3552013469253325930
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -551,7 +551,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
   _tipo: 2
   _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
-  _fuente: {fileID: 1268157990984644539}
+  _fuente: {fileID: 5709711850613249571}
 --- !u!1 &6315087744300144285
 GameObject:
   m_ObjectHideFlags: 0
@@ -564,7 +564,7 @@ GameObject:
   - component: {fileID: 2329947335985287784}
   - component: {fileID: 4755436821413388174}
   - component: {fileID: 8171404804530172726}
-  - component: {fileID: 8624687508784638477}
+  - component: {fileID: 7042058014225474400}
   m_Layer: 0
   m_Name: SiButton
   m_TagString: Untagged
@@ -620,8 +620,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 5b0111d3d36b86a42bba76cf0a33efa0, type: 3}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 6d45e9517c6e5a74782012371c73c58c, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -674,7 +674,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &8624687508784638477
+--- !u!114 &7042058014225474400
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -688,7 +688,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.UI.BotonSfx
   _tipo: 1
   _sonidos: {fileID: 11400000, guid: e7cad90fbc85dda48891a1adb653c990, type: 2}
-  _fuente: {fileID: 1268157990984644539}
+  _fuente: {fileID: 5709711850613249571}
 --- !u!1 &7674981647583529326
 GameObject:
   m_ObjectHideFlags: 0
