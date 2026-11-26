@@ -27,6 +27,9 @@ namespace TDOM.Unity.Flow
         [SerializeField]
         private Transform _entradaAyla;
 
+        [SerializeField]
+        private Transform _encuadreJefe;
+
         [SerializeField, Min(0f)]
         private float _momentoRevelado = 1.5f;
 
@@ -189,6 +192,7 @@ namespace TDOM.Unity.Flow
             GlobalGameManager.Instance?.ReproducirMusicaCombateInmediata();
             if (IsServer)
                 LlevarJugadoresALaArena();
+            EncuadrarJefe();
             if (_timeline == null)
             {
                 Debug.LogError(
@@ -200,6 +204,18 @@ namespace TDOM.Unity.Flow
             _timeline.extrapolationMode = DirectorWrapMode.Hold;
             _timeline.Play();
             Debug.Log("[ArenaBossPresentation] Timeline Entering_Bossfight iniciado.");
+        }
+
+        private void EncuadrarJefe()
+        {
+            if (
+                _encuadreJefe != null
+                && BossController.TryEncontrarSpawneado(NetworkManager, out var jefe)
+            )
+                _encuadreJefe.SetPositionAndRotation(
+                    jefe.transform.position,
+                    jefe.transform.rotation
+                );
         }
 
         private void LlevarJugadoresALaArena()
