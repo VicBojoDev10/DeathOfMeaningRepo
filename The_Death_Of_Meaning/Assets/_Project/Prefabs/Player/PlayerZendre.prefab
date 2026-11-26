@@ -718,6 +718,14 @@ MonoBehaviour:
   _embestidaFinal: {fileID: 11400000, guid: 41c9ddfa87e9c6f48bfce469960c1337, type: 2}
   _salto: {fileID: 11400000, guid: 3ecc940a42b414b4dbbf72f65c43851e, type: 2}
   _aterrizaje: {fileID: 11400000, guid: 1829d09d9ded77242a0bbce426f0db9e, type: 2}
+  _pasosCaminar: {fileID: 11400000, guid: f05887d1828802b4cbc6b8f7549453ab, type: 2}
+  _pasosCorrer: {fileID: 11400000, guid: 6312dd9baeed9494bb7eaaf260f4edd2, type: 2}
+  _capaCaminar: {fileID: 11400000, guid: ab13182676ca92946bbebacbe94be787, type: 2}
+  _capaCorrer: {fileID: 11400000, guid: dd99fb38d33e37d4887b8ddd9533e011, type: 2}
+  _pararCaminar: {fileID: 11400000, guid: 646735d941f47164192e21a0625a1099, type: 2}
+  _pararCorrer: {fileID: 11400000, guid: c07d3010c3dcda8499c3d46a23722ac6, type: 2}
+  _rapidezMinimaPasos: 0.5
+  _abatido: {fileID: 11400000, guid: 598d033a2c9fe884aa49a2c09dbd1876, type: 2}
 --- !u!4 &6010933325636824929
 Transform:
   m_ObjectHideFlags: 0

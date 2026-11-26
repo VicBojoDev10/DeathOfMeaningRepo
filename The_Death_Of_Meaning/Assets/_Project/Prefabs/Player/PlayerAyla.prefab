@@ -5674,6 +5674,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: fb6cd3a37f527734da92a3f4baf663dc, type: 2}
   - {fileID: 11400000, guid: c721d315ac420d440b91739b7ed49032, type: 2}
   - {fileID: 11400000, guid: 718f6969a53c4c146bb6655513245efa, type: 2}
+  _capaGolpe: {fileID: 11400000, guid: 6dadb70465e2c9f41981993229159bfa, type: 2}
   _cargaLoop: {fileID: 11400000, guid: a745e939ba8540843b414cf9e66f8dc8, type: 2}
   _liberacionCargado: {fileID: 11400000, guid: c2eb72363b1cf0c4c90de713fdbdef90, type: 2}
 --- !u!114 &5930865018262658876
@@ -5695,6 +5696,14 @@ MonoBehaviour:
   _dobleSalto: {fileID: 11400000, guid: a85d6b5bf553b3b48b7a2bffffc07a31, type: 2}
   _salto: {fileID: 11400000, guid: 3ecc940a42b414b4dbbf72f65c43851e, type: 2}
   _aterrizaje: {fileID: 11400000, guid: 1829d09d9ded77242a0bbce426f0db9e, type: 2}
+  _pasosCaminar: {fileID: 11400000, guid: a836e0e9e18b92146abf1dddde100190, type: 2}
+  _pasosCorrer: {fileID: 11400000, guid: 762b3e93cb78cf548b560038a50dc57e, type: 2}
+  _capaCaminar: {fileID: 11400000, guid: 7970153417fac8d4d99ce6c1f2aa14ee, type: 2}
+  _capaCorrer: {fileID: 11400000, guid: 4b7f5ba4bd491e8458371f1d7d8492df, type: 2}
+  _pararCaminar: {fileID: 11400000, guid: 51726a4e9aa95f44eb79079d79a185ce, type: 2}
+  _pararCorrer: {fileID: 11400000, guid: a9e373610ae6068469eee532e313e9c2, type: 2}
+  _rapidezMinimaPasos: 0.5
+  _abatido: {fileID: 0}
 --- !u!1 &5167135693431690079
 GameObject:
   m_ObjectHideFlags: 0
