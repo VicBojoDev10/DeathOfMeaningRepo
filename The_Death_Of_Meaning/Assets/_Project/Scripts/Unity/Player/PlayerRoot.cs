@@ -493,7 +493,19 @@ namespace TDOM.Unity.Player
             }
 
             AplicarEstadoVida();
+            ReproducirSfxAbatido(anterior, actual);
             BuscarEncuentroArena()?.NotificarEstadoVida(this, actual);
+        }
+
+        private void ReproducirSfxAbatido(PlayerLifeState anterior, PlayerLifeState actual)
+        {
+            if (
+                IsOwner
+                && _sfxLocomocion != null
+                && anterior == PlayerLifeState.Vivo
+                && actual == PlayerLifeState.Abatido
+            )
+                _sfxLocomocion.Abatido();
         }
 
         private ArenaEncounterNetwork BuscarEncuentroArena()
@@ -1013,6 +1025,21 @@ namespace TDOM.Unity.Player
 
             if (_detectorVfxSalto.Aterrizaje)
                 LanzarVfxAterrizaje();
+        }
+
+        private void ActualizarSfxPasos()
+        {
+            if (_sfxLocomocion == null)
+                return;
+
+            Vector3 velocidad = _locomocion.State.Velocity;
+            velocidad.y = 0f;
+            bool apoyado =
+                _locomocion.State.IsGrounded
+                && !_locomocion.DashActivo
+                && !_locomocion.GanchoActivo
+                && !EstaAbatidoOMuerto;
+            _sfxLocomocion.ActualizarPasos(apoyado, velocidad.magnitude, _locomocion.Corriendo);
         }
 
         private void ReproducirSfxSaltoAterrizaje()
@@ -1599,6 +1626,7 @@ namespace TDOM.Unity.Player
                 PedirConsumoDeEnergia(CostoSaltoAereo);
             ActualizarVfxSaltoAterrizaje();
             ReproducirSfxSaltoAterrizaje();
+            ActualizarSfxPasos();
             if (
                 _locomocion.SaltoAereo
                 && _characterId == CharacterIds.Ayla

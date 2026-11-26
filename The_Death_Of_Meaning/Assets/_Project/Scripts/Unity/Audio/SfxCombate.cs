@@ -16,6 +16,9 @@ namespace TDOM.Unity.Audio
         private SfxBanco[] _golpesCombo = new SfxBanco[0];
 
         [SerializeField]
+        private SfxBanco _capaGolpe;
+
+        [SerializeField]
         private SfxBanco _disparo;
 
         [SerializeField]
@@ -40,6 +43,7 @@ namespace TDOM.Unity.Audio
             int elegido = SfxPorIndice.Elegir(comboIndex, _golpesCombo.Length);
             bool hayCombo = elegido != SfxPorIndice.SinSfx && _golpesCombo[elegido] != null;
             ReproducirSiExiste(hayCombo ? _golpesCombo[elegido] : _ataqueNormal);
+            ReproducirSiExiste(_capaGolpe);
         }
 
         public void Disparo(Vector3 origen, bool cargado)

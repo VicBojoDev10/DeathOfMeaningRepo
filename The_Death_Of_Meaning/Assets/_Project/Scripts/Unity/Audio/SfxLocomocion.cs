@@ -1,4 +1,5 @@
 using TDOM.Data;
+using TDOM.Gameplay.Audio;
 using TDOM.Gameplay.Vfx;
 using UnityEngine;
 
@@ -36,7 +37,33 @@ namespace TDOM.Unity.Audio
         [SerializeField]
         private SfxBanco _embestidaFinal;
 
+        [Header("Pasos")]
+        [SerializeField]
+        private SfxBanco _pasosCaminar;
+
+        [SerializeField]
+        private SfxBanco _pasosCorrer;
+
+        [SerializeField]
+        private SfxBanco _capaCaminar;
+
+        [SerializeField]
+        private SfxBanco _capaCorrer;
+
+        [SerializeField]
+        private SfxBanco _pararCaminar;
+
+        [SerializeField]
+        private SfxBanco _pararCorrer;
+
+        [SerializeField]
+        private float _rapidezMinimaPasos = 0.5f;
+
+        [SerializeField]
+        private SfxBanco _abatido;
+
         private readonly DetectorFinEmbestida _finEmbestida = new DetectorFinEmbestida();
+        private readonly DetectorMarchaPasos _marcha = new DetectorMarchaPasos();
 
         private void Awake()
         {
@@ -70,6 +97,68 @@ namespace TDOM.Unity.Audio
             if (_red != null && _embestidaAvance != null)
                 _red.Detener(_embestidaAvance);
             ReproducirSiExiste(_embestidaFinal);
+        }
+
+        public void ActualizarPasos(bool enSuelo, float rapidez, bool corriendo)
+        {
+            _marcha.Actualizar(enSuelo, rapidez, corriendo, _rapidezMinimaPasos);
+            AplicarCambioDeMarcha();
+        }
+
+        public void Abatido()
+        {
+            _marcha.Reiniciar();
+            AplicarCambioDeMarcha();
+            ReproducirSiExiste(_abatido);
+        }
+
+        private void AplicarCambioDeMarcha()
+        {
+            if (!_marcha.Cambio)
+                return;
+
+            DetenerMarcha(_marcha.Anterior);
+            IniciarMarcha(_marcha.Actual);
+            if (_marcha.Freno)
+                ReproducirSiExiste(
+                    _marcha.Anterior == MarchaPasos.Corriendo ? _pararCorrer : _pararCaminar
+                );
+        }
+
+        private void IniciarMarcha(MarchaPasos marcha)
+        {
+            switch (marcha)
+            {
+                case MarchaPasos.Caminando:
+                    ReproducirSiExiste(_pasosCaminar);
+                    ReproducirSiExiste(_capaCaminar);
+                    break;
+                case MarchaPasos.Corriendo:
+                    ReproducirSiExiste(_pasosCorrer);
+                    ReproducirSiExiste(_capaCorrer);
+                    break;
+            }
+        }
+
+        private void DetenerMarcha(MarchaPasos marcha)
+        {
+            switch (marcha)
+            {
+                case MarchaPasos.Caminando:
+                    DetenerSiExiste(_pasosCaminar);
+                    DetenerSiExiste(_capaCaminar);
+                    break;
+                case MarchaPasos.Corriendo:
+                    DetenerSiExiste(_pasosCorrer);
+                    DetenerSiExiste(_capaCorrer);
+                    break;
+            }
+        }
+
+        private void DetenerSiExiste(SfxBanco banco)
+        {
+            if (_red != null && banco != null)
+                _red.Detener(banco);
         }
 
         private void ReproducirSiExiste(SfxBanco banco)
