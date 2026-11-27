@@ -7,6 +7,7 @@ namespace TDOM.Unity.Combat
     public sealed class MinionCapturaLanzamiento : MonoBehaviour
     {
         private Transform _zendre;
+        private AnchorLauncher _lanzador;
         private AnchorProfile _perfil;
         private Vector3 _velocidad;
         private bool _capturado;
@@ -36,6 +37,7 @@ namespace TDOM.Unity.Combat
             if (zendre == null || perfil == null || _capturado || _volando)
                 return false;
             _zendre = zendre;
+            _lanzador = zendre.GetComponent<AnchorLauncher>();
             _perfil = perfil;
             _capturado = true;
             _tiempoGiro = 0f;
@@ -49,11 +51,10 @@ namespace TDOM.Unity.Combat
                 return;
             _capturado = false;
             _volando = true;
-            direccion.y = 0f;
             if (direccion.sqrMagnitude < 0.001f)
                 direccion = Vector3.forward;
             _velocidad = direccion.normalized * Mathf.Max(0f, _perfil.FuerzaLanzamientoMinion);
-            _velocidad.y = Mathf.Sqrt(
+            _velocidad.y += Mathf.Sqrt(
                 2f * Mathf.Abs(Physics.gravity.y) * Mathf.Max(0f, _perfil.AlturaLanzamientoMinion)
             );
             foreach (var c in _colliders)
@@ -77,7 +78,7 @@ namespace TDOM.Unity.Combat
                     + _zendre.forward * _perfil.DistanciaSujecionMinion;
                 transform.rotation = Quaternion.LookRotation(-_zendre.forward, Vector3.up);
                 if (_tiempoGiro >= Mathf.Max(0.1f, _perfil.TiempoMaximoGiroMinion))
-                    Lanzar(_zendre.forward);
+                    Lanzar(_lanzador != null ? _lanzador.DireccionLanzamiento : _zendre.forward);
                 return;
             }
             if (!_volando)
