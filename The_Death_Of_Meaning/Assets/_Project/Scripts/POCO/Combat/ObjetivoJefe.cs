@@ -19,6 +19,8 @@ namespace TDOM.Gameplay.Combat
         RomperEscudosRojos,
         ApoyarAyla,
         ApoyarZendre,
+        EsperarCompanero,
+        AlcanzarCompanero,
     }
 
     public static class ResolvedorObjetivoJefe
@@ -48,6 +50,14 @@ namespace TDOM.Gameplay.Combat
                 _ => ObjetivoJefe.Ninguno,
             };
         }
+
+        public static InstruccionJugador ParaLlegada(bool yoLlegue, bool companeroLlego) =>
+            (yoLlegue, companeroLlego) switch
+            {
+                (true, false) => InstruccionJugador.EsperarCompanero,
+                (false, true) => InstruccionJugador.AlcanzarCompanero,
+                _ => InstruccionJugador.Ninguna,
+            };
 
         public static InstruccionJugador ParaJugador(ObjetivoJefe objetivo, bool esAyla) =>
             objetivo switch

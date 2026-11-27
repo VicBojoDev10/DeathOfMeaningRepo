@@ -778,7 +778,7 @@ namespace TDOM.Unity.Combat
 
         private void OnGUI()
         {
-            if (!_mostrarDebugUI || !IsSpawned)
+            if (!Application.isEditor || !_mostrarDebugUI || !IsSpawned)
                 return;
 
             GUILayout.BeginArea(new Rect(10, 200, 490, 480), "Boss AREK Debug", GUI.skin.window);

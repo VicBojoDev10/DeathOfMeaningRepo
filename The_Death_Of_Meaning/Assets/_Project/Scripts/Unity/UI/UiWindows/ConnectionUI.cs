@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using TDOM.Gameplay;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.UI;
 using TMPro;
@@ -22,7 +24,7 @@ namespace TDOM.Unity
         }
 
         public ConnectionManager ConnectionManager => ConnectionManager.Instance;
-        public TMP_InputField ipInputField;
+        public TMP_Dropdown partidasDropdown;
         public TextMeshProUGUI statusText;
         public Button startHostButton;
         public Button startClientButton;
@@ -42,7 +44,6 @@ namespace TDOM.Unity
         public float backgroundScale = 0.82f;
         public float focusDuration = 0.35f;
 
-        private float _lastKeyboardCloseTime = -1f;
         private int _segundosRestantesConexion = -1;
         private bool _connectionAttemptStarted;
         private bool _inicializado;
@@ -67,6 +68,11 @@ namespace TDOM.Unity
 
         private void Awake()
         {
+            if (!Application.isEditor && joinTest != null)
+            {
+                joinTest.gameObject.SetActive(false);
+                joinTest = null;
+            }
             if (backButton == null)
                 backButton = BuscarBotonRegreso();
             if (createHolder == null)
@@ -164,19 +170,12 @@ namespace TDOM.Unity
             startClientButton.onClick.AddListener(StartClientButton_OnClick);
             startMatchButton.onClick.AddListener(StartMatchButton_OnClick);
 
-            if (ipInputField != null)
+            var descubrimiento = ConnectionManager?.Descubrimiento;
+            if (descubrimiento != null)
             {
-                ipInputField.onSelect.AddListener(OnInputFieldSelect);
-                ipInputField.onSubmit.AddListener(OnInputFieldSubmit);
-            }
-
-            var kbWindow =
-                UiManager.Instance != null
-                    ? UiManager.Instance.GetWindow(WindowsIds.KeyboardUI) as KeyboardUI
-                    : null;
-            if (kbWindow != null)
-            {
-                kbWindow.OnKeyboardClosed += HandleKeyboardClosed;
+                descubrimiento.PartidasCambiaron += MostrarPartidas;
+                descubrimiento.IniciarBusqueda();
+                MostrarPartidas(descubrimiento.Partidas);
             }
 
             HabilitarAccionCancelar();
@@ -246,19 +245,11 @@ namespace TDOM.Unity
             startClientButton.onClick.RemoveListener(StartClientButton_OnClick);
             startMatchButton.onClick.RemoveListener(StartMatchButton_OnClick);
 
-            if (ipInputField != null)
+            var descubrimiento = ConnectionManager?.Descubrimiento;
+            if (descubrimiento != null)
             {
-                ipInputField.onSelect.RemoveListener(OnInputFieldSelect);
-                ipInputField.onSubmit.RemoveListener(OnInputFieldSubmit);
-            }
-
-            var kbWindow =
-                UiManager.Instance != null
-                    ? UiManager.Instance.GetWindow(WindowsIds.KeyboardUI) as KeyboardUI
-                    : null;
-            if (kbWindow != null)
-            {
-                kbWindow.OnKeyboardClosed -= HandleKeyboardClosed;
+                descubrimiento.PartidasCambiaron -= MostrarPartidas;
+                descubrimiento.DetenerBusqueda();
             }
 
             if (ConnectionManager != null)
@@ -403,68 +394,48 @@ namespace TDOM.Unity
                 EventSystem.current.SetSelectedGameObject(objetivo.gameObject);
         }
 
-        private void HandleKeyboardClosed()
+        private void MostrarPartidas(IReadOnlyList<PartidaLan> partidas)
         {
-            _lastKeyboardCloseTime = Time.unscaledTime;
-            SetInteractable(true);
-        }
-
-        private void OnInputFieldSelect(string _)
-        {
-            if (_connectionAttemptStarted)
+            if (partidasDropdown == null)
                 return;
-
-            if (Time.unscaledTime - _lastKeyboardCloseTime < 0.4f)
-                return;
-            AbrirTecladoVirtual();
-        }
-
-        private void OnInputFieldSubmit(string _)
-        {
-            AbrirTecladoVirtual();
-        }
-
-        public void AbrirTecladoVirtual()
-        {
-            if (_connectionAttemptStarted || UiManager.Instance == null)
-                return;
-
-            var kbWindow = UiManager.Instance.GetWindow(WindowsIds.KeyboardUI) as KeyboardUI;
-            if (kbWindow != null)
+            var perfil = ConnectionManager.Descubrimiento.Perfil;
+            string elegida = PartidaElegida(out var anterior) ? anterior.Ip : null;
+            var opciones = new List<string>();
+            int seleccion = 0;
+            for (int i = 0; i < partidas.Count; i++)
             {
-                if (kbWindow.IsOpen)
-                    return;
-
-                kbWindow.OnKeyboardClosed -= HandleKeyboardClosed;
-                kbWindow.OnKeyboardClosed += HandleKeyboardClosed;
-
-                kbWindow.AbrirParaInputField(ipInputField, this);
-            }
-            else
-            {
-                Debug.LogWarning(
-                    "[ConnectionUI] No se encontró la ventana KeyboardUI en UiManager."
+                opciones.Add(
+                    string.Format(perfil.FormatoPartida, partidas[i].Nombre, partidas[i].Ip)
                 );
+                if (partidas[i].Ip == elegida)
+                    seleccion = i;
             }
+            if (opciones.Count == 0)
+                opciones.Add(perfil.TextoBuscando);
+            partidasDropdown.ClearOptions();
+            partidasDropdown.AddOptions(opciones);
+            partidasDropdown.SetValueWithoutNotify(seleccion);
+        }
+
+        private bool PartidaElegida(out PartidaLan partida)
+        {
+            partida = default;
+            var partidas = ConnectionManager?.Descubrimiento?.Partidas;
+            if (partidas == null || partidasDropdown == null)
+                return false;
+            int indice = partidasDropdown.value;
+            if (indice < 0 || indice >= partidas.Count)
+                return false;
+            partida = partidas[indice];
+            return true;
         }
 
         private void IrASeleccionDePersonaje()
         {
             _navegandoAPersonaje = true;
-            CerrarTecladoVirtual();
             if (_cancelHostUI != null && _cancelHostUI.IsOpen)
                 _cancelHostUI.Hide();
             UiManager.Instance.SwitchWindow(WindowId, WindowsIds.ChSelectionUI);
-        }
-
-        private void CerrarTecladoVirtual()
-        {
-            var kbWindow =
-                UiManager.Instance != null
-                    ? UiManager.Instance.GetWindow(WindowsIds.KeyboardUI) as KeyboardUI
-                    : null;
-            if (kbWindow != null && kbWindow.IsOpen)
-                kbWindow.CerrarTeclado();
         }
 
         private void SuscribirseAGameFlow()
@@ -646,11 +617,18 @@ namespace TDOM.Unity
             if (ConnectionManager == null)
                 return;
 
+            if (!PartidaElegida(out var partida))
+            {
+                if (statusText != null)
+                    statusText.text = ConnectionManager.Descubrimiento.Perfil.TextoBuscando;
+                return;
+            }
+
             SeleccionarModo(ConnectionMode.Client);
             _cancelHostUI = ResolverCancelHostUI();
             _cancelHostUI?.ConfigurarModoHost(false);
 
-            ConnectionManager.OnUnirse(ipInputField.text.Trim());
+            ConnectionManager.OnUnirse(partida.Ip);
         }
 
         private void SeleccionarModo(ConnectionMode mode)
@@ -798,7 +776,6 @@ namespace TDOM.Unity
 
         private void ActualizarTextoEstado(EstadoSesion estado)
         {
-            CerrarTecladoVirtual();
             ActualizarIndicadorEstado(ConexionListaParaPartida());
 
             if (statusText != null)
@@ -837,8 +814,6 @@ namespace TDOM.Unity
                     ConnectionManager != null && !ConnectionManager.UltimoIntentoFueCliente;
                 if (eraHost)
                     ResolverCancelHostUI()?.ActualizarIpHost(string.Empty);
-                if (eraHost && estado == EstadoSesion.Cancelada && ipInputField != null)
-                    ipInputField.text = string.Empty;
 
                 if (EventSystem.current != null)
                     RestaurarFocoControl();

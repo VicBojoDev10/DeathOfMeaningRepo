@@ -3748,6 +3748,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1157696424}
   - component: {fileID: 1157696423}
+  - component: {fileID: 1157696425}
   m_Layer: 0
   m_Name: ConnectionManager
   m_TagString: Untagged
@@ -3769,6 +3770,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.ConnectionManager
   dontDestroyOnLoad: 1
   gameFlowNetworkPrefab: {fileID: 8473628879619465374, guid: a18c5b45ca4dd3b4dbfdeb8c07419c3b, type: 3}
+  _descubrimiento: {fileID: 1157696425}
   tiempoLimiteCliente: 60
   tiempoEsperaHost: 60
 --- !u!4 &1157696424
@@ -6452,3 +6454,16 @@ SceneRoots:
   - {fileID: 1157696424}
   - {fileID: 2143097325}
   - {fileID: 741708334}
+--- !u!114 &1157696425
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1157696422}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 628150d5bc67af241be6ef0ad50a230d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.DescubrimientoLan
+  _perfil: {fileID: 11400000, guid: e034ea4f99f7b274abb91bf5ea847e6a, type: 2}

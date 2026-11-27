@@ -76,6 +76,19 @@ namespace TDOM.Tests.EditMode
             Assert.AreEqual(esperada, ResolvedorObjetivoJefe.ParaJugador(objetivo, esAyla));
         }
 
+        [TestCase(true, false, InstruccionJugador.EsperarCompanero)]
+        [TestCase(false, true, InstruccionJugador.AlcanzarCompanero)]
+        [TestCase(false, false, InstruccionJugador.Ninguna)]
+        [TestCase(true, true, InstruccionJugador.Ninguna)]
+        public void quien_llego_espera_y_quien_falta_alcanza(
+            bool yoLlegue,
+            bool companeroLlego,
+            InstruccionJugador esperada
+        )
+        {
+            Assert.AreEqual(esperada, ResolvedorObjetivoJefe.ParaLlegada(yoLlegue, companeroLlego));
+        }
+
         [Test]
         public void sin_ojos_no_hay_objetivo()
         {

@@ -104,6 +104,7 @@ namespace TDOM.Unity
             if (Instance == this)
                 Instance = null;
             PausadoGlobal = false;
+            Time.timeScale = 1f;
             ResultadoGlobal = ResultadoPartida.EnCurso;
         }
 
@@ -127,6 +128,7 @@ namespace TDOM.Unity
         private void AlCambiarPausa(bool anterior, bool actual)
         {
             PausadoGlobal = actual;
+            Time.timeScale = actual ? 0f : 1f;
             PausaMinionsActivos.EstablecerPausaMenu(NetworkManager, actual);
             var ui = UiManager.Instance;
             if (ui == null)
@@ -320,7 +322,11 @@ namespace TDOM.Unity
                     if (salirDesdePantallaFinal)
                         SalirAlMenu();
                     else
-                        ReiniciarConCargaClientRpc(true, ventanaFinal);
+                        ReiniciarConCargaClientRpc(
+                            true,
+                            ventanaFinal,
+                            ReanudaEnCombate(true, ventanaFinal)
+                        );
                 }
                 else if (_salir)
                 {
@@ -464,11 +470,27 @@ namespace TDOM.Unity
 
         private void RecargarNivel()
         {
-            ReiniciarConCargaClientRpc(false, string.Empty);
+            ReiniciarConCargaClientRpc(false, string.Empty, ReanudaEnCombate(false, string.Empty));
+        }
+
+        private static bool ReanudaEnCombate(bool desdePantallaFinal, string ventanaFinal) =>
+            ArenaEncounterNetwork.Instance != null
+            && ArenaEncounterNetwork.Instance.ReanudaEnCombate(desdePantallaFinal, ventanaFinal);
+
+        private static void ReproducirMusicaTrasReinicio(bool enCombate)
+        {
+            if (enCombate)
+                GlobalGameManager.Instance?.ReproducirMusicaCombateInmediata();
+            else
+                GlobalGameManager.Instance?.ReproducirMusicaTutorial();
         }
 
         [Rpc(SendTo.ClientsAndHost)]
-        private void ReiniciarConCargaClientRpc(bool desdePantallaFinal, string ventanaFinal)
+        private void ReiniciarConCargaClientRpc(
+            bool desdePantallaFinal,
+            string ventanaFinal,
+            bool enCombate
+        )
         {
             var transicion = UiManager.Instance?.TransitionManager;
             if (transicion == null)
@@ -478,13 +500,13 @@ namespace TDOM.Unity
                     if (!desdePantallaFinal)
                         Pausado.Value = false;
 
-                    GameSessionManager.Instance?.ReiniciarPartidaDesdePausa();
+                    GameSessionManager.Instance?.ReiniciarPartidaDesdePausa(enCombate);
                 }
 
                 if (desdePantallaFinal)
                     MostrarGameplayDespuesDePantallaFinal(ventanaFinal);
 
-                GlobalGameManager.Instance?.ReproducirMusicaTutorial();
+                ReproducirMusicaTrasReinicio(enCombate);
 
                 return;
             }
@@ -495,7 +517,7 @@ namespace TDOM.Unity
                     if (IsServer)
                     {
                         if (GameSessionManager.Instance != null)
-                            GameSessionManager.Instance.ReiniciarPartidaDesdePausa();
+                            GameSessionManager.Instance.ReiniciarPartidaDesdePausa(enCombate);
                         else
                             Debug.LogError(
                                 "No se encontró GameSessionManager para reiniciar la partida."
@@ -505,7 +527,7 @@ namespace TDOM.Unity
                     if (desdePantallaFinal)
                         MostrarGameplayDespuesDePantallaFinal(ventanaFinal);
 
-                    GlobalGameManager.Instance?.ReproducirMusicaTutorial();
+                    ReproducirMusicaTrasReinicio(enCombate);
                 },
                 () =>
                 {
@@ -543,6 +565,9 @@ namespace TDOM.Unity
             ui?.CloseGameplayWindow();
             ui?.CloseWindow("victoriaui");
             ui?.CloseWindow(WindowsIds.DerrotaUI);
+
+            GlobalGameManager.Instance?.DetenerMusicaPartida();
+            GlobalGameManager.Instance?.ReproducirMusicaMenu();
 
             var red = NetworkManager;
             if (red != null && red.IsListening)

@@ -30,6 +30,12 @@ namespace TDOM.Unity
 
         [SerializeField]
         private Transform _spawnPointAyla;
+
+        [SerializeField]
+        private Transform _spawnPointZendreArena;
+
+        [SerializeField]
+        private Transform _spawnPointAylaArena;
         public NetworkList<PlayerSelectionState> Jugadores { get; private set; }
 
         public static event Action PartidaIniciada;
@@ -208,7 +214,7 @@ namespace TDOM.Unity
             }
         }
 
-        private void VerificarInicioPartida()
+        private void VerificarInicioPartida(bool enArena = false)
         {
             if (!_seleccion.PuedeIniciar || _inicioPartidaEnProceso)
                 return;
@@ -222,8 +228,14 @@ namespace TDOM.Unity
 
                 var (prefab, spawnPoint) = jugador.Character switch
                 {
-                    CharacterIds.Zendre => (_prefabZendre, _spawnPointZendre),
-                    CharacterIds.Ayla => (_prefabAyla, _spawnPointAyla),
+                    CharacterIds.Zendre => (
+                        _prefabZendre,
+                        PuntoDeSpawn(_spawnPointZendre, _spawnPointZendreArena, enArena)
+                    ),
+                    CharacterIds.Ayla => (
+                        _prefabAyla,
+                        PuntoDeSpawn(_spawnPointAyla, _spawnPointAylaArena, enArena)
+                    ),
                     _ => (null, null),
                 };
 
@@ -268,6 +280,9 @@ namespace TDOM.Unity
                 IniciarPartidaClientRpc();
             }
         }
+
+        private static Transform PuntoDeSpawn(Transform inicio, Transform arena, bool enArena) =>
+            enArena && arena != null ? arena : inicio;
 
         public void SpawnBossForEncounter()
         {
@@ -331,7 +346,7 @@ namespace TDOM.Unity
             {
                 if (IsServer)
                 {
-                    ReiniciarPartidaDesdePausa();
+                    ReiniciarPartidaDesdePausa(false);
                     _reinicioVictoriaEnCurso = false;
                 }
 
@@ -344,7 +359,7 @@ namespace TDOM.Unity
                 () =>
                 {
                     if (IsServer)
-                        ReiniciarPartidaDesdePausa();
+                        ReiniciarPartidaDesdePausa(false);
                     UiManager.Instance?.CloseWindow("victoriaui");
                     UiManager.Instance?.CloseWindow(WindowsIds.RetryPopUpUI);
                     (UiManager.Instance?.GetWindow(WindowsIds.PausaUI) as PausaUI)?.SetPopupActivo(
@@ -380,12 +395,16 @@ namespace TDOM.Unity
             return false;
         }
 
-        public void ReiniciarPartidaDesdePausa()
+        public void ReiniciarPartidaDesdePausa(bool reanudarEnArena)
         {
             if (!IsServer || _inicioPartidaEnProceso || !_seleccion.PuedeIniciar)
                 return;
 
-            ArenaEncounterNetwork.Instance?.ReiniciarServidor();
+            var arena = ArenaEncounterNetwork.Instance;
+            if (!reanudarEnArena)
+                arena?.OlvidarPuntoControlServidor();
+            reanudarEnArena &= arena != null && arena.PuntoControlCombate.Value;
+            arena?.ReiniciarServidor();
 
             foreach (var objeto in NetworkManager.SpawnManager.SpawnedObjectsList)
             {
@@ -418,7 +437,9 @@ namespace TDOM.Unity
             }
 
             _inicioPartidaEnProceso = false;
-            VerificarInicioPartida();
+            VerificarInicioPartida(reanudarEnArena);
+            if (reanudarEnArena)
+                arena.ReanudarCombateServidor();
             IniciarCronometro();
         }
 
