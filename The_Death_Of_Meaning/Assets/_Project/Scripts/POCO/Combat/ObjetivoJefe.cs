@@ -11,6 +11,16 @@ namespace TDOM.Gameplay.Combat
         RomperEscudosAmbos,
     }
 
+    public enum InstruccionJugador
+    {
+        Ninguna,
+        DestruirOjos,
+        RomperEscudosAzules,
+        RomperEscudosRojos,
+        ApoyarAyla,
+        ApoyarZendre,
+    }
+
     public static class ResolvedorObjetivoJefe
     {
         public static ObjetivoJefe Resolver(
@@ -38,5 +48,21 @@ namespace TDOM.Gameplay.Combat
                 _ => ObjetivoJefe.Ninguno,
             };
         }
+
+        public static InstruccionJugador ParaJugador(ObjetivoJefe objetivo, bool esAyla) =>
+            objetivo switch
+            {
+                ObjetivoJefe.DestruirOjos => InstruccionJugador.DestruirOjos,
+                ObjetivoJefe.RomperEscudosAzules => esAyla
+                    ? InstruccionJugador.ApoyarZendre
+                    : InstruccionJugador.RomperEscudosAzules,
+                ObjetivoJefe.RomperEscudosRojos => esAyla
+                    ? InstruccionJugador.RomperEscudosRojos
+                    : InstruccionJugador.ApoyarAyla,
+                ObjetivoJefe.RomperEscudosAmbos => esAyla
+                    ? InstruccionJugador.RomperEscudosRojos
+                    : InstruccionJugador.RomperEscudosAzules,
+                _ => InstruccionJugador.Ninguna,
+            };
     }
 }

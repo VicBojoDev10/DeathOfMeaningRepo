@@ -58,6 +58,24 @@ namespace TDOM.Tests.EditMode
             );
         }
 
+        [TestCase(ObjetivoJefe.DestruirOjos, true, InstruccionJugador.DestruirOjos)]
+        [TestCase(ObjetivoJefe.DestruirOjos, false, InstruccionJugador.DestruirOjos)]
+        [TestCase(ObjetivoJefe.RomperEscudosAzules, false, InstruccionJugador.RomperEscudosAzules)]
+        [TestCase(ObjetivoJefe.RomperEscudosAzules, true, InstruccionJugador.ApoyarZendre)]
+        [TestCase(ObjetivoJefe.RomperEscudosRojos, true, InstruccionJugador.RomperEscudosRojos)]
+        [TestCase(ObjetivoJefe.RomperEscudosRojos, false, InstruccionJugador.ApoyarAyla)]
+        [TestCase(ObjetivoJefe.RomperEscudosAmbos, true, InstruccionJugador.RomperEscudosRojos)]
+        [TestCase(ObjetivoJefe.RomperEscudosAmbos, false, InstruccionJugador.RomperEscudosAzules)]
+        [TestCase(ObjetivoJefe.Ninguno, true, InstruccionJugador.Ninguna)]
+        public void cada_jugador_recibe_su_parte_del_objetivo(
+            ObjetivoJefe objetivo,
+            bool esAyla,
+            InstruccionJugador esperada
+        )
+        {
+            Assert.AreEqual(esperada, ResolvedorObjetivoJefe.ParaJugador(objetivo, esAyla));
+        }
+
         [Test]
         public void sin_ojos_no_hay_objetivo()
         {
