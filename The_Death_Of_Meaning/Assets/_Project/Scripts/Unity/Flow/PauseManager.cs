@@ -104,6 +104,7 @@ namespace TDOM.Unity
             if (Instance == this)
                 Instance = null;
             PausadoGlobal = false;
+            Time.timeScale = 1f;
             ResultadoGlobal = ResultadoPartida.EnCurso;
         }
 
@@ -127,6 +128,7 @@ namespace TDOM.Unity
         private void AlCambiarPausa(bool anterior, bool actual)
         {
             PausadoGlobal = actual;
+            Time.timeScale = actual ? 0f : 1f;
             PausaMinionsActivos.EstablecerPausaMenu(NetworkManager, actual);
             var ui = UiManager.Instance;
             if (ui == null)
@@ -563,6 +565,9 @@ namespace TDOM.Unity
             ui?.CloseGameplayWindow();
             ui?.CloseWindow("victoriaui");
             ui?.CloseWindow(WindowsIds.DerrotaUI);
+
+            GlobalGameManager.Instance?.DetenerMusicaPartida();
+            GlobalGameManager.Instance?.ReproducirMusicaMenu();
 
             var red = NetworkManager;
             if (red != null && red.IsListening)
