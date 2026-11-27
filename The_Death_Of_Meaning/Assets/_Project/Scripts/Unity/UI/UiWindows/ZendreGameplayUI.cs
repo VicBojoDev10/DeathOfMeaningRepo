@@ -36,7 +36,8 @@ namespace TDOM.Unity
         [Header("Cooldowns")]
         [SerializeField]
         private Image dashandembestidaslider;
-
+        [SerializeField]
+        private Image anclaZendreLider;
         [SerializeField]
         private Color cooldownDisponible = Color.white;
 
@@ -147,9 +148,10 @@ namespace TDOM.Unity
         public override void Initialize()
         {
             base.Initialize();
-
             ConfigurarImagenCooldown(dashandembestidaslider);
+            ConfigurarImagenCooldown(anclaZendreLider);
             CrearFondoCooldown(dashandembestidaslider);
+            CrearFondoCooldown(anclaZendreLider);
 
             if (crosshairImage != null)
             {
@@ -636,6 +638,7 @@ namespace TDOM.Unity
 
             var cooldowns = _localPlayer.Cooldowns;
             ActualizarIconoCooldown(dashandembestidaslider, cooldowns.Dash);
+            ActualizarIconoCooldown(anclaZendreLider, _localPlayer.CooldownAnclaNormalizado);
         }
 
         private void ActualizarIconoCooldown(Image imagen, float normalizado)
