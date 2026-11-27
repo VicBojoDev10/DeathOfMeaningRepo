@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using TDOM.Gameplay;
 using TDOM.Gameplay.Core;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
@@ -13,9 +14,13 @@ namespace TDOM.Unity
     public class ConnectionManager : Singleton<ConnectionManager>
     {
         private const float TiempoMaxCierreRed = 3f;
+        private const ushort PuertoPartida = 7777;
 
         [SerializeField]
         private GameObject gameFlowNetworkPrefab;
+
+        [SerializeField]
+        private DescubrimientoLan _descubrimiento;
 
         [Header("Tiempos de espera")]
         [Tooltip("Segundos que un cliente espera respuesta del host antes de cancelar solo.")]
@@ -46,6 +51,8 @@ namespace TDOM.Unity
         private int _ultimoSegundoNotificado = -1;
 
         public bool CerrandoRed => _cerrandoRed;
+
+        public DescubrimientoLan Descubrimiento => _descubrimiento;
 
         public bool PuedeCancelar => !_cerrandoRed && EstadoEsActivo(_status.Estado);
 
@@ -87,6 +94,7 @@ namespace TDOM.Unity
 
         private void Update()
         {
+            ActualizarAnuncioLan();
             if (_finTiempoLimiteConexion < 0f)
                 return;
 
@@ -196,7 +204,7 @@ namespace TDOM.Unity
             if (transport != null)
             {
                 transport.ConnectionData.Address = "127.0.0.1";
-                transport.ConnectionData.Port = 7777;
+                transport.ConnectionData.Port = PuertoPartida;
                 transport.ConnectionData.ServerListenAddress = "0.0.0.0";
             }
             NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
@@ -230,7 +238,7 @@ namespace TDOM.Unity
             if (transport != null)
             {
                 transport.ConnectionData.Address = ip;
-                transport.ConnectionData.Port = 7777;
+                transport.ConnectionData.Port = PuertoPartida;
             }
 
             NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
@@ -238,6 +246,20 @@ namespace TDOM.Unity
             CambiarEstado(EstadoSesion.Conectando);
             if (!NetworkManager.Singleton.StartClient())
                 FallarIntento("No se pudo iniciar la conexión.");
+        }
+
+        private void ActualizarAnuncioLan()
+        {
+            if (_descubrimiento == null)
+                return;
+            var red = NetworkManager.Singleton;
+            bool anunciar =
+                red != null
+                && red.IsServer
+                && red.IsListening
+                && !_cerrandoRed
+                && JugadoresConectados() < ConnectionAccepted.MaximoJugadores;
+            _descubrimiento.EstablecerAnuncio(anunciar, PuertoPartida);
         }
 
         private bool PrepararIntento(bool comoCliente)
