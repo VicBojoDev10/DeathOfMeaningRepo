@@ -44,16 +44,7 @@ namespace TDOM.Unity
 
         private void OnDestroy() => _fundido?.Kill();
 
-        private void AlSpawnearJefe(BossController jefe)
-        {
-            Desuscribir();
-            _ojos = jefe.GetComponent<OjosArek>();
-            if (_ojos == null)
-                return;
-            _ojos.EstadoOjoCambiado += AlCambiarEstado;
-            _ojos.EscudoOjoCambiado += AlCambiarEscudo;
-            Refrescar();
-        }
+        private void AlSpawnearJefe(BossController jefe) => _ojos = jefe.GetComponent<OjosArek>();
 
         private void AlDespawnearJefe(BossController jefe)
         {
@@ -63,26 +54,35 @@ namespace TDOM.Unity
 
         private void Desuscribir()
         {
-            if (_ojos != null)
-            {
-                _ojos.EstadoOjoCambiado -= AlCambiarEstado;
-                _ojos.EscudoOjoCambiado -= AlCambiarEscudo;
-            }
             _ojos = null;
             Mostrar(InstruccionJugador.Ninguna);
         }
 
-        private void AlCambiarEstado(int ojo, EstadoOjo estado) => Refrescar();
+        private void Update() => Refrescar();
 
-        private void AlCambiarEscudo(int ojo, byte escudo) => Refrescar();
+        private bool EsAyla => _personaje == CharacterIds.Ayla;
 
-        private void Refrescar() =>
-            Mostrar(
-                ResolvedorObjetivoJefe.ParaJugador(
-                    ResolvedorObjetivoJefe.Resolver(Ojos()),
-                    _personaje == CharacterIds.Ayla
-                )
+        private void Refrescar() => Mostrar(InstruccionActual());
+
+        private InstruccionJugador InstruccionActual()
+        {
+            var arena = ArenaEncounterNetwork.Instance;
+            if (
+                arena != null
+                && arena.IsSpawned
+                && arena.Fase.Value == ArenaEncounterPhase.Esperando
+            )
+                return ResolvedorObjetivoJefe.ParaLlegada(
+                    EsAyla ? arena.LlegoAyla.Value : arena.LlegoZendre.Value,
+                    EsAyla ? arena.LlegoZendre.Value : arena.LlegoAyla.Value
+                );
+            if (_ojos == null)
+                return InstruccionJugador.Ninguna;
+            return ResolvedorObjetivoJefe.ParaJugador(
+                ResolvedorObjetivoJefe.Resolver(Ojos()),
+                EsAyla
             );
+        }
 
         private IEnumerable<(EstadoOjo, ColorEscudo)> Ojos()
         {
@@ -107,6 +107,8 @@ namespace TDOM.Unity
             );
         }
 
+        private string NombreCompanero => EsAyla ? _perfil.NombreZendre : _perfil.NombreAyla;
+
         private string Texto(InstruccionJugador instruccion) =>
             instruccion switch
             {
@@ -115,6 +117,14 @@ namespace TDOM.Unity
                 InstruccionJugador.RomperEscudosRojos => _perfil.RomperEscudosRojos,
                 InstruccionJugador.ApoyarAyla => _perfil.ApoyarAyla,
                 InstruccionJugador.ApoyarZendre => _perfil.ApoyarZendre,
+                InstruccionJugador.EsperarCompanero => string.Format(
+                    _perfil.EsperarCompanero,
+                    NombreCompanero
+                ),
+                InstruccionJugador.AlcanzarCompanero => string.Format(
+                    _perfil.AlcanzarCompanero,
+                    NombreCompanero
+                ),
                 _ => string.Empty,
             };
     }

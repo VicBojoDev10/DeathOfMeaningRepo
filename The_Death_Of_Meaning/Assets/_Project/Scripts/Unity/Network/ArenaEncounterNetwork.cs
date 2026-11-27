@@ -40,6 +40,18 @@ namespace TDOM.Unity
             NetworkVariableWritePermission.Server
         );
 
+        public readonly NetworkVariable<bool> LlegoAyla = new(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
+        public readonly NetworkVariable<bool> LlegoZendre = new(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
         public readonly NetworkVariable<bool> PuntoControlCombate = new(
             false,
             NetworkVariableReadPermission.Everyone,
@@ -109,8 +121,7 @@ namespace TDOM.Unity
             EntradaConsumida.Value = true;
             SolicitarPuertasRpc(true);
             AplicarTriggerEntrada(false);
-            Debug.Log("[ArenaEncounterNetwork] ColliderArena activó la presentación.");
-            IniciarPresentacion();
+            Debug.Log("[ArenaEncounterNetwork] ColliderArena abrió las puertas.");
         }
 
         [Rpc(SendTo.ClientsAndHost)]
@@ -221,7 +232,10 @@ namespace TDOM.Unity
 
         private void ComprobarInicio()
         {
-            if (!IsServer || Fase.Value != ArenaEncounterPhase.Esperando)
+            if (!IsServer)
+                return;
+            ActualizarLlegadas();
+            if (Fase.Value != ArenaEncounterPhase.Esperando)
                 return;
             int presentesVivos = 0;
             foreach (var (id, vol) in _presencia)
@@ -236,6 +250,26 @@ namespace TDOM.Unity
                     presentesVivos++;
             if (presentesVivos >= 2)
                 IniciarPresentacion();
+        }
+
+        private void ActualizarLlegadas()
+        {
+            bool ayla = false;
+            bool zendre = false;
+            foreach (var (id, volumenes) in _presencia)
+            {
+                if (
+                    volumenes.Count == 0
+                    || !_jugadores.TryGetValue(id, out var jugador)
+                    || jugador == null
+                    || !jugador.IsSpawned
+                )
+                    continue;
+                ayla |= jugador.CharacterId == CharacterIds.Ayla;
+                zendre |= jugador.CharacterId == CharacterIds.Zendre;
+            }
+            LlegoAyla.Value = ayla;
+            LlegoZendre.Value = zendre;
         }
 
         private void IniciarPresentacion()
@@ -334,6 +368,7 @@ namespace TDOM.Unity
             AplicarTriggerEntrada(true);
             AplicarTriggersArena(true);
             Fase.Value = ArenaEncounterPhase.Esperando;
+            ActualizarLlegadas();
             RestablecerHudClientRpc();
         }
 
