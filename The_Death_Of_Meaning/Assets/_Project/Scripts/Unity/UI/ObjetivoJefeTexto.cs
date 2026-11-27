@@ -20,8 +20,11 @@ namespace TDOM.Unity
         [SerializeField]
         private ObjetivoJefeProfile _perfil;
 
+        [SerializeField]
+        private CharacterIds _personaje;
+
         private OjosArek _ojos;
-        private ObjetivoJefe _objetivo;
+        private InstruccionJugador _instruccion;
         private Tween _fundido;
 
         private void Awake() => _grupo.alpha = 0f;
@@ -66,14 +69,20 @@ namespace TDOM.Unity
                 _ojos.EscudoOjoCambiado -= AlCambiarEscudo;
             }
             _ojos = null;
-            Mostrar(ObjetivoJefe.Ninguno);
+            Mostrar(InstruccionJugador.Ninguna);
         }
 
         private void AlCambiarEstado(int ojo, EstadoOjo estado) => Refrescar();
 
         private void AlCambiarEscudo(int ojo, byte escudo) => Refrescar();
 
-        private void Refrescar() => Mostrar(ResolvedorObjetivoJefe.Resolver(Ojos()));
+        private void Refrescar() =>
+            Mostrar(
+                ResolvedorObjetivoJefe.ParaJugador(
+                    ResolvedorObjetivoJefe.Resolver(Ojos()),
+                    _personaje == CharacterIds.Ayla
+                )
+            );
 
         private IEnumerable<(EstadoOjo, ColorEscudo)> Ojos()
         {
@@ -81,14 +90,14 @@ namespace TDOM.Unity
                 yield return (_ojos.Estado(ojo), EscudoOjo.Exterior(_ojos.Escudo(ojo)));
         }
 
-        private void Mostrar(ObjetivoJefe objetivo)
+        private void Mostrar(InstruccionJugador instruccion)
         {
-            if (objetivo == _objetivo)
+            if (instruccion == _instruccion)
                 return;
-            _objetivo = objetivo;
-            bool visible = objetivo != ObjetivoJefe.Ninguno;
+            _instruccion = instruccion;
+            bool visible = instruccion != InstruccionJugador.Ninguna;
             if (visible)
-                _texto.text = Texto(objetivo);
+                _texto.text = Texto(instruccion);
             _fundido?.Kill();
             _fundido = DOTween.To(
                 () => _grupo.alpha,
@@ -98,13 +107,14 @@ namespace TDOM.Unity
             );
         }
 
-        private string Texto(ObjetivoJefe objetivo) =>
-            objetivo switch
+        private string Texto(InstruccionJugador instruccion) =>
+            instruccion switch
             {
-                ObjetivoJefe.DestruirOjos => _perfil.DestruirOjos,
-                ObjetivoJefe.RomperEscudosAzules => _perfil.RomperEscudosAzules,
-                ObjetivoJefe.RomperEscudosRojos => _perfil.RomperEscudosRojos,
-                ObjetivoJefe.RomperEscudosAmbos => _perfil.RomperEscudosAmbos,
+                InstruccionJugador.DestruirOjos => _perfil.DestruirOjos,
+                InstruccionJugador.RomperEscudosAzules => _perfil.RomperEscudosAzules,
+                InstruccionJugador.RomperEscudosRojos => _perfil.RomperEscudosRojos,
+                InstruccionJugador.ApoyarAyla => _perfil.ApoyarAyla,
+                InstruccionJugador.ApoyarZendre => _perfil.ApoyarZendre,
                 _ => string.Empty,
             };
     }
