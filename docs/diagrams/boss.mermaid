@@ -11,6 +11,7 @@ flowchart TD
     OJA --> BWD["BossWeakPointDamage"]
     BWD --> WPS["WeakPointStateMachine (WeakPointProfile)"]
     BWD -->|"AplicarDanio: al cruzar VidaTransicion activa los ojos de la nueva fase"| PSM
+    OJA -->|"OjoDestruido en todas las máquinas"| OJX["OjosArekVfx: partículas del ojo (VfxPool)"]
     OJA -->|"estado de cada ojo: NetworkList a clientes"| OJV["OjosArekVisual: color por estado (MaterialPropertyBlock)"]
     HZ -->|"DanioRecibido (evento, servidor)"| AGRO[BossAggroTracker]
     AGRO -->|"daño en los últimos X s"| AA

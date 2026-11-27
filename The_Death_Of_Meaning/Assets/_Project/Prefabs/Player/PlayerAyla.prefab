@@ -4930,6 +4930,7 @@ GameObject:
   - component: {fileID: 2640082041839070175}
   - component: {fileID: 8416501883112718312}
   - component: {fileID: 5930865018262658876}
+  - component: {fileID: 6787263087305462476}
   m_Layer: 0
   m_Name: PlayerAyla
   m_TagString: Player
@@ -4957,6 +4958,7 @@ Transform:
   - {fileID: 8212632726660078027}
   - {fileID: 4571251578767638599}
   - {fileID: 1219787376790169299}
+  - {fileID: 6883647923248183454}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &5884450346086718015
@@ -5144,7 +5146,23 @@ MonoBehaviour:
   _duracionRetrocesoJefe: 0.3
   _inmunidadRetrocesoJefe: 0.35
   _alturaMaxima: 80
+  _esperaRecargaEnergiaAlRevivir: 10
   Energia:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  BarreraActiva:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  BarreraBloqueada:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  FinEsperaEnergiaAlRevivir:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
@@ -5268,6 +5286,7 @@ MonoBehaviour:
   _origenDisparo: {fileID: 0}
   _rangoDisparo: 25
   _radioDisparo: 0.5
+  _toleranciaOrigenDisparo: 3
   _proyectilCargadoPrefab: {fileID: 0}
   _vfxCargaMelee: []
   _vfxCargaDisparo: {fileID: 0}
@@ -5674,6 +5693,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: fb6cd3a37f527734da92a3f4baf663dc, type: 2}
   - {fileID: 11400000, guid: c721d315ac420d440b91739b7ed49032, type: 2}
   - {fileID: 11400000, guid: 718f6969a53c4c146bb6655513245efa, type: 2}
+  _disparo: {fileID: 0}
+  _disparoCargado: {fileID: 0}
   _cargaLoop: {fileID: 11400000, guid: a745e939ba8540843b414cf9e66f8dc8, type: 2}
   _liberacionCargado: {fileID: 11400000, guid: c2eb72363b1cf0c4c90de713fdbdef90, type: 2}
 --- !u!114 &5930865018262658876
@@ -5692,9 +5713,117 @@ MonoBehaviour:
   _dash: {fileID: 11400000, guid: a29f991c11f66be448ea764e28b98411, type: 2}
   _dashAire: {fileID: 11400000, guid: 599af1b48fb4dd8459afe2cec063829b, type: 2}
   _gancho: {fileID: 11400000, guid: 2466a95074ba3c34888b40451bc1d144, type: 2}
-  _dobleSalto: {fileID: 11400000, guid: a85d6b5bf553b3b48b7a2bffffc07a31, type: 2}
   _salto: {fileID: 11400000, guid: 3ecc940a42b414b4dbbf72f65c43851e, type: 2}
   _aterrizaje: {fileID: 11400000, guid: 1829d09d9ded77242a0bbce426f0db9e, type: 2}
+  _dobleSalto: {fileID: 11400000, guid: a85d6b5bf553b3b48b7a2bffffc07a31, type: 2}
+  _embestidaArranque: {fileID: 0}
+  _embestidaAvance: {fileID: 0}
+  _embestidaFinal: {fileID: 0}
+--- !u!114 &6787263087305462476
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2229917530308356307}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d858ac3b51d491786dba8f21dc75e57, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TDOM.Unity::TDOM.Unity.Player.SelloSaltoJugador
+  ShowTopMostFoldoutHeaderGroup: 1
+  _perfil: {fileID: 11400000, guid: 75dbe4cd25205044eb4c02c6d1feac0d, type: 2}
+  _runa: {fileID: 6556864075069107755}
+--- !u!1 &4761707198994691125
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6883647923248183454}
+  - component: {fileID: 5564999844458730065}
+  - component: {fileID: 6556864075069107755}
+  m_Layer: 0
+  m_Name: RunaSello
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6883647923248183454
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4761707198994691125}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4026500297177568966}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &5564999844458730065
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4761707198994691125}
+  m_Mesh: {fileID: 4300000, guid: d22c1f156106e5542bd74c31eee2721c, type: 2}
+--- !u!23 &6556864075069107755
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4761707198994691125}
+  m_Enabled: 0
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 0e0ff7da7165e204db9b81f545a7b895, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &5167135693431690079
 GameObject:
   m_ObjectHideFlags: 0

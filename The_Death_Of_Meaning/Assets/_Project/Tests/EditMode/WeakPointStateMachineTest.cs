@@ -23,6 +23,19 @@ namespace TDOM.Tests.EditMode
             }
         }
 
+        [TestCase(EstadoOjo.Abierto, EstadoOjo.Cerrado, true)]
+        [TestCase(EstadoOjo.Cerrado, EstadoOjo.Abierto, false)]
+        [TestCase(EstadoOjo.Abierto, EstadoOjo.Abierto, false)]
+        [TestCase(EstadoOjo.Cerrado, EstadoOjo.Cerrado, false)]
+        public void Solo_pasar_de_abierto_a_cerrado_cuenta_como_destruccion_del_ojo(
+            EstadoOjo anterior,
+            EstadoOjo actual,
+            bool esperado
+        )
+        {
+            Assert.AreEqual(esperado, WeakPointStateMachine.EsDestruccion(anterior, actual));
+        }
+
         [Test]
         public void SinOjos_Lanza()
         {

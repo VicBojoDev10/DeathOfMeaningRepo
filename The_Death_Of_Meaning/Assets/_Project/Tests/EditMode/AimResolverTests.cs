@@ -61,6 +61,23 @@ namespace TDOM.Tests.EditMode
             AssertVectoresIguales(RayoCamara.direction, solucion.Direction);
         }
 
+        [TestCase(4f, false)]
+        [TestCase(5f, false)]
+        [TestCase(5.01f, true)]
+        [TestCase(20f, true)]
+        public void solo_cuenta_como_objetivo_lo_que_esta_delante_del_origen(
+            float profundidad,
+            bool esperado
+        )
+        {
+            var rayo = new Ray(Vector3.zero, Vector3.forward);
+            var origen = new Vector3(0.5f, 0f, 5f);
+
+            bool delante = AimResolver.EstaDelante(rayo, rayo.GetPoint(profundidad), origen);
+
+            Assert.AreEqual(esperado, delante);
+        }
+
         [Test]
         public void el_alcance_se_mide_desde_el_origen_fisico()
         {

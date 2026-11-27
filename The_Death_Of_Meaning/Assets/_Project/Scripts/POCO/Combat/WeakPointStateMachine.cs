@@ -67,6 +67,9 @@ namespace TDOM.Gameplay.Combat
 
         public bool TodosCerrados => OjosAbiertos == 0;
 
+        public static bool EsDestruccion(EstadoOjo anterior, EstadoOjo actual) =>
+            anterior == EstadoOjo.Abierto && actual == EstadoOjo.Cerrado;
+
         public EstadoOjo Estado(int ojo)
         {
             ValidarOjo(ojo);
