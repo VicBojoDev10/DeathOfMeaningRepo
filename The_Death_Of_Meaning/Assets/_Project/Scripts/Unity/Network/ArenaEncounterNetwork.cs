@@ -97,31 +97,6 @@ namespace TDOM.Unity
                 ActualizarPresencia(jugador.OwnerClientId, jugador, volumen, entro);
             else if (jugador.IsOwner)
                 RegistrarRpc(jugador.OwnerClientId, volumen, entro);
-            if (entro && volumen == 1)
-            {
-                if (IsServer)
-                    AbrirAcceso();
-                else if (jugador.IsOwner)
-                    SolicitarPuertasServidorRpc(jugador.OwnerClientId);
-            }
-        }
-
-        [Rpc(SendTo.Server)]
-        private void SolicitarPuertasServidorRpc(ulong clientId, RpcParams rpc = default)
-        {
-            if (rpc.Receive.SenderClientId != clientId)
-                return;
-            AbrirAcceso();
-        }
-
-        private void AbrirAcceso()
-        {
-            if (!IsServer || EntradaConsumida.Value || ArenaSellada.Value)
-                return;
-            EntradaConsumida.Value = true;
-            SolicitarPuertasRpc(true);
-            AplicarTriggerEntrada(false);
-            Debug.Log("[ArenaEncounterNetwork] ColliderArena abrió las puertas.");
         }
 
         [Rpc(SendTo.ClientsAndHost)]
@@ -134,11 +109,19 @@ namespace TDOM.Unity
                 rpc.Receive.SenderClientId != clientId
                 || NetworkManager == null
                 || !NetworkManager.ConnectedClients.TryGetValue(clientId, out var cliente)
-                || !cliente.PlayerObject
-                || !cliente.PlayerObject.TryGetComponent(out PlayerRoot jugador)
+                || !TryJugadorDe(cliente, out PlayerRoot jugador)
             )
                 return;
             ActualizarPresencia(clientId, jugador, volumen, entro);
+        }
+
+        private static bool TryJugadorDe(NetworkClient cliente, out PlayerRoot jugador)
+        {
+            foreach (var objeto in cliente.OwnedObjects)
+                if (objeto != null && objeto.TryGetComponent(out jugador))
+                    return true;
+            jugador = null;
+            return false;
         }
 
         private void ActualizarPresencia(ulong id, PlayerRoot jugador, int volumen, bool entro)
@@ -277,6 +260,7 @@ namespace TDOM.Unity
             if (!IsServer || _reveladoEnEstaPartida || Fase.Value != ArenaEncounterPhase.Esperando)
                 return;
             _reveladoEnEstaPartida = true;
+            EntradaConsumida.Value = true;
             Fase.Value = ArenaEncounterPhase.Presentacion;
             if (GameSessionManager.Instance == null)
                 Debug.LogError(
