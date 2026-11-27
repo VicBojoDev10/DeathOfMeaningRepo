@@ -5,6 +5,7 @@ using TDOM.Gameplay.Core;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
+using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -19,6 +20,10 @@ namespace TDOM.Unity
     /// </summary>
     public class AtaqueTentaculo : AtaqueArekBase
     {
+        private const float FactorMitadTentaculo = 0.5f;
+        private const float InclinacionLevantado = -90f;
+        private const float InclinacionAcostado = 0f;
+
         [Header("Visuales")]
         [SerializeField]
         private Transform _tentaculoVisual;
@@ -39,6 +44,10 @@ namespace TDOM.Unity
 
         [SerializeField]
         private SfxBanco _sfxAzote;
+
+        [Header("Vfx")]
+        [SerializeField]
+        private VfxBase _vfxTentaculo;
 
         private enum FaseTentaculo
         {
@@ -224,6 +233,7 @@ namespace TDOM.Unity
                     {
                         CambiarFase(FaseTentaculo.Azote);
                         ReproducirSfxEn(_sfxAzote, ZonaDelGolpe());
+                        LanzarVfxAzote();
                     }
                     break;
 
@@ -247,6 +257,24 @@ namespace TDOM.Unity
                     }
                     break;
             }
+        }
+
+        private void LanzarVfxAzote()
+        {
+            var vfx = VfxJefe;
+            if (vfx == null || _vfxTentaculo == null)
+                return;
+
+            Vector3 centroLocal = new Vector3(
+                0f,
+                _perfil.alto * FactorMitadTentaculo,
+                _perfil.largo * FactorMitadTentaculo
+            );
+            Vector3 centroLevantado =
+                transform.position + RotacionConInclinacion(InclinacionLevantado) * centroLocal;
+            Vector3 centroAcostado =
+                transform.position + RotacionConInclinacion(InclinacionAcostado) * centroLocal;
+            vfx.LanzarEntre(_vfxTentaculo, centroLevantado, centroAcostado);
         }
 
         private Vector3 ZonaDelGolpe() =>
