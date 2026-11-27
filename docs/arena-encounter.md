@@ -4,6 +4,8 @@
 
 En `NArenaArek`, `ColliderArena` (ID 1) marca el acceso y `ColliderArenaInside` (ID 2) el volumen interior. Ambos usan `ArenaEncounterTrigger` y Box Collider trigger. Ajusta posición y tamaño de `ColliderArenaInside` al blockout final. El ID debe ser único por volumen y coincidir entre los peers. La presencia se combina entre ambos volúmenes, de modo que cruzar de uno al otro no elimina al jugador de la arena. El primer contacto con el acceso abre las puertas y desactiva el trigger de entrada. Cuando los dos jugadores vivos entran al volumen interior, se cierran las puertas y ambos triggers quedan desactivados hasta el siguiente reinicio. `ArenaDoorAnimator` reproduce los estados existentes en ambos Animator Controllers, y la solicitud se replica a los clientes.
 
+El servidor publica `LlegoAyla` y `LlegoZendre` según la presencia en los volúmenes. Mientras la fase es `Esperando`, `ObjetivoJefeTexto` muestra "Espera a ..." al personaje que ya llegó y "Alcanza a ..." al que falta.
+
 Los jugadores `Abatido` o `Muerto` no cuentan. Si uno cae abatido dentro, el inicio espera hasta que vuelva a `Vivo`; si se levanta dentro sigue presente. El respawn del KillPlane retira su presencia y el trigger lo registra de nuevo al volver a entrar. Al desconectarse se elimina su `ClientId`.
 
 Cuando la arena queda sellada, el KillPlane usa `RespawnAylaArena` o `RespawnZendreArena` según el personaje. Antes de sellarla conserva los puntos de respawn generales. Los dos empties están sueltos en `NetworkSetup`, asignados directamente al KillPlane y sus posiciones se pueden ajustar al blockout.
