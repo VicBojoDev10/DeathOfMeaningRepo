@@ -40,6 +40,12 @@ namespace TDOM.Unity
             NetworkVariableWritePermission.Server
         );
 
+        public readonly NetworkVariable<bool> PuntoControlCombate = new(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
         public event Action JefeRevelado;
         private readonly Dictionary<ulong, HashSet<int>> _presencia = new();
         private readonly Dictionary<ulong, PlayerRoot> _jugadores = new();
@@ -261,8 +267,43 @@ namespace TDOM.Unity
 
         public void IniciarCombate()
         {
-            if (IsServer && Fase.Value == ArenaEncounterPhase.Presentacion)
-                Fase.Value = ArenaEncounterPhase.Combate;
+            if (!IsServer || Fase.Value != ArenaEncounterPhase.Presentacion)
+                return;
+            Fase.Value = ArenaEncounterPhase.Combate;
+            PuntoControlCombate.Value = true;
+        }
+
+        public bool ReanudaEnCombate(bool desdePantallaFinal, string ventanaFinal) =>
+            PuntoControlCombate.Value
+            && (!desdePantallaFinal || ventanaFinal == WindowsIds.DerrotaUI);
+
+        public void OlvidarPuntoControlServidor()
+        {
+            if (IsServer)
+                PuntoControlCombate.Value = false;
+        }
+
+        public void ReanudarCombateServidor()
+        {
+            if (!IsServer || !PuntoControlCombate.Value)
+                return;
+            _reveladoEnEstaPartida = true;
+            _senalJefeReveladoEnEstaPartida = true;
+            EntradaConsumida.Value = true;
+            ArenaSellada.Value = true;
+            SolicitarPuertasRpc(false);
+            AplicarTriggerEntrada(false);
+            AplicarTriggersArena(false);
+            Fase.Value = ArenaEncounterPhase.Combate;
+            GameSessionManager.Instance?.SpawnBossForEncounter();
+            MostrarHudCombateClientRpc();
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void MostrarHudCombateClientRpc()
+        {
+            var gameplay = UiManager.Instance?.GetGameplayWindow() as IGameplayHud;
+            gameplay?.SetHudVisible(true, true);
         }
 
         [Rpc(SendTo.ClientsAndHost)]
