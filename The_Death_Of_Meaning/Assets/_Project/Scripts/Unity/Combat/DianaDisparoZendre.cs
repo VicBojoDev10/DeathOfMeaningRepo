@@ -40,16 +40,21 @@ namespace TDOM.Unity.Combat
         private Coroutine _flash;
         private Coroutine _desaparicion;
 
+        private void Awake()
+        {
+            _posicionLocalInicial = transform.localPosition;
+            if (_muroDisparoZendre == null)
+                return;
+
+            _posicionMuroInicial = _muroDisparoZendre.transform.localPosition;
+            _escalaMuroInicial = _muroDisparoZendre.transform.localScale;
+        }
+
         public override void OnNetworkSpawn()
         {
             _renderers = GetComponentsInChildren<Renderer>(true);
-            _posicionLocalInicial = transform.localPosition;
             PrepararMateriales();
-            if (_muroDisparoZendre != null)
-            {
-                _posicionMuroInicial = _muroDisparoZendre.transform.localPosition;
-                _escalaMuroInicial = _muroDisparoZendre.transform.localScale;
-            }
+            RestaurarAlReiniciarPartida();
             _destruida.OnValueChanged += AlCambiarDestruida;
             AplicarEstado(_destruida.Value);
         }

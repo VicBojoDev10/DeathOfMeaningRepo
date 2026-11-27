@@ -149,12 +149,14 @@ namespace TDOM.Unity
                 _vueloAnterior |= _capturaLanzamiento.Volando;
                 _capturaLanzamiento.Tick(Time.deltaTime);
                 _agente.isStopped = true;
+                _agente.updatePosition = false;
                 _animaciones?.ActualizarMovimiento(false);
                 return;
             }
-            if (_vueloAnterior)
+            if (_vueloAnterior || !_agente.updatePosition)
             {
                 _vueloAnterior = false;
+                _agente.updatePosition = true;
                 if (
                     _agente.enabled
                     && NavMesh.SamplePosition(

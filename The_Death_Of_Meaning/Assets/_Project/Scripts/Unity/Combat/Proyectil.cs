@@ -5,6 +5,7 @@ using TDOM.Unity.Audio;
 using TDOM.Unity.Player;
 using TDOM.Unity.Vfx;
 using Unity.Netcode;
+using Unity.Netcode.Components;
 using UnityEngine;
 
 namespace TDOM.Unity.Combat
@@ -45,6 +46,7 @@ namespace TDOM.Unity.Combat
         private bool _detenerDurantePausaGlobal;
         private bool _pausadoGlobal;
         private float _tiempoVida;
+        private bool _avanceLocalEnCliente;
 
         public float Velocidad => _velocidad;
         public float VidaMax => _vidaMax;
@@ -81,8 +83,19 @@ namespace TDOM.Unity.Combat
                 _pausadoGlobal = pausado;
         }
 
+        private void Awake()
+        {
+            _avanceLocalEnCliente = GetComponent<NetworkTransform>() == null;
+        }
+
         private void Update()
         {
+            if (_avanceLocalEnCliente && IsSpawned && !IsServer)
+            {
+                transform.position += transform.forward * (_velocidad * Time.deltaTime);
+                return;
+            }
+
             if (!IsServer || (_detenerDurantePausaGlobal && _pausadoGlobal))
                 return;
 
@@ -203,7 +216,8 @@ namespace TDOM.Unity.Combat
                     _direccion,
                     out impacto,
                     distancia,
-                    _capas
+                    _capas,
+                    QueryTriggerInteraction.Ignore
                 );
             }
 

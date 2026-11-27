@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using TDOM.Gameplay.Core;
 using TDOM.Unity;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
@@ -17,6 +18,18 @@ namespace TDOM.Unity.Flow
         [SerializeField]
         private PlayableDirector _timeline;
 
+        [SerializeField]
+        private CinematicaVideo _video;
+
+        [SerializeField]
+        private Transform _entradaZendre;
+
+        [SerializeField]
+        private Transform _entradaAyla;
+
+        [SerializeField]
+        private Transform _encuadreJefe;
+
         [SerializeField, Min(0f)]
         private float _momentoRevelado = 1.5f;
 
@@ -29,12 +42,15 @@ namespace TDOM.Unity.Flow
         [SerializeField]
         private bool _permitirSaltarEnEditor = true;
 
+        private const double DuracionTimelineAusente = 4d;
+
         private BossController _jefe;
         private bool _revelado;
         private bool _terminada;
         private bool _suscrito;
         private bool _suscritoRevelado;
         private bool _presentacionIniciada;
+        private bool _timelineIniciado;
         private double _inicioRed;
 
         public override void OnNetworkSpawn()
@@ -105,22 +121,16 @@ namespace TDOM.Unity.Flow
             _inicioRed = horaInicio;
             _revelado = false;
             _terminada = false;
+            _timelineIniciado = false;
             var jugador = JugadorLocal();
             jugador?.SetControlCinematica(true);
             jugador?.SetCamaraCedida(true);
-            GameplayLocal()?.SetHudVisible(false, true);
-            GlobalGameManager.Instance?.ReproducirMusicaCombateInmediata();
-            if (_timeline != null)
+            GameplayLocal()?.SetHudVisible(false, false);
+            if (_video != null && _video.Duracion > 0d)
             {
-                _timeline.time = Math.Max(0d, NetworkManager.ServerTime.Time - horaInicio);
-                _timeline.extrapolationMode = DirectorWrapMode.Hold;
-                _timeline.Play();
-                Debug.Log("[ArenaBossPresentation] Timeline Entering_Bossfight iniciado.");
+                GlobalGameManager.Instance?.DetenerMusicaPartida();
+                _video.Reproducir(Math.Max(0d, NetworkManager.ServerTime.Time - horaInicio));
             }
-            else
-                Debug.LogError(
-                    "[ArenaBossPresentation] Falta asignar PlayableDirector del Timeline de entrada."
-                );
             if (IsServer)
             {
                 BossController.ObservarJefe(NetworkManager, AlSpawnearJefe);
@@ -147,20 +157,78 @@ namespace TDOM.Unity.Flow
             )
                 return;
 
-            float transcurrido = (float)(NetworkManager.ServerTime.Time - _inicioRed);
-            float duracion = _timeline != null ? (float)_timeline.duration : 4f;
-            if (!_revelado && transcurrido >= Mathf.Min(_momentoRevelado, duracion))
+            double transcurrido = NetworkManager.ServerTime.Time - _inicioRed;
+            var linea = CrearLinea();
+            var etapa = linea.Etapa(transcurrido);
+            if (etapa != EtapaPresentacionArena.Video && !_timelineIniciado)
+                IniciarTimeline(linea.TiempoTimeline(transcurrido));
+            if (!_revelado && linea.DebeRevelarJefe(transcurrido))
             {
                 _revelado = true;
                 if (IsServer)
                     ArenaEncounterNetwork.Instance.NotificarJefeRevelado();
             }
             // Inicia la mezcla mientras la cámara del Timeline todavía conserva el último plano.
-            bool tocaRegreso = transcurrido >= Mathf.Max(0f, duracion - _duracionRegresoCamara);
-            if (InputSaltar() || tocaRegreso)
+            if (InputSaltar() || etapa == EtapaPresentacionArena.Regreso)
             {
                 if (IsServer)
                     FinalizarRpc();
+            }
+        }
+
+        private LineaPresentacionArena CrearLinea() =>
+            new LineaPresentacionArena(
+                _video != null ? _video.Duracion : 0d,
+                _timeline != null ? _timeline.duration : DuracionTimelineAusente,
+                _momentoRevelado,
+                _duracionRegresoCamara
+            );
+
+        private void IniciarTimeline(double tiempo)
+        {
+            _timelineIniciado = true;
+            _video?.Desvanecer();
+            GameplayLocal()?.SetHudVisible(false, true);
+            GlobalGameManager.Instance?.ReproducirMusicaCombateInmediata();
+            if (IsServer)
+                LlevarJugadoresALaArena();
+            EncuadrarJefe();
+            if (_timeline == null)
+            {
+                Debug.LogError(
+                    "[ArenaBossPresentation] Falta asignar PlayableDirector del Timeline de entrada."
+                );
+                return;
+            }
+            _timeline.time = Math.Max(0d, tiempo);
+            _timeline.extrapolationMode = DirectorWrapMode.Hold;
+            _timeline.Play();
+            Debug.Log("[ArenaBossPresentation] Timeline Entering_Bossfight iniciado.");
+        }
+
+        private void EncuadrarJefe()
+        {
+            if (
+                _encuadreJefe != null
+                && BossController.TryEncontrarSpawneado(NetworkManager, out var jefe)
+            )
+                _encuadreJefe.SetPositionAndRotation(
+                    jefe.transform.position,
+                    jefe.transform.rotation
+                );
+        }
+
+        private void LlevarJugadoresALaArena()
+        {
+            foreach (var cliente in NetworkManager.ConnectedClientsList)
+            foreach (var objeto in cliente.OwnedObjects)
+            {
+                if (!objeto.TryGetComponent(out PlayerRoot jugador))
+                    continue;
+                var entrada =
+                    jugador.CharacterId == CharacterIds.Zendre ? _entradaZendre : _entradaAyla;
+                if (entrada != null)
+                    jugador.EnviarSpawnInicial(entrada.position, entrada.rotation);
             }
         }
 
@@ -182,6 +250,8 @@ namespace TDOM.Unity.Flow
             if (_terminada)
                 return;
             _terminada = true;
+            if (!_timelineIniciado)
+                IniciarTimeline(0d);
             StartCoroutine(DevolverCamaraYControl());
         }
 

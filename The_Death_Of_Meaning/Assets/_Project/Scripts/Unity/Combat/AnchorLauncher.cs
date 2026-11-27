@@ -61,6 +61,11 @@ namespace TDOM.Unity.Combat
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server
         );
+        private readonly NetworkVariable<Vector3> _direccionApuntada = new(
+            Vector3.zero,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Owner
+        );
         private float _tiempoCapturaServidor;
         private float _velocidadGiroActual;
 
@@ -181,11 +186,9 @@ namespace TDOM.Unity.Combat
 
             if (_minionCapturadoId.Value != 0)
             {
+                _direccionApuntada.Value = _root.ResolverApuntado(_origen.position).Direction;
                 if (!holdingL2R1)
-                {
-                    SoltarMinionRpc();
-                    return;
-                }
+                    SoltarMinionRpc(_direccionApuntada.Value);
                 return;
             }
 
@@ -233,6 +236,11 @@ namespace TDOM.Unity.Combat
                 _esperandoSoltar = false;
             }
         }
+
+        public Vector3 DireccionLanzamiento =>
+            _direccionApuntada.Value.sqrMagnitude > 0.001f
+                ? _direccionApuntada.Value
+                : transform.forward;
 
         public float AvanzarGiroMinion(float dt)
         {
@@ -291,11 +299,11 @@ namespace TDOM.Unity.Combat
             _tiempoCapturaServidor += dt;
             if (_tiempoCapturaServidor < Mathf.Max(0.1f, _perfil.TiempoMaximoGiroMinion))
                 return;
-            LiberarMinionServidor(transform.forward);
+            LiberarMinionServidor(DireccionLanzamiento);
         }
 
         [Rpc(SendTo.Server)]
-        private void SoltarMinionRpc() => LiberarMinionServidor(transform.forward);
+        private void SoltarMinionRpc(Vector3 direccion) => LiberarMinionServidor(direccion);
 
         private void LiberarMinionServidor(Vector3 direccion)
         {

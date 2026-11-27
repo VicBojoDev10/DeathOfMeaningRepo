@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Combat;
+using TDOM.Unity.Player;
 using TDOM.Unity.UI;
 using Unity.Netcode;
 using UnityEngine;
@@ -392,6 +393,8 @@ namespace TDOM.Unity
                     pared.RestaurarAlReiniciarPartida();
                 if (objeto != null && objeto.TryGetComponent(out DianaDisparoZendre diana))
                     diana.RestaurarAlReiniciarPartida();
+                if (objeto != null && objeto.TryGetComponent(out SelloSaltoJugador sello))
+                    sello.RestaurarAlReiniciarPartida();
             }
 
             PauseManager.Instance?.RestablecerResultadoDesdeServidor();

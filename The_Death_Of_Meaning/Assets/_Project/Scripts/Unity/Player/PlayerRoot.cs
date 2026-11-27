@@ -61,6 +61,7 @@ namespace TDOM.Unity.Player
         private AnchorLauncher _anchorLauncher;
 
         private PlayerCombat _combat;
+        private SelloSaltoJugador _selloSalto;
         private readonly InputSnapshot _inputSinControlDuranteEscalada = new InputSnapshot();
 
         private AylaPlayerLocomotionAnimator _aylaAnimator;
@@ -346,6 +347,7 @@ namespace TDOM.Unity.Player
             _zendreLocomotionAnimator = GetComponent<ZendrePlayerLocomotionAnimator>();
             _anchorLauncher = GetComponentInChildren<AnchorLauncher>();
             _combat = GetComponentInChildren<PlayerCombat>();
+            _selloSalto = GetComponent<SelloSaltoJugador>();
             _aylaAnimator = GetComponentInChildren<AylaPlayerLocomotionAnimator>();
             _look = CrearLookResolver(transform.eulerAngles.y);
             if (IsOwner)
@@ -621,6 +623,10 @@ namespace TDOM.Unity.Player
 
             _inputReader.SetEntradaHabilitada(!activa);
         }
+
+        private float MultiplicadorVelocidadLocomocion =>
+            (_combat != null ? _combat.MultiplicadorVelocidadAtaque : 1f)
+            * (_selloSalto != null ? _selloSalto.MultiplicadorVelocidad : 1f);
 
         public AimSolution ResolverApuntado(Vector3 origen) =>
             _camera.ResolverApuntado(origen, out _);
@@ -1410,7 +1416,9 @@ namespace TDOM.Unity.Player
 
             // Sin energia suficiente no arranca el dash ni el doble salto.
             _locomocion.PermitirDash = EnergiaAlcanza(CostoDash);
-            _locomocion.PermitirSaltoAereo = EnergiaAlcanza(CostoSaltoAereo);
+            _locomocion.PermitirSaltoAereo =
+                EnergiaAlcanza(CostoSaltoAereo)
+                && (_selloSalto == null || _selloSalto.PermiteSaltoAereo);
             if (input.DashPressed && CostoDash > 0f && !EnergiaAlcanza(CostoDash))
                 NotificarFaltaEnergia();
             if (
@@ -1482,7 +1490,7 @@ namespace TDOM.Unity.Player
                         ModoPistola,
                         _barreraSolicitada && BarreraPerfil != null
                             ? Mathf.Clamp01(BarreraPerfil.MoveSpeedMultiplier)
-                            : (_combat != null ? _combat.MultiplicadorVelocidadAtaque : 1f),
+                            : MultiplicadorVelocidadLocomocion,
                         _combat != null && _combat.GravedadReducidaPorAtaque
                     );
             bool ganchoActivoActual = _locomocion.GanchoActivo;

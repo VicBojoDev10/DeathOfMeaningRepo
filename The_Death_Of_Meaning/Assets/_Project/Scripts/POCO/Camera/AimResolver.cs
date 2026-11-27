@@ -21,6 +21,9 @@ namespace TDOM.Gameplay.Camera
             );
         }
 
+        public static bool EstaDelante(Ray rayoCamara, Vector3 punto, Vector3 origen) =>
+            Vector3.Dot(punto - origen, rayoCamara.direction) > 0f;
+
         public static bool IsWithinRange(Vector3 origen, Vector3 punto, float alcance)
         {
             return (punto - origen).sqrMagnitude <= alcance * alcance;
