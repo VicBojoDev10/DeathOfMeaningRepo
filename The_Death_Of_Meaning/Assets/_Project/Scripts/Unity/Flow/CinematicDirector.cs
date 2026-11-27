@@ -528,7 +528,7 @@ namespace TDOM.Unity.Flow
 
         private void OnGUI()
         {
-            if (!_mostrarDebugUI || !IsServer || !IsSpawned)
+            if (!Application.isEditor || !_mostrarDebugUI || !IsServer || !IsSpawned)
                 return;
 
             var area = new Rect(

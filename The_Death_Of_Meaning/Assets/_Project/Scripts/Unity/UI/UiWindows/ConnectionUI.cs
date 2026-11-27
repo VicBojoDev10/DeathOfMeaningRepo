@@ -68,6 +68,11 @@ namespace TDOM.Unity
 
         private void Awake()
         {
+            if (!Application.isEditor && joinTest != null)
+            {
+                joinTest.gameObject.SetActive(false);
+                joinTest = null;
+            }
             if (backButton == null)
                 backButton = BuscarBotonRegreso();
             if (createHolder == null)
