@@ -74,8 +74,11 @@ namespace TDOM.Unity
                 if (objeto.TryGetComponent(out PlayerRoot jugador))
                     ObservarJugador(jugador);
 
-                if (objeto.TryGetComponent(out HitZone zona) && _zonasObservadas.Add(zona))
-                    zona.DanioRecibido += AlRegistrarDanioHecho;
+                foreach (var zona in objeto.GetComponentsInChildren<HitZone>(true))
+                {
+                    if (zona != null && _zonasObservadas.Add(zona))
+                        zona.DanioRecibido += AlRegistrarDanioHecho;
+                }
 
                 if (
                     objeto.TryGetComponent(out MinionController minion)

@@ -36,8 +36,10 @@ namespace TDOM.Unity
         [Header("Cooldowns")]
         [SerializeField]
         private Image dashandembestidaslider;
+
         [SerializeField]
         private Image anclaZendreLider;
+
         [SerializeField]
         private Color cooldownDisponible = Color.white;
 

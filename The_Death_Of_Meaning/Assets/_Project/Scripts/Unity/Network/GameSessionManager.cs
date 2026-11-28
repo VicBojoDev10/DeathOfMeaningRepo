@@ -73,11 +73,8 @@ namespace TDOM.Unity
 
             float tiempoFinal = Mathf.Max(0f, Time.time - _inicioCronometro);
             int fase = FaseActualJefe();
-            RegistroPartida registro = ObtenerRecolectorMetricas().Finalizar(
-                ResultadoPartida.Victoria.ToString(),
-                tiempoFinal,
-                fase
-            );
+            RegistroPartida registro = ObtenerRecolectorMetricas()
+                .Finalizar(ResultadoPartida.Victoria.ToString(), tiempoFinal, fase);
             PauseManager.Instance?.EstablecerResultadoDesdeServidor(ResultadoPartida.Victoria);
             LimpiarMinionsEnServidor();
             _cronometroActivo = false;
@@ -556,11 +553,8 @@ namespace TDOM.Unity
                 return;
 
             float tiempoFinal = Mathf.Max(0f, Time.time - _inicioCronometro);
-            RegistroPartida registro = ObtenerRecolectorMetricas().Finalizar(
-                ResultadoPartida.Derrota.ToString(),
-                tiempoFinal,
-                fase
-            );
+            RegistroPartida registro = ObtenerRecolectorMetricas()
+                .Finalizar(ResultadoPartida.Derrota.ToString(), tiempoFinal, fase);
             _cronometroActivo = false;
             PauseManager.Instance?.EstablecerResultadoDesdeServidor(ResultadoPartida.Derrota);
             LimpiarMinionsEnServidor();
@@ -622,7 +616,6 @@ namespace TDOM.Unity
             int fase = jefe != null ? jefe.Fase.Value : 1;
             FinalizarPartidaPorDerrotaDesdeServidor(fase);
         }
-
 #endif
 
         private RecolectorMetricasPartida ObtenerRecolectorMetricas()

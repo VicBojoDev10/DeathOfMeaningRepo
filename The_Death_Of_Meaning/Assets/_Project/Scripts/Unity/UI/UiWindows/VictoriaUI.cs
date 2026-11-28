@@ -1,5 +1,5 @@
-using TDOM.Unity.UI;
 using TDOM.Gameplay;
+using TDOM.Unity.UI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -91,6 +91,7 @@ namespace TDOM.Unity
         }
 
         private static string Formatear(float valor) => $"{Mathf.Max(0f, valor):F0}";
+
         private static string Formatear(int valor) => Mathf.Max(0, valor).ToString();
 
         private void EstablecerTexto(string nombreObjeto, string valor)

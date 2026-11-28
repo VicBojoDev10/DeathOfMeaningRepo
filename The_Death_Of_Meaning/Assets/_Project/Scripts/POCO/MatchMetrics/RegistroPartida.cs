@@ -50,7 +50,8 @@ namespace TDOM.Gameplay
                         NumberStyles.None,
                         CultureInfo.InvariantCulture,
                         out ulong idExistente
-                    ) || idExistente != clientId
+                    )
+                    || idExistente != clientId
                 )
                     continue;
                 if (!string.IsNullOrWhiteSpace(personaje))
