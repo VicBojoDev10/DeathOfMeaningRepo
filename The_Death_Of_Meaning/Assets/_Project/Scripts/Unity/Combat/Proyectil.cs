@@ -28,6 +28,9 @@ namespace TDOM.Unity.Combat
         private VfxBase _vfxImpactoJefe;
 
         [SerializeField]
+        private VfxBase _vfxImpactoAmbiente;
+
+        [SerializeField]
         private SfxBanco _sfxImpactoAmbiente;
 
         [SerializeField]
@@ -188,6 +191,10 @@ namespace TDOM.Unity.Combat
                         _atacanteEsAyla
                     );
                     LanzarVfxImpacto(_vfxImpactoJefe, hit);
+                }
+                else
+                {
+                    LanzarVfxImpacto(_vfxImpactoAmbiente, hit);
                 }
 
                 ReproducirSfxImpacto(

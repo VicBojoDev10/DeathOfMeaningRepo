@@ -715,7 +715,7 @@ namespace TDOM.Unity
         private void OnGUI()
         {
             // Solo visible para el host (servidor con cliente local) y cuando está spawneado
-            if (!IsServer || !IsHost || !IsSpawned)
+            if (!Application.isEditor || !IsServer || !IsHost || !IsSpawned)
                 return;
 
             // Los botones de debug lanzan el ataque sin revisar su rango (ver EjecutarDebug).

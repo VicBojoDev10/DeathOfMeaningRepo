@@ -24,6 +24,16 @@ namespace TDOM.Data
         public string ApoyarZendre =
             "Apoya a <color=#4DA6FF>Zendre</color> mientras rompe los escudos azules.";
 
+        [TextArea]
+        public string EsperarCompanero = "Espera a {0}.";
+
+        [TextArea]
+        public string AlcanzarCompanero = "Alcanza a {0}.";
+
+        public string NombreAyla = "<color=#FF4D4D>Ayla</color>";
+
+        public string NombreZendre = "<color=#4DA6FF>Zendre</color>";
+
         [Min(0f)]
         public float DuracionFundido = 0.35f;
     }

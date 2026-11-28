@@ -40,6 +40,24 @@ namespace TDOM.Unity
             NetworkVariableWritePermission.Server
         );
 
+        public readonly NetworkVariable<bool> LlegoAyla = new(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
+        public readonly NetworkVariable<bool> LlegoZendre = new(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
+        public readonly NetworkVariable<bool> PuntoControlCombate = new(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
         public event Action JefeRevelado;
         private readonly Dictionary<ulong, HashSet<int>> _presencia = new();
         private readonly Dictionary<ulong, PlayerRoot> _jugadores = new();
@@ -79,32 +97,6 @@ namespace TDOM.Unity
                 ActualizarPresencia(jugador.OwnerClientId, jugador, volumen, entro);
             else if (jugador.IsOwner)
                 RegistrarRpc(jugador.OwnerClientId, volumen, entro);
-            if (entro && volumen == 1)
-            {
-                if (IsServer)
-                    AbrirAcceso();
-                else if (jugador.IsOwner)
-                    SolicitarPuertasServidorRpc(jugador.OwnerClientId);
-            }
-        }
-
-        [Rpc(SendTo.Server)]
-        private void SolicitarPuertasServidorRpc(ulong clientId, RpcParams rpc = default)
-        {
-            if (rpc.Receive.SenderClientId != clientId)
-                return;
-            AbrirAcceso();
-        }
-
-        private void AbrirAcceso()
-        {
-            if (!IsServer || EntradaConsumida.Value || ArenaSellada.Value)
-                return;
-            EntradaConsumida.Value = true;
-            SolicitarPuertasRpc(true);
-            AplicarTriggerEntrada(false);
-            Debug.Log("[ArenaEncounterNetwork] ColliderArena activó la presentación.");
-            IniciarPresentacion();
         }
 
         [Rpc(SendTo.ClientsAndHost)]
@@ -117,11 +109,19 @@ namespace TDOM.Unity
                 rpc.Receive.SenderClientId != clientId
                 || NetworkManager == null
                 || !NetworkManager.ConnectedClients.TryGetValue(clientId, out var cliente)
-                || !cliente.PlayerObject
-                || !cliente.PlayerObject.TryGetComponent(out PlayerRoot jugador)
+                || !TryJugadorDe(cliente, out PlayerRoot jugador)
             )
                 return;
             ActualizarPresencia(clientId, jugador, volumen, entro);
+        }
+
+        private static bool TryJugadorDe(NetworkClient cliente, out PlayerRoot jugador)
+        {
+            foreach (var objeto in cliente.OwnedObjects)
+                if (objeto != null && objeto.TryGetComponent(out jugador))
+                    return true;
+            jugador = null;
+            return false;
         }
 
         private void ActualizarPresencia(ulong id, PlayerRoot jugador, int volumen, bool entro)
@@ -215,7 +215,10 @@ namespace TDOM.Unity
 
         private void ComprobarInicio()
         {
-            if (!IsServer || Fase.Value != ArenaEncounterPhase.Esperando)
+            if (!IsServer)
+                return;
+            ActualizarLlegadas();
+            if (Fase.Value != ArenaEncounterPhase.Esperando)
                 return;
             int presentesVivos = 0;
             foreach (var (id, vol) in _presencia)
@@ -232,11 +235,32 @@ namespace TDOM.Unity
                 IniciarPresentacion();
         }
 
+        private void ActualizarLlegadas()
+        {
+            bool ayla = false;
+            bool zendre = false;
+            foreach (var (id, volumenes) in _presencia)
+            {
+                if (
+                    volumenes.Count == 0
+                    || !_jugadores.TryGetValue(id, out var jugador)
+                    || jugador == null
+                    || !jugador.IsSpawned
+                )
+                    continue;
+                ayla |= jugador.CharacterId == CharacterIds.Ayla;
+                zendre |= jugador.CharacterId == CharacterIds.Zendre;
+            }
+            LlegoAyla.Value = ayla;
+            LlegoZendre.Value = zendre;
+        }
+
         private void IniciarPresentacion()
         {
             if (!IsServer || _reveladoEnEstaPartida || Fase.Value != ArenaEncounterPhase.Esperando)
                 return;
             _reveladoEnEstaPartida = true;
+            EntradaConsumida.Value = true;
             Fase.Value = ArenaEncounterPhase.Presentacion;
             if (GameSessionManager.Instance == null)
                 Debug.LogError(
@@ -261,8 +285,43 @@ namespace TDOM.Unity
 
         public void IniciarCombate()
         {
-            if (IsServer && Fase.Value == ArenaEncounterPhase.Presentacion)
-                Fase.Value = ArenaEncounterPhase.Combate;
+            if (!IsServer || Fase.Value != ArenaEncounterPhase.Presentacion)
+                return;
+            Fase.Value = ArenaEncounterPhase.Combate;
+            PuntoControlCombate.Value = true;
+        }
+
+        public bool ReanudaEnCombate(bool desdePantallaFinal, string ventanaFinal) =>
+            PuntoControlCombate.Value
+            && (!desdePantallaFinal || ventanaFinal == WindowsIds.DerrotaUI);
+
+        public void OlvidarPuntoControlServidor()
+        {
+            if (IsServer)
+                PuntoControlCombate.Value = false;
+        }
+
+        public void ReanudarCombateServidor()
+        {
+            if (!IsServer || !PuntoControlCombate.Value)
+                return;
+            _reveladoEnEstaPartida = true;
+            _senalJefeReveladoEnEstaPartida = true;
+            EntradaConsumida.Value = true;
+            ArenaSellada.Value = true;
+            SolicitarPuertasRpc(false);
+            AplicarTriggerEntrada(false);
+            AplicarTriggersArena(false);
+            Fase.Value = ArenaEncounterPhase.Combate;
+            GameSessionManager.Instance?.SpawnBossForEncounter();
+            MostrarHudCombateClientRpc();
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void MostrarHudCombateClientRpc()
+        {
+            var gameplay = UiManager.Instance?.GetGameplayWindow() as IGameplayHud;
+            gameplay?.SetHudVisible(true, true);
         }
 
         [Rpc(SendTo.ClientsAndHost)]
@@ -293,6 +352,7 @@ namespace TDOM.Unity
             AplicarTriggerEntrada(true);
             AplicarTriggersArena(true);
             Fase.Value = ArenaEncounterPhase.Esperando;
+            ActualizarLlegadas();
             RestablecerHudClientRpc();
         }
 

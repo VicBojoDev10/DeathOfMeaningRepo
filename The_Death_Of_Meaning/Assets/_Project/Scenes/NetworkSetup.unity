@@ -3770,6 +3770,14 @@ PrefabInstance:
       propertyPath: m_LocalPosition.y
       value: -0.4
       objectReference: {fileID: 0}
+    - target: {fileID: 1564972426247357909, guid: a444d9beeee86a94cb3ad76616354d1e, type: 3}
+      propertyPath: m_Size.x
+      value: 82
+      objectReference: {fileID: 0}
+    - target: {fileID: 1564972426247357909, guid: a444d9beeee86a94cb3ad76616354d1e, type: 3}
+      propertyPath: m_Size.y
+      value: 30
+      objectReference: {fileID: 0}
     - target: {fileID: 1717977776714297307, guid: a444d9beeee86a94cb3ad76616354d1e, type: 3}
       propertyPath: m_Size.z
       value: 0.936
@@ -3928,7 +3936,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5963571287509882162, guid: a444d9beeee86a94cb3ad76616354d1e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 162.5
+      value: 173.76315
+      objectReference: {fileID: 0}
+    - target: {fileID: 5963571287509882162, guid: a444d9beeee86a94cb3ad76616354d1e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 34.99999
       objectReference: {fileID: 0}
     - target: {fileID: 6000952229780554629, guid: a444d9beeee86a94cb3ad76616354d1e, type: 3}
       propertyPath: m_IsActive
@@ -5393,6 +5405,8 @@ MonoBehaviour:
   _puntoSpawnArek: {fileID: 6842293942417864967}
   _spawnPointZendre: {fileID: 85802601234731314}
   _spawnPointAyla: {fileID: 3443063804820025216}
+  _spawnPointZendreArena: {fileID: 1828991708}
+  _spawnPointAylaArena: {fileID: 875672950}
 --- !u!4 &1075050571
 Transform:
   m_ObjectHideFlags: 0

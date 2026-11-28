@@ -5,6 +5,7 @@ using TDOM.Gameplay.Core;
 using TDOM.Unity.Camera;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
+using TDOM.Unity.Vfx;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -14,6 +15,7 @@ namespace TDOM.Unity
     {
         private const int SegmentosVisualesRayo = 32;
         private const float FrecuenciaCentelleo = 24f;
+        private const float DireccionMinimaCarga = 0.0001f;
 
         [Header("Origen")]
         [SerializeField]
@@ -31,6 +33,15 @@ namespace TDOM.Unity
 
         [SerializeField]
         private AtaqueRayoVfxProfile _perfilVfx;
+
+        [SerializeField]
+        private VfxBase _vfxCarga;
+
+        [SerializeField]
+        private VfxBase _vfxDisparo;
+
+        [SerializeField]
+        private VfxBase _vfxImpacto;
 
         [Header("Sonido")]
         [SerializeField]
@@ -117,6 +128,58 @@ namespace TDOM.Unity
 
             AvisoRpc(_origenServidor, _finalesServidor);
             ReproducirSfxEn(_sfxCarga, _origenServidor);
+            LanzarVfxCarga();
+        }
+
+        private void LanzarVfxCarga()
+        {
+            VfxRed vfx = VfxJefe;
+            if (vfx == null || _vfxCarga == null)
+                return;
+
+            vfx.Lanzar(_vfxCarga, _origenServidor, Quaternion.LookRotation(DireccionCarga()));
+        }
+
+        private Vector3 DireccionCarga()
+        {
+            Vector3 suma = Vector3.zero;
+            foreach (Vector3 final in _finalesServidor)
+                suma += final - _origenServidor;
+
+            return suma.sqrMagnitude > DireccionMinimaCarga ? suma.normalized : transform.forward;
+        }
+
+        private void DetenerVfxCarga()
+        {
+            if (IsServer && _vfxCarga != null && VfxJefe != null)
+                VfxJefe.Detener(_vfxCarga);
+        }
+
+        private void LanzarVfxDisparo()
+        {
+            VfxRed vfx = VfxJefe;
+            if (vfx == null || _vfxDisparo == null)
+                return;
+
+            vfx.Lanzar(_vfxDisparo, _origenServidor, Quaternion.LookRotation(DireccionCarga()));
+            for (int i = 0; i < _finalesServidor.Length; i++)
+                vfx.LanzarEntre(_vfxDisparo, ObtenerInicioVisual(i), ObtenerFinalVisual(i));
+        }
+
+        private void LanzarVfxImpactos()
+        {
+            VfxRed vfx = VfxJefe;
+            if (vfx == null || _vfxImpacto == null)
+                return;
+
+            foreach (Vector3 final in _finalesServidor)
+                vfx.Lanzar(_vfxImpacto, final, Quaternion.identity);
+        }
+
+        private void DetenerVfxDisparo()
+        {
+            if (IsServer && _vfxDisparo != null && VfxJefe != null)
+                VfxJefe.Detener(_vfxDisparo);
         }
 
         private Vector3[] CalcularFinales(Vector3 origen)
@@ -196,6 +259,7 @@ namespace TDOM.Unity
                 {
                     ApagarRpc();
                     DetenerSfxJefe(_sfxDisparoLoop);
+                    DetenerVfxDisparo();
                     CambiarFase(FaseRayo.Terminado);
                 }
                 return;
@@ -224,6 +288,8 @@ namespace TDOM.Unity
                             );
                         RayoRpc(_inicioRecorridoServidor, _duracionRecorrido);
                         DetenerSfxJefe(_sfxCarga);
+                        DetenerVfxCarga();
+                        LanzarVfxDisparo();
                         ReproducirSfxEn(_sfxDisparoInicio, _origenServidor);
                         ReproducirSfxEn(_sfxDisparoLoop, _origenServidor);
                     }
@@ -240,6 +306,8 @@ namespace TDOM.Unity
                         ApagarRpc();
                         DetenerSfxJefe(_sfxDisparoLoop);
                         ReproducirSfxEn(_sfxDisparoFin, _origenServidor);
+                        DetenerVfxDisparo();
+                        LanzarVfxImpactos();
                     }
                     break;
 
@@ -476,6 +544,8 @@ namespace TDOM.Unity
         {
             DetenerSfxJefe(_sfxCarga);
             DetenerSfxJefe(_sfxDisparoLoop);
+            DetenerVfxCarga();
+            DetenerVfxDisparo();
             LimpiarVisuales();
             base.OnNetworkDespawn();
         }
