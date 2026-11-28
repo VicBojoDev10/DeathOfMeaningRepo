@@ -16,6 +16,12 @@ namespace TDOM.Unity.Combat
 
         public bool AnclaActiva { get; internal set; }
         public bool MinionCapturado => _minionCapturadoId.Value != 0;
+        private float _cooldownAnclaRestante;
+
+        public float CooldownAnclaNormalizado =>
+            _perfil != null && _perfil.StuckDuration > 0f
+                ? Mathf.Clamp01(_cooldownAnclaRestante / _perfil.StuckDuration)
+                : 0f;
 
         [SerializeField]
         private AnchorProfile _perfil;
@@ -173,6 +179,7 @@ namespace TDOM.Unity.Combat
                 return;
 
             float dt = Time.deltaTime;
+            _cooldownAnclaRestante = Mathf.Max(0f, _cooldownAnclaRestante - dt);
 
             var input = _input.Read();
             bool holdingL2R1 = input.AimHeld && input.GrappleHeld;
@@ -185,7 +192,13 @@ namespace TDOM.Unity.Combat
                 return;
             }
 
-            if (holdingL2R1 && !_root.AtaqueActivo && !AnclaActiva && !_esperandoSoltar)
+            if (
+                holdingL2R1
+                && !_root.AtaqueActivo
+                && !AnclaActiva
+                && !_esperandoSoltar
+                && _cooldownAnclaRestante <= 0f
+            )
             {
                 if (!_root.PuedePagarGancho)
                 {
@@ -207,6 +220,7 @@ namespace TDOM.Unity.Combat
                     var direccion = _root.ResolverApuntado(_origen.position).Direction;
                     LanzarAnclaRpc(_origen.position, direccion);
                     LanzarVfxAncla(direccion);
+                    _cooldownAnclaRestante = Mathf.Max(0f, _perfil.StuckDuration);
                 }
             }
             else if (AnclaActiva && !holdingL2R1)
@@ -442,6 +456,7 @@ namespace TDOM.Unity.Combat
         [Rpc(SendTo.Owner)]
         private void RechazarLanzamientoRpc()
         {
+            _cooldownAnclaRestante = 0f;
             DetenerVfxAncla();
             AnclaActiva = false;
             _lanzamientoPendiente = false;

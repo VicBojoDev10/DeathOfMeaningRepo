@@ -329,6 +329,8 @@ namespace TDOM.Unity.Player
                 _locomocion != null ? _locomocion.CooldownDashNormalizado : 0f,
                 _locomocion != null ? _locomocion.CooldownGanchoNormalizado : 0f
             );
+        public float CooldownAnclaNormalizado =>
+            _anchorLauncher != null ? _anchorLauncher.CooldownAnclaNormalizado : 0f;
         public bool SpawnInicialAplicado => _initialSpawnApplied;
         public Transform CameraTransform => _camera != null ? _camera.CamaraTransform : null;
         public PlayerInputReader InputReader => _inputReader;

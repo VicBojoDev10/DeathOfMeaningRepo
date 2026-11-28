@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TDOM.Gameplay;
 using TDOM.Gameplay.Core;
 using TDOM.Unity.Combat;
 using TDOM.Unity.Player;
@@ -51,6 +52,7 @@ namespace TDOM.Unity
         private bool _partidaIniciada;
         private bool _cronometroActivo;
         private float _inicioCronometro;
+        private RecolectorMetricasPartida _recolectorMetricas;
 
         public bool PartidaIniciadaEnServidor => _partidaIniciada;
 
@@ -60,6 +62,7 @@ namespace TDOM.Unity
         {
             _inicioCronometro = Time.time;
             _cronometroActivo = true;
+            ObtenerRecolectorMetricas().Iniciar(NetworkManager);
             Debug.Log("[GameSessionManager] Cronómetro de partida iniciado.");
         }
 
@@ -69,16 +72,20 @@ namespace TDOM.Unity
                 return;
 
             float tiempoFinal = Mathf.Max(0f, Time.time - _inicioCronometro);
+            int fase = FaseActualJefe();
+            RegistroPartida registro = ObtenerRecolectorMetricas()
+                .Finalizar(ResultadoPartida.Victoria.ToString(), tiempoFinal, fase);
             PauseManager.Instance?.EstablecerResultadoDesdeServidor(ResultadoPartida.Victoria);
             LimpiarMinionsEnServidor();
             _cronometroActivo = false;
             Debug.Log($"[GameSessionManager] Partida terminada en {tiempoFinal:F1} segundos.");
-            MostrarVictoriaClientRpc(tiempoFinal);
+            MostrarVictoriaClientRpc(RecolectorMetricasPartida.Serializar(registro));
         }
 
         [Rpc(SendTo.ClientsAndHost)]
-        private void MostrarVictoriaClientRpc(float tiempoFinal)
+        private void MostrarVictoriaClientRpc(string registroJson)
         {
+            RegistroPartida registro = RecolectorMetricasPartida.Deserializar(registroJson);
             GlobalGameManager.Instance?.DetenerMusicaPartida();
             var ui = UiManager.Instance;
 
@@ -86,7 +93,7 @@ namespace TDOM.Unity
             {
                 ui?.CloseGameplayWindow();
                 ui?.ShowWindow("victoriaui");
-                (ui?.GetWindow("victoriaui") as VictoriaUI)?.MostrarTiempoFinal(tiempoFinal);
+                (ui?.GetWindow("victoriaui") as VictoriaUI)?.MostrarRegistro(registro);
             }
 
             var transicion = ui?.TransitionManager;
@@ -545,16 +552,22 @@ namespace TDOM.Unity
             if (!IsServer || !_cronometroActivo)
                 return;
 
+            float tiempoFinal = Mathf.Max(0f, Time.time - _inicioCronometro);
+            RegistroPartida registro = ObtenerRecolectorMetricas()
+                .Finalizar(ResultadoPartida.Derrota.ToString(), tiempoFinal, fase);
             _cronometroActivo = false;
             PauseManager.Instance?.EstablecerResultadoDesdeServidor(ResultadoPartida.Derrota);
             LimpiarMinionsEnServidor();
-            Debug.Log($"[GameSessionManager] Derrota registrada en la fase {fase}.");
-            MostrarDerrotaClientRpc(fase);
+            Debug.Log(
+                $"[GameSessionManager] Derrota registrada en la fase {fase} tras {tiempoFinal:F1} segundos."
+            );
+            MostrarDerrotaClientRpc(RecolectorMetricasPartida.Serializar(registro));
         }
 
         [Rpc(SendTo.ClientsAndHost)]
-        private void MostrarDerrotaClientRpc(int fase)
+        private void MostrarDerrotaClientRpc(string registroJson)
         {
+            RegistroPartida registro = RecolectorMetricasPartida.Deserializar(registroJson);
             GlobalGameManager.Instance?.DetenerMusicaPartida();
             var ui = UiManager.Instance;
 
@@ -562,7 +575,7 @@ namespace TDOM.Unity
             {
                 ui?.CloseGameplayWindow();
                 ui?.ShowWindow(WindowsIds.DerrotaUI);
-                (ui?.GetWindow(WindowsIds.DerrotaUI) as DerrotaUI)?.MostrarFaseJefe(fase);
+                (ui?.GetWindow(WindowsIds.DerrotaUI) as DerrotaUI)?.MostrarRegistro(registro);
             }
 
             var transicion = ui?.TransitionManager;
@@ -590,9 +603,7 @@ namespace TDOM.Unity
         {
             if (!IsServer || !_inicioPartidaNotificado)
                 return;
-
-            PauseManager.Instance?.EstablecerResultadoDesdeServidor(ResultadoPartida.Victoria);
-            MostrarVictoriaDebugClientRpc();
+            FinalizarPartidaDesdeServidor();
         }
 
         [Rpc(SendTo.Server)]
@@ -605,26 +616,21 @@ namespace TDOM.Unity
             int fase = jefe != null ? jefe.Fase.Value : 1;
             FinalizarPartidaPorDerrotaDesdeServidor(fase);
         }
-
-        [Rpc(SendTo.ClientsAndHost)]
-        private void MostrarVictoriaDebugClientRpc()
-        {
-            GlobalGameManager.Instance?.DetenerMusicaPartida();
-            var ui = UiManager.Instance;
-
-            void MostrarVictoria()
-            {
-                ui?.CloseGameplayWindow();
-                ui?.ShowWindow("victoriaui");
-            }
-
-            var transicion = ui?.TransitionManager;
-
-            if (transicion != null)
-                transicion.EjecutarAccionConCarga(MostrarVictoria);
-            else
-                MostrarVictoria();
-        }
 #endif
+
+        private RecolectorMetricasPartida ObtenerRecolectorMetricas()
+        {
+            if (_recolectorMetricas == null)
+                _recolectorMetricas = GetComponent<RecolectorMetricasPartida>();
+            if (_recolectorMetricas == null)
+                _recolectorMetricas = gameObject.AddComponent<RecolectorMetricasPartida>();
+            return _recolectorMetricas;
+        }
+
+        private int FaseActualJefe()
+        {
+            var jefe = FindAnyObjectByType<BossController>();
+            return jefe != null ? jefe.Fase.Value : 1;
+        }
     }
 }

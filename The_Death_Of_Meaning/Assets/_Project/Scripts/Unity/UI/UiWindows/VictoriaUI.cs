@@ -1,3 +1,4 @@
+using TDOM.Gameplay;
 using TDOM.Unity.UI;
 using TMPro;
 using UnityEngine;
@@ -56,6 +57,53 @@ namespace TDOM.Unity
                 horas > 0
                     ? $"Tiempo: {horas:00}:{minutos:00}:{segundos:00}"
                     : $"Tiempo: {minutos:00}:{segundos:00}";
+        }
+
+        public void MostrarRegistro(RegistroPartida registro)
+        {
+            if (registro == null)
+                return;
+
+            MostrarTiempoFinal(registro.DuracionSegundos);
+            EstablecerTexto("NumDT", Formatear(registro.DanoRecibidoTotal));
+            EstablecerTexto("NumDIZ", Formatear(DanoHecho(registro, "Zendre")));
+            EstablecerTexto("NumDIA", Formatear(DanoHecho(registro, "Ayla")));
+            EstablecerTexto("NumVCZ", Formatear(VecesAbatido(registro, "Zendre")));
+            EstablecerTexto("NumVCA", Formatear(VecesAbatido(registro, "Ayla")));
+        }
+
+        private float DanoHecho(RegistroPartida registro, string personaje)
+        {
+            float total = 0f;
+            foreach (var jugador in registro.Jugadores)
+                if (jugador.Personaje == personaje)
+                    total += jugador.DanoHecho;
+            return total;
+        }
+
+        private int VecesAbatido(RegistroPartida registro, string personaje)
+        {
+            int total = 0;
+            foreach (var jugador in registro.Jugadores)
+                if (jugador.Personaje == personaje)
+                    total += jugador.VecesAbatido;
+            return total;
+        }
+
+        private static string Formatear(float valor) => $"{Mathf.Max(0f, valor):F0}";
+
+        private static string Formatear(int valor) => Mathf.Max(0, valor).ToString();
+
+        private void EstablecerTexto(string nombreObjeto, string valor)
+        {
+            foreach (var texto in GetComponentsInChildren<TMP_Text>(true))
+            {
+                if (texto.gameObject.name == nombreObjeto)
+                {
+                    texto.text = valor;
+                    return;
+                }
+            }
         }
 
         private void OnJugarDeNuevoClicked()
